@@ -253,8 +253,18 @@ Einsatz verloren geht.
 - Physik wie beim Minigolf auf jedem Gerät gleich; Computer-Gegner zielen über den „Geisterball“
   auf passende Löcher und rechnen mehrere Stöße durch.
 
-### Ideen für später
-- Weitere Spiele mit Freunden: Seeschlacht (Schiffe versenken), Kanonenduell, Messerwerfen/Darts, Vier gewinnt
+### Erweiterung: Flugkapitän und Vier gewinnt ✅ (Teil 1)
+- **✈️ Flugkapitän** (schnelles Spiel): Das Flugzeug startet vom Flaggschiff und fliegt übers Meer.
+  Unterwegs sammelt es Beträge (+) und Multiplikatoren (×), Raketen halbieren den Gewinn. Am Ende
+  muss es auf dem Flaggschiff landen, sonst stürzt es ins Meer. Vier Geschwindigkeiten: je schneller,
+  desto länger der Flug und desto höher, aber unsicherer der Gewinn. Der Flug steht beim Start fest
+  und wird gespeichert – Neuladen zahlt trotzdem aus.
+- **🔴 Vier gewinnt** zu zweit, gegen Computer oder online. Ist das Brett voll, wird es geleert und
+  weitergespielt. Computer-Gegner rechnen je nach Können 3 bis 6 Züge voraus.
+
+### Geplant
+- Teil 2: ⚓ Seeschlacht (Schiffe versenken) und 🎯 Darts in der Taverne
+- Teil 3: 💥 Kanonenduell
 
 ## Entscheidungen
 

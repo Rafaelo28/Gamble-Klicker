@@ -13,6 +13,8 @@ Schatztruhe voll ist, wartet das Casino:
 - 🏝️ **Schatzinsel** – nach Schätzen graben, Totenköpfen ausweichen, rechtzeitig abkassieren
 - 💣 **Kanonenkugel** – der Multiplikator steigt, bis die Kugel explodiert
 - ⛵ **Schiffsrennen** – fünf Piratenschiffe, neue Quoten vor jedem Rennen
+- ✈️ **Flugkapitän** – das Flugzeug sammelt Beträge und Multiplikatoren, weicht Raketen aus und muss
+  am Ende auf dem Flaggschiff landen; vier Geschwindigkeiten von *Gemütlich* bis *Turbo*
 - 🎡 **Roulette** – Rot oder Schwarz? Oder alles auf die 17?
 - 🃏 **Blackjack** – schlag den Dealer, ohne über 21 zu kommen; nach dem Teilen so viele Karten, wie du willst
 - ♠️ **Texas Hold'em** – Turnier gegen Käpt'n Blaubart, Long John und andere Piraten, jeder mit eigener
@@ -23,6 +25,7 @@ Schatztruhe voll ist, wartet das Casino:
 - 🎲 **Lügenwürfel** – bluffen, bieten, „Lüge!“ rufen: gegen Computer-Piraten oder online mit Freunden
 - ⛳ **Minigolf** – sechs Bahnen in der Piratenbucht mit Kanonenkugeln, Sand, Haifischbecken und Hügeln
 - 🎱 **Billard** – 8-Ball zu zweit mit Zielhilfe, Fouls und „Ball in der Hand“
+- 🔴 **Vier gewinnt** – vier Steine in eine Reihe bringen, gegen den Computer oder online
 
 Schnelle Klicks bauen eine **Combo** auf, mit etwas Glück landest du einen **kritischen Treffer**.
 Gebäude-Upgrades gibt es in sieben Stufen bis *Mythos*, dazu Synergien zwischen den Gebäuden.
@@ -73,7 +76,7 @@ ab iPadOS 15. Ton gibt es nach dem ersten Antippen (Vorgabe von Safari).
    Alle bekommen die gleichen Tisch-Chips, das Preisgeld sind alle Eintritte zusammen.
 4. Der Gastgeber startet das Spiel. Freie Plätze können Computer-Gegner übernehmen.
 
-Lügenwürfel, Minigolf und Billard funktionieren genauso (Casino → Spiel → *Mit Freunden spielen*).
+Lügenwürfel, Minigolf, Billard und Vier gewinnt funktionieren genauso (Casino → Spiel → *Mit Freunden spielen*).
 
 Die Browser verbinden sich direkt miteinander (WebRTC über [PeerJS](https://peerjs.com/)).
 Der Gastgeber leitet den Tisch – er sollte das Spiel geöffnet lassen, bis das Turnier vorbei ist.
@@ -86,9 +89,9 @@ Den Fahrplan mit allen Phasen findest du in [PROJEKTPLAN.md](PROJEKTPLAN.md).
 **Aktueller Stand:** Alle 8 Phasen fertig:
 - 👆 Klicker mit Gebäuden, Upgrades, Side-Slot, Statistiken und sicherem Speichern
 - 🎰 Slot-Maschine · 🎟️ Rubbellose · 🎡 Roulette · 🃏 Blackjack
-- 🍀 Glücksrad · 🪙 Münzfall · 🏝️ Schatzinsel · 💣 Kanonenkugel · ⛵ Schiffsrennen
+- 🍀 Glücksrad · 🪙 Münzfall · 🏝️ Schatzinsel · 💣 Kanonenkugel · ⛵ Schiffsrennen · ✈️ Flugkapitän
 - 🏴‍☠️ 🐙 🌋 Drei Video-Slots mit Freispielen und Bonusrunde
-- 🎲 Lügenwürfel, ⛳ Minigolf und 🎱 Billard gegen Computer und online mit Freunden
+- 🎲 Lügenwürfel, ⛳ Minigolf, 🎱 Billard und 🔴 Vier gewinnt gegen Computer und online mit Freunden
 - ♠️ Texas Hold'em als Turnier gegen Computer-Gegner und online mit Freunden
 - 🏆 Erfolge, goldene Dublone, Offline-Einnahmen, große Fahrt (Prestige) und VIP-Karten
 - 🔊 Soundeffekte, ✨ Gewinn-Animationen, 📱 iPad-Optimierung
@@ -102,6 +105,7 @@ node tests/casino.test.js
 node tests/dice.test.js
 node tests/minigolf.test.js
 node tests/billiards.test.js
+node tests/connect4.test.js
 ```
 Prüft die Poker-Handbewertung, spielt komplette Turniere zwischen Computer-Gegnern durch
 (auch mit Spielern, die mittendrin aufgeben, im Turbo- und im Blitz-Modus) und kontrolliert die
