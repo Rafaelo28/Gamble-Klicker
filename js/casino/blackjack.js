@@ -11,6 +11,9 @@ window.GK = window.GK || {};
 
   let els = {};
   let betControl;
+  // Welche Karten waren beim letzten Zeichnen schon zu sehen? Nur neue Karten fliegen herein.
+  let seen = { round: null, dealer: 0, hands: [], holeHidden: true };
+  let celebration = null; // Gewinn, der nach dem Austeilen gefeiert wird
 
   function state() {
     return GK.casino.data('blackjack', () => ({ bet: 100, shoe: [], round: null }));
@@ -203,6 +206,7 @@ window.GK = window.GK || {};
     }
     const summary = round.results.map(r => r.text).join(' / ');
     GK.casino.record('blackjack', totalBet, totalPayout, summary);
+    celebration = { payout: totalPayout, bet: totalBet, natural: playerNatural && !dealerHasBj, text: summary };
   }
 
   // ---------- Darstellung ----------
@@ -226,22 +230,49 @@ window.GK = window.GK || {};
     }
 
     const hideHole = !round.finished;
-    els.dealer.innerHTML = round.dealer.map((c, i) => GK.cards.html(c, hideHole && i === 1)).join('');
+    const prev = seen.round === round ? seen : { dealer: 0, hands: [], holeHidden: true };
+    let delay = 0;
+    // Neue Karten nacheinander hereinfliegen lassen (mit Sound)
+    const cardHtml = (card, hidden, isNew, flip) => {
+      if (!isNew && !flip) return GK.cards.html(card, hidden);
+      const d = delay;
+      delay += 0.18;
+      setTimeout(() => GK.sound.play(flip ? 'flip' : 'card'), d * 1000);
+      return GK.cards.html(card, hidden, flip ? 'flip-in' : 'deal-in', `animation-delay: ${d}s`);
+    };
+    const handsHtml = round.hands.map(hand => hand.cards.map((c, j) => ({ c, j })));
+    // Reihenfolge wie beim echten Austeilen: erst die Spieler-Hände, dann der Dealer
+    const handCards = handsHtml.map((cards, i) =>
+      cards.map(({ c, j }) => cardHtml(c, false, j >= (prev.hands[i] || 0), false)).join(''));
+    els.dealer.innerHTML = round.dealer.map((c, i) => {
+      const isNew = i >= prev.dealer;
+      const flip = i === 1 && !isNew && prev.holeHidden && !hideHole;
+      return cardHtml(c, hideHole && i === 1, isNew, flip);
+    }).join('');
+    seen = { round, dealer: round.dealer.length, hands: round.hands.map(h => h.cards.length), holeHidden: hideHole };
     els.dealerValue.textContent = hideHole ? String(handValue([round.dealer[0]]).total) : valueLabel(round.dealer);
 
     els.hands.innerHTML = round.hands.map((hand, i) => {
       const active = !round.finished && i === round.active;
       const result = round.finished ? round.results[i] : null;
       const resultCls = result ? (result.payout > hand.bet ? 'win' : result.payout === hand.bet ? '' : 'loss') : '';
-      return `<div class="bj-hand ${active ? 'active' : ''}">
-        <div class="bj-cards">${hand.cards.map(c => GK.cards.html(c)).join('')}</div>
+      return `<div class="bj-hand ${active ? 'active' : ''} ${result ? 'done-' + (resultCls || 'push') : ''}">
+        <div class="bj-cards">${handCards[i]}</div>
         <div class="bj-hand-info">
           <span class="bj-value">${valueLabel(hand.cards)}</span>
           <span class="bj-bet">${GK.formatMoneyHTML(hand.bet)}${hand.doubled ? ' (verdoppelt)' : ''}</span>
-          ${result ? `<span class="bj-result ${resultCls}">${result.text}</span>` : ''}
+          ${result ? `<span class="bj-result ${resultCls}" style="animation-delay: ${delay + 0.1}s">${result.text}</span>` : ''}
         </div>
       </div>`;
     }).join('');
+
+    if (celebration) {
+      const c = celebration;
+      celebration = null;
+      setTimeout(() => GK.fx.celebrate(c.payout, c.bet, {
+        el: els.hands, level: c.natural ? 'big' : undefined, subtitle: c.natural ? 'Blackjack!' : c.text,
+      }), (delay + 0.25) * 1000);
+    }
 
     if (round.finished) {
       const diff = round.totalPayout - round.totalBet;
@@ -318,6 +349,12 @@ window.GK = window.GK || {};
   }
 
   function refresh() {
+    // Nach dem Neuladen nichts hereinfliegen lassen, sondern den Stand direkt zeigen
+    const round = state().round;
+    celebration = null;
+    seen = round
+      ? { round, dealer: round.dealer.length, hands: round.hands.map(h => h.cards.length), holeHidden: !round.finished }
+      : { round: null, dealer: 0, hands: [], holeHidden: true };
     renderTable();
   }
 

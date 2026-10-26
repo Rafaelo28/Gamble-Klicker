@@ -5,6 +5,7 @@ window.GK = window.GK || {};
 (function () {
   const HISTORY_LENGTH = 15;
   const games = [];
+  const extraNames = {}; // Spiele außerhalb der Casino-Lobby, z. B. der Side-Slot im Klicker
 
   // ---------- Faire Zufallszahlen (kryptografischer Zufall des Browsers) ----------
 
@@ -79,6 +80,8 @@ window.GK = window.GK || {};
     const next = VIP_LEVELS[vipLevel() + 1];
     if (!next || !GK.spend(next.cost)) return false;
     casino().vip = vipLevel() + 1;
+    GK.sound.play('upgrade');
+    GK.fx.confetti(80);
     GK.unlockAchievement(['', 'vipSilver', 'vipGold', 'vipDiamond'][casino().vip]);
     GK.save();
     renderLobbyInfo();
@@ -179,6 +182,7 @@ window.GK = window.GK || {};
           max: () => Math.min(GK.state.money, maxBet()),
         };
         apply(ops[btn.dataset.op]());
+        GK.sound.play('chip');
       });
     });
 
@@ -198,9 +202,13 @@ window.GK = window.GK || {};
     games.push(game);
   }
 
+  function registerName(id, label) {
+    extraNames[id] = label;
+  }
+
   function gameName(id) {
     const game = games.find(g => g.id === id);
-    return game ? `${game.emoji} ${game.name}` : id;
+    return game ? `${game.emoji} ${game.name}` : extraNames[id] || id;
   }
 
   function openGame(id) {
@@ -220,6 +228,7 @@ window.GK = window.GK || {};
     games.forEach(game => {
       const card = document.createElement('button');
       card.className = 'casino-card';
+      card.dataset.game = game.id;
       card.innerHTML = `<div class="casino-emoji">${game.emoji}</div><h3>${game.name}</h3><p>${game.desc}</p>`;
       card.addEventListener('click', () => openGame(game.id));
       grid.appendChild(card);
@@ -311,7 +320,7 @@ window.GK = window.GK || {};
   }
 
   GK.casino = {
-    register, data, bet, payout, refund, record, createBetControl, init, render, refresh, openGame, show,
+    register, registerName, data, bet, payout, refund, record, createBetControl, init, render, refresh, openGame, show,
     VIP_LEVELS, vipLevel, maxBet, buyVip,
   };
 })();

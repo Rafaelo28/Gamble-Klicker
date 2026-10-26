@@ -33,6 +33,8 @@ window.GK = window.GK || {};
     { id: 'rouletteZero', icon: '🟢', name: 'Alles auf Null',       desc: 'Beim Roulette auf die 0 gesetzt – und gewonnen.' },
     { id: 'bjNatural',   icon: '🃏', name: 'Blackjack!',            desc: 'Mit den ersten zwei Karten 21 Punkte.' },
     { id: 'bjSplitWin',  icon: '✌️', name: 'Doppelt hält besser',   desc: 'Nach dem Teilen alle Hände gewonnen.' },
+    { id: 'scratch1',    icon: '🎟️', name: 'Rubbelfieber',          desc: 'Dein erstes Rubbellos aufgedeckt.' },
+    { id: 'scratchTop',  icon: '🤑', name: 'Hauptgewinn!',          desc: 'Beim Rubbellos den 1.000-fachen Gewinn geholt.' },
     { id: 'highRoller',  icon: '💸', name: 'High Roller',           desc: '1 Million Dublonen Gewinn in einer Runde.', check: s => s.casino.biggestWin >= 1e6 },
     { id: 'broke',       icon: '🫙', name: 'Pleite',                desc: 'Im Casino alles verspielt. Passiert den Besten.' },
     { id: 'vipSilver',   icon: '🥈', name: 'Silber-Mitglied',       desc: 'Die Silber-Karte gekauft.' },
@@ -59,6 +61,7 @@ window.GK = window.GK || {};
     const a = byId[id];
     if (!a || has(id)) return;
     GK.state.achievements.push(id);
+    GK.sound.play('achievement');
     GK.notify(`<span class="notify-icon">${a.icon}</span><span><b>Erfolg freigeschaltet: ${a.name}</b><br>${a.desc} · +1 % Einkommen</span>`);
     GK.save();
   };

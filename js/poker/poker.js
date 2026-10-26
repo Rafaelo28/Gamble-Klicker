@@ -100,6 +100,7 @@ window.GK = window.GK || {};
     if (place === 1) GK.unlockAchievement('pokerWin');
     GK.casino.record('poker', tr.entry, win, `${place}. Platz · ${tr.name}`);
     afterChange();
+    GK.fx.celebrate(win, tr.entry, { level: place === 1 ? 'mega' : undefined, subtitle: `${place}. Platz – ${tr.name}` });
   }
 
   // Nach jeder Änderung: speichern, neu zeichnen und den nächsten Schritt planen

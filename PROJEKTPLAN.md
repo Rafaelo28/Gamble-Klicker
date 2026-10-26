@@ -25,12 +25,17 @@ css/style.css       Aussehen (Casino-Design, dunkel mit Gold-Akzenten)
 js/format.js        Zahlen schön formatieren (1.234 / 1,23 Mio.), Dublonen-Symbol
 js/state.js         Spielstand: Dublonen verdienen/ausgeben, Speichern/Laden, Export/Import
 js/clicker.js       Klicker: Gebäude, Upgrades, Einkommen
+js/side-slot.js     Side-Slot unter der Klick-Münze
+js/sound.js         Soundeffekte (im Browser erzeugt, keine Dateien)
+js/fx.js            Effekte: Münzregen, Konfetti, Gewinn-Banner
 js/achievements.js  Erfolge
 js/progress.js      Boni, große Fahrt (Prestige), goldene Dublone, Offline-Einnahmen
 js/main.js          Spielschleife, Tabs, Autosave
 js/casino/casino.js Casino-Lobby, Einsatz-Auswahl, VIP-Karten, fairer Zufall, Statistik & Verlauf
 js/casino/cards.js  Spielkarten (für Blackjack und Poker)
+js/casino/slot-machine.js Gemeinsame Walzen und Gewinntabelle (Slot-Maschine + Side-Slot)
 js/casino/slots.js  Slot-Maschine
+js/casino/scratch.js Rubbellose
 js/casino/roulette.js  Roulette
 js/casino/blackjack.js Blackjack
 js/poker/evaluator.js  Poker-Handbewertung
@@ -41,6 +46,7 @@ js/poker/table-ui.js   Darstellung des Poker-Tisches
 js/poker/multiplayer.js Poker mit Freunden im Online-Raum
 js/poker/poker.js   Poker-Lobby und Turnier gegen Computer
 tests/poker.test.js Tests für Handbewertung, Engine und Preise (node tests/poker.test.js)
+icons/, manifest.webmanifest  App-Symbol und Einstellungen für den Home-Bildschirm
 ```
 
 Der zentrale Spielstand bietet eine kleine Schnittstelle (`GK.earn()`,
@@ -139,7 +145,7 @@ Einsatz verloren geht.
   Mitspieler und Gastgeber, Bedenkzeit, Aufgeben, Raum schließen, Turnier bis zum Ende
 
 ### ✅ Phase 7 – Fortschritt & Motivation *(umgesetzt)*
-- **34 Erfolge** (Klicker, Casino, Poker, große Fahrt) – jeder gibt dauerhaft +1 % Einkommen,
+- **36 Erfolge** (Klicker, Casino, Poker, große Fahrt) – jeder gibt dauerhaft +1 % Einkommen,
   eigene Seite „🏆 Fortschritt“
 - **Goldene Dublone**: erscheint alle 1–2,5 Minuten irgendwo für 13 Sekunden. Anklicken bringt
   Schatzfund (Dublonen), Goldrausch (Einkommen ×7 für 60 s) oder Klickfieber (Klicks ×25 für 20 s)
@@ -153,9 +159,20 @@ Einsatz verloren geht.
   Diamant unbegrenzt (kostet 5 Mrd.). Silber schaltet den Kapitänstisch frei, Gold den
   Königlichen Salon.
 
-### Phase 8 – Feinschliff
-- Soundeffekte (abschaltbar)
-- Weitere Optimierung für Handy/Tablet
+### ✅ Phase 8 – Feinschliff, Sound & iPad *(umgesetzt)*
+- **Soundeffekte** für Klicks, Käufe, Walzen, Roulette-Kugel, Karten, Chips, Rubbeln, Erfolge
+  und Gewinne – live im Browser erzeugt, Ein/Aus-Knopf oben und Lautstärke in den Einstellungen
+- **Gewinn-Feiern** in 4 Stufen: Gewinn (Münzen fliegen), Großer Gewinn (Banner + Konfetti),
+  Mega-Gewinn (Münzregen), Jackpot (alles + Wackeln + Fanfare). Einstellung „Animationen reduziert“.
+- **Neue Oberfläche**: feste Kopfzeile, Tabs als Leiste, glänzende Münze mit Lichtstrahlen,
+  Walzen, die sich wirklich drehen, Roulette-Kugel, Karten fliegen herein und drehen sich um
+- **Rubbellose**: 4 Lose (100 bis 100.000 Dublonen), 3×3-Feld mit dem Finger freirubbeln,
+  drei gleiche Beträge gewinnen, Hauptgewinn 1.000×, Auszahlungsquote 92 %
+- **Side-Slot** direkt unter der Klick-Münze mit Dauer-Automatik – klicken und nebenbei zocken
+- **Multiplayer**: Eintritt frei wählbar (ab 100 Dublonen); Mitspieler bestätigen den Eintritt
+- **iPad (8. Generation)**: Layouts für 810 × 1080 (hochkant) und 1080 × 810 (quer), große
+  Tippflächen, kein Doppeltipp-Zoom, keine versehentliche Textauswahl, schnelles Tippen mit
+  mehreren Fingern, Rubbeln ohne Scrollen, Vollbild-App über „Zum Home-Bildschirm“ mit eigenem Symbol
 
 ## Entscheidungen
 

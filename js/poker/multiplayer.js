@@ -4,7 +4,8 @@
 // - Ein Spieler eröffnet einen Raum und wird Gastgeber. Er bekommt einen Raum-Code.
 // - Freunde geben den Code ein. Die Browser verbinden sich direkt miteinander (WebRTC über
 //   die Bibliothek PeerJS; deren kostenloser Server hilft nur beim Finden der Mitspieler).
-// - Jeder zahlt beim Betreten den Eintritt in Dublonen. Alle bekommen gleich viele Tisch-Chips.
+// - Der Gastgeber legt den Eintritt fest. Wer beitritt, sieht ihn und bestätigt die Zahlung.
+//   Alle bekommen gleich viele Tisch-Chips, das Preisgeld sind alle Eintritte zusammen.
 // - Der Gastgeber führt die Spiel-Engine aus, steuert die Computer-Gegner und schickt jedem
 //   Spieler nur die Karten, die er sehen darf.
 // - Gastgeber und Mitspieler können die Seite neu laden: Der Raum wird gespeichert und die
@@ -13,7 +14,7 @@ window.GK = window.GK || {};
 GK.poker = GK.poker || {};
 
 (function () {
-  const PROTOCOL = 1;
+  const PROTOCOL = 2;
   const ID_PREFIX = 'gamble-klicker-';
   const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // ohne leicht verwechselbare Zeichen (0/O, 1/I)
   const CODE_LENGTH = 5;
@@ -25,6 +26,8 @@ GK.poker = GK.poker || {};
   const HEARTBEAT = 2000;          // Lebenszeichen alle 2 Sekunden …
   const HEARTBEAT_TIMEOUT = 8000;  // … bleibt es so lange aus, gilt die Verbindung als getrennt
   const MAX_NAME = 16;
+  const MIN_ENTRY = 100;
+  const ENTRY_PRESETS = [1000, 10000, 100000, 1e6, 1e7];
   const AVATARS = ['😎', '🤠', '🧐', '😺', '🐸', '🦊', '🐼', '🐯', '🦄', '🐙', '🦈', '🐵'];
 
   const engine = () => GK.poker.engine;
@@ -51,6 +54,7 @@ GK.poker = GK.poker || {};
       name: 'Spieler ' + (100 + GK.rng.int(900)),
       avatar: AVATARS[GK.rng.int(AVATARS.length)],
       playerId: randomId(),
+      lastEntry: 1000,
       session: null,
       lastResult: null,
     }));
@@ -91,8 +95,9 @@ GK.poker = GK.poker || {};
 
   // ---------- Dublonen: Eintritt, Auszahlung, Erstattung ----------
 
+  // Anzeige-Infos zum Raum (Eintritt legt der Gastgeber fest)
   function sessionTier() {
-    return T().tier(session().tierId);
+    return { icon: '👥', name: 'Freundesrunde', entry: session().entry };
   }
 
   // Eigenen Platz abrechnen (genau einmal pro Turnier)
@@ -106,7 +111,8 @@ GK.poker = GK.poker || {};
     GK.casino.payout(win);
     GK.unlockAchievement('pokerMpPlay');
     if (place === 1) GK.unlockAchievement('pokerMpWin');
-    GK.casino.record('poker', tr.entry, win, `${place}. Platz · ${tr.name} (mit Freunden)`);
+    GK.casino.record('poker', tr.entry, win, `${place}. Platz · Freundesrunde`);
+    setTimeout(() => GK.fx.celebrate(win, tr.entry, { level: place === 1 ? 'mega' : undefined, subtitle: `${place}. Platz – Freundesrunde` }), 600);
   }
 
   // Gibt true zurück, wenn tatsächlich etwas erstattet wurde
@@ -125,7 +131,7 @@ GK.poker = GK.poker || {};
     const s = session();
     if (!s) return;
     if (refund && refundEntry()) message += ' Dein Eintritt wurde erstattet.';
-    const tr = s.tierId ? sessionTier() : null;
+    const tr = s.entry ? sessionTier() : null;
     store().lastResult = { message, result: s.result || null, tierName: tr ? tr.name : '' };
     store().session = null;
     clearTimeout(hostTimer);
@@ -166,21 +172,22 @@ GK.poker = GK.poker || {};
 
   // ========== Gastgeber ==========
 
-  function createRoom(tierId) {
-    const tr = T().tier(tierId);
-    if (GK.casino.vipLevel() < tr.vip) return GK.toast(`Für diesen Tisch brauchst du die ${GK.casino.VIP_LEVELS[tr.vip].name}-Karte.`);
+  function createRoom(entry) {
+    entry = Math.floor(Number(entry) || 0);
+    if (entry < MIN_ENTRY) return GK.toast(`Der Eintritt muss mindestens ${GK.formatNumber(MIN_ENTRY)} Dublonen betragen.`);
     if (GK.poker.singleActive()) return GK.toast('Beende zuerst dein Turnier gegen die Computer-Gegner.');
-    if (!GK.casino.bet(tr.entry)) return GK.toast('Nicht genug Dublonen für den Eintritt.');
+    if (!GK.casino.bet(entry)) return GK.toast('Nicht genug Dublonen für den Eintritt.');
     const me = store();
+    me.lastEntry = entry;
     me.session = {
       role: 'host',
       code: newCode(),
       fresh: true,            // Raum-Code noch nicht beim Server angemeldet
-      tierId,
+      entry,
       phase: 'lobby',
       paid: true,
       settled: false,
-      members: [{ playerId: me.playerId, name: me.name, avatar: me.avatar }],
+      members: [{ playerId: me.playerId, name: me.name, avatar: me.avatar, ready: true }],
       fillBots: true,
       table: null,
       deadline: null,
@@ -273,12 +280,13 @@ GK.poker = GK.poker || {};
           send(conn, { type: 'error', fatal: true, message: 'Der Raum ist schon voll.' });
           return;
         }
-        member = { playerId, name, avatar };
+        member = { playerId, name, avatar, ready: false };
         s.members.push(member);
       } else if (s.phase === 'lobby') {
         member.name = name;
         member.avatar = avatar;
       }
+      if (msg.paid) member.ready = true; // hat den Eintritt schon bezahlt (z. B. nach dem Neuladen)
       const old = net.conns.get(playerId);
       conn.playerId = playerId;
       net.conns.set(playerId, conn);
@@ -292,7 +300,11 @@ GK.poker = GK.poker || {};
     }
 
     if (!conn.playerId || msg.type === 'ping') return;
-    if (msg.type === 'action' && s.phase === 'playing') {
+    if (msg.type === 'join' && s.phase === 'lobby') {
+      const member = s.members.find(m => m.playerId === conn.playerId);
+      if (member) member.ready = true;
+      afterHostChange();
+    } else if (msg.type === 'action' && s.phase === 'playing') {
       const seat = s.table.players.findIndex(p => p.id === conn.playerId);
       playerAction(seat, msg.action);
     } else if (msg.type === 'leave') {
@@ -327,7 +339,15 @@ GK.poker = GK.poker || {};
 
   function startGame() {
     const s = session();
-    if (s.role !== 'host' || s.phase !== 'lobby' || s.members.length < 2) return;
+    if (s.role !== 'host' || s.phase !== 'lobby' || s.members.filter(m => m.ready).length < 2) return;
+    // Wer den Eintritt noch nicht bezahlt hat, spielt nicht mit
+    s.members.filter(m => !m.ready).forEach(m => {
+      const conn = net.conns.get(m.playerId);
+      send(conn, { type: 'error', fatal: true, message: 'Das Spiel wurde ohne dich gestartet, weil du den Eintritt noch nicht bezahlt hattest.' });
+      net.conns.delete(m.playerId);
+      if (conn) setTimeout(() => conn.close(), 500);
+    });
+    s.members = s.members.filter(m => m.ready);
     let seats = s.members.map(m => ({ id: m.playerId, name: m.name, avatar: m.avatar, isBot: false }));
     if (s.fillBots) seats = seats.concat(T().botSeats(T().MAX_SEATS - seats.length));
     s.table = T().createTable(seats);
@@ -417,7 +437,7 @@ GK.poker = GK.poker || {};
       type: 'state',
       v: PROTOCOL,
       code: s.code,
-      tierId: s.tierId,
+      entry: s.entry,
       phase: s.phase,
       hostId: store().playerId,
       fillBots: s.fillBots,
@@ -473,7 +493,7 @@ GK.poker = GK.poker || {};
       joined: false,          // schon einmal im Raum gewesen?
       paid: false,
       settled: false,
-      tierId: null,
+      entry: null,
       members: [],
       hostId: null,
       fillBots: true,
@@ -531,7 +551,7 @@ GK.poker = GK.poker || {};
       net.status = 'online';
       net.lostSince = null;
       const me = store();
-      send(conn, { type: 'hello', v: PROTOCOL, playerId: me.playerId, name: me.name, avatar: me.avatar });
+      send(conn, { type: 'hello', v: PROTOCOL, playerId: me.playerId, name: me.name, avatar: me.avatar, paid: session().paid });
       GK.poker.redraw();
     });
     conn.on('data', msg => {
@@ -568,19 +588,10 @@ GK.poker = GK.poker || {};
       endSession(msg.reason, true);
       return;
     }
-    if (msg.type !== 'state' || !T().tier(msg.tierId)) return;
-
-    s.tierId = msg.tierId;
-    if (!s.paid) {
-      // Beim ersten Kontakt: Eintritt bezahlen
-      const tr = T().tier(msg.tierId);
-      if (!GK.casino.bet(tr.entry)) {
-        send(net.hostConn, { type: 'leave' });
-        endSession(`Für diesen Raum brauchst du ${GK.formatNumber(tr.entry)} Dublonen Eintritt.`, false);
-        return;
-      }
-      s.paid = true;
-    }
+    const entry = Math.floor(Number(msg.entry));
+    if (msg.type !== 'state' || !(entry >= MIN_ENTRY)) return;
+    // Der Eintritt wird erst bezahlt, wenn der Spieler ihn bestätigt (clientConfirm)
+    if (!s.paid) s.entry = entry;
     s.joined = true;
     s.phase = msg.phase;
     s.members = Array.isArray(msg.members) ? msg.members : [];
@@ -596,6 +607,22 @@ GK.poker = GK.poker || {};
       if (me.out || s.view.phase === 'finished') settle(me.place, s.view.players.length);
     }
     GK.save();
+    GK.poker.redraw();
+  }
+
+  // Mitspieler bestätigt den Eintritt, den der Gastgeber festgelegt hat
+  function clientConfirm() {
+    const s = session();
+    if (!s || s.paid || !s.entry) return;
+    if (!GK.casino.bet(s.entry)) {
+      GK.sound.play('denied');
+      GK.toast('Nicht genug Dublonen für den Eintritt.');
+      return;
+    }
+    s.paid = true;
+    GK.sound.play('chip');
+    GK.save();
+    send(net.hostConn, { type: 'join' });
     GK.poker.redraw();
   }
 
@@ -743,12 +770,13 @@ GK.poker = GK.poker || {};
           </div>
         </div>
         <div class="mp-form">
-          <label class="bet-label" for="mp-tier">Raum eröffnen</label>
+          <label class="bet-label" for="mp-entry">Raum eröffnen – Eintritt pro Spieler</label>
           <div class="bet-row">
-            <select id="mp-tier" class="bet-input mp-tier">
-              ${T().TIERS.map(tr => `<option value="${tr.id}">${tr.icon} ${tr.name} – ${GK.formatNumber(tr.entry)} Eintritt</option>`).join('')}
-            </select>
+            <input id="mp-entry" type="number" class="bet-input mp-entry" min="${MIN_ENTRY}" step="100" inputmode="numeric" value="${me.lastEntry}">
             <button type="button" class="btn btn-primary mp-create">Eröffnen</button>
+          </div>
+          <div class="bet-row mp-presets">
+            ${ENTRY_PRESETS.map(v => `<button type="button" class="btn btn-small mp-preset" data-entry="${v}">${GK.formatNumber(v)}</button>`).join('')}
           </div>
           <span class="small mp-create-reason"></span>
         </div>
@@ -774,9 +802,18 @@ GK.poker = GK.poker || {};
       GK.save();
     });
     const save = () => { store().name = cleanName(nameInput.value); };
+    const entryInput = el.querySelector('.mp-entry');
+    el.querySelectorAll('.mp-preset').forEach(btn => {
+      btn.addEventListener('click', () => {
+        entryInput.value = btn.dataset.entry;
+        GK.sound.play('chip');
+        updateJoinPanel(el);
+      });
+    });
+    entryInput.addEventListener('input', () => updateJoinPanel(el));
     el.querySelector('.mp-create').addEventListener('click', () => {
       save();
-      createRoom(el.querySelector('.mp-tier').value);
+      createRoom(entryInput.value);
     });
     el.querySelector('.mp-join').addEventListener('click', () => {
       save();
@@ -787,14 +824,16 @@ GK.poker = GK.poker || {};
   }
 
   function updateJoinPanel(root) {
-    const select = root.querySelector('.mp-tier');
-    if (!select) return;
-    const tr = T().tier(select.value);
+    const input = root.querySelector('.mp-entry');
+    if (!input) return;
+    const entry = Math.floor(Number(input.value) || 0);
     let reason = '';
     if (!peerAvailable()) reason = 'Keine Verbindung zum Internet';
-    else if (GK.casino.vipLevel() < tr.vip) reason = `Nur mit ${GK.casino.VIP_LEVELS[tr.vip].name}-Karte`;
-    else if (!GK.canAfford(tr.entry)) reason = 'Nicht genug Dublonen';
-    root.querySelector('.mp-create').disabled = !!reason;
+    else if (entry < MIN_ENTRY) reason = `Mindestens ${GK.formatNumber(MIN_ENTRY)} Dublonen`;
+    else if (!GK.canAfford(entry)) reason = 'Nicht genug Dublonen';
+    else reason = `Bei 6 Spielern gewinnt Platz 1: ${GK.formatNumber(T().prize(1, entry, 6))} Dublonen`;
+    root.querySelector('.mp-create-reason').classList.toggle('ok', !!reason.startsWith('Bei'));
+    root.querySelector('.mp-create').disabled = !reason.startsWith('Bei');
     root.querySelector('.mp-create-reason').textContent = reason;
     root.querySelector('.mp-join').disabled = !peerAvailable();
   }
@@ -808,7 +847,7 @@ GK.poker = GK.poker || {};
   function drawRoom(container) {
     const s = session();
     const isHost = s.role === 'host';
-    const tr = s.tierId ? sessionTier() : null;
+    const tr = s.entry ? sessionTier() : null;
     const members = s.members;
     const players = isHost || s.phase === 'lobby'
       ? (s.fillBots ? T().MAX_SEATS : Math.max(2, members.length)) : 0;
@@ -816,6 +855,8 @@ GK.poker = GK.poker || {};
       ? T().prizeShares(players).map((_, i) => `${['🥇', '🥈', '🥉'][i]} ${GK.formatMoneyHTML(T().prize(i + 1, tr.entry, players))}`).join(' ')
       : '';
     const hostId = isHost ? store().playerId : s.hostId;
+    const readyCount = members.filter(m => m.ready).length;
+    const mustConfirm = !isHost && !s.paid && s.entry && s.phase === 'lobby';
 
     container.innerHTML = `
       <div class="mp-room">
@@ -832,26 +873,35 @@ GK.poker = GK.poker || {};
         ${s.phase === 'connecting' ? '<p class="muted">Suche den Raum …</p>' : `
           <h3>Spieler (${members.length}/${T().MAX_SEATS})</h3>
           <ul class="mp-members">
-            ${members.map(m => `<li>
+            ${members.map(m => `<li class="${m.ready ? '' : 'not-ready'}">
               <span>${m.avatar} ${esc(m.name)}</span>
+              ${m.ready ? '' : '<span class="mp-tag waiting">⏳ zahlt noch</span>'}
               ${m.playerId === hostId ? '<span class="mp-tag">👑 Gastgeber</span>' : ''}
               ${m.playerId === store().playerId ? '<span class="mp-tag">Du</span>' : ''}
             </li>`).join('')}
           </ul>
+          ${mustConfirm ? `
+            <div class="mp-confirm">
+              <p>Der Gastgeber hat den Eintritt auf <b>${GK.formatMoneyHTML(s.entry)}</b> festgelegt.</p>
+              <button class="btn btn-primary btn-big mp-confirm-btn" ${GK.canAfford(s.entry) ? '' : 'disabled'}>💰 Eintritt bezahlen und mitspielen</button>
+              ${GK.canAfford(s.entry) ? '' : '<p class="loss small">Dafür hast du nicht genug Dublonen.</p>'}
+            </div>` : ''}
           ${isHost ? `
             <label class="mp-check"><input type="checkbox" class="mp-fill" ${s.fillBots ? 'checked' : ''}> Freie Plätze mit Computer-Gegnern auffüllen</label>
             <div class="game-actions">
-              <button class="btn btn-primary mp-start" ${members.length < 2 ? 'disabled' : ''}>▶ Spiel starten</button>
+              <button class="btn btn-primary btn-big mp-start" ${readyCount < 2 ? 'disabled' : ''}>▶ Spiel starten</button>
             </div>
-            <p class="muted small">${members.length < 2 ? 'Warte auf mindestens einen Mitspieler …' : 'Alle da? Dann los!'}
+            <p class="muted small">${readyCount < 2 ? 'Warte auf mindestens einen Mitspieler, der den Eintritt bezahlt hat …'
+              : readyCount < members.length ? 'Wer noch nicht bezahlt hat, spielt nicht mit.' : 'Alle da? Dann los!'}
               Als Gastgeber leitest du den Tisch – lass das Spiel bitte geöffnet, bis das Turnier vorbei ist.</p>`
-            : '<p class="muted">Warte, bis der Gastgeber das Spiel startet …</p>'}
+            : s.paid ? '<p class="muted">Warte, bis der Gastgeber das Spiel startet …</p>' : ''}
         `}
         <p>${statusLine()}</p>
         <button class="btn btn-danger mp-leave">${isHost ? 'Raum schließen' : 'Raum verlassen'}</button>
       </div>`;
 
     container.querySelector('.mp-leave').addEventListener('click', () => (isHost ? hostLeave() : clientLeave()));
+    if (mustConfirm) container.querySelector('.mp-confirm-btn').addEventListener('click', clientConfirm);
     if (isHost && s.phase === 'lobby') {
       container.querySelector('.mp-fill').addEventListener('change', e => {
         s.fillBots = e.target.checked;

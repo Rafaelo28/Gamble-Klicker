@@ -77,7 +77,8 @@ window.GK = window.GK || {};
     const g = GK.state.casino.games;
     if (g.blackjack && g.blackjack.round && !g.blackjack.round.finished) return 'Spiele zuerst deine Blackjack-Runde zu Ende.';
     if (g.roulette && (g.roulette.pending || Object.keys(g.roulette.bets || {}).length)) return 'Nimm zuerst deine Roulette-Chips vom Tisch.';
-    if (g.slots && g.slots.pending) return 'Warte, bis die Walzen stehen.';
+    if ((g.slots && g.slots.pending) || (g.sideSlot && g.sideSlot.pending)) return 'Warte, bis die Walzen stehen.';
+    if (g.scratch && g.scratch.current && !g.scratch.current.settled) return 'Rubble zuerst dein Los auf.';
     if (g.poker && g.poker.table) return 'Beende zuerst dein Poker-Turnier.';
     if (g.pokerMp && g.pokerMp.session) return 'Verlasse zuerst deinen Poker-Raum.';
     return '';
@@ -106,6 +107,9 @@ window.GK = window.GK || {};
     s.buffs = [];
     GK.save();
     GK.clicker.refresh();
+    GK.sound.play('jackpot');
+    GK.fx.confetti(200);
+    GK.fx.coinRain(2, 40);
     GK.notify(`<span class="notify-icon">⛵</span><span><b>Leinen los!</b><br>${gain} neue Schatzkarte${gain === 1 ? '' : 'n'} – dein Einkommen ist jetzt dauerhaft ×${formatMult(prestigeMult())}.</span>`);
   }
 
@@ -151,10 +155,15 @@ window.GK = window.GK || {};
     el.addEventListener('click', collectGolden);
     document.body.appendChild(el);
     golden = { el, expires: Date.now() + GOLDEN_LIFETIME * 1000 };
+    GK.sound.play('golden');
   }
 
   function collectGolden() {
     if (!golden) return;
+    const pos = GK.fx.center(golden.el);
+    GK.sound.play('collect');
+    GK.fx.burst(pos.x, pos.y, { count: 24, speed: 700 });
+    GK.fx.burst(pos.x, pos.y, { count: 16, kind: 'sparkle', speed: 350 });
     golden.el.remove();
     golden = null;
     nextGoldenAt = Date.now() + randomDelay() * 1000;
@@ -168,11 +177,14 @@ window.GK = window.GK || {};
         Math.min(GK.state.money * 0.15, GK.clicker.getCpsPermanent() * 900),
         GK.clicker.getClickPower() * 30);
       GK.earn(amount, 'passive');
+      GK.fx.floatText(pos.x, pos.y, '+' + GK.formatMoneyHTML(amount), 'win big');
       text = `<b>Schatzfund!</b><br>+${GK.formatMoneyHTML(amount)}`;
     } else {
       const id = roll < 0.85 ? 'goldrush' : 'clickfever';
       addBuff(id);
       const b = BUFFS[id];
+      if (id === 'goldrush') GK.fx.coinRain(1.5, 25);
+      GK.fx.floatText(pos.x, pos.y, `${b.icon} ${b.name}!`, 'win big');
       text = `<b>${b.icon} ${b.name}!</b><br>${b.desc} für ${b.seconds} Sekunden`;
     }
     GK.notify(`<span class="notify-icon">✨</span><span>${text}</span>`);

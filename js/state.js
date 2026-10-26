@@ -20,6 +20,12 @@ window.GK = window.GK || {};
     };
   }
 
+  // Einstellungen: Ton und Animationen (bei „Bewegung reduzieren“ im System automatisch ruhiger)
+  function createDefaultSettings() {
+    const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    return { sound: true, volume: 0.7, effects: reduceMotion ? 'reduced' : 'full' };
+  }
+
   function createDefaultState() {
     const now = Date.now();
     return {
@@ -38,6 +44,7 @@ window.GK = window.GK || {};
       goldenClicks: 0,
       casino: createDefaultCasino(),
       ui: { tab: 'clicker' },
+      settings: createDefaultSettings(),
       startedAt: now,
       lastSaved: now,
     };
@@ -106,6 +113,7 @@ window.GK = window.GK || {};
     // Verschachtelte Bereiche ebenfalls mit Standardwerten auffüllen
     GK.state.casino = Object.assign(createDefaultCasino(), data.casino);
     GK.state.ui = Object.assign({ tab: 'clicker' }, data.ui);
+    GK.state.settings = Object.assign(createDefaultSettings(), data.settings);
     GK.state.prestige = Object.assign({ points: 0, journeys: 0 }, data.prestige);
     // Ältere Spielstände kennen „insgesamt verdient über alle Fahrten“ noch nicht
     if (typeof data.allTimeEarned !== 'number') GK.state.allTimeEarned = GK.state.totalEarned;

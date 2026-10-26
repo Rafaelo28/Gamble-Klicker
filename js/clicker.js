@@ -136,6 +136,13 @@ window.GK = window.GK || {};
     GK.state.totalClicks++;
     GK.earn(amount, 'click');
     showFloatingText(event, '+' + GK.formatNumber(amount, true));
+    GK.sound.play('click');
+    const coin = document.getElementById('big-coin');
+    GK.fx.pulse(coin, 'coin-hit');
+    // Ein paar Münzen fliegen von der Klick-Stelle weg (im Klickfieber mehr)
+    const pos = event && event.clientX ? { x: event.clientX, y: event.clientY } : GK.fx.center(coin);
+    const fever = GK.progress.buffMult('click') > 1;
+    GK.fx.burst(pos.x, pos.y, { count: fever ? 5 : 2, speed: 420, upward: true, spread: 2.4, size: 7 });
   }
 
   function buyBuilding(building) {
@@ -143,13 +150,23 @@ window.GK = window.GK || {};
     if (!GK.spend(cost)) return;
     GK.state.buildings[building.id] = owned(building.id) + buyAmount;
     GK.save();
+    GK.sound.play('buy');
+    const el = buildingEls[building.id].root;
+    GK.fx.pulse(el, 'bought');
+    const pos = GK.fx.center(el.querySelector('.building-icon'));
+    GK.fx.burst(pos.x, pos.y, { count: 8, kind: 'sparkle', speed: 260 });
     render();
   }
 
-  function buyUpgrade(upgrade) {
+  function buyUpgrade(upgrade, el) {
     if (has(upgrade.id) || !GK.spend(upgrade.cost)) return;
     GK.state.upgrades.push(upgrade.id);
     GK.save();
+    GK.sound.play('upgrade');
+    if (el) {
+      const pos = GK.fx.center(el);
+      GK.fx.burst(pos.x, pos.y, { count: 14, kind: 'sparkle', speed: 320 });
+    }
     lastUpgradeSignature = '';
     render();
   }
@@ -255,7 +272,7 @@ window.GK = window.GK || {};
           <span class="upgrade-name">${u.name}</span>
           <span class="upgrade-desc">${u.desc}</span>
           <span class="upgrade-cost">${GK.COIN} ${GK.formatNumber(u.cost)}</span>`;
-        el.addEventListener('click', () => buyUpgrade(u));
+        el.addEventListener('click', () => buyUpgrade(u, el));
         list.appendChild(el);
       });
       document.getElementById('upgrade-empty').hidden = upgrades.length > 0;
@@ -274,7 +291,14 @@ window.GK = window.GK || {};
 
   function init() {
     buildBuildingList();
-    document.getElementById('big-coin').addEventListener('click', click);
+    // pointerdown statt click: reagiert sofort und erlaubt schnelles Tippen mit mehreren Fingern (iPad)
+    const coin = document.getElementById('big-coin');
+    coin.addEventListener('pointerdown', e => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      click(e);
+    });
+    coin.addEventListener('click', e => { if (e.detail === 0) click(e); }); // Tastatur (Enter/Leertaste)
     document.querySelectorAll('.amount-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         buyAmount = Number(btn.dataset.amount);

@@ -21,10 +21,13 @@ GK.poker = GK.poker || {};
     return POSITIONS[count][(seat - offset + count) % count];
   }
 
-  function seatHtml(t, p, seat, opts) {
+  function seatHtml(t, p, seat, opts, anim) {
     const me = seat === opts.mySeat;
     const showdown = t.phase !== 'betting' && t.result && t.result.showdown && engine().inHand(p);
     const showCards = me || showdown;
+    // Neue Hand: Karten fliegen herein · Showdown: Karten drehen sich um
+    const cardClass = anim.newHand ? 'small deal-in' : showdown && !me && !anim.wasRevealed ? 'small flip-in' : 'small';
+    const cardStyle = i => (anim.newHand ? `animation-delay: ${(anim.order(seat) * 2 + i) * 0.07}s` : '');
     const winner = t.result && t.phase !== 'betting' && t.result.winners.find(w => w.seat === seat);
     const classes = ['poker-seat', 'seat-' + positionOf(seat, opts.mySeat, t.players.length)];
     if (t.phase === 'betting' && t.toAct === seat) classes.push('active');
@@ -40,7 +43,7 @@ GK.poker = GK.poker || {};
     if (p.offline && !p.out) status = '📡 Verbindung weg';
 
     return `<div class="${classes.join(' ')}">
-      <div class="seat-cards">${p.out ? '' : p.cards.map(c => GK.cards.html(c, !showCards, 'small')).join('')}</div>
+      <div class="seat-cards">${p.out ? '' : p.cards.map((c, i) => GK.cards.html(c, !showCards, cardClass, cardStyle(i))).join('')}</div>
       <div class="seat-plate">
         <div class="seat-name">${p.avatar || ''} ${escapeHtml(p.name)}${t.dealer === seat ? ' <span class="dealer-btn">D</span>' : ''}</div>
         <div class="seat-chips">${GK.formatNumber(p.chips)} Chips</div>
@@ -81,9 +84,16 @@ GK.poker = GK.poker || {};
   function render(container, t, opts) {
     const oldLog = container.querySelector('.poker-log');
     if (oldLog) container.dataset.logOpen = oldLog.open ? '1' : '';
-    const board = [0, 1, 2, 3, 4].map(i => t.board[i]
-      ? GK.cards.html(t.board[i])
-      : '<div class="card-placeholder"></div>').join('');
+    const anim = animationState(container, t, opts);
+    let boardDelay = 0;
+    const board = [0, 1, 2, 3, 4].map(i => {
+      if (!t.board[i]) return '<div class="card-placeholder"></div>';
+      if (i < anim.prevBoard) return GK.cards.html(t.board[i]);
+      const d = boardDelay;
+      boardDelay += 0.15;
+      setTimeout(() => GK.sound.play('card'), d * 1000);
+      return GK.cards.html(t.board[i], false, 'deal-in', `animation-delay: ${d}s`);
+    }).join('');
 
     container.innerHTML = `
       <div class="poker-info">${opts.info.map(i => `<span>${i}</span>`).join('')}</div>
@@ -94,7 +104,7 @@ GK.poker = GK.poker || {};
           <div class="poker-message">${feltMessage(t, opts.mySeat)}</div>
           <div class="turn-timer" data-deadline="${opts.deadline || ''}"></div>
         </div>
-        ${t.players.map((p, i) => seatHtml(t, p, i, opts)).join('')}
+        ${t.players.map((p, i) => seatHtml(t, p, i, opts, anim)).join('')}
       </div>
       ${opts.notice ? `<div class="poker-notice">${opts.notice}</div>` : ''}
       <div class="poker-controls"></div>
@@ -108,6 +118,52 @@ GK.poker = GK.poker || {};
     if (opts.onLeave) container.querySelector('.poker-leave').addEventListener('click', opts.onLeave);
     renderControls(container.querySelector('.poker-controls'), t, opts);
     tick(container);
+    playEffects(container, t, opts, anim);
+  }
+
+  // Vergleicht mit dem letzten Zeichnen: Was ist neu? (Nach dem Neuladen wird nichts animiert.)
+  function animationState(container, t, opts) {
+    const prev = container._pokerSeen;
+    const showdown = t.phase !== 'betting' && !!(t.result && t.result.showdown);
+    const resultKey = t.phase !== 'betting' ? `${t.handNo}:${t.phase}` : '';
+    const now = { handNo: t.handNo, board: t.board.length, revealed: showdown, logTop: t.log[0], resultKey };
+    container._pokerSeen = now;
+    const active = t.players.map((p, i) => i).filter(i => !t.players[i].out);
+    const order = seat => (active.indexOf(seat) - active.indexOf(t.dealer) + active.length) % active.length;
+    if (!prev) return { newHand: false, prevBoard: t.board.length, wasRevealed: showdown, order, newLog: false, newResult: false };
+    const newHand = prev.handNo !== t.handNo;
+    if (newHand) setTimeout(() => GK.sound.play('deal'), 0);
+    return {
+      newHand,
+      prevBoard: newHand ? 0 : prev.board,
+      wasRevealed: !newHand && prev.revealed,
+      order,
+      newLog: prev.logTop !== now.logTop,
+      newResult: !!resultKey && prev.resultKey !== resultKey,
+    };
+  }
+
+  // Sounds und Funken passend zu dem, was gerade passiert ist
+  function playEffects(container, t, opts, anim) {
+    if (anim.newLog && t.phase === 'betting' && !anim.newHand) {
+      const last = t.log[0] || '';
+      if (/Fold/.test(last)) GK.sound.play('flip');
+      else if (/Call|Erhöht|All-in/.test(last)) GK.sound.play('chip');
+      else if (/Check/.test(last)) GK.sound.play('tick');
+    }
+    if (anim.newResult && t.result) {
+      const iWon = t.result.winners.some(w => w.seat === opts.mySeat);
+      const seatEl = container.querySelector('.poker-seat.me');
+      if (iWon && seatEl) {
+        GK.sound.play('winSmall');
+        const pos = GK.fx.center(seatEl);
+        GK.fx.burst(pos.x, pos.y, { count: 16, speed: 520, upward: true });
+        GK.fx.burst(pos.x, pos.y, { count: 10, kind: 'sparkle', speed: 260 });
+      } else {
+        GK.sound.play('chip');
+      }
+      GK.fx.pulse(container.querySelector('.poker-pot'), 'fx-pulse');
+    }
   }
 
   // Countdown für den Spieler am Zug aktualisieren (wird regelmäßig aufgerufen)

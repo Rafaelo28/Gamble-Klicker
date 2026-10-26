@@ -36,13 +36,14 @@ window.GK = window.GK || {};
     return (RANK_LABELS[rank(card)] || rank(card)) + SUIT_SYMBOLS[suit(card)];
   }
 
-  // HTML für eine Karte. hidden = verdeckt; extraClass z. B. 'small' oder 'highlight'
-  function html(card, hidden = false, extraClass = '') {
-    if (hidden || !card) return `<div class="card card-back ${extraClass}"></div>`;
+  // HTML für eine Karte. hidden = verdeckt; extraClass z. B. 'small' oder 'deal-in'; style z. B. eine Verzögerung
+  function html(card, hidden = false, extraClass = '', style = '') {
+    const styleAttr = style ? ` style="${style}"` : '';
+    if (hidden || !card) return `<div class="card card-back ${extraClass}"${styleAttr}></div>`;
     const red = suit(card) === 'H' || suit(card) === 'D';
     const r = RANK_LABELS[rank(card)] || rank(card);
     const s = SUIT_SYMBOLS[suit(card)];
-    return `<div class="card ${red ? 'red' : ''} ${extraClass}">
+    return `<div class="card ${red ? 'red' : ''} ${extraClass}"${styleAttr}>
       <span class="card-corner">${r}<br>${s}</span>
       <span class="card-suit">${s}</span>
     </div>`;

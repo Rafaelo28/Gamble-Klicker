@@ -46,11 +46,21 @@ window.GK = window.GK || {};
       panel.classList.toggle('active', panel.id === 'tab-' + name);
     });
     if (name === 'casino') GK.casino.show();
+    if (name !== 'clicker') GK.sideSlot.stopAuto();
+  }
+
+  // Höhe der festen Kopfzeile merken (die Klick-Münze bleibt darunter stehen)
+  function updateHeaderHeight() {
+    const header = document.querySelector('.app-header');
+    document.documentElement.style.setProperty('--header-height', header.offsetHeight + 'px');
   }
 
   function setupTabs() {
     document.querySelectorAll('.tab').forEach(tab => {
-      tab.addEventListener('click', () => showTab(tab.dataset.tab));
+      tab.addEventListener('click', () => {
+        if (tab.dataset.tab !== GK.state.ui.tab) GK.sound.play('tick');
+        showTab(tab.dataset.tab);
+      });
     });
   }
 
@@ -59,7 +69,10 @@ window.GK = window.GK || {};
     const currentTab = document.querySelector('.tab.active').dataset.tab;
     GK.clicker.refresh();
     GK.casino.refresh();
+    GK.sideSlot.refresh();
     GK.poker.mp.resume();
+    renderSettings();
+    GK.sound.applyVolume();
     GK.achievements.refresh();
     showTab(currentTab);
     render();
@@ -93,6 +106,40 @@ window.GK = window.GK || {};
       refreshAll();
       GK.toast('Spielstand zurückgesetzt');
     });
+  }
+
+  // ---------- Einstellungen ----------
+
+  function renderSettings() {
+    const st = GK.state.settings;
+    $('set-sound').checked = st.sound;
+    $('set-volume').value = st.volume;
+    $('set-volume').disabled = !st.sound;
+    $('set-effects').value = st.effects;
+    $('sound-toggle').textContent = st.sound ? '🔊' : '🔇';
+    $('sound-toggle').classList.toggle('off', !st.sound);
+    document.body.classList.toggle('reduced-effects', st.effects === 'reduced');
+  }
+
+  function setupSettings() {
+    $('sound-toggle').addEventListener('click', () => {
+      GK.sound.setEnabled(!GK.state.settings.sound);
+      renderSettings();
+      GK.sound.play('coin');
+    });
+    $('set-sound').addEventListener('change', e => {
+      GK.sound.setEnabled(e.target.checked);
+      renderSettings();
+      GK.sound.play('coin');
+    });
+    $('set-volume').addEventListener('input', e => GK.sound.setVolume(Number(e.target.value)));
+    $('set-volume').addEventListener('change', () => GK.sound.play('coin'));
+    $('set-effects').addEventListener('change', e => {
+      GK.state.settings.effects = e.target.value;
+      GK.save();
+      renderSettings();
+    });
+    renderSettings();
   }
 
   function openTransferBox(mode) {
@@ -140,6 +187,7 @@ window.GK = window.GK || {};
     $('cps').textContent = GK.formatNumber(GK.clicker.getCps(), true);
     document.title = `${money} Dublonen – Gamble Klicker`;
     GK.clicker.render();
+    GK.sideSlot.render();
     GK.casino.render();
     GK.progress.update(GK.state.ui.tab === 'progress');
     if (GK.state.ui.tab === 'progress') GK.achievements.render();
@@ -190,10 +238,16 @@ window.GK = window.GK || {};
     }
     setupTabs();
     setupStatsActions();
+    setupSettings();
+    GK.fx.init();
+    updateHeaderHeight();
+    if (window.ResizeObserver) new ResizeObserver(updateHeaderHeight).observe(document.querySelector('.app-header'));
+    else window.addEventListener('resize', updateHeaderHeight);
     GK.clicker.init();
     GK.progress.init();
     GK.progress.applyOfflineEarnings();
     GK.casino.init();
+    GK.sideSlot.init();
     GK.poker.mp.resume();
     showTab(GK.state.ui.tab);
     GK.achievements.check();
