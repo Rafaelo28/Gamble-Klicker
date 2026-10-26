@@ -10,7 +10,7 @@ window.GK = window.GK || {};
   const lastPlayed = {};
 
   // Mindestabstand (ms) zwischen zwei gleichen Sounds, damit es nicht knattert
-  const THROTTLE = { click: 30, scratch: 70, tick: 25, chip: 40, card: 60 };
+  const THROTTLE = { click: 30, scratch: 70, tick: 25, chip: 40, card: 60, plink: 30, dig: 60 };
 
   function settings() {
     return GK.state.settings;
@@ -216,6 +216,42 @@ window.GK = window.GK || {};
       arpeggio(t, [659, 784, 1047], 0.1, { type: 'square', gain: 0.06, duration: 0.25 });
       [784, 1047, 1319].forEach(f => tone(f, t + 0.32, 0.7, { type: 'triangle', gain: 0.07 }));
       jingle(t + 0.3, 0.6, 10);
+    },
+    // Münzfall: kleiner heller Ton, wenn die Münze an einen Nagel stößt
+    plink(t, pitch = 1) {
+      tone(1400 * pitch, t, 0.07, { type: 'triangle', gain: 0.05 });
+    },
+    // Kanone feuert
+    cannon(t) {
+      tone(90, t, 0.35, { type: 'sine', gain: 0.4, slideTo: 40 });
+      noise(t, 0.3, { filter: 'lowpass', freq: 900, sweepTo: 200, gain: 0.5 });
+    },
+    // Große Explosion
+    boom(t) {
+      tone(70, t, 0.8, { type: 'sine', gain: 0.45, slideTo: 25 });
+      noise(t, 0.9, { filter: 'lowpass', freq: 1800, sweepTo: 120, gain: 0.6 });
+      noise(t + 0.05, 0.4, { freq: 3000, q: 0.5, gain: 0.15 });
+    },
+    // Schaufel im Sand
+    dig(t) {
+      noise(t, 0.12, { freq: 900, sweepTo: 400, q: 0.8, gain: 0.3 });
+    },
+    // Edelstein gefunden
+    gem(t, pitch = 1) {
+      tone(1760 * pitch, t, 0.25, { type: 'sine', gain: 0.1 });
+      tone(2637 * pitch, t + 0.05, 0.3, { type: 'triangle', gain: 0.07 });
+      tone(3520 * pitch, t + 0.1, 0.35, { type: 'sine', gain: 0.05 });
+    },
+    // Schiffshorn zum Start des Rennens
+    horn(t) {
+      tone(147, t, 1.1, { type: 'sawtooth', gain: 0.07 });
+      tone(220, t, 1.1, { type: 'sawtooth', gain: 0.05 });
+      tone(110, t, 1.1, { type: 'sine', gain: 0.2 });
+    },
+    // Bonus ausgelöst: aufsteigendes Glitzern
+    bonus(t) {
+      arpeggio(t, [523, 659, 784, 1047, 1319, 1568, 2093], 0.06, { type: 'square', gain: 0.05, duration: 0.25 });
+      jingle(t + 0.4, 0.8, 14);
     },
     // Seltenes Upgrade (Diamant und höher): Glitzern mit tiefem Grundton
     powerup(t) {

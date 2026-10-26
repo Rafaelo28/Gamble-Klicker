@@ -152,6 +152,7 @@ window.GK = window.GK || {};
 
   GK.casino.register({
     id: 'slots',
+    category: 'slots',
     name: 'Slot-Maschine',
     emoji: '🎰',
     desc: 'Drei gleiche Symbole gewinnen – bis zu ×777!',

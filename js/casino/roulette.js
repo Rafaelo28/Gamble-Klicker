@@ -335,6 +335,7 @@ window.GK = window.GK || {};
 
   GK.casino.register({
     id: 'roulette',
+    category: 'table',
     name: 'Roulette',
     emoji: '🎡',
     desc: 'Setze auf Zahlen oder Farben – bis zu ×36.',

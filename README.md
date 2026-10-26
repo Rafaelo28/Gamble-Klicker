@@ -6,6 +6,11 @@ Schatztruhe voll ist, wartet das Casino:
 
 - 🎰 **Slot-Maschine** – drei gleiche Symbole, bis zu ×777
 - 🎟️ **Rubbellose** – mit dem Finger freirubbeln, drei gleiche Beträge gewinnen
+- 🍀 **Glücksrad** – mit Bonusrad und täglichem Gratis-Dreh
+- 🪙 **Münzfall** – die Münze hüpft durch die Nägel, außen warten bis zu ×170
+- 🏝️ **Schatzinsel** – nach Schätzen graben, Totenköpfen ausweichen, rechtzeitig abkassieren
+- 💣 **Kanonenkugel** – der Multiplikator steigt, bis die Kugel explodiert
+- ⛵ **Schiffsrennen** – fünf Piratenschiffe, neue Quoten vor jedem Rennen
 - 🎡 **Roulette** – Rot oder Schwarz? Oder alles auf die 17?
 - 🃏 **Blackjack** – schlag den Dealer, ohne über 21 zu kommen; nach dem Teilen so viele Karten, wie du willst
 - ♠️ **Texas Hold'em** – Turnier gegen Käpt'n Blaubart, Long John und andere Piraten, jeder mit eigener
@@ -74,6 +79,7 @@ Den Fahrplan mit allen Phasen findest du in [PROJEKTPLAN.md](PROJEKTPLAN.md).
 **Aktueller Stand:** Alle 8 Phasen fertig:
 - 👆 Klicker mit Gebäuden, Upgrades, Side-Slot, Statistiken und sicherem Speichern
 - 🎰 Slot-Maschine · 🎟️ Rubbellose · 🎡 Roulette · 🃏 Blackjack
+- 🍀 Glücksrad · 🪙 Münzfall · 🏝️ Schatzinsel · 💣 Kanonenkugel · ⛵ Schiffsrennen
 - ♠️ Texas Hold'em als Turnier gegen Computer-Gegner und online mit Freunden
 - 🏆 Erfolge, goldene Dublone, Offline-Einnahmen, große Fahrt (Prestige) und VIP-Karten
 - 🔊 Soundeffekte, ✨ Gewinn-Animationen, 📱 iPad-Optimierung
@@ -83,7 +89,9 @@ Den Fahrplan mit allen Phasen findest du in [PROJEKTPLAN.md](PROJEKTPLAN.md).
 
 ```
 node tests/poker.test.js
+node tests/casino.test.js
 ```
 Prüft die Poker-Handbewertung, spielt komplette Turniere zwischen Computer-Gegnern durch
 (auch mit Spielern, die mittendrin aufgeben, im Turbo- und im Blitz-Modus) und kontrolliert die
-Preisverteilung sowie die anteilige Auszahlung beim Aussteigen.
+Preisverteilung sowie die anteilige Auszahlung beim Aussteigen. Die Casino-Tests rechnen
+die Gewinnquoten aller anderen Spiele nach.
