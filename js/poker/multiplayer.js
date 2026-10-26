@@ -4,7 +4,7 @@
 // - Ein Spieler eröffnet einen Raum und wird Gastgeber. Er bekommt einen Raum-Code.
 // - Freunde geben den Code ein. Die Browser verbinden sich direkt miteinander (WebRTC über
 //   die Bibliothek PeerJS; deren kostenloser Server hilft nur beim Finden der Mitspieler).
-// - Der Gastgeber legt den Eintritt und den Modus (Klassisch oder Turbo) fest. Wer beitritt, sieht ihn und bestätigt die Zahlung.
+// - Der Gastgeber legt den Eintritt und den Modus (Klassisch, Turbo oder Blitz) fest. Wer beitritt, sieht ihn und bestätigt die Zahlung.
 //   Alle bekommen gleich viele Tisch-Chips, das Preisgeld sind alle Eintritte zusammen.
 // - Der Gastgeber führt die Spiel-Engine aus, steuert die Computer-Gegner und schickt jedem
 //   Spieler nur die Karten, die er sehen darf.
@@ -14,7 +14,7 @@ window.GK = window.GK || {};
 GK.poker = GK.poker || {};
 
 (function () {
-  const PROTOCOL = 2;
+  const PROTOCOL = 3; // 3: Blitz-Modus (Auszahlung nach Chips)
   const ID_PREFIX = 'gamble-klicker-';
   const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // ohne leicht verwechselbare Zeichen (0/O, 1/I)
   const CODE_LENGTH = 5;
@@ -55,6 +55,7 @@ GK.poker = GK.poker || {};
       playerId: randomId(),
       lastEntry: 1000,
       lastMode: 'classic',
+      lastHands: 5,
       session: null,
       lastResult: null,
     }));
@@ -105,12 +106,22 @@ GK.poker = GK.poker || {};
     return T().mode(session().mode);
   }
 
-  // Eigenen Platz abrechnen (genau einmal pro Turnier)
-  function settle(place, players) {
+  // Name des Modus, z. B. „⏱️ Blitz · 5 Hände“
+  function sessionModeLabel() {
+    return T().modeLabel(session().mode, session().hands);
+  }
+
+  // Preise des Raums als Text
+  function prizeText(entry, players, blitz) {
+    if (blitz) return `Die besten ${T().blitzPaidPlaces(players)} teilen ${GK.formatMoneyHTML(entry * players)} nach Chips`;
+    return T().prizeShares(players).map((_, i) => `${['🥇', '🥈', '🥉'][i]} ${GK.formatMoneyHTML(T().prize(i + 1, entry, players))}`).join(' ');
+  }
+
+  // Eigenen Platz abrechnen (genau einmal pro Turnier). win: Auszahlung in Dublonen
+  function settle(place, players, win) {
     const s = session();
     if (!s || s.settled || !s.paid) return;
     const tr = sessionTier();
-    const win = T().prize(place, tr.entry, players);
     s.settled = true;
     s.result = { place, prize: win, players };
     GK.casino.payout(win);
@@ -177,7 +188,7 @@ GK.poker = GK.poker || {};
 
   // ========== Gastgeber ==========
 
-  function createRoom(entry, modeId) {
+  function createRoom(entry, modeId, hands) {
     entry = Math.floor(Number(entry) || 0);
     if (entry < MIN_ENTRY) return GK.toast(`Der Eintritt muss mindestens ${GK.formatNumber(MIN_ENTRY)} Dublonen betragen.`);
     if (GK.poker.singleActive()) return GK.toast('Beende zuerst dein Turnier gegen die Computer-Gegner.');
@@ -185,12 +196,14 @@ GK.poker = GK.poker || {};
     const me = store();
     me.lastEntry = entry;
     me.lastMode = T().mode(modeId).id;
+    me.lastHands = T().blitzHands(hands);
     me.session = {
       role: 'host',
       code: newCode(),
       fresh: true,            // Raum-Code noch nicht beim Server angemeldet
       entry,
       mode: me.lastMode,
+      hands: me.lastHands,
       phase: 'lobby',
       paid: true,
       settled: false,
@@ -357,7 +370,7 @@ GK.poker = GK.poker || {};
     s.members = s.members.filter(m => m.ready);
     let seats = s.members.map(m => ({ id: m.playerId, name: m.name, avatar: m.avatar, isBot: false }));
     if (s.fillBots) seats = seats.concat(T().botSeats(T().MAX_SEATS - seats.length));
-    s.table = T().createTable(seats, s.mode);
+    s.table = T().createTable(seats, s.mode, s.hands);
     s.phase = 'playing';
     engine().startHand(s.table);
     afterHostChange();
@@ -401,10 +414,12 @@ GK.poker = GK.poker || {};
         const p = key && t.players[t.toAct];
         s.deadline = p && !p.isBot ? Date.now() + (p.offline ? OFFLINE_TURN_TIME : sessionMode().turnTime) : null;
       }
+      // Blitz: Nach der letzten Hand ist Schluss, die Chips entscheiden
+      if (T().handLimitReached(t)) T().finishByChips(t);
       const meSeat = t.players.findIndex(p => p.id === store().playerId);
       const me = t.players[meSeat];
       if (t.result && t.result.hands && t.result.hands[meSeat] === 'Royal Flush') GK.unlockAchievement('pokerRoyal');
-      if (me.out || t.phase === 'finished') settle(me.place, t.players.length);
+      if (me.out || t.phase === 'finished') settle(me.place, t.players.length, T().payout(t, meSeat, s.entry));
       if (t.phase === 'finished') s.phase = 'ended';
     }
     GK.save();
@@ -447,6 +462,7 @@ GK.poker = GK.poker || {};
       code: s.code,
       entry: s.entry,
       mode: s.mode,
+      hands: s.hands,
       phase: s.phase,
       hostId: store().playerId,
       fillBots: s.fillBots,
@@ -483,7 +499,7 @@ GK.poker = GK.poker || {};
       const t = s.table;
       const seat = t.players.findIndex(p => p.id === store().playerId);
       if (!t.players[seat].out) engine().forfeit(t, seat);
-      settle(t.players[seat].place, t.players.length);
+      settle(t.players[seat].place, t.players.length, T().payout(t, seat, s.entry));
     }
     // Kurz warten, damit die Nachricht noch rausgeht
     setTimeout(() => endSession(s.phase === 'lobby' ? 'Du hast den Raum geschlossen.' : 'Du hast den Raum verlassen.', s.phase === 'lobby'), 300);
@@ -602,6 +618,7 @@ GK.poker = GK.poker || {};
     // Der Eintritt wird erst bezahlt, wenn der Spieler ihn bestätigt (clientConfirm)
     if (!s.paid) s.entry = entry;
     s.mode = T().mode(msg.mode).id;
+    s.hands = T().blitzHands(msg.hands);
     s.joined = true;
     s.phase = msg.phase;
     s.members = Array.isArray(msg.members) ? msg.members : [];
@@ -614,7 +631,7 @@ GK.poker = GK.poker || {};
     const me = s.view && s.view.players[s.mySeat];
     if (me) {
       if (s.view.result && s.view.result.hands && s.view.result.hands[s.mySeat] === 'Royal Flush') GK.unlockAchievement('pokerRoyal');
-      if (me.out || s.view.phase === 'finished') settle(me.place, s.view.players.length);
+      if (me.out || s.view.phase === 'finished') settle(me.place, s.view.players.length, T().payout(s.view, s.mySeat, s.entry));
     }
     GK.save();
     GK.poker.redraw();
@@ -652,11 +669,12 @@ GK.poker = GK.poker || {};
         return;
       }
       const place = s.view.players.filter(p => !p.out).length;
-      const win = T().prize(place, sessionTier().entry, s.view.players.length);
+      // Wer aufgibt, verliert seine Chips – im Blitz zählen nur die Chips am Ende
+      const win = T().isBlitz(s.view) ? 0 : T().prize(place, sessionTier().entry, s.view.players.length);
       if (!confirm(`Turnier wirklich verlassen? Du belegst damit Platz ${place}` +
         (win ? ` und bekommst ${GK.formatNumber(win)} Dublonen.` : ' und gehst leer aus.'))) return;
       send(net.hostConn, { type: 'leave' });
-      settle(place, s.view.players.length);
+      settle(place, s.view.players.length, win);
     }
     setTimeout(() => endSession('Du hast den Raum verlassen.', false), 300);
   }
@@ -781,7 +799,7 @@ GK.poker = GK.poker || {};
         </div>
         <div class="mp-form">
           <label class="bet-label" for="mp-entry">Raum eröffnen – Eintritt pro Spieler</label>
-          ${GK.poker.ui.modePicker(T().mode(me.lastMode).id, 'mp-modes')}
+          <div class="mp-mode-slot">${GK.poker.ui.modePicker(T().mode(me.lastMode).id, T().blitzHands(me.lastHands), 'mp-modes')}</div>
           <div class="bet-row">
             <input id="mp-entry" type="number" class="bet-input mp-entry" min="${MIN_ENTRY}" step="100" inputmode="numeric" value="${me.lastEntry}">
             <button type="button" class="btn btn-primary mp-create">Eröffnen</button>
@@ -822,17 +840,33 @@ GK.poker = GK.poker || {};
       });
     });
     entryInput.addEventListener('input', () => updateJoinPanel(el));
-    el.querySelectorAll('.mp-modes .poker-mode').forEach(btn => {
-      btn.addEventListener('click', () => {
-        store().lastMode = btn.dataset.mode;
-        el.querySelectorAll('.mp-modes .poker-mode').forEach(b => b.classList.toggle('active', b === btn));
-        GK.sound.play('chip');
-        GK.save();
+    // Modus-Auswahl neu zeichnen (beim Blitz erscheint die Zahl der Hände)
+    const slot = el.querySelector('.mp-mode-slot');
+    const bindModes = () => {
+      slot.querySelectorAll('.poker-mode').forEach(btn => {
+        btn.addEventListener('click', () => {
+          store().lastMode = btn.dataset.mode;
+          redrawModes();
+        });
       });
-    });
+      slot.querySelectorAll('.poker-hands-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          store().lastHands = Number(btn.dataset.hands);
+          redrawModes();
+        });
+      });
+    };
+    const redrawModes = () => {
+      slot.innerHTML = GK.poker.ui.modePicker(T().mode(store().lastMode).id, T().blitzHands(store().lastHands), 'mp-modes');
+      bindModes();
+      updateJoinPanel(el);
+      GK.sound.play('chip');
+      GK.save();
+    };
+    bindModes();
     el.querySelector('.mp-create').addEventListener('click', () => {
       save();
-      createRoom(entryInput.value, store().lastMode);
+      createRoom(entryInput.value, store().lastMode, store().lastHands);
     });
     el.querySelector('.mp-join').addEventListener('click', () => {
       save();
@@ -850,6 +884,7 @@ GK.poker = GK.poker || {};
     if (!peerAvailable()) reason = 'Keine Verbindung zum Internet';
     else if (entry < MIN_ENTRY) reason = `Mindestens ${GK.formatNumber(MIN_ENTRY)} Dublonen`;
     else if (!GK.canAfford(entry)) reason = 'Nicht genug Dublonen';
+    else if (T().mode(store().lastMode).id === 'blitz') reason = `Bei 6 Spielern teilen die besten 4 ${GK.formatNumber(entry * 6)} Dublonen nach Chips`;
     else reason = `Bei 6 Spielern gewinnt Platz 1: ${GK.formatNumber(T().prize(1, entry, 6))} Dublonen`;
     root.querySelector('.mp-create-reason').classList.toggle('ok', !!reason.startsWith('Bei'));
     root.querySelector('.mp-create').disabled = !reason.startsWith('Bei');
@@ -870,9 +905,7 @@ GK.poker = GK.poker || {};
     const members = s.members;
     const players = isHost || s.phase === 'lobby'
       ? (s.fillBots ? T().MAX_SEATS : Math.max(2, members.length)) : 0;
-    const prizes = tr && players
-      ? T().prizeShares(players).map((_, i) => `${['🥇', '🥈', '🥉'][i]} ${GK.formatMoneyHTML(T().prize(i + 1, tr.entry, players))}`).join(' ')
-      : '';
+    const prizes = tr && players ? prizeText(tr.entry, players, sessionMode().id === 'blitz') : '';
     const hostId = isHost ? store().playerId : s.hostId;
     const readyCount = members.filter(m => m.ready).length;
     const mustConfirm = !isHost && !s.paid && s.entry && s.phase === 'lobby';
@@ -888,7 +921,7 @@ GK.poker = GK.poker || {};
               <button class="btn btn-small mp-copy-link">🔗 Einladungs-Link kopieren</button>
             </div>` : ''}
         </div>
-        ${tr ? `<p class="mp-tier-info">${tr.icon} <b>${tr.name}</b> · ${sessionMode().icon} ${sessionMode().name} · Eintritt ${GK.formatMoneyHTML(tr.entry)}<br>Preise: ${prizes}</p>` : ''}
+        ${tr ? `<p class="mp-tier-info">${tr.icon} <b>${tr.name}</b> · ${sessionModeLabel()} · Eintritt ${GK.formatMoneyHTML(tr.entry)}<br>Preise: ${prizes}</p>` : ''}
         ${s.phase === 'connecting' ? '<p class="muted">Suche den Raum …</p>' : `
           <h3>Spieler (${members.length}/${T().MAX_SEATS})</h3>
           <ul class="mp-members">
@@ -960,9 +993,11 @@ GK.poker = GK.poker || {};
       notices.push(`Du bist ausgeschieden: <b>${s.result.place}. Platz</b>${s.result.prize ? ` – ${GK.formatMoneyHTML(s.result.prize)} gewonnen!` : '.'}` +
         (isHost ? ' Du leitest den Tisch weiter, bis das Turnier vorbei ist.' : ' Du kannst weiter zuschauen.'));
     }
+    const blitz = T().isBlitz(t);
     if (s.phase === 'ended') {
-      const ranking = t.players.slice().sort((a, b) => a.place - b.place)
-        .map(p => `${p.place}. ${p.avatar || ''} ${esc(p.name)}`).join(' · ');
+      const ranking = t.players.map((p, i) => ({ p, win: blitz ? T().payout(t, i, tr.entry) : 0 }))
+        .sort((a, b) => a.p.place - b.p.place)
+        .map(({ p, win }) => `${p.place}. ${p.avatar || ''} ${esc(p.name)}${win ? ` +${GK.formatMoneyHTML(win)}` : ''}`).join(' · ');
       notices.push(`🏁 Turnier vorbei! ${ranking}` + (s.result && !s.result.refunded
         ? `<br>Dein Ergebnis: <b>${s.result.place}. Platz</b>${s.result.prize ? ` – ${GK.formatMoneyHTML(s.result.prize)} gewonnen!` : '.'}` : ''));
     }
@@ -971,10 +1006,11 @@ GK.poker = GK.poker || {};
       mySeat,
       info: [
         `👥 Raum ${s.code}`,
-        `${sessionMode().icon} ${sessionMode().name}`,
+        sessionModeLabel(),
         `Blinds ${GK.formatNumber(sb)}/${GK.formatNumber(bb)}`,
+        ...(blitz ? [t.handNo >= t.maxHands ? `🔥 Letzte Hand (${t.maxHands}/${t.maxHands})` : `Hand ${t.handNo}/${t.maxHands}`] : []),
         `Spieler: ${t.players.filter(p => !p.out).length}/${players}`,
-        T().prizeShares(players).map((_, i) => `${['🥇', '🥈', '🥉'][i]} ${GK.formatMoneyHTML(T().prize(i + 1, tr.entry, players))}`).join(' '),
+        prizeText(tr.entry, players, blitz),
       ],
       onAction: myAction,
       onNext: isHost && s.phase === 'playing' ? hostNextHand : null,

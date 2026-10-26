@@ -295,14 +295,21 @@ GK.poker = GK.poker || {};
     });
   }
 
-  // Auswahl Klassisch/Turbo (für Computer-Turniere und neue Räume mit Freunden)
-  function modePicker(selected, cls) {
+  // Auswahl Klassisch/Turbo/Blitz (für Computer-Turniere und neue Räume mit Freunden).
+  // Beim Blitz kommt die Zahl der Hände dazu.
+  function modePicker(selected, hands, cls) {
+    const T = GK.poker.tournament;
     return `<div class="poker-modes ${cls}" role="group" aria-label="Spielmodus">
-      ${Object.values(GK.poker.tournament.MODES).map(m => `
+      ${Object.values(T.MODES).map(m => `
         <button type="button" class="poker-mode ${m.id === selected ? 'active' : ''}" data-mode="${m.id}">
           <span class="poker-mode-name">${m.icon} ${m.name}</span>
           <span class="poker-mode-desc">${m.desc}</span>
         </button>`).join('')}
+      ${selected === 'blitz' ? `
+        <div class="poker-hands" role="group" aria-label="Anzahl Hände">
+          <span>Wie viele Hände?</span>
+          ${T.BLITZ_HANDS.map(n => `<button type="button" class="poker-hands-btn ${n === hands ? 'active' : ''}" data-hands="${n}">${n}</button>`).join('')}
+        </div>` : ''}
     </div>`;
   }
 

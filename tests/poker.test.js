@@ -139,3 +139,47 @@ for (let n = 0; n < 20; n++) {
   t.players.forEach((p, i) => { if (p.out) assert(T.cashOutValue(t, i, 1000) === 0, 'Ausgeschiedene bekommen nichts'); });
 }
 console.log(process.exitCode ? 'Turbo-/ICM-Tests FEHLGESCHLAGEN' : 'Turbo- und ICM-Tests bestanden.');
+
+// Blitz: nach 3, 5 bzw. 10 Händen ist Schluss, die besten 4 teilen das Preisgeld nach Chips
+near(sum(T.blitzPayouts([1000, 1000, 1000, 1000, 1000, 1000], 1000, 6)), 6000, 'Blitz: alle gleich = alle teilen');
+let bp = T.blitzPayouts([3000, 1500, 1000, 400, 100, 0], 1000, 6);
+assert(bp[4] === 0 && bp[5] === 0, 'Blitz: Platz 5 und 6 gehen leer aus');
+assert(bp[0] === Math.floor(6000 * 3000 / 5900) && bp[3] === Math.floor(6000 * 400 / 5900), 'Blitz: anteilig nach Chips ' + bp);
+bp = T.blitzPayouts([2000, 1000, 1000, 1000, 1000, 0], 1000, 6);
+assert(bp.filter(x => x > 0).length === 5, 'Blitz: Gleichstand an der Grenze zählt mit');
+assert(T.blitzPaidPlaces(6) === 4 && T.blitzPaidPlaces(5) === 3 && T.blitzPaidPlaces(4) === 2 && T.blitzPaidPlaces(2) === 1, 'Blitz: bezahlte Plätze je Spielerzahl');
+assert(T.blitzHands(7) === 5 && T.blitzHands(10) === 10, 'Blitz: nur 3, 5 oder 10 Hände');
+for (const hands of [3, 5, 10]) {
+  for (let n = 0; n < 15; n++) {
+    const players = n % 3 === 0 ? 4 : 6;
+    const t = T.createTable(T.botSeats(players), 'blitz', hands);
+    assert(t.maxHands === hands && t.handsPerLevel === 1, 'Blitz-Tisch');
+    let guard = 0;
+    while (t.phase !== 'finished' && guard++ < 50) {
+      GK.poker.engine.startHand(t);
+      while (t.phase === 'betting') GK.poker.engine.act(t, GK.poker.ai.decide(t));
+      if (T.handLimitReached(t)) T.finishByChips(t);
+    }
+    assert(t.phase === 'finished' && t.handNo <= hands, `Blitz ${hands}: nach ${t.handNo} Händen vorbei`);
+    if (n === 0) assert(GK.poker.engine.blinds(t).bb === (hands === 10 ? 1000 : 600) || t.handNo < hands, `Blitz ${hands}: letzte Blinds ${GK.poker.engine.blinds(t).bb}`);
+    const places = t.players.map(p => p.place).sort((a, b) => a - b).join(',');
+    assert(places === Array.from({ length: players }, (_, i) => i + 1).join(','), `Blitz ${hands}: Plätze ${places}`);
+    const pays = t.players.map((p, i) => T.payout(t, i, 1000));
+    assert(sum(pays) <= 1000 * players && sum(pays) >= 1000 * players - players, `Blitz ${hands}: Summe ${sum(pays)}`);
+    assert(pays.filter(x => x > 0).length <= T.blitzPaidPlaces(players) + 1, `Blitz ${hands}: zu viele bezahlt ${pays}`);
+    t.players.forEach((p, i) => {
+      if (p.out) assert(pays[i] === 0, 'Blitz: Ausgeschiedene bekommen nichts');
+      // Wer mehr Chips hat, bekommt nie weniger
+      t.players.forEach((q, j) => { if (!p.out && !q.out && p.chips > q.chips) assert(pays[i] >= pays[j], 'Blitz: mehr Chips, mehr Geld'); });
+    });
+  }
+}
+// Aussteigen im Blitz = Auszahlung, als wäre jetzt Schluss (nie mehr als das Preisgeld)
+{
+  const t = T.createTable(T.botSeats(6), 'blitz', 5);
+  GK.poker.engine.startHand(t);
+  while (t.phase === 'betting') GK.poker.engine.act(t, GK.poker.ai.decide(t));
+  const values = t.players.map((p, i) => T.cashOutValue(t, i, 1000));
+  assert(sum(values) <= 6000 && sum(values) >= 5990, 'Blitz-Aussteigen zwischen Händen: Summe ' + sum(values));
+}
+console.log(process.exitCode ? 'Blitz-Tests FEHLGESCHLAGEN' : 'Blitz-Tests bestanden.');

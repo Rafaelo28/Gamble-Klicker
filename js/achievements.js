@@ -52,6 +52,7 @@ window.GK = window.GK || {};
     // Poker
     { id: 'pokerWin',    icon: '♠️', name: 'Pokerkönig',            desc: 'Ein Turnier gegen die Computer-Gegner gewonnen.' },
     { id: 'pokerTurbo',  icon: '⚡', name: 'Turbo-Hai',             desc: 'Ein Turbo-Turnier gegen die Computer-Gegner gewonnen.' },
+    { id: 'pokerBlitz',  icon: '⏱️', name: 'Blitzgescheit',         desc: 'Ein Blitz-Turnier gegen die Computer-Gegner gewonnen.' },
     { id: 'pokerThrone', icon: '🏰', name: 'Herrscher des Throns',  desc: 'Ein Turnier am Thron des Kaisers gewonnen.' },
     { id: 'pokerRoyal',  icon: '🤴', name: 'Royal Flush',           desc: 'Beim Showdown einen Royal Flush gezeigt.' },
     { id: 'pokerMpPlay', icon: '👥', name: 'Unter Freunden',        desc: 'Ein Poker-Turnier mit Freunden gespielt.' },
