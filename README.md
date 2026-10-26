@@ -21,6 +21,7 @@ Schatztruhe voll ist, wartet das Casino:
   ausgezahlt, was deine Chips wert sind
 - 👥 **Poker mit Freunden** – eröffne einen Online-Raum, leg Eintritt und Modus fest und spiel um den Pott
 - 🎲 **Lügenwürfel** – bluffen, bieten, „Lüge!“ rufen: gegen Computer-Piraten oder online mit Freunden
+- ⛳ **Minigolf** – sechs Bahnen in der Piratenbucht mit Kanonenkugeln, Sand, Haifischbecken und Hügeln
 
 Schnelle Klicks bauen eine **Combo** auf, mit etwas Glück landest du einen **kritischen Treffer**.
 Gebäude-Upgrades gibt es in sieben Stufen bis *Mythos*, dazu Synergien zwischen den Gebäuden.
@@ -71,7 +72,7 @@ ab iPadOS 15. Ton gibt es nach dem ersten Antippen (Vorgabe von Safari).
    Alle bekommen die gleichen Tisch-Chips, das Preisgeld sind alle Eintritte zusammen.
 4. Der Gastgeber startet das Spiel. Freie Plätze können Computer-Gegner übernehmen.
 
-Lügenwürfel funktioniert genauso (Casino → Lügenwürfel → *Mit Freunden spielen*).
+Lügenwürfel und Minigolf funktionieren genauso (Casino → Spiel → *Mit Freunden spielen*).
 
 Die Browser verbinden sich direkt miteinander (WebRTC über [PeerJS](https://peerjs.com/)).
 Der Gastgeber leitet den Tisch – er sollte das Spiel geöffnet lassen, bis das Turnier vorbei ist.
@@ -86,7 +87,7 @@ Den Fahrplan mit allen Phasen findest du in [PROJEKTPLAN.md](PROJEKTPLAN.md).
 - 🎰 Slot-Maschine · 🎟️ Rubbellose · 🎡 Roulette · 🃏 Blackjack
 - 🍀 Glücksrad · 🪙 Münzfall · 🏝️ Schatzinsel · 💣 Kanonenkugel · ⛵ Schiffsrennen
 - 🏴‍☠️ 🐙 🌋 Drei Video-Slots mit Freispielen und Bonusrunde
-- 🎲 Lügenwürfel gegen Computer und online mit Freunden
+- 🎲 Lügenwürfel und ⛳ Minigolf gegen Computer und online mit Freunden
 - ♠️ Texas Hold'em als Turnier gegen Computer-Gegner und online mit Freunden
 - 🏆 Erfolge, goldene Dublone, Offline-Einnahmen, große Fahrt (Prestige) und VIP-Karten
 - 🔊 Soundeffekte, ✨ Gewinn-Animationen, 📱 iPad-Optimierung
@@ -98,6 +99,7 @@ Den Fahrplan mit allen Phasen findest du in [PROJEKTPLAN.md](PROJEKTPLAN.md).
 node tests/poker.test.js
 node tests/casino.test.js
 node tests/dice.test.js
+node tests/minigolf.test.js
 ```
 Prüft die Poker-Handbewertung, spielt komplette Turniere zwischen Computer-Gegnern durch
 (auch mit Spielern, die mittendrin aufgeben, im Turbo- und im Blitz-Modus) und kontrolliert die
