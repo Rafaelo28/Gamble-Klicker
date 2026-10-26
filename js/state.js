@@ -22,7 +22,22 @@ window.GK = window.GK || {};
     };
   }
 
+  // Prüft, ob der Browser dauerhaftes Speichern erlaubt (in Vorschau-Fenstern
+  // oder bei blockierten Cookies wirft localStorage einen Fehler).
+  function detectStorage() {
+    try {
+      const testKey = SAVE_KEY + '-test';
+      localStorage.setItem(testKey, '1');
+      localStorage.removeItem(testKey);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   GK.state = createDefaultState();
+  GK.storageAvailable = detectStorage();
+  GK.onSave = null; // optionaler Callback, z. B. für die Speicher-Anzeige
 
   // Geld gutschreiben. source: 'click', 'passive' oder später z. B. 'casino'
   GK.earn = function (amount, source) {
@@ -44,17 +59,29 @@ window.GK = window.GK || {};
   };
 
   GK.save = function () {
+    if (!GK.storageAvailable) return false;
     GK.state.lastSaved = Date.now();
     try {
       localStorage.setItem(SAVE_KEY, JSON.stringify(GK.state));
-      return true;
     } catch (e) {
       console.warn('Speichern fehlgeschlagen:', e);
       return false;
     }
+    if (GK.onSave) GK.onSave();
+    return true;
   };
 
+  // Übernimmt geladene Daten; fehlende Felder (z. B. aus älteren Versionen) bekommen Standardwerte
+  function applyData(data) {
+    if (!data || typeof data !== 'object' || typeof data.money !== 'number' || !isFinite(data.money)) {
+      return false;
+    }
+    GK.state = Object.assign(createDefaultState(), data, { version: SAVE_VERSION });
+    return true;
+  }
+
   GK.load = function () {
+    if (!GK.storageAvailable) return false;
     let raw = null;
     try {
       raw = localStorage.getItem(SAVE_KEY);
@@ -63,14 +90,28 @@ window.GK = window.GK || {};
     }
     if (!raw) return false;
     try {
-      const data = JSON.parse(raw);
-      // Fehlende Felder (z. B. aus älteren Versionen) mit Standardwerten auffüllen
-      GK.state = Object.assign(createDefaultState(), data, { version: SAVE_VERSION });
-      return true;
+      return applyData(JSON.parse(raw));
     } catch (e) {
       console.warn('Spielstand beschädigt, starte neu:', e);
       return false;
     }
+  };
+
+  // Spielstand als Text (Base64), z. B. zum Sichern oder Übertragen auf ein anderes Gerät
+  GK.exportSave = function () {
+    const json = JSON.stringify(GK.state);
+    return btoa(String.fromCharCode(...new TextEncoder().encode(json)));
+  };
+
+  GK.importSave = function (text) {
+    try {
+      const bytes = Uint8Array.from(atob(text.trim()), c => c.charCodeAt(0));
+      if (!applyData(JSON.parse(new TextDecoder().decode(bytes)))) return false;
+    } catch (e) {
+      return false;
+    }
+    GK.save();
+    return true;
   };
 
   GK.resetSave = function () {
@@ -81,4 +122,9 @@ window.GK = window.GK || {};
     }
     GK.state = createDefaultState();
   };
+
+  // Den Browser bitten, unsere Daten nicht automatisch zu löschen (z. B. bei wenig Speicherplatz)
+  if (GK.storageAvailable && navigator.storage && navigator.storage.persist) {
+    navigator.storage.persist().catch(() => {});
+  }
 })();

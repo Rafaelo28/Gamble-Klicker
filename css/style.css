@@ -41,6 +41,18 @@ button {
   color: var(--text-muted);
 }
 
+/* Die Währung: eine goldene Dublone */
+.dublone {
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
+  border-radius: 50%;
+  vertical-align: -0.1em;
+  background: radial-gradient(circle at 35% 30%, #fff3b0 0%, var(--gold) 40%, var(--gold-dark) 100%);
+  border: 0.08em solid #8a6508;
+  box-shadow: inset 0 0 0 0.1em rgba(255, 243, 176, 0.45), 0 0 0.25em rgba(245, 197, 66, 0.35);
+}
+
 .small {
   font-size: 0.85rem;
 }
@@ -162,7 +174,8 @@ main {
 }
 
 .big-coin-inner {
-  font-size: 4.5rem;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 5.5rem;
   font-weight: 900;
   color: #8a6508;
   text-shadow: 1px 1px 0 #fff3b0;
@@ -436,6 +449,46 @@ main {
   color: #ffb3b0;
 }
 
+.section-gap {
+  margin-top: 28px;
+}
+
+.warning {
+  max-width: 640px;
+  background: rgba(217, 83, 79, 0.15);
+  border: 1px solid var(--danger);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.transfer-box {
+  max-width: 640px;
+}
+
+.transfer-box textarea {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+  font-family: ui-monospace, monospace;
+  font-size: 0.8rem;
+  word-break: break-all;
+}
+
+/* Kurze Bestätigung in der Kopfzeile, dass gespeichert wurde */
+.save-indicator {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.save-indicator.show {
+  opacity: 0.8;
+}
+
 /* ---------- Toast-Meldung ---------- */
 .toast {
   position: fixed;
@@ -473,7 +526,7 @@ main {
   }
 
   .big-coin-inner {
-    font-size: 3.5rem;
+    font-size: 4.2rem;
   }
 
   .topbar {

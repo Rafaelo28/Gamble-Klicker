@@ -31,6 +31,14 @@ window.GK = window.GK || {};
     return intFormat.format(Math.floor(n));
   };
 
+  // Die Währung: goldene Dublone (wird per CSS gezeichnet)
+  GK.COIN = '<i class="dublone" aria-hidden="true"></i>';
+
+  // Betrag mit Dublonen-Symbol als HTML, z. B. für Statistiken
+  GK.formatMoneyHTML = function (n, allowDecimals = false) {
+    return GK.formatNumber(n, allowDecimals) + ' ' + GK.COIN;
+  };
+
   // Formatiert Sekunden als „1 Std. 5 Min.“
   GK.formatDuration = function (seconds) {
     seconds = Math.floor(seconds);

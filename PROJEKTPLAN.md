@@ -1,9 +1,9 @@
 # Projektplan: Gamble Klicker
 
 > Ein Browser-Spiel, das **Cookie Clicker** mit einem **Casino** verbindet.
-> Man verdient Spielgeld (🪙 Coins) durch Klicken und passive Einnahmen und kann
-> es anschließend im Casino bei Roulette, Blackjack, Poker und Slot-Maschinen
-> einsetzen. **Es gibt kein echtes Geld – alles ist reines Spielgeld.**
+> Man verdient **Dublonen** (goldene Münzen) durch Klicken und passive Einnahmen
+> und setzt sie anschließend im Casino bei Slot-Maschine, Roulette, Blackjack und
+> Texas Hold'em ein. **Es gibt kein echtes Geld – alles ist reines Spielgeld.**
 
 ## Technik
 
@@ -11,7 +11,7 @@
 |---|---|---|
 | Sprache | HTML, CSS, JavaScript (ohne Framework) | Keine Installation nötig, leicht verständlich und erweiterbar |
 | Start | `index.html` im Browser öffnen | Kein Server, kein Build-Schritt |
-| Speichern | `localStorage` im Browser | Spielstand bleibt nach dem Schließen erhalten |
+| Speichern | `localStorage` im Browser + Export/Import als Text | Fortschritt bleibt beim Neuladen und Schließen erhalten |
 | Veröffentlichung | GitHub Pages | Kostenlos, direkt aus dem Repo |
 
 ### Ordnerstruktur
@@ -19,29 +19,53 @@
 ```
 index.html          Einstiegsseite mit allen Bereichen (Tabs)
 css/style.css       Aussehen (Casino-Design, dunkel mit Gold-Akzenten)
-js/format.js        Zahlen schön formatieren (1.234 / 1,23 Mio.)
-js/state.js         Spielstand: Geld verdienen/ausgeben, Speichern/Laden
+js/format.js        Zahlen schön formatieren (1.234 / 1,23 Mio.), Dublonen-Symbol
+js/state.js         Spielstand: Dublonen verdienen/ausgeben, Speichern/Laden, Export/Import
 js/clicker.js       Klicker: Gebäude, Upgrades, Einkommen
 js/main.js          Spielschleife, Tabs, Autosave
 js/casino/…         (ab Phase 2) Ein Modul pro Casino-Spiel
+js/poker/…          (ab Phase 5) Karten, Handbewertung, Computer-Gegner, Multiplayer
 ```
 
 Der zentrale Spielstand bietet eine kleine Schnittstelle (`GK.earn()`,
-`GK.spend()`, `GK.canAfford()`), über die später **alle Casino-Spiele** Geld
+`GK.spend()`, `GK.canAfford()`), über die **alle Casino-Spiele** Dublonen
 abbuchen und auszahlen. So bleibt die Verbindung zwischen Klicker und Casino
 an einer Stelle.
+
+### Fortschritt speichern
+
+Der Spielstand wird im Browser (`localStorage`) gespeichert, und zwar:
+- alle 5 Sekunden automatisch,
+- sofort nach jedem Kauf,
+- wenn man den Tab wechselt, die App verlässt, die Seite neu lädt oder schließt.
+
+Zusätzlich gibt es **Exportieren/Importieren** (Spielstand als Text-Code), um den
+Fortschritt zu sichern oder auf ein anderes Gerät mitzunehmen. Falls der Browser
+das Speichern blockiert (z. B. privater Modus oder Vorschau-Fenster), zeigt das
+Spiel eine Warnung.
+
+**Regel für alle Casino-Spiele:** Auch eine laufende Runde (z. B. eine angefangene
+Blackjack-Hand oder Poker-Hand) wird mitgespeichert, damit beim Neuladen kein
+Einsatz verloren geht.
 
 ## Phasen
 
 ### ✅ Phase 1 – Grundgerüst & Klicker *(umgesetzt)*
 - Seitenlayout mit Tabs: **Klicker**, **Casino**, **Statistiken**
-- Große Münze zum Klicken, „+X“-Animation beim Klick
+- Große Dublone zum Klicken, „+X“-Animation beim Klick
 - 8 Gebäude für passives Einkommen (Preis steigt pro Kauf um 15 %)
 - Kaufmenge umschaltbar: ×1, ×10, ×100
 - Einmalige Upgrades (Klickkraft ×2, Gebäude ×2, Klick bekommt % vom Einkommen)
-- Automatisches Speichern alle 10 Sekunden + beim Schließen
 - Statistiken und „Spielstand zurücksetzen“
 - Casino-Tab als Vorschau (Spiele noch gesperrt)
+
+### ✅ Phase 1b – Dublonen & sicheres Speichern *(umgesetzt)*
+- Währung heißt jetzt **Dublonen**, mit eigener goldener Münze als Symbol
+- Häufigeres Speichern (5 s, nach Käufen, beim Tab-Wechsel/Schließen – auch auf dem Handy)
+- Anzeige „💾 gespeichert“ und „Zuletzt gespeichert vor …“
+- Spielstand exportieren/importieren
+- Warnung, wenn der Browser kein Speichern erlaubt
+- Vorbereitung für GitHub Pages
 
 ### Phase 2 – Casino-Grundlage & Slot-Maschine
 - Gemeinsame Einsatz-Auswahl (Betrag eingeben, ½, ×2, Max)
@@ -62,23 +86,56 @@ an einer Stelle.
 - Blackjack zahlt 3:2, Dealer steht auf 17
 - Karten-Animationen
 
-### Phase 5 – Poker
-- **Video Poker** („Jacks or Better“): 5 Karten, Karten halten, einmal tauschen,
-  Auszahlung nach Gewinntabelle
-- *Optional später:* Texas Hold'em gegen Computer-Gegner (deutlich aufwendiger)
+### Phase 5 – Texas Hold'em gegen Computer
+- Tisch mit dir und 3–5 Computer-Gegnern
+- Ablauf: Blinds → 2 eigene Karten → Flop → Turn → River → Showdown
+- Aktionen: Fold, Check, Call, Raise, All-in
+- Handbewertung (Höchste Karte bis Royal Flush), Side-Pots bei All-in
+- Computer-Gegner mit Persönlichkeiten (vorsichtig, normal, aggressiv/bluffend),
+  die ihre Handstärke abschätzen
+- Buy-in mit Dublonen, Gewinne fließen beim Aufstehen zurück aufs Konto
+- Verschiedene Tische mit unterschiedlichen Blinds (z. B. ab 1.000 / 100.000 / 10 Mio. Dublonen)
 
-### Phase 6 – Fortschritt & Motivation
-- Erfolge (Achievements), z. B. „Erste Million“, „Jackpot geknackt“
+### Phase 6 – Texas Hold'em Multiplayer
+- Mit Freunden an einem Tisch spielen, freie Plätze werden mit Computer-Gegnern gefüllt
+- Die Spiellogik aus Phase 5 wird wiederverwendet; ein Spieler ist der „Gastgeber“
+  und verteilt die Karten
+- **Offene Entscheidung** (siehe unten): Online oder an einem Gerät, und welche Dublonen
+  am Tisch verwendet werden
+
+### Phase 7 – Fortschritt & Motivation
+- Erfolge (Achievements), z. B. „Erste Million“, „Jackpot geknackt“, „Royal Flush“
 - Offline-Einnahmen (ein Teil des Einkommens läuft weiter, wenn das Spiel zu ist)
-- Goldene Bonus-Münze, die zufällig erscheint (Klick-Bonus)
+- Goldene Bonus-Dublone, die zufällig erscheint (Klick-Bonus)
 - Prestige-System: neu starten gegen dauerhaften Bonus
-- Casino-Bereiche, die man mit Geld freischalten muss (VIP-Tische mit höheren Einsätzen)
+- Casino-Bereiche, die man mit Dublonen freischalten muss (VIP-Tische mit höheren Einsätzen)
 
-### Phase 7 – Feinschliff & Veröffentlichung
+### Phase 8 – Feinschliff
 - Soundeffekte (abschaltbar)
-- Optimierung für Handy/Tablet
-- Spielstand exportieren/importieren (als Text)
-- Veröffentlichung über GitHub Pages
+- Weitere Optimierung für Handy/Tablet
+
+## Offene Entscheidungen
+
+### Multiplayer: Wie spielen die Freunde zusammen?
+
+| Variante | Wie es funktioniert | Vorteile | Nachteile |
+|---|---|---|---|
+| **A: Online mit Raum-Code** *(Empfehlung)* | Ein Spieler erstellt einen Tisch und bekommt einen Code, die anderen geben ihn ein. Die Browser verbinden sich direkt miteinander (WebRTC über die Bibliothek PeerJS). | Funktioniert über das Internet, kein eigener Server nötig, läuft mit GitHub Pages | Nutzt einen kostenlosen öffentlichen Vermittlungsdienst; in seltenen Netzwerken (z. B. strenge Schul-WLANs) klappt die Verbindung evtl. nicht |
+| B: Eigener Server | Ein kleiner Node.js-Server verwaltet alle Tische. | Am zuverlässigsten, später auch Lobby/Rangliste möglich | Server muss gehostet werden (Kosten/Aufwand), GitHub Pages reicht nicht mehr |
+| C: An einem Gerät | Mehrere Spieler wechseln sich am selben Gerät ab, Karten werden verdeckt weitergegeben. | Am einfachsten, kein Internet nötig | Kein echtes Online-Spielen |
+
+Dazu die Frage, **mit welchen Dublonen** am Multiplayer-Tisch gespielt wird:
+- mit den eigenen Dublonen aus dem Klicker (spannender, aber da alles im Browser läuft,
+  könnte jemand mit Tricks schummeln), oder
+- mit festen Tisch-Chips, die jeder gleich bekommt (fair, aber ohne Auswirkung aufs Konto).
+
+## Veröffentlichung (GitHub Pages)
+
+1. Pull Request in den Branch `main` übernehmen (mergen).
+2. Im Repo auf GitHub: **Settings → Pages** → bei „Source“ **Deploy from a branch** wählen,
+   Branch **main** und Ordner **/ (root)** → **Save**.
+3. Nach 1–2 Minuten ist das Spiel unter
+   **https://rafaelo28.github.io/Gamble-Klicker/** erreichbar.
 
 ## Hinweise zum Spielen
 - Alles ist Spielgeld ohne jeden echten Wert. Es gibt keine Käufe mit echtem Geld.
