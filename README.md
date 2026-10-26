@@ -28,6 +28,7 @@ Schatztruhe voll ist, wartet das Casino:
 - 🔴 **Vier gewinnt** – vier Steine in eine Reihe bringen, gegen den Computer oder online
 - ⚓ **Seeschlacht** – Schiffe versenken: Flotte aufstellen, abwechselnd schießen, wer trifft, darf nochmal
 - 🎯 **Darts in der Taverne** – 2 bis 4 Spieler, zielen mit zitternder Hand, Dreifach-20 und Bull
+- 💥 **Kanonenduell** – zwei Schiffe, eine Insel, wechselnder Wind: zielen wie mit einer Schleuder
 
 Schnelle Klicks bauen eine **Combo** auf, mit etwas Glück landest du einen **kritischen Treffer**.
 Gebäude-Upgrades gibt es in sieben Stufen bis *Mythos*, dazu Synergien zwischen den Gebäuden.
@@ -78,7 +79,7 @@ ab iPadOS 15. Ton gibt es nach dem ersten Antippen (Vorgabe von Safari).
    Alle bekommen die gleichen Tisch-Chips, das Preisgeld sind alle Eintritte zusammen.
 4. Der Gastgeber startet das Spiel. Freie Plätze können Computer-Gegner übernehmen.
 
-Lügenwürfel, Minigolf, Billard, Vier gewinnt, Seeschlacht und Darts funktionieren genauso (Casino → Spiel → *Mit Freunden spielen*).
+Lügenwürfel, Minigolf, Billard, Vier gewinnt, Seeschlacht, Darts und das Kanonenduell funktionieren genauso (Casino → Spiel → *Mit Freunden spielen*).
 
 Die Browser verbinden sich direkt miteinander (WebRTC über [PeerJS](https://peerjs.com/)).
 Der Gastgeber leitet den Tisch – er sollte das Spiel geöffnet lassen, bis das Turnier vorbei ist.
@@ -93,7 +94,7 @@ Den Fahrplan mit allen Phasen findest du in [PROJEKTPLAN.md](PROJEKTPLAN.md).
 - 🎰 Slot-Maschine · 🎟️ Rubbellose · 🎡 Roulette · 🃏 Blackjack
 - 🍀 Glücksrad · 🪙 Münzfall · 🏝️ Schatzinsel · 💣 Kanonenkugel · ⛵ Schiffsrennen · ✈️ Flugkapitän
 - 🏴‍☠️ 🐙 🌋 Drei Video-Slots mit Freispielen und Bonusrunde
-- 🎲 Lügenwürfel, ⛳ Minigolf, 🎱 Billard, 🔴 Vier gewinnt, ⚓ Seeschlacht und 🎯 Darts gegen Computer und online mit Freunden
+- 🎲 Lügenwürfel, ⛳ Minigolf, 🎱 Billard, 🔴 Vier gewinnt, ⚓ Seeschlacht, 🎯 Darts und 💥 Kanonenduell gegen Computer und online mit Freunden
 - ♠️ Texas Hold'em als Turnier gegen Computer-Gegner und online mit Freunden
 - 🏆 Erfolge, goldene Dublone, Offline-Einnahmen, große Fahrt (Prestige) und VIP-Karten
 - 🔊 Soundeffekte, ✨ Gewinn-Animationen, 📱 iPad-Optimierung
@@ -110,6 +111,7 @@ node tests/billiards.test.js
 node tests/connect4.test.js
 node tests/battleship.test.js
 node tests/darts.test.js
+node tests/cannon.test.js
 ```
 Prüft die Poker-Handbewertung, spielt komplette Turniere zwischen Computer-Gegnern durch
 (auch mit Spielern, die mittendrin aufgeben, im Turbo- und im Blitz-Modus) und kontrolliert die

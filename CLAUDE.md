@@ -30,7 +30,7 @@ Online über GitHub Pages aus `main`: https://rafaelo28.github.io/Gamble-Klicker
 - **Zielgerät**: iPad 8. Generation (810 × 1080 hochkant, 1080 × 810 quer, Touch). Große
   Tippflächen, kein Doppeltipp-Zoom, Hover-Effekte nur in `@media (hover: hover)`.
 
-- **Physik in Online-Spielen** (Minigolf, Billard) nur mit + − × ÷ und `Math.sqrt` rechnen, keine
+- **Physik in Online-Spielen** (Minigolf, Billard, Kanonenduell) nur mit + − × ÷ und `Math.sqrt` rechnen, keine
   Winkelfunktionen in der Simulation – sonst kommen auf verschiedenen Geräten andere Ergebnisse heraus.
 
 ## Testen
@@ -42,6 +42,7 @@ Online über GitHub Pages aus `main`: https://rafaelo28.github.io/Gamble-Klicker
 - `node tests/connect4.test.js` – Vier gewinnt: Gewinnerkennung, Züge und Partien zwischen Computer-Gegnern.
 - `node tests/battleship.test.js` – Seeschlacht: Flotte, Regeln, geheime Ansicht, Computer-Gegner.
 - `node tests/darts.test.js` – Darts: Wertung, Ablauf mit 2–4 Spielern, Stechen, Aufgeben.
+- `node tests/cannon.test.js` – Kanonenduell: Flugbahn (muss überall gleich rechnen), Schaden, Regeln, Partien.
 - `node tests/casino.test.js` – Quoten und Zufall der Casino-Spiele (Rubbellose, Glücksrad,
   Münzfall, Schatzinsel, Kanonenkugel, Schiffsrennen, Flugkapitän, Slot-Maschine, Video-Slots).
 - Im Browser mit Playwright (Chromium ist vorinstalliert), auch in der iPad-Emulation

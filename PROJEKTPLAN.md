@@ -273,8 +273,13 @@ Einsatz verloren geht.
 - `js/mp/room.js` kann jetzt auch Phasen, in denen alle gleichzeitig handeln (`canAct`), mit
   gemeinsamer Zeitgrenze (`phaseDeadline`).
 
-### Geplant
-- Teil 3: 💥 Kanonenduell
+### Erweiterung: Kanonenduell ✅ (Teil 3)
+- **💥 Kanonenduell** zu zweit, gegen Computer oder online: zwei Piratenschiffe, dazwischen eine Insel
+  (jedes Mal etwas anders geformt). Zielen wie mit einer Schleuder – ziehen und loslassen, Kraft und
+  Winkel werden angezeigt. Der Wind ändert sich jede Runde. Direkter Treffer 40 Schaden, Einschläge in der
+  Nähe weniger, auch das eigene Schiff kann getroffen werden. 100 Lebenspunkte.
+- Flugbahn nur mit Grundrechenarten und Wurzel: Jedes Gerät rechnet einen Schuss exakt gleich.
+  Computer-Gegner rechnen über tausend Schüsse durch und zielen je nach Können ungenauer.
 
 ## Entscheidungen
 

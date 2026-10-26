@@ -73,6 +73,8 @@ window.GK = window.GK || {};
     { id: 'dartsWin',    icon: '🎯', name: 'Champion der Taverne',  desc: 'Eine Partie Darts gewonnen.' },
     { id: 'dartsBull',   icon: '🔴', name: 'Ins Schwarze',          desc: 'Beim Darts das Bull (50 Punkte) getroffen.' },
     { id: 'darts180',    icon: '💯', name: 'Hundertachtzig!',       desc: 'Beim Darts mit drei Pfeilen 180 Punkte geworfen.' },
+    { id: 'duelWin',     icon: '💥', name: 'Breitseite!',           desc: 'Ein Kanonenduell gewonnen.' },
+    { id: 'duelDirect',  icon: '🎯', name: 'Meisterschütze',        desc: 'Beim Kanonenduell das gegnerische Schiff direkt getroffen.' },
     { id: 'roomPlay',    icon: '🤝', name: 'Spielrunde',            desc: 'Ein Spiel mit Freunden online gespielt.' },
     { id: 'pokerRoyal',  icon: '🤴', name: 'Royal Flush',           desc: 'Beim Showdown einen Royal Flush gezeigt.' },
     { id: 'pokerMpPlay', icon: '👥', name: 'Unter Freunden',        desc: 'Ein Poker-Turnier mit Freunden gespielt.' },
