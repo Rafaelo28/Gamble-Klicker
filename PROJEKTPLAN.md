@@ -235,8 +235,16 @@ Einsatz verloren geht.
 - **🎲 Lügenwürfel**: 2–6 Spieler, 3 oder 5 Würfel, Einsen sind Joker, bieten oder „Lüge!“ rufen,
   Computer-Gegner rechnen Wahrscheinlichkeiten und bluffen je nach Typ
 
+### Erweiterung: Minigolf ✅ (Paket 4)
+- **⛳ Minigolf in der Piratenbucht**: 6 Bahnen (oder 3 als kurze Runde), 2–4 Spieler, gegen Computer
+  oder online. Zielen wie mit einer Schleuder (tippen und zurückziehen), Kraftanzeige.
+- Hindernisse: Kanonenkugel-Bumper, Sand (bremst), Haifischbecken (Wasser = Strafschlag),
+  Hügel mit Gefälle, Zickzack-Wände. Höchstens 7 Schläge pro Bahn.
+- Physik nur mit Grundrechenarten und Wurzel: Jedes Gerät rechnet einen Schlag exakt gleich.
+  Der Gastgeber entscheidet, alle anderen spielen den Schlag zur Anzeige nach.
+- Computer-Gegner probieren viele Schläge durch und wählen den besten, je nach Können mit Fehlern.
+
 ### Als Nächstes geplant
-- **Paket 4**: Minigolf online um Dublonen
 - **Paket 5**: Billard (8-Ball) online um Dublonen
 
 ## Entscheidungen

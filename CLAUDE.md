@@ -34,6 +34,7 @@ Online über GitHub Pages aus `main`: https://rafaelo28.github.io/Gamble-Klicker
 
 - `node tests/poker.test.js` – Handbewertung, Poker-Engine, Preisverteilung.
 - `node tests/dice.test.js` – Lügenwürfel: Regeln und komplette Partien zwischen Computer-Gegnern.
+- `node tests/minigolf.test.js` – Minigolf: Physik (muss überall gleich rechnen) und komplette Runden.
 - `node tests/casino.test.js` – Quoten und Zufall der Casino-Spiele (Rubbellose, Glücksrad,
   Münzfall, Schatzinsel, Kanonenkugel, Schiffsrennen, Slot-Maschine, Video-Slots).
 - Im Browser mit Playwright (Chromium ist vorinstalliert), auch in der iPad-Emulation

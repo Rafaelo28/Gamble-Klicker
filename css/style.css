@@ -4305,6 +4305,131 @@ body.reduced-effects .golden-coin {
   max-width: 560px;
 }
 
+/* ---------- Minigolf ---------- */
+.casino-card[data-game="golf"] { --accent: rgba(111, 220, 140, 0.45); }
+
+.golf-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.golf-head {
+  font-size: 1.05rem;
+  color: var(--gold-light);
+}
+
+.golf-course {
+  position: relative;
+  width: 100%;
+  max-width: 960px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 4px solid #5a3a1a;
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.3s;
+}
+
+.golf-course.my-turn {
+  box-shadow: var(--shadow), 0 0 0 3px var(--gold), 0 0 26px rgba(245, 197, 66, 0.45);
+}
+
+.golf-canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 5 / 3;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.golf-power {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 10px;
+  height: 10px;
+  border-radius: 99px;
+  background: rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+
+.golf-power.show {
+  opacity: 1;
+}
+
+.golf-power span {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, #6fdc8c, #ffd95e, #ff6b4a);
+}
+
+.golf-hint {
+  min-height: 1.5em;
+  text-align: center;
+  font-weight: 700;
+}
+
+.golf-table {
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.golf-table th,
+.golf-table td {
+  padding: 5px 9px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.golf-table td:first-child {
+  text-align: left;
+  white-space: nowrap;
+}
+
+.golf-table th.now {
+  color: var(--gold-light);
+}
+
+.golf-table tr.par td {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.golf-table tr.turn td {
+  background: rgba(245, 197, 66, 0.15);
+}
+
+.golf-table tr.out td {
+  opacity: 0.45;
+}
+
+.golf-table td.ace { color: #ffd95e; font-weight: 900; }
+.golf-table td.under { color: var(--win); font-weight: 800; }
+.golf-table td.over { color: var(--loss); }
+
+.golf-dot {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  margin-right: 5px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  vertical-align: middle;
+}
+
+.golf-place {
+  color: var(--gold-light);
+  font-weight: 800;
+}
+
 /* ---------- Tablet / iPad (8. Generation: 810 × 1080 hochkant, 1080 × 810 quer) ---------- */
 @media (max-width: 1180px) {
   .clicker-layout {
