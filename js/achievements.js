@@ -63,6 +63,8 @@ window.GK = window.GK || {};
     { id: 'pokerTurbo',  icon: '⚡', name: 'Turbo-Hai',             desc: 'Ein Turbo-Turnier gegen die Computer-Gegner gewonnen.' },
     { id: 'pokerBlitz',  icon: '⏱️', name: 'Blitzgescheit',         desc: 'Ein Blitz-Turnier gegen die Computer-Gegner gewonnen.' },
     { id: 'pokerThrone', icon: '🏰', name: 'Herrscher des Throns',  desc: 'Ein Turnier am Thron des Kaisers gewonnen.' },
+    { id: 'diceWin',     icon: '🎲', name: 'Meisterlügner',         desc: 'Eine Partie Lügenwürfel gewonnen.' },
+    { id: 'roomPlay',    icon: '🤝', name: 'Spielrunde',            desc: 'Ein Spiel mit Freunden online gespielt.' },
     { id: 'pokerRoyal',  icon: '🤴', name: 'Royal Flush',           desc: 'Beim Showdown einen Royal Flush gezeigt.' },
     { id: 'pokerMpPlay', icon: '👥', name: 'Unter Freunden',        desc: 'Ein Poker-Turnier mit Freunden gespielt.' },
     { id: 'pokerMpWin',  icon: '🏅', name: 'Champion der Runde',    desc: 'Ein Poker-Turnier mit Freunden gewonnen.' },

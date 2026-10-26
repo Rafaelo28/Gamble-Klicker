@@ -192,6 +192,7 @@ GK.poker = GK.poker || {};
     entry = Math.floor(Number(entry) || 0);
     if (entry < MIN_ENTRY) return GK.toast(`Der Eintritt muss mindestens ${GK.formatNumber(MIN_ENTRY)} Dublonen betragen.`);
     if (GK.poker.singleActive()) return GK.toast('Beende zuerst dein Turnier gegen die Computer-Gegner.');
+    if (GK.room && GK.room.active()) return GK.toast('Verlasse zuerst deinen anderen Spielraum.');
     if (!GK.casino.bet(entry)) return GK.toast('Nicht genug Dublonen für den Eintritt.');
     const me = store();
     me.lastEntry = entry;
@@ -511,6 +512,7 @@ GK.poker = GK.poker || {};
     code = String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
     if (code.length !== CODE_LENGTH) return GK.toast(`Der Raum-Code hat ${CODE_LENGTH} Zeichen.`);
     if (GK.poker.singleActive()) return GK.toast('Beende zuerst dein Turnier gegen die Computer-Gegner.');
+    if (GK.room && GK.room.active()) return GK.toast('Verlasse zuerst deinen anderen Spielraum.');
     store().session = {
       role: 'client',
       code,
@@ -743,7 +745,7 @@ GK.poker = GK.poker || {};
   function readInviteLink() {
     const params = new URLSearchParams(location.search);
     const code = (params.get('raum') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
-    if (!code) return;
+    if (!code || (params.get('spiel') && params.get('spiel') !== 'poker')) return;
     pendingCode = code.slice(0, CODE_LENGTH);
     GK.state.ui.tab = 'casino';
     GK.state.casino.openGame = 'poker';

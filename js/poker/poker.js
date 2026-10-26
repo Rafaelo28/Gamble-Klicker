@@ -44,7 +44,7 @@ window.GK = window.GK || {};
   function join(tierId) {
     const tr = T().tier(tierId);
     const reason = tierBlockReason(tr);
-    if (reason || mpActive()) {
+    if (reason || mpActive() || (GK.room && GK.room.active())) {
       GK.toast(reason || 'Du bist gerade in einem Raum mit Freunden.');
       return;
     }
