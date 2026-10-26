@@ -29,6 +29,7 @@ window.GK = window.GK || {};
   let chipControl;
   let spinning = false;
   let wheelAngle = 0;
+  let ballAngle = 0;
 
   function state() {
     return GK.casino.data('roulette', () => ({ chip: 100, bets: {}, lastBets: {}, results: [], pending: null }));
@@ -54,6 +55,10 @@ window.GK = window.GK || {};
 
   function placeBet(key, amount) {
     if (spinning) return false;
+    if (totalBets(state().bets) + amount > GK.casino.maxBet()) {
+      showMessage(`Dein Limit sind ${GK.formatNumber(GK.casino.maxBet())} Dublonen pro Drehung – eine bessere VIP-Karte erhöht es.`, 'loss');
+      return false;
+    }
     if (!GK.casino.bet(amount)) {
       showMessage('Nicht genug Dublonen für diesen Chip.', 'loss');
       return false;
@@ -61,7 +66,8 @@ window.GK = window.GK || {};
     const bets = state().bets;
     bets[key] = (bets[key] || 0) + amount;
     GK.save();
-    drawBets();
+    GK.sound.play('chip');
+    drawBets(undefined, key);
     return true;
   }
 
@@ -76,6 +82,10 @@ window.GK = window.GK || {};
 
   function repeatBets() {
     const last = state().lastBets;
+    if (totalBets(state().bets) + totalBets(last) > GK.casino.maxBet()) {
+      showMessage('Das würde dein Einsatz-Limit pro Drehung überschreiten.', 'loss');
+      return;
+    }
     if (!GK.canAfford(totalBets(last))) {
       showMessage('Nicht genug Dublonen, um die letzten Wetten zu wiederholen.', 'loss');
       return;
@@ -104,11 +114,14 @@ window.GK = window.GK || {};
     spinning = true;
     updateButtons();
     showMessage('Rien ne va plus – nichts geht mehr!', '');
+    drawBets();
     spinWheelTo(result, true);
-    setTimeout(settle, SPIN_TIME);
+    GK.sound.play('rouletteSpin', SPIN_TIME / 1000);
+    setTimeout(() => settle(true), SPIN_TIME);
   }
 
-  function settle() {
+  // animated = nach einer Drehung (sonst: nach dem Neuladen)
+  function settle(animated) {
     const s = state();
     const p = s.pending;
     spinning = false;
@@ -120,6 +133,12 @@ window.GK = window.GK || {};
     s.results.unshift(p.result);
     s.results.length = Math.min(s.results.length, 15);
     GK.casino.payout(p.payout);
+    Object.keys(p.bets || {}).forEach(key => {
+      if (key.startsWith('n') && betInfo(key).wins(p.result)) {
+        GK.unlockAchievement('rouletteNumber');
+        if (p.result === 0) GK.unlockAchievement('rouletteZero');
+      }
+    });
     const colorName = { green: 'Grün', red: 'Rot', black: 'Schwarz' }[colorOf(p.result)];
     GK.casino.record('roulette', p.bet, p.payout, `${p.result} ${colorName}`);
 
@@ -132,6 +151,10 @@ window.GK = window.GK || {};
     drawBets(p.result);
     drawResults();
     updateButtons();
+    if (animated) {
+      GK.fx.pulse(els.results.firstElementChild, 'result-pop');
+      GK.fx.celebrate(p.payout, p.bet, { el: els.wheel, subtitle: `${p.result} ${colorName}` });
+    }
   }
 
   // ---------- Darstellung ----------
@@ -144,6 +167,23 @@ window.GK = window.GK || {};
     wheelAngle = base + target;
     els.wheel.style.transition = animated ? `transform ${SPIN_TIME}ms cubic-bezier(0.15, 0.6, 0.2, 1)` : 'none';
     els.wheel.style.transform = `rotate(${wheelAngle}deg)`;
+
+    // Die Kugel läuft gegen die Drehrichtung und landet oben unter dem Zeiger – in der Gewinnzahl
+    const fast = GK.state.settings.effects === 'reduced';
+    ballAngle -= animated ? 360 * (fast ? 1 : 4) : 0;
+    els.ballTrack.style.transition = animated ? `transform ${SPIN_TIME}ms cubic-bezier(0.1, 0.5, 0.25, 1)` : 'none';
+    els.ballTrack.style.transform = `rotate(${ballAngle}deg)`;
+    els.ball.classList.remove('dropped');
+    if (animated) {
+      void els.ball.offsetWidth;
+      els.ball.classList.add('rolling');
+      setTimeout(() => {
+        els.ball.classList.remove('rolling');
+        els.ball.classList.add('dropped');
+      }, SPIN_TIME * 0.72);
+    } else {
+      els.ball.classList.add('dropped');
+    }
   }
 
   function buildWheel() {
@@ -189,9 +229,11 @@ window.GK = window.GK || {};
     return String(n);
   }
 
-  // Chips auf dem Tisch anzeigen; winner = zuletzt gefallene Zahl hervorheben
-  function drawBets(winner) {
-    const bets = state().bets;
+  // Chips auf dem Tisch anzeigen; winner = zuletzt gefallene Zahl hervorheben, placed = gerade gesetzt
+  function drawBets(winner, placed) {
+    // Während die Kugel rollt, liegen die gesetzten Chips noch auf dem Tisch
+    const s = state();
+    const bets = s.pending ? s.pending.bets : s.bets;
     els.board.querySelectorAll('.rb-cell').forEach(cell => {
       const key = cell.dataset.bet;
       let chip = cell.querySelector('.rb-chip');
@@ -202,6 +244,7 @@ window.GK = window.GK || {};
           cell.appendChild(chip);
         }
         chip.textContent = shortNumber(bets[key]);
+        if (key === placed) GK.fx.pulse(chip, 'chip-drop');
       } else if (chip) {
         chip.remove();
       }
@@ -235,7 +278,10 @@ window.GK = window.GK || {};
       <div class="roulette-layout">
         <div class="roulette-wheel-area">
           <div class="wheel-pointer">▼</div>
-          <div class="wheel"></div>
+          <div class="wheel-wrap">
+            <div class="wheel"></div>
+            <div class="ball-track"><div class="ball"></div></div>
+          </div>
           <div class="roulette-results"></div>
         </div>
         <div class="roulette-table-area">
@@ -253,6 +299,8 @@ window.GK = window.GK || {};
       </div>`;
     els = {
       wheel: body.querySelector('.wheel'),
+      ballTrack: body.querySelector('.ball-track'),
+      ball: body.querySelector('.ball'),
       board: body.querySelector('.roulette-board'),
       total: body.querySelector('.roulette-total'),
       results: body.querySelector('.roulette-results'),
@@ -279,7 +327,7 @@ window.GK = window.GK || {};
     spinning = false;
     const s = state();
     spinWheelTo(s.pending ? s.pending.result : (s.results[0] || 0), false);
-    if (s.pending) settle();
+    if (s.pending) settle(false);
     drawBets();
     drawResults();
     updateButtons();

@@ -2,35 +2,58 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Gamble Klicker</title>
-  <link rel="stylesheet" href="css/style.css">
+  <!-- Als App auf dem Home-Bildschirm (iPad/iPhone): Vollbild, eigenes Symbol -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Gamble Klicker">
+  <meta name="theme-color" content="#06120c">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap">
+  <meta name="description" content="Klicke dich reich und verzocke deine Dublonen im Casino! Browser-Spiel aus Cookie Clicker und Casino – nur Spielgeld.">
+  <meta name="author" content="Rafaelo28">
+  <!-- ?v=… ist die Spielversion: bei jedem Update erhöhen, damit Browser keine alten Dateien mischen -->
+  <link rel="stylesheet" href="css/style.css?v=20261026">
 </head>
 <body>
+  <div class="app-header">
   <header class="topbar">
-    <div class="logo">🎰 Gamble Klicker</div>
+    <div class="logo"><span class="logo-coin">D</span><span class="logo-text">Gamble Klicker</span></div>
+    <button id="sound-toggle" class="icon-btn" aria-label="Sound an/aus" title="Sound an/aus">🔊</button>
     <div class="wallet">
       <div class="wallet-money"><span id="money">0</span> <i class="dublone" aria-label="Dublonen"></i></div>
       <div class="wallet-cps"><span id="cps">0</span> Dublonen pro Sekunde</div>
       <div id="save-indicator" class="save-indicator">💾 gespeichert</div>
     </div>
   </header>
-
   <nav class="tabs">
-    <button class="tab active" data-tab="clicker">👆 Klicker</button>
-    <button class="tab" data-tab="casino">🎲 Casino</button>
-    <button class="tab" data-tab="stats">📊 Statistiken</button>
+    <button class="tab active" data-tab="clicker"><span class="tab-icon">👆</span><span class="tab-label">Klicker</span></button>
+    <button class="tab" data-tab="casino"><span class="tab-icon">🎲</span><span class="tab-label">Casino</span></button>
+    <button class="tab" data-tab="progress"><span class="tab-icon">🏆</span><span class="tab-label">Fortschritt</span></button>
+    <button class="tab" data-tab="stats"><span class="tab-icon">📊</span><span class="tab-label">Statistiken</span></button>
   </nav>
+  <div id="buff-bar" class="buff-bar" aria-live="polite"></div>
+  </div>
 
   <main>
     <!-- Klicker -->
     <section id="tab-clicker" class="tab-panel active">
       <div class="clicker-layout">
         <div class="click-area">
-          <button id="big-coin" class="big-coin" aria-label="Dublone klicken">
-            <span class="big-coin-inner">D</span>
-          </button>
+          <div class="coin-stage">
+            <button id="big-coin" class="big-coin" aria-label="Dublone klicken">
+              <span class="big-coin-inner">D</span>
+            </button>
+          </div>
           <div class="click-power">+<span id="click-power">1</span> pro Klick</div>
+          <div id="side-slot" class="side-slot"></div>
           <div id="float-layer" class="float-layer"></div>
         </div>
 
@@ -68,6 +91,10 @@
             <dl id="casino-stats" class="stats-list compact"></dl>
           </div>
           <div class="casino-info-box">
+            <h3>VIP-Karte</h3>
+            <div id="casino-vip"></div>
+          </div>
+          <div class="casino-info-box">
             <h3>Letzte Runden</h3>
             <ul id="casino-history" class="casino-history"></ul>
           </div>
@@ -76,19 +103,69 @@
       <div id="casino-games"></div>
     </section>
 
+    <!-- Fortschritt -->
+    <section id="tab-progress" class="tab-panel">
+      <div class="progress-grid">
+        <div class="panel">
+          <h2>🗺️ Große Fahrt</h2>
+          <p class="muted">
+            Hast du genug Dublonen verdient, kannst du auf große Fahrt gehen: Du fängst mit dem Klicker
+            von vorne an, bekommst dafür aber <b>Schatzkarten</b>. Jede Schatzkarte gibt dir für immer
+            <b>+10 % Einkommen</b> und Klickkraft. Erfolge, VIP-Karte und Casino-Statistik bleiben erhalten.
+          </p>
+          <dl id="prestige-stats" class="stats-list compact"></dl>
+          <button id="prestige-btn" class="btn btn-primary">⛵ Auf große Fahrt gehen</button>
+          <p id="prestige-hint" class="muted small"></p>
+        </div>
+        <div class="panel">
+          <h2>⚡ Deine Boni</h2>
+          <dl id="bonus-stats" class="stats-list compact"></dl>
+          <p class="muted small">
+            ✨ Halte Ausschau nach der <b>goldenen Dublone</b>: Sie taucht ab und zu irgendwo auf.
+            Schnell anklicken – sie bringt einen Schatzfund, Goldrausch (Einkommen ×7) oder Klickfieber (Klicks ×25)!
+          </p>
+        </div>
+      </div>
+      <h2 class="section-gap">🏆 Erfolge <span id="achievement-count"></span></h2>
+      <p class="muted small">Jeder Erfolg gibt dir dauerhaft +1 % Einkommen.</p>
+      <div id="achievement-grid" class="achievement-grid"></div>
+    </section>
+
     <!-- Statistiken -->
     <section id="tab-stats" class="tab-panel">
       <h2>Statistiken</h2>
       <dl class="stats-list">
         <dt>Aktuelles Guthaben</dt><dd id="stat-money">0</dd>
-        <dt>Insgesamt verdient</dt><dd id="stat-total">0</dd>
+        <dt>Verdient auf dieser Fahrt</dt><dd id="stat-total">0</dd>
+        <dt>Insgesamt verdient</dt><dd id="stat-all-time">0</dd>
         <dt>Durch Klicks verdient</dt><dd id="stat-click-earned">0</dd>
         <dt>Anzahl Klicks</dt><dd id="stat-clicks">0</dd>
         <dt>Einkommen pro Sekunde</dt><dd id="stat-cps">0</dd>
         <dt>Gebäude insgesamt</dt><dd id="stat-buildings">0</dd>
         <dt>Upgrades gekauft</dt><dd id="stat-upgrades">0</dd>
+        <dt>Goldene Dublonen gefangen</dt><dd id="stat-golden">0</dd>
+        <dt>Erfolge</dt><dd id="stat-achievements">0</dd>
         <dt>Spielzeit</dt><dd id="stat-playtime">0</dd>
       </dl>
+
+      <h2 class="section-gap">⚙️ Einstellungen</h2>
+      <div class="settings">
+        <label class="setting">
+          <span>🔊 Sound</span>
+          <input type="checkbox" id="set-sound" class="switch">
+        </label>
+        <label class="setting">
+          <span>🔉 Lautstärke</span>
+          <input type="range" id="set-volume" min="0" max="1" step="0.05">
+        </label>
+        <label class="setting">
+          <span>✨ Animationen</span>
+          <select id="set-effects" class="bet-input">
+            <option value="full">Volle Effekte</option>
+            <option value="reduced">Reduziert (ruhiger)</option>
+          </select>
+        </label>
+      </div>
 
       <h2 class="section-gap">Spielstand</h2>
       <p id="storage-warning" class="warning" hidden>
@@ -117,20 +194,40 @@
     </section>
   </main>
 
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <footer class="footer">
+    🎰 Gamble Klicker · Entwickelt von <a href="https://github.com/Rafaelo28" target="_blank" rel="noopener">Rafaelo28</a>
+    · <a href="https://github.com/Rafaelo28/Gamble-Klicker" target="_blank" rel="noopener">Quellcode auf GitHub</a>
+    · Nur Spielgeld – kein echtes Geld
+  </footer>
 
-  <script src="js/format.js"></script>
-  <script src="js/state.js"></script>
-  <script src="js/clicker.js"></script>
-  <script src="js/casino/casino.js"></script>
-  <script src="js/casino/cards.js"></script>
-  <script src="js/casino/slots.js"></script>
-  <script src="js/casino/roulette.js"></script>
-  <script src="js/casino/blackjack.js"></script>
-  <script src="js/poker/evaluator.js"></script>
-  <script src="js/poker/engine.js"></script>
-  <script src="js/poker/ai.js"></script>
-  <script src="js/poker/poker.js"></script>
-  <script src="js/main.js"></script>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="notify-stack" class="notify-stack" aria-live="polite"></div>
+
+  <!-- PeerJS für den Poker-Multiplayer (Verbindung direkt zwischen den Browsern) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
+
+  <script src="js/format.js?v=20261026"></script>
+  <script src="js/state.js?v=20261026"></script>
+  <script src="js/sound.js?v=20261026"></script>
+  <script src="js/fx.js?v=20261026"></script>
+  <script src="js/achievements.js?v=20261026"></script>
+  <script src="js/progress.js?v=20261026"></script>
+  <script src="js/clicker.js?v=20261026"></script>
+  <script src="js/casino/casino.js?v=20261026"></script>
+  <script src="js/casino/cards.js?v=20261026"></script>
+  <script src="js/casino/slot-machine.js?v=20261026"></script>
+  <script src="js/casino/slots.js?v=20261026"></script>
+  <script src="js/casino/scratch.js?v=20261026"></script>
+  <script src="js/casino/roulette.js?v=20261026"></script>
+  <script src="js/casino/blackjack.js?v=20261026"></script>
+  <script src="js/poker/evaluator.js?v=20261026"></script>
+  <script src="js/poker/engine.js?v=20261026"></script>
+  <script src="js/poker/ai.js?v=20261026"></script>
+  <script src="js/poker/tournament.js?v=20261026"></script>
+  <script src="js/poker/table-ui.js?v=20261026"></script>
+  <script src="js/poker/multiplayer.js?v=20261026"></script>
+  <script src="js/poker/poker.js?v=20261026"></script>
+  <script src="js/side-slot.js?v=20261026"></script>
+  <script src="js/main.js?v=20261026"></script>
 </body>
 </html>

@@ -1,0 +1,363 @@
+// Effekte: fliegende Münzen, Konfetti, Münzregen, Gewinn-Banner, Wackeln.
+// Alles läuft auf einer durchsichtigen Zeichenfläche über dem Spiel.
+// In den Einstellungen kann man „Animationen: reduziert“ wählen – dann gibt es nur Banner und Text.
+window.GK = window.GK || {};
+
+(function () {
+  const MAX_PARTICLES = 450;
+  const GRAVITY = 1400; // Pixel pro Sekunde²
+  const CONFETTI_COLORS = ['#f5c542', '#ff5e7e', '#4fd1c5', '#7c83ff', '#6fdc8c', '#ffffff', '#ff9f43'];
+
+  let canvas;
+  let g;
+  let particles = [];
+  let running = false;
+  let lastTime = 0;
+  let dpr = 1;
+  let rainUntil = 0;
+  let rainDensity = 0;
+
+  function reduced() {
+    return GK.state.settings.effects === 'reduced';
+  }
+
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = window.innerWidth * dpr;
+    canvas.height = window.innerHeight * dpr;
+  }
+
+  function init() {
+    canvas = document.createElement('canvas');
+    canvas.className = 'fx-canvas';
+    canvas.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(canvas);
+    g = canvas.getContext('2d');
+    resize();
+    window.addEventListener('resize', resize);
+  }
+
+  // ---------- Partikel ----------
+
+  function add(p) {
+    if (particles.length >= MAX_PARTICLES) particles.shift();
+    particles.push(p);
+    if (!running) {
+      running = true;
+      lastTime = performance.now();
+      requestAnimationFrame(loop);
+    }
+  }
+
+  function coinParticle(x, y, vx, vy, size) {
+    return { kind: 'coin', x, y, vx, vy, size, spin: Math.random() * Math.PI * 2, spinSpeed: 6 + Math.random() * 10, life: 0, maxLife: 2.6 };
+  }
+
+  function confettiParticle(x, y, vx, vy) {
+    return {
+      kind: 'confetti', x, y, vx, vy,
+      w: 6 + Math.random() * 6, h: 10 + Math.random() * 8,
+      color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+      rot: Math.random() * Math.PI, rotSpeed: (Math.random() - 0.5) * 12,
+      sway: Math.random() * Math.PI * 2, life: 0, maxLife: 4,
+    };
+  }
+
+  function sparkleParticle(x, y, vx, vy) {
+    return { kind: 'sparkle', x, y, vx, vy, size: 3 + Math.random() * 5, life: 0, maxLife: 0.6 + Math.random() * 0.5 };
+  }
+
+  // Münzen (oder Funken/Konfetti) fliegen von einem Punkt aus in alle Richtungen
+  function burst(x, y, opts = {}) {
+    if (reduced()) return;
+    const count = opts.count || 20;
+    const speed = opts.speed || 600;
+    const kind = opts.kind || 'coin';
+    for (let i = 0; i < count; i++) {
+      const angle = opts.upward
+        ? -Math.PI / 2 + (Math.random() - 0.5) * (opts.spread || 1.6)
+        : Math.random() * Math.PI * 2;
+      const v = speed * (0.4 + Math.random() * 0.8);
+      const vx = Math.cos(angle) * v;
+      const vy = Math.sin(angle) * v;
+      if (kind === 'coin') add(coinParticle(x, y, vx, vy, opts.size || 10 + Math.random() * 8));
+      else if (kind === 'confetti') add(confettiParticle(x, y, vx, vy));
+      else add(sparkleParticle(x, y, vx * 0.5, vy * 0.5));
+    }
+  }
+
+  // Konfetti-Kanonen von beiden Seiten
+  function confetti(count = 120) {
+    if (reduced()) return;
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    for (let i = 0; i < count; i++) {
+      const left = i % 2 === 0;
+      const angle = left ? -Math.PI / 3 - Math.random() * 0.5 : -Math.PI * 2 / 3 + Math.random() * 0.5;
+      const v = 700 + Math.random() * 700;
+      add(confettiParticle(left ? -10 : w + 10, h * 0.75, Math.cos(angle) * v, Math.sin(angle) * v));
+    }
+  }
+
+  // Goldmünzen regnen von oben
+  function coinRain(seconds = 2, density = 40) {
+    if (reduced()) return;
+    rainUntil = Math.max(rainUntil, performance.now() + seconds * 1000);
+    rainDensity = Math.max(rainDensity, density);
+    if (!running) add(coinParticle(-100, -100, 0, 0, 1)); // Schleife starten
+  }
+
+  function loop(now) {
+    const dt = Math.min((now - lastTime) / 1000, 0.05);
+    lastTime = now;
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+
+    if (now < rainUntil) {
+      const n = rainDensity * dt * 3;
+      for (let i = 0; i < n; i++) {
+        add(coinParticle(Math.random() * w, -30, (Math.random() - 0.5) * 120, 100 + Math.random() * 250, 12 + Math.random() * 12));
+      }
+    } else {
+      rainDensity = 0;
+    }
+
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, w, h);
+    particles = particles.filter(p => {
+      p.life += dt;
+      if (p.life > p.maxLife || p.y > h + 60) return false;
+      if (p.kind === 'confetti') {
+        p.vx *= 1 - 1.5 * dt;
+        p.vy = Math.min(p.vy + GRAVITY * 0.35 * dt, 260);
+        p.sway += dt * 5;
+        p.x += (p.vx + Math.sin(p.sway) * 40) * dt;
+        p.y += p.vy * dt;
+        p.rot += p.rotSpeed * dt;
+        drawConfetti(p);
+      } else if (p.kind === 'coin') {
+        p.vy += GRAVITY * dt;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.spin += p.spinSpeed * dt;
+        drawCoin(p);
+      } else {
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        drawSparkle(p);
+      }
+      return true;
+    });
+
+    if (particles.length || now < rainUntil) {
+      requestAnimationFrame(loop);
+    } else {
+      running = false;
+      g.clearRect(0, 0, w, h);
+    }
+  }
+
+  function fade(p) {
+    return Math.max(0, Math.min(1, (p.maxLife - p.life) / 0.5));
+  }
+
+  function drawCoin(p) {
+    const squash = Math.abs(Math.cos(p.spin)); // dreht sich um die eigene Achse
+    g.save();
+    g.globalAlpha = fade(p);
+    g.translate(p.x, p.y);
+    g.scale(Math.max(squash, 0.12), 1);
+    const grad = g.createRadialGradient(-p.size * 0.3, -p.size * 0.3, 1, 0, 0, p.size);
+    grad.addColorStop(0, '#fff6c2');
+    grad.addColorStop(0.45, '#f5c542');
+    grad.addColorStop(1, '#a8740a');
+    g.fillStyle = grad;
+    g.beginPath();
+    g.arc(0, 0, p.size, 0, Math.PI * 2);
+    g.fill();
+    g.lineWidth = p.size * 0.15;
+    g.strokeStyle = '#8a6508';
+    g.stroke();
+    g.restore();
+  }
+
+  function drawConfetti(p) {
+    g.save();
+    g.globalAlpha = fade(p);
+    g.translate(p.x, p.y);
+    g.rotate(p.rot);
+    g.scale(1, Math.abs(Math.sin(p.rot * 1.3)) * 0.8 + 0.2);
+    g.fillStyle = p.color;
+    g.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+    g.restore();
+  }
+
+  function drawSparkle(p) {
+    const a = Math.max(0, 1 - p.life / p.maxLife);
+    const s = p.size * (0.5 + a);
+    g.save();
+    g.globalAlpha = a;
+    g.translate(p.x, p.y);
+    g.fillStyle = '#fff6c2';
+    g.beginPath();
+    for (let i = 0; i < 8; i++) {
+      const r = i % 2 === 0 ? s : s * 0.3;
+      const ang = (i / 8) * Math.PI * 2;
+      g.lineTo(Math.cos(ang) * r, Math.sin(ang) * r);
+    }
+    g.closePath();
+    g.fill();
+    g.restore();
+  }
+
+  // ---------- Kleine Effekte auf Elementen ----------
+
+  function center(el) {
+    if (!el) return { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+    const r = el.getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  }
+
+  // Element kurz hüpfen/leuchten lassen (CSS-Klasse wird neu gestartet)
+  function pulse(el, cls = 'fx-pulse') {
+    if (!el) return;
+    el.classList.remove(cls);
+    void el.offsetWidth;
+    el.classList.add(cls);
+  }
+
+  function shake(strength = 'small') {
+    if (reduced()) return;
+    pulse(document.querySelector('main'), strength === 'big' ? 'fx-shake-big' : 'fx-shake');
+  }
+
+  function flash() {
+    if (reduced()) return;
+    const el = document.createElement('div');
+    el.className = 'fx-flash';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 700);
+  }
+
+  // Aufsteigender Text, z. B. „+1.000“
+  function floatText(x, y, html, cls = '') {
+    const el = document.createElement('div');
+    el.className = 'fx-float ' + cls;
+    el.innerHTML = html;
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1600);
+  }
+
+  // ---------- Gewinn-Banner ----------
+
+  const LEVELS = {
+    big:     { title: 'GROSSER GEWINN!', cls: 'big',     seconds: 2.6 },
+    mega:    { title: 'MEGA-GEWINN!',    cls: 'mega',    seconds: 3.4 },
+    jackpot: { title: 'JACKPOT!',        cls: 'jackpot', seconds: 4.4 },
+  };
+
+  let bannerEl = null;
+
+  function banner(level, amount, subtitle) {
+    const def = LEVELS[level];
+    if (bannerEl) bannerEl.remove();
+    const el = document.createElement('div');
+    el.className = `win-banner ${def.cls}`;
+    el.innerHTML = `
+      <div class="win-rays"></div>
+      <div class="win-content">
+        <div class="win-title">${def.title}</div>
+        <div class="win-amount"><span class="win-number">0</span> ${GK.COIN}</div>
+        ${subtitle ? `<div class="win-sub">${subtitle}</div>` : ''}
+        <div class="win-hint">Tippen zum Schließen</div>
+      </div>`;
+    document.body.appendChild(el);
+    bannerEl = el;
+    const close = () => {
+      el.classList.add('hide');
+      setTimeout(() => el.remove(), 400);
+      if (bannerEl === el) bannerEl = null;
+    };
+    el.addEventListener('click', close);
+
+    // Betrag hochzählen
+    const number = el.querySelector('.win-number');
+    const countTime = def.seconds * 450;
+    const start = performance.now();
+    const step = now => {
+      const k = Math.min(1, (now - start) / countTime);
+      const eased = 1 - Math.pow(1 - k, 3);
+      number.textContent = GK.formatNumber(amount * eased);
+      if (k < 1 && el.isConnected) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+    setTimeout(close, def.seconds * 1000);
+  }
+
+  // ---------- Gewinne feiern ----------
+
+  /**
+   * Passend zur Gewinnhöhe feiern.
+   * payout = Auszahlung (inkl. Einsatz), bet = Einsatz.
+   * opts: { el: Element, von dem die Münzen fliegen; level: Stufe erzwingen; subtitle; quiet: kein Verlust-Ton }
+   */
+  function celebrate(payout, bet, opts = {}) {
+    const ratio = bet > 0 ? payout / bet : 0;
+    const net = payout - bet;
+    const pos = center(opts.el);
+
+    if (payout <= 0) {
+      if (!opts.quiet) GK.sound.play('lose');
+      return 'lose';
+    }
+    if (payout <= bet) {
+      GK.sound.play('coin');
+      return 'push';
+    }
+
+    let level = opts.level;
+    if (!level) {
+      if (ratio >= 100) level = 'jackpot';
+      else if (ratio >= 20) level = 'mega';
+      else if (ratio >= 5) level = 'big';
+      else level = 'small';
+    }
+    pulse(document.querySelector('.wallet'), 'fx-wallet');
+
+    if (level === 'small') {
+      GK.sound.play('winSmall');
+      burst(pos.x, pos.y, { count: 18, speed: 650, upward: true, spread: 2 });
+      burst(pos.x, pos.y, { count: 10, kind: 'sparkle', speed: 300 });
+      floatText(pos.x, pos.y - 20, '+' + GK.formatMoneyHTML(net), 'win');
+      return level;
+    }
+
+    banner(level, net, opts.subtitle);
+    if (level === 'big') {
+      GK.sound.play('winBig');
+      burst(pos.x, pos.y, { count: 45, speed: 900, upward: true, spread: 2.2 });
+      confetti(90);
+      flash();
+    } else if (level === 'mega') {
+      GK.sound.play('winMega');
+      burst(pos.x, pos.y, { count: 60, speed: 1000, upward: true, spread: 2.4 });
+      confetti(160);
+      coinRain(2.5, 45);
+      flash();
+      shake('small');
+    } else {
+      GK.sound.play('jackpot');
+      burst(pos.x, pos.y, { count: 80, speed: 1200 });
+      confetti(220);
+      coinRain(4, 70);
+      flash();
+      shake('big');
+      setTimeout(() => confetti(160), 1200);
+    }
+    return level;
+  }
+
+  GK.fx = { init, burst, confetti, coinRain, pulse, shake, flash, floatText, banner, celebrate, center };
+})();

@@ -5,6 +5,7 @@ window.GK = window.GK || {};
 (function () {
   const HISTORY_LENGTH = 15;
   const games = [];
+  const extraNames = {}; // Spiele außerhalb der Casino-Lobby, z. B. der Side-Slot im Klicker
 
   // ---------- Faire Zufallszahlen (kryptografischer Zufall des Browsers) ----------
 
@@ -57,6 +58,41 @@ window.GK = window.GK || {};
     return all[gameId];
   }
 
+  // ---------- VIP-Karten: höhere Einsatz-Limits und bessere Poker-Tische ----------
+
+  const VIP_LEVELS = [
+    { name: 'Standard', icon: '🎫', cost: 0,   maxBet: 10000 },
+    { name: 'Silber',   icon: '🥈', cost: 250000,   maxBet: 1000000 },
+    { name: 'Gold',     icon: '🥇', cost: 50000000, maxBet: 100000000 },
+    { name: 'Diamant',  icon: '💎', cost: 5000000000, maxBet: Infinity },
+  ];
+
+  function vipLevel() {
+    return casino().vip || 0;
+  }
+
+  // Höchster erlaubter Einsatz pro Runde
+  function maxBet() {
+    return VIP_LEVELS[vipLevel()].maxBet;
+  }
+
+  function buyVip() {
+    const next = VIP_LEVELS[vipLevel() + 1];
+    if (!next || !GK.spend(next.cost)) return false;
+    casino().vip = vipLevel() + 1;
+    GK.sound.play('upgrade');
+    GK.fx.confetti(80);
+    GK.unlockAchievement(['', 'vipSilver', 'vipGold', 'vipDiamond'][casino().vip]);
+    GK.save();
+    renderLobbyInfo();
+    GK.toast(`${next.icon} ${next.name}-Karte gekauft! Neues Einsatz-Limit: ${formatLimit(next.maxBet)}`);
+    return true;
+  }
+
+  function formatLimit(limit) {
+    return limit === Infinity ? 'unbegrenzt' : GK.formatNumber(limit) + ' Dublonen';
+  }
+
   // Einsatz abbuchen. Gibt false zurück, wenn das Guthaben nicht reicht.
   function bet(amount) {
     if (!(amount > 0) || !GK.spend(amount)) return false;
@@ -85,6 +121,7 @@ window.GK = window.GK || {};
     c.biggestWin = Math.max(c.biggestWin, payoutAmount - betAmount);
     c.history.unshift({ game: gameId, bet: betAmount, payout: payoutAmount, text, time: Date.now() });
     c.history.length = Math.min(c.history.length, HISTORY_LENGTH);
+    if (GK.state.money < 1 && payoutAmount < betAmount) GK.unlockAchievement('broke');
     GK.save();
     renderLobbyInfo();
   }
@@ -113,7 +150,7 @@ window.GK = window.GK || {};
 
     function clamp(value) {
       value = Math.floor(Number(value) || 0);
-      const max = Math.max(min, Math.floor(GK.state.money));
+      const max = Math.max(min, Math.min(Math.floor(GK.state.money), maxBet()));
       return Math.min(Math.max(value, min), max);
     }
 
@@ -123,10 +160,15 @@ window.GK = window.GK || {};
     }
 
     function refresh() {
-      const value = options.get();
+      let value = options.get();
+      if (value > maxBet()) {
+        value = maxBet(); // z. B. aus einem alten Spielstand ohne Limit
+        options.set(value);
+      }
       if (document.activeElement !== input) input.value = value;
       display.innerHTML = GK.formatMoneyHTML(value) +
-        (GK.canAfford(value) ? '' : ' <span class="bet-warning">– nicht genug Dublonen</span>');
+        (GK.canAfford(value) ? '' : ' <span class="bet-warning">– nicht genug Dublonen</span>') +
+        (maxBet() < Infinity ? ` <span class="bet-limit">(Limit ${GK.formatNumber(maxBet())})</span>` : '');
     }
 
     input.addEventListener('change', () => apply(input.value));
@@ -137,9 +179,10 @@ window.GK = window.GK || {};
           min: () => min,
           half: () => current / 2,
           double: () => current * 2,
-          max: () => GK.state.money,
+          max: () => Math.min(GK.state.money, maxBet()),
         };
         apply(ops[btn.dataset.op]());
+        GK.sound.play('chip');
       });
     });
 
@@ -159,9 +202,13 @@ window.GK = window.GK || {};
     games.push(game);
   }
 
+  function registerName(id, label) {
+    extraNames[id] = label;
+  }
+
   function gameName(id) {
     const game = games.find(g => g.id === id);
-    return game ? `${game.emoji} ${game.name}` : id;
+    return game ? `${game.emoji} ${game.name}` : extraNames[id] || id;
   }
 
   function openGame(id) {
@@ -181,6 +228,7 @@ window.GK = window.GK || {};
     games.forEach(game => {
       const card = document.createElement('button');
       card.className = 'casino-card';
+      card.dataset.game = game.id;
       card.innerHTML = `<div class="casino-emoji">${game.emoji}</div><h3>${game.name}</h3><p>${game.desc}</p>`;
       card.addEventListener('click', () => openGame(game.id));
       grid.appendChild(card);
@@ -211,6 +259,22 @@ window.GK = window.GK || {};
       <dt>Insgesamt ausgezahlt</dt><dd>${GK.formatMoneyHTML(c.won)}</dd>
       <dt>Bilanz</dt><dd class="${net >= 0 ? 'win' : 'loss'}">${net >= 0 ? '+' : '−'}${GK.formatMoneyHTML(Math.abs(net))}</dd>
       <dt>Größter Gewinn</dt><dd>${GK.formatMoneyHTML(c.biggestWin)}</dd>`;
+
+    const level = VIP_LEVELS[vipLevel()];
+    const next = VIP_LEVELS[vipLevel() + 1];
+    document.getElementById('casino-vip').innerHTML = `
+      <div class="vip-card vip-${vipLevel()}">${level.icon} ${level.name}-Karte</div>
+      <p>Einsatz-Limit pro Runde: <b>${formatLimit(level.maxBet)}</b></p>
+      ${next ? `
+        <p class="muted small">Nächste Stufe: ${next.icon} ${next.name} – Limit ${formatLimit(next.maxBet)}${
+          vipLevel() + 1 <= 2 ? `, schaltet den Poker-Tisch „${GK.poker.tournament.TIERS[vipLevel() + 1].name}“ frei` : ''}.</p>
+        <button class="btn btn-primary vip-buy">${next.name}-Karte kaufen (${GK.formatNumber(next.cost)} Dublonen)</button>`
+        : '<p class="muted small">Höchste Stufe erreicht – du bist ein echter High Roller! 💎</p>'}`;
+    const buy = document.querySelector('.vip-buy');
+    if (buy) {
+      buy.disabled = !GK.canAfford(next.cost);
+      buy.addEventListener('click', buyVip);
+    }
 
     const list = document.getElementById('casino-history');
     if (!c.history.length) {
@@ -243,6 +307,9 @@ window.GK = window.GK || {};
   function render() {
     const open = games.find(g => !g.root.hidden);
     if (open && open.render) open.render();
+    const buy = document.querySelector('.vip-buy');
+    const next = VIP_LEVELS[vipLevel() + 1];
+    if (buy && next) buy.disabled = !GK.canAfford(next.cost);
   }
 
   // Nach Import/Zurücksetzen: alle Spiele neu aufbauen
@@ -252,5 +319,8 @@ window.GK = window.GK || {};
     renderLobbyInfo();
   }
 
-  GK.casino = { register, data, bet, payout, refund, record, createBetControl, init, render, refresh, openGame, show };
+  GK.casino = {
+    register, registerName, data, bet, payout, refund, record, createBetControl, init, render, refresh, openGame, show,
+    VIP_LEVELS, vipLevel, maxBet, buyVip,
+  };
 })();

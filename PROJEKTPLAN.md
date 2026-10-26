@@ -3,7 +3,9 @@
 > Ein Browser-Spiel, das **Cookie Clicker** mit einem **Casino** verbindet.
 > Man verdient **Dublonen** (goldene Münzen) durch Klicken und passive Einnahmen
 > und setzt sie anschließend im Casino bei Slot-Maschine, Roulette, Blackjack und
-> Texas Hold'em ein. **Es gibt kein echtes Geld – alles ist reines Spielgeld.**
+> Texas Hold'em ein – auch online mit Freunden. **Es gibt kein echtes Geld – alles ist reines Spielgeld.**
+>
+> Entwickler: **[Rafaelo28](https://github.com/Rafaelo28)**
 
 ## Technik
 
@@ -13,6 +15,7 @@
 | Start | `index.html` im Browser öffnen | Kein Server, kein Build-Schritt |
 | Speichern | `localStorage` im Browser + Export/Import als Text | Fortschritt bleibt beim Neuladen und Schließen erhalten |
 | Veröffentlichung | GitHub Pages | Kostenlos, direkt aus dem Repo |
+| Multiplayer | PeerJS (WebRTC, direkte Verbindung zwischen den Browsern) | Kein eigener Server nötig, läuft mit GitHub Pages |
 
 ### Ordnerstruktur
 
@@ -22,16 +25,28 @@ css/style.css       Aussehen (Casino-Design, dunkel mit Gold-Akzenten)
 js/format.js        Zahlen schön formatieren (1.234 / 1,23 Mio.), Dublonen-Symbol
 js/state.js         Spielstand: Dublonen verdienen/ausgeben, Speichern/Laden, Export/Import
 js/clicker.js       Klicker: Gebäude, Upgrades, Einkommen
+js/side-slot.js     Side-Slot unter der Klick-Münze
+js/sound.js         Soundeffekte (im Browser erzeugt, keine Dateien)
+js/fx.js            Effekte: Münzregen, Konfetti, Gewinn-Banner
+js/achievements.js  Erfolge
+js/progress.js      Boni, große Fahrt (Prestige), goldene Dublone, Offline-Einnahmen
 js/main.js          Spielschleife, Tabs, Autosave
-js/casino/casino.js Casino-Lobby, Einsatz-Auswahl, fairer Zufall, Statistik & Verlauf
+js/casino/casino.js Casino-Lobby, Einsatz-Auswahl, VIP-Karten, fairer Zufall, Statistik & Verlauf
 js/casino/cards.js  Spielkarten (für Blackjack und Poker)
+js/casino/slot-machine.js Gemeinsame Walzen und Gewinntabelle (Slot-Maschine + Side-Slot)
 js/casino/slots.js  Slot-Maschine
+js/casino/scratch.js Rubbellose
 js/casino/roulette.js  Roulette
 js/casino/blackjack.js Blackjack
 js/poker/evaluator.js  Poker-Handbewertung
 js/poker/engine.js  Texas-Hold'em-Spielregeln (ohne Bildschirm – auch für Multiplayer nutzbar)
 js/poker/ai.js      Computer-Gegner
-js/poker/poker.js   Poker-Tisch und Turniere
+js/poker/tournament.js Turnier-Regeln: Tische, Blinds, Preisverteilung
+js/poker/table-ui.js   Darstellung des Poker-Tisches
+js/poker/multiplayer.js Poker mit Freunden im Online-Raum
+js/poker/poker.js   Poker-Lobby und Turnier gegen Computer
+tests/poker.test.js Tests für Handbewertung, Engine und Preise (node tests/poker.test.js)
+icons/, manifest.webmanifest  App-Symbol und Einstellungen für den Home-Bildschirm
 ```
 
 Der zentrale Spielstand bietet eine kleine Schnittstelle (`GK.earn()`,
@@ -107,28 +122,57 @@ Einsatz verloren geht.
 - Pausiert automatisch, wenn man den Tisch verlässt; übersteht das Neuladen
 - Getestet mit 30 kompletten Bot-Turnieren: keine verlorenen Chips, Plätze immer 1–6
 
-### Phase 6 – Texas Hold'em Multiplayer *(entschieden, noch nicht umgesetzt)*
-- **Online-Raum mit Code**: Ein Spieler erstellt einen Tisch und bekommt einen Raum-Code,
-  Freunde geben den Code ein. Die Browser verbinden sich direkt (WebRTC über PeerJS),
-  kein eigener Server nötig – läuft auch mit GitHub Pages.
-- **Eintritt in Dublonen, gleiche Tisch-Chips für alle**: Wie beim Turnier gegen Computer zahlt
-  jeder den Eintritt des gewählten Tisches und bekommt dieselbe Anzahl Tisch-Chips. Die Preise
-  für Platz 1–3 werden in Dublonen ausgezahlt.
-- Freie Plätze können mit Computer-Gegnern aufgefüllt werden
-- Der Gastgeber führt die Spiel-Engine aus Phase 5 aus und schickt jedem Spieler nur die
-  Karten, die er sehen darf
-- Spielerliste im Warteraum, Start durch den Gastgeber, Wiederverbinden nach dem Neuladen
+### ✅ Phase 6 – Texas Hold'em mit Freunden *(umgesetzt)*
+- **Online-Raum mit Code**: Ein Spieler eröffnet einen Raum und bekommt einen 5-stelligen
+  Raum-Code (oder einen Einladungs-Link), Freunde geben den Code ein. Die Browser verbinden sich
+  direkt (WebRTC über PeerJS), kein eigener Server nötig – läuft auch mit GitHub Pages.
+- **Eintritt in Dublonen, gleiche Tisch-Chips für alle**: Jeder zahlt beim Betreten den Eintritt
+  des gewählten Tisches und bekommt 1.500 Tisch-Chips.
+- **Preisgeld = alle Eintritte**, verteilt je nach Spielerzahl:
+  2 Spieler 100 % · 3 Spieler 70/30 % · 4–5 Spieler 65/35 % · 6 Spieler 50/30/20 %
+- Warteraum mit Spielerliste; der Gastgeber startet, wenn mindestens 2 Menschen da sind.
+  Freie Plätze können Computer-Gegner übernehmen (bis 6 Plätze).
+- Der Gastgeber führt die Spiel-Engine aus und schickt jedem Spieler nur die Karten, die er
+  sehen darf. Der eigene Platz wird immer unten am Tisch angezeigt.
+- **Bedenkzeit 30 Sekunden**, danach wird automatisch gecheckt bzw. gepasst
+  (bei getrennter Verbindung schon nach 5 Sekunden)
+- **Wiederverbinden**: Gastgeber und Mitspieler können die Seite neu laden, die Verbindung wird
+  automatisch wiederhergestellt. Ein Herzschlag alle 2 Sekunden erkennt verschwundene Spieler.
+- Verlassen: im Warteraum gibt es den Eintritt zurück; im Spiel zählt es als Ausscheiden auf dem
+  aktuellen Platz. Schließt der Gastgeber den Raum oder ist er länger als 30 Sekunden weg,
+  bekommen die anderen ihren Eintritt zurück.
+- Getestet mit 3 echten Browsern: Beitreten, falscher Code, Kartengeheimnis, Neuladen von
+  Mitspieler und Gastgeber, Bedenkzeit, Aufgeben, Raum schließen, Turnier bis zum Ende
 
-### Phase 7 – Fortschritt & Motivation
-- Erfolge (Achievements), z. B. „Erste Million“, „Jackpot geknackt“, „Royal Flush“
-- Offline-Einnahmen (ein Teil des Einkommens läuft weiter, wenn das Spiel zu ist)
-- Goldene Bonus-Dublone, die zufällig erscheint (Klick-Bonus)
-- Prestige-System: neu starten gegen dauerhaften Bonus
-- Casino-Bereiche, die man mit Dublonen freischalten muss (VIP-Tische mit höheren Einsätzen)
+### ✅ Phase 7 – Fortschritt & Motivation *(umgesetzt)*
+- **36 Erfolge** (Klicker, Casino, Poker, große Fahrt) – jeder gibt dauerhaft +1 % Einkommen,
+  eigene Seite „🏆 Fortschritt“
+- **Goldene Dublone**: erscheint alle 1–2,5 Minuten irgendwo für 13 Sekunden. Anklicken bringt
+  Schatzfund (Dublonen), Goldrausch (Einkommen ×7 für 60 s) oder Klickfieber (Klicks ×25 für 20 s)
+- **Offline-Einnahmen**: 50 % des Einkommens für bis zu 8 Stunden, während das Spiel zu ist.
+  Zeit in einem Hintergrund-Tab wird voll nachgeholt.
+- **Große Fahrt (Prestige)**: Neu anfangen gegen Schatzkarten. Anzahl = Kubikwurzel aus
+  (insgesamt verdient ÷ 100 Mio.); jede Schatzkarte gibt +10 % Einkommen und Klickkraft für immer.
+  Erfolge, VIP-Karte und Casino-Statistik bleiben erhalten.
+- **VIP-Karten** im Casino: Einsatz-Limit pro Runde
+  Standard 10.000 · Silber 1 Mio. (kostet 250.000) · Gold 100 Mio. (kostet 50 Mio.) ·
+  Diamant unbegrenzt (kostet 5 Mrd.). Silber schaltet den Kapitänstisch frei, Gold den
+  Königlichen Salon.
 
-### Phase 8 – Feinschliff
-- Soundeffekte (abschaltbar)
-- Weitere Optimierung für Handy/Tablet
+### ✅ Phase 8 – Feinschliff, Sound & iPad *(umgesetzt)*
+- **Soundeffekte** für Klicks, Käufe, Walzen, Roulette-Kugel, Karten, Chips, Rubbeln, Erfolge
+  und Gewinne – live im Browser erzeugt, Ein/Aus-Knopf oben und Lautstärke in den Einstellungen
+- **Gewinn-Feiern** in 4 Stufen: Gewinn (Münzen fliegen), Großer Gewinn (Banner + Konfetti),
+  Mega-Gewinn (Münzregen), Jackpot (alles + Wackeln + Fanfare). Einstellung „Animationen reduziert“.
+- **Neue Oberfläche**: feste Kopfzeile, Tabs als Leiste, glänzende Münze mit Lichtstrahlen,
+  Walzen, die sich wirklich drehen, Roulette-Kugel, Karten fliegen herein und drehen sich um
+- **Rubbellose**: 4 Lose (100 bis 100.000 Dublonen), 3×3-Feld mit dem Finger freirubbeln,
+  drei gleiche Beträge gewinnen, Hauptgewinn 1.000×, Auszahlungsquote 92 %
+- **Side-Slot** direkt unter der Klick-Münze mit Dauer-Automatik – klicken und nebenbei zocken
+- **Multiplayer**: Eintritt frei wählbar (ab 100 Dublonen); Mitspieler bestätigen den Eintritt
+- **iPad (8. Generation)**: Layouts für 810 × 1080 (hochkant) und 1080 × 810 (quer), große
+  Tippflächen, kein Doppeltipp-Zoom, keine versehentliche Textauswahl, schnelles Tippen mit
+  mehreren Fingern, Rubbeln ohne Scrollen, Vollbild-App über „Zum Home-Bildschirm“ mit eigenem Symbol
 
 ## Entscheidungen
 
@@ -143,13 +187,14 @@ Einsatz verloren geht.
 **Dublonen am Multiplayer-Tisch →** Man bezahlt Eintritt in Dublonen, und alle bekommen
 die gleichen Tisch-Chips (Turnier-Prinzip wie in Phase 5).
 
+Hinweis: Da alles im Browser läuft, könnte jemand mit technischen Tricks schummeln. Für ein
+Spiel unter Freunden mit Spielgeld ist das in Ordnung.
+
 ## Veröffentlichung (GitHub Pages)
 
-1. Pull Request in den Branch `main` übernehmen (mergen).
-2. Im Repo auf GitHub: **Settings → Pages** → bei „Source“ **Deploy from a branch** wählen,
-   Branch **main** und Ordner **/ (root)** → **Save**.
-3. Nach 1–2 Minuten ist das Spiel unter
-   **https://rafaelo28.github.io/Gamble-Klicker/** erreichbar.
+Das Spiel ist online unter **https://rafaelo28.github.io/Gamble-Klicker/**.
+Jeder gemergte Pull Request wird nach 1–2 Minuten automatisch veröffentlicht
+(**Settings → Pages**: *Deploy from a branch*, Branch **main**, Ordner **/ (root)**).
 
 ## Hinweise zum Spielen
 - Alles ist Spielgeld ohne jeden echten Wert. Es gibt keine Käufe mit echtem Geld.

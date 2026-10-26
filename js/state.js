@@ -1,5 +1,5 @@
 // Zentraler Spielstand: Geld verdienen/ausgeben sowie Speichern und Laden.
-// Klicker und (später) alle Casino-Spiele greifen nur über diese Funktionen auf das Geld zu.
+// Klicker und alle Casino-Spiele greifen nur über diese Funktionen auf das Geld zu.
 window.GK = window.GK || {};
 
 (function () {
@@ -13,10 +13,17 @@ window.GK = window.GK || {};
       won: 0,          // insgesamt ausgezahlt
       rounds: 0,
       biggestWin: 0,
+      vip: 0,          // VIP-Karte: 0 Standard, 1 Silber, 2 Gold, 3 Diamant
       history: [],     // letzte Runden: { game, bet, payout, text, time }
       openGame: null,  // zuletzt geöffnetes Spiel
       games: {},       // { spielId: Zustand des Spiels }
     };
+  }
+
+  // Einstellungen: Ton und Animationen (bei „Bewegung reduzieren“ im System automatisch ruhiger)
+  function createDefaultSettings() {
+    const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    return { sound: true, volume: 0.7, effects: reduceMotion ? 'reduced' : 'full' };
   }
 
   function createDefaultState() {
@@ -30,8 +37,14 @@ window.GK = window.GK || {};
       buildings: {},   // { buildingId: anzahl }
       upgrades: [],    // gekaufte Upgrade-IDs
       playTime: 0,     // Sekunden
+      allTimeEarned: 0,                        // verdient über alle großen Fahrten hinweg
+      prestige: { points: 0, journeys: 0 },    // Schatzkarten und Anzahl großer Fahrten
+      achievements: [],                        // freigeschaltete Erfolge
+      buffs: [],                               // zeitlich begrenzte Boni (Goldrausch …)
+      goldenClicks: 0,
       casino: createDefaultCasino(),
       ui: { tab: 'clicker' },
+      settings: createDefaultSettings(),
       startedAt: now,
       lastSaved: now,
     };
@@ -59,7 +72,10 @@ window.GK = window.GK || {};
   GK.earn = function (amount, source) {
     if (!(amount > 0)) return;
     GK.state.money += amount;
-    if (source !== 'casino') GK.state.totalEarned += amount;
+    if (source !== 'casino') {
+      GK.state.totalEarned += amount;
+      GK.state.allTimeEarned += amount;
+    }
     if (source === 'click') GK.state.clickEarned += amount;
   };
 
@@ -97,6 +113,10 @@ window.GK = window.GK || {};
     // Verschachtelte Bereiche ebenfalls mit Standardwerten auffüllen
     GK.state.casino = Object.assign(createDefaultCasino(), data.casino);
     GK.state.ui = Object.assign({ tab: 'clicker' }, data.ui);
+    GK.state.settings = Object.assign(createDefaultSettings(), data.settings);
+    GK.state.prestige = Object.assign({ points: 0, journeys: 0 }, data.prestige);
+    // Ältere Spielstände kennen „insgesamt verdient über alle Fahrten“ noch nicht
+    if (typeof data.allTimeEarned !== 'number') GK.state.allTimeEarned = GK.state.totalEarned;
     return true;
   }
 
