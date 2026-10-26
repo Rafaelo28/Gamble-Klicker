@@ -5,6 +5,8 @@ Sparschweine, Limonadenstände, Banken und Goldminen, die für dich weiterverdie
 Schatztruhe voll ist, wartet das Casino:
 
 - 🎰 **Slot-Maschine** – drei gleiche Symbole, bis zu ×777
+- 🏴‍☠️🐙🌋 **Video-Slots** – Schatz der Karibik, Tiefsee-Perlen und Vulkan-Gold: 5 Walzen, 20 Linien,
+  WILDs, Freispiele mit Multiplikator und eine Bonusrunde zum Kistenknacken
 - 🎟️ **Rubbellose** – mit dem Finger freirubbeln, drei gleiche Beträge gewinnen
 - 🍀 **Glücksrad** – mit Bonusrad und täglichem Gratis-Dreh
 - 🪙 **Münzfall** – die Münze hüpft durch die Nägel, außen warten bis zu ×170
@@ -80,6 +82,7 @@ Den Fahrplan mit allen Phasen findest du in [PROJEKTPLAN.md](PROJEKTPLAN.md).
 - 👆 Klicker mit Gebäuden, Upgrades, Side-Slot, Statistiken und sicherem Speichern
 - 🎰 Slot-Maschine · 🎟️ Rubbellose · 🎡 Roulette · 🃏 Blackjack
 - 🍀 Glücksrad · 🪙 Münzfall · 🏝️ Schatzinsel · 💣 Kanonenkugel · ⛵ Schiffsrennen
+- 🏴‍☠️ 🐙 🌋 Drei Video-Slots mit Freispielen und Bonusrunde
 - ♠️ Texas Hold'em als Turnier gegen Computer-Gegner und online mit Freunden
 - 🏆 Erfolge, goldene Dublone, Offline-Einnahmen, große Fahrt (Prestige) und VIP-Karten
 - 🔊 Soundeffekte, ✨ Gewinn-Animationen, 📱 iPad-Optimierung

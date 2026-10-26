@@ -2,7 +2,7 @@
 global.window = global;
 const R = require('path').join(__dirname, '..', 'js') + '/';
 require(R + 'casino/casino.js');
-['slot-machine', 'scratch', 'wheel', 'plinko', 'mines', 'crash', 'race'].forEach(f => require(R + 'casino/' + f + '.js'));
+['slot-machine', 'scratch', 'wheel', 'plinko', 'mines', 'crash', 'race', 'video-slots'].forEach(f => require(R + 'casino/' + f + '.js'));
 const assert = (cond, msg) => { if (!cond) { console.log('FAIL', msg); process.exitCode = 1; } };
 const between = (x, lo, hi, msg) => assert(x >= lo && x <= hi, `${msg}: ${x}`);
 const C = GK.casino;
@@ -59,6 +59,27 @@ for (let k = 0; k < 500; k++) {
     wins[order[0]]++;
   }
   wins.forEach((w, i) => assert(Math.abs(w / n - o.probs[i]) < 0.01, `Rennen: Schiff ${i} gewinnt ${w / n} statt ${o.probs[i]}`));
+}
+
+// Video-Slots: exakte Quote je Thema, Simulation der Grunddrehungen, höchstens 1 Scatter/Bonus je Walze
+{
+  const V = GK.videoSlots;
+  V.THEMES.forEach(t => between(V.rtp(t).total, 0.93, 0.975, `Video-Slot ${t.id}`));
+  const r = V.rtp(V.THEMES[0]);
+  const n = 300000;
+  let sum = 0;
+  for (let i = 0; i < n; i++) {
+    const g = V.windowAt(V.STRIPS.map(s => Math.floor(Math.random() * s.length)));
+    g.forEach(col => assert(col.filter(x => x === 'S' || x === 'B').length <= 1, 'Video-Slot: Scatter/Bonus mit Abstand'));
+    sum += V.evaluate(V.THEMES[0], g, 2000).total / 2000;
+  }
+  between(sum / n, r.line + r.scatter - 0.03, r.line + r.scatter + 0.03, 'Video-Slot: Simulation passt zur Rechnung');
+  // Linien-Auswertung
+  assert(V.evalLine(['H1', 'H1', 'H1', 'L4', 'L4']).pay === V.PAYS.H1[0], 'Linie: 3× H1');
+  assert(V.evalLine(['W', 'W', 'L2', 'L2', 'H1']).count === 4, 'Linie: WILD ersetzt');
+  assert(V.evalLine(['W', 'W', 'W', 'W', 'W']).pay === V.PAYS.H1[2], 'Linie: 5× WILD');
+  assert(V.evalLine(['W', 'W', 'W', 'L4', 'H2']).sym === 'H1', 'Linie: 3 WILD zahlen mehr als 4× J');
+  assert(V.evalLine(['L1', 'S', 'L1', 'L1', 'L1']).pay === 0, 'Linie: Scatter unterbricht');
 }
 
 // Slot-Maschine (bestehend)

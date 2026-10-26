@@ -218,8 +218,16 @@ Einsatz verloren geht.
   verlässt oder neu lädt, kassiert automatisch ab
 - **⛵ Schiffsrennen**: fünf Schiffe mit neuen Quoten vor jedem Rennen, Führungswechsel-Kommentare
 
+### Erweiterung: Video-Slots ✅ (Paket 2)
+- Drei Automaten mit eigenem Thema: **🏴‍☠️ Schatz der Karibik**, **🐙 Tiefsee-Perlen**, **🌋 Vulkan-Gold**
+- 5 Walzen × 3 Reihen, 20 Gewinnlinien (werden beim Gewinn eingezeichnet), WILD-Symbol
+- 3+ Freispiel-Symbole irgendwo: Freispiele mit Multiplikator (Karibik 10 × ×3, Tiefsee 15 × ×2,
+  Vulkan 6 × ×5), können neu ausgelöst werden; Spannung, wenn schon zwei Symbole liegen
+- Bonus-Symbol auf Walze 1, 3 und 5: Bonusrunde – 3 von 12 Kisten/Muscheln/Götzen öffnen
+- Gewinntabelle zeigt die Beträge passend zum eigenen Einsatz; Freispiele und Bonusrunde
+  überstehen das Neuladen; Automatik stoppt bei Features und großen Gewinnen
+
 ### Als Nächstes geplant
-- **Paket 2**: Video-Slots mit eigenen Themen, 5 Walzen, Freispielen und Bonusrunde
 - **Paket 3**: Lügenwürfel gegen Computer und online (mit allgemeiner Multiplayer-Grundlage)
 - **Paket 4**: Minigolf online um Dublonen
 - **Paket 5**: Billard (8-Ball) online um Dublonen
