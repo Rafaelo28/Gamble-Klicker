@@ -19,4 +19,16 @@ exportieren und wieder importieren.
 
 Den Fahrplan mit allen Phasen findest du in [PROJEKTPLAN.md](PROJEKTPLAN.md).
 
-**Aktueller Stand:** Phase 1 – Klicker mit Gebäuden, Upgrades, Statistiken und sicherem Speichern.
+**Aktueller Stand:** Phasen 1–5 fertig:
+- 👆 Klicker mit Gebäuden, Upgrades, Statistiken und sicherem Speichern
+- 🎰 Slot-Maschine · 🎡 Roulette · 🃏 Blackjack
+- ♠️ Texas Hold'em als Turnier gegen 5 Computer-Gegner
+
+Als Nächstes: Texas Hold'em Multiplayer im Online-Raum (Phase 6).
+
+## Tests
+
+```
+node tests/poker.test.js
+```
+Prüft die Poker-Handbewertung und spielt 30 komplette Turniere zwischen Computer-Gegnern durch.

@@ -23,8 +23,15 @@ js/format.js        Zahlen schön formatieren (1.234 / 1,23 Mio.), Dublonen-Symb
 js/state.js         Spielstand: Dublonen verdienen/ausgeben, Speichern/Laden, Export/Import
 js/clicker.js       Klicker: Gebäude, Upgrades, Einkommen
 js/main.js          Spielschleife, Tabs, Autosave
-js/casino/…         (ab Phase 2) Ein Modul pro Casino-Spiel
-js/poker/…          (ab Phase 5) Karten, Handbewertung, Computer-Gegner, Multiplayer
+js/casino/casino.js Casino-Lobby, Einsatz-Auswahl, fairer Zufall, Statistik & Verlauf
+js/casino/cards.js  Spielkarten (für Blackjack und Poker)
+js/casino/slots.js  Slot-Maschine
+js/casino/roulette.js  Roulette
+js/casino/blackjack.js Blackjack
+js/poker/evaluator.js  Poker-Handbewertung
+js/poker/engine.js  Texas-Hold'em-Spielregeln (ohne Bildschirm – auch für Multiplayer nutzbar)
+js/poker/ai.js      Computer-Gegner
+js/poker/poker.js   Poker-Tisch und Turniere
 ```
 
 Der zentrale Spielstand bietet eine kleine Schnittstelle (`GK.earn()`,
@@ -67,41 +74,50 @@ Einsatz verloren geht.
 - Warnung, wenn der Browser kein Speichern erlaubt
 - Vorbereitung für GitHub Pages
 
-### Phase 2 – Casino-Grundlage & Slot-Maschine
+### ✅ Phase 2 – Casino-Grundlage & Slot-Maschine *(umgesetzt)*
+- Casino-Lobby mit Statistik (gesetzt / ausgezahlt / Bilanz / größter Gewinn) und den letzten Runden
+- Fairer Zufall über den kryptografischen Zufallsgenerator des Browsers
 - Gemeinsame Einsatz-Auswahl (Betrag eingeben, ½, ×2, Max)
 - Gewinn-/Verlust-Anzeige und Verlauf der letzten Runden
 - **Slot-Maschine**: 3 Walzen, Symbole mit unterschiedlicher Häufigkeit,
-  Gewinntabelle, Dreh-Animation
-- Statistik: gesamt gesetzt / gewonnen / verloren
+  Gewinntabelle, Dreh-Animation, Auto-Spin (10 Drehungen), Auszahlungsquote 96,2 %
 
-### Phase 3 – Roulette
+### ✅ Phase 3 – Roulette *(umgesetzt)*
 - Europäisches Roulette (0–36)
 - Wetten: Zahl, Rot/Schwarz, Gerade/Ungerade, 1–18/19–36, Dutzende, Kolonnen
-- Wett-Tisch zum Anklicken, mehrere Wetten pro Runde
-- Animierter Kessel bzw. Kugel
+- Wett-Tisch zum Anklicken, mehrere Wetten pro Runde, Wetten wiederholen/entfernen
+- Drehender Kessel in echter europäischer Zahlen-Reihenfolge, letzte Zahlen
 
-### Phase 4 – Blackjack
+### ✅ Phase 4 – Blackjack *(umgesetzt)*
 - Gegen den Dealer, 6 Kartendecks
-- Hit, Stand, Double Down, Split
-- Blackjack zahlt 3:2, Dealer steht auf 17
-- Karten-Animationen
+- Karte, Bleiben, Verdoppeln (auch nach dem Teilen), Teilen bis zu 4 Hände
+- Blackjack zahlt 3:2, Dealer steht auf 17, geteilte Asse bekommen nur eine Karte
 
-### Phase 5 – Texas Hold'em gegen Computer
-- Tisch mit dir und 3–5 Computer-Gegnern
+### ✅ Phase 5 – Texas Hold'em gegen Computer *(umgesetzt)*
+- **Sit-&-Go-Turnier**: Eintritt in Dublonen bezahlen, alle 6 Spieler bekommen 1.500 Tisch-Chips
+- Drei Tische: Hafenkneipe (1.000), Kapitänstisch (100.000), Königlicher Salon (10 Mio. Dublonen)
+- Preise in Dublonen: 1. Platz 3×, 2. Platz 1,8×, 3. Platz 1,2× Eintritt
+- Blinds steigen alle 8 Hände (10/20 bis 2.000/4.000)
 - Ablauf: Blinds → 2 eigene Karten → Flop → Turn → River → Showdown
-- Aktionen: Fold, Check, Call, Raise, All-in
-- Handbewertung (Höchste Karte bis Royal Flush), Side-Pots bei All-in
-- Computer-Gegner mit Persönlichkeiten (vorsichtig, normal, aggressiv/bluffend),
-  die ihre Handstärke abschätzen
-- Buy-in mit Dublonen, Gewinne fließen beim Aufstehen zurück aufs Konto
-- Verschiedene Tische mit unterschiedlichen Blinds (z. B. ab 1.000 / 100.000 / 10 Mio. Dublonen)
+- Aktionen: Passen, Checken, Mitgehen, Setzen/Erhöhen (Schieberegler, ½ Pot, Pot, All-in)
+- Handbewertung (Höchste Karte bis Royal Flush), Haupt- und Nebentöpfe bei All-in
+- 6 Piraten-Gegner mit Persönlichkeiten (vorsichtig, Mitgeher, aggressiv, Bluffer). Sie schätzen
+  ihre Gewinnchance, indem sie die unbekannten Karten 300-mal zufällig durchspielen
+- Turnier verlassen jederzeit möglich (zählt als Ausscheiden auf dem aktuellen Platz)
+- Pausiert automatisch, wenn man den Tisch verlässt; übersteht das Neuladen
+- Getestet mit 30 kompletten Bot-Turnieren: keine verlorenen Chips, Plätze immer 1–6
 
-### Phase 6 – Texas Hold'em Multiplayer
-- Mit Freunden an einem Tisch spielen, freie Plätze werden mit Computer-Gegnern gefüllt
-- Die Spiellogik aus Phase 5 wird wiederverwendet; ein Spieler ist der „Gastgeber“
-  und verteilt die Karten
-- **Offene Entscheidung** (siehe unten): Online oder an einem Gerät, und welche Dublonen
-  am Tisch verwendet werden
+### Phase 6 – Texas Hold'em Multiplayer *(entschieden, noch nicht umgesetzt)*
+- **Online-Raum mit Code**: Ein Spieler erstellt einen Tisch und bekommt einen Raum-Code,
+  Freunde geben den Code ein. Die Browser verbinden sich direkt (WebRTC über PeerJS),
+  kein eigener Server nötig – läuft auch mit GitHub Pages.
+- **Eintritt in Dublonen, gleiche Tisch-Chips für alle**: Wie beim Turnier gegen Computer zahlt
+  jeder den Eintritt des gewählten Tisches und bekommt dieselbe Anzahl Tisch-Chips. Die Preise
+  für Platz 1–3 werden in Dublonen ausgezahlt.
+- Freie Plätze können mit Computer-Gegnern aufgefüllt werden
+- Der Gastgeber führt die Spiel-Engine aus Phase 5 aus und schickt jedem Spieler nur die
+  Karten, die er sehen darf
+- Spielerliste im Warteraum, Start durch den Gastgeber, Wiederverbinden nach dem Neuladen
 
 ### Phase 7 – Fortschritt & Motivation
 - Erfolge (Achievements), z. B. „Erste Million“, „Jackpot geknackt“, „Royal Flush“
@@ -114,9 +130,9 @@ Einsatz verloren geht.
 - Soundeffekte (abschaltbar)
 - Weitere Optimierung für Handy/Tablet
 
-## Offene Entscheidungen
+## Entscheidungen
 
-### Multiplayer: Wie spielen die Freunde zusammen?
+### Multiplayer: Wie spielen die Freunde zusammen? → **Variante A**
 
 | Variante | Wie es funktioniert | Vorteile | Nachteile |
 |---|---|---|---|
@@ -124,10 +140,8 @@ Einsatz verloren geht.
 | B: Eigener Server | Ein kleiner Node.js-Server verwaltet alle Tische. | Am zuverlässigsten, später auch Lobby/Rangliste möglich | Server muss gehostet werden (Kosten/Aufwand), GitHub Pages reicht nicht mehr |
 | C: An einem Gerät | Mehrere Spieler wechseln sich am selben Gerät ab, Karten werden verdeckt weitergegeben. | Am einfachsten, kein Internet nötig | Kein echtes Online-Spielen |
 
-Dazu die Frage, **mit welchen Dublonen** am Multiplayer-Tisch gespielt wird:
-- mit den eigenen Dublonen aus dem Klicker (spannender, aber da alles im Browser läuft,
-  könnte jemand mit Tricks schummeln), oder
-- mit festen Tisch-Chips, die jeder gleich bekommt (fair, aber ohne Auswirkung aufs Konto).
+**Dublonen am Multiplayer-Tisch →** Man bezahlt Eintritt in Dublonen, und alle bekommen
+die gleichen Tisch-Chips (Turnier-Prinzip wie in Phase 5).
 
 ## Veröffentlichung (GitHub Pages)
 

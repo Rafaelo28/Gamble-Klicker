@@ -6,6 +6,19 @@ window.GK = window.GK || {};
   const SAVE_KEY = 'gamble-klicker-save';
   const SAVE_VERSION = 1;
 
+  // Casino-Daten: Statistiken, Verlauf und der Zustand jedes Spiels (auch mitten in einer Runde)
+  function createDefaultCasino() {
+    return {
+      wagered: 0,      // insgesamt eingesetzt
+      won: 0,          // insgesamt ausgezahlt
+      rounds: 0,
+      biggestWin: 0,
+      history: [],     // letzte Runden: { game, bet, payout, text, time }
+      openGame: null,  // zuletzt geöffnetes Spiel
+      games: {},       // { spielId: Zustand des Spiels }
+    };
+  }
+
   function createDefaultState() {
     const now = Date.now();
     return {
@@ -17,6 +30,8 @@ window.GK = window.GK || {};
       buildings: {},   // { buildingId: anzahl }
       upgrades: [],    // gekaufte Upgrade-IDs
       playTime: 0,     // Sekunden
+      casino: createDefaultCasino(),
+      ui: { tab: 'clicker' },
       startedAt: now,
       lastSaved: now,
     };
@@ -39,11 +54,12 @@ window.GK = window.GK || {};
   GK.storageAvailable = detectStorage();
   GK.onSave = null; // optionaler Callback, z. B. für die Speicher-Anzeige
 
-  // Geld gutschreiben. source: 'click', 'passive' oder später z. B. 'casino'
+  // Geld gutschreiben. source: 'click', 'passive' oder 'casino'
+  // Casino-Gewinne zählen nicht als „verdient“ (eigene Statistik im Casino).
   GK.earn = function (amount, source) {
     if (!(amount > 0)) return;
     GK.state.money += amount;
-    GK.state.totalEarned += amount;
+    if (source !== 'casino') GK.state.totalEarned += amount;
     if (source === 'click') GK.state.clickEarned += amount;
   };
 
@@ -76,7 +92,11 @@ window.GK = window.GK || {};
     if (!data || typeof data !== 'object' || typeof data.money !== 'number' || !isFinite(data.money)) {
       return false;
     }
-    GK.state = Object.assign(createDefaultState(), data, { version: SAVE_VERSION });
+    const defaults = createDefaultState();
+    GK.state = Object.assign(defaults, data, { version: SAVE_VERSION });
+    // Verschachtelte Bereiche ebenfalls mit Standardwerten auffüllen
+    GK.state.casino = Object.assign(createDefaultCasino(), data.casino);
+    GK.state.ui = Object.assign({ tab: 'clicker' }, data.ui);
     return true;
   }
 

@@ -20,15 +20,29 @@ window.GK = window.GK || {};
     GK.toast.timer = setTimeout(() => el.classList.remove('show'), 2500);
   };
 
+  function showTab(name) {
+    if (!document.getElementById('tab-' + name)) name = 'clicker';
+    GK.state.ui.tab = name;
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+    document.querySelectorAll('.tab-panel').forEach(panel => {
+      panel.classList.toggle('active', panel.id === 'tab-' + name);
+    });
+    if (name === 'casino') GK.casino.show();
+  }
+
   function setupTabs() {
     document.querySelectorAll('.tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t === tab));
-        document.querySelectorAll('.tab-panel').forEach(panel => {
-          panel.classList.toggle('active', panel.id === 'tab-' + tab.dataset.tab);
-        });
-      });
+      tab.addEventListener('click', () => showTab(tab.dataset.tab));
     });
+  }
+
+  // Nach Import/Zurücksetzen alles neu aufbauen – im aktuell geöffneten Tab bleiben
+  function refreshAll() {
+    const currentTab = document.querySelector('.tab.active').dataset.tab;
+    GK.clicker.refresh();
+    GK.casino.refresh();
+    showTab(currentTab);
+    render();
   }
 
   function setupStatsActions() {
@@ -50,15 +64,13 @@ window.GK = window.GK || {};
         return;
       }
       $('transfer-box').hidden = true;
-      GK.clicker.refresh();
-      render();
+      refreshAll();
       GK.toast('Spielstand geladen ✅');
     });
     $('reset-btn').addEventListener('click', () => {
       if (!confirm('Willst du wirklich deinen kompletten Spielstand löschen? Das kann nicht rückgängig gemacht werden.')) return;
       GK.resetSave();
-      GK.clicker.refresh();
-      render();
+      refreshAll();
       GK.toast('Spielstand zurückgesetzt');
     });
   }
@@ -105,6 +117,7 @@ window.GK = window.GK || {};
     $('cps').textContent = GK.formatNumber(GK.clicker.getCps(), true);
     document.title = `${money} Dublonen – Gamble Klicker`;
     GK.clicker.render();
+    GK.casino.render();
     renderStats();
   }
 
@@ -132,6 +145,8 @@ window.GK = window.GK || {};
     setupTabs();
     setupStatsActions();
     GK.clicker.init();
+    GK.casino.init();
+    showTab(GK.state.ui.tab);
     render();
 
     // Automatisch speichern: regelmäßig, beim Wechsel in einen anderen Tab/App

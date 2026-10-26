@@ -56,16 +56,24 @@
       </div>
     </section>
 
-    <!-- Casino (Vorschau) -->
+    <!-- Casino -->
     <section id="tab-casino" class="tab-panel">
-      <h2>Casino</h2>
-      <p class="muted">Hier kannst du bald deine Dublonen einsetzen. Die Spiele werden Schritt für Schritt freigeschaltet.</p>
-      <div class="casino-grid">
-        <div class="casino-card locked"><div class="casino-emoji">🎰</div><h3>Slot-Maschine</h3><p>Kommt in Phase 2</p></div>
-        <div class="casino-card locked"><div class="casino-emoji">🎡</div><h3>Roulette</h3><p>Kommt in Phase 3</p></div>
-        <div class="casino-card locked"><div class="casino-emoji">🃏</div><h3>Blackjack</h3><p>Kommt in Phase 4</p></div>
-        <div class="casino-card locked"><div class="casino-emoji">♠️</div><h3>Texas Hold'em</h3><p>Kommt in Phase 5</p></div>
+      <div id="casino-lobby">
+        <h2>Casino</h2>
+        <p class="muted">Setze deine Dublonen ein – aber denk dran: Auf Dauer gewinnt immer das Haus. 😉</p>
+        <div id="casino-grid" class="casino-grid"></div>
+        <div class="casino-info">
+          <div class="casino-info-box">
+            <h3>Casino-Statistik</h3>
+            <dl id="casino-stats" class="stats-list compact"></dl>
+          </div>
+          <div class="casino-info-box">
+            <h3>Letzte Runden</h3>
+            <ul id="casino-history" class="casino-history"></ul>
+          </div>
+        </div>
       </div>
+      <div id="casino-games"></div>
     </section>
 
     <!-- Statistiken -->
@@ -114,6 +122,15 @@
   <script src="js/format.js"></script>
   <script src="js/state.js"></script>
   <script src="js/clicker.js"></script>
+  <script src="js/casino/casino.js"></script>
+  <script src="js/casino/cards.js"></script>
+  <script src="js/casino/slots.js"></script>
+  <script src="js/casino/roulette.js"></script>
+  <script src="js/casino/blackjack.js"></script>
+  <script src="js/poker/evaluator.js"></script>
+  <script src="js/poker/engine.js"></script>
+  <script src="js/poker/ai.js"></script>
+  <script src="js/poker/poker.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>
