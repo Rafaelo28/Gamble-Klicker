@@ -3220,6 +3220,8 @@ body.reduced-effects .btn.btn-primary::after,
 body.reduced-effects .casino-emoji,
 body.reduced-effects .logo-coin,
 body.reduced-effects .race-track,
+body.reduced-effects .vs-cell.win,
+body.reduced-effects .vs-reel.anticipation,
 body.reduced-effects .wheel-free.ready,
 body.reduced-effects .upgrade,
 body.reduced-effects .upgrade::after,
@@ -3696,6 +3698,321 @@ body.reduced-effects .golden-coin {
   .race-track {
     grid-column: 1 / -1;
   }
+}
+
+/* ---------- Video-Slots (5 Walzen) ---------- */
+.casino-card[data-game="vsPirate"]  { --accent: rgba(245, 197, 66, 0.45); }
+.casino-card[data-game="vsOcean"]   { --accent: rgba(90, 216, 255, 0.45); }
+.casino-card[data-game="vsVolcano"] { --accent: rgba(255, 106, 43, 0.5); }
+
+.vs-pirate  { --vs-bg: linear-gradient(160deg, #6b3410, #2a1405); --vs-frame: #d4a017; --vs-reel: linear-gradient(180deg, #fffaf0, #eadbb6); --vs-glow: rgba(245, 197, 66, 0.55); }
+.vs-ocean   { --vs-bg: linear-gradient(160deg, #0b5a7a, #04223a); --vs-frame: #5ad8ff; --vs-reel: linear-gradient(180deg, #effcff, #bfe6f2); --vs-glow: rgba(90, 216, 255, 0.55); }
+.vs-volcano { --vs-bg: linear-gradient(160deg, #6a1508, #1f0703); --vs-frame: #ff6a2b; --vs-reel: linear-gradient(180deg, #fff5ea, #f0cdae); --vs-glow: rgba(255, 106, 43, 0.55); }
+
+.vs-layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.vs-machine {
+  flex: 1 1 520px;
+  max-width: 720px;
+  padding: 14px 16px 10px;
+  border-radius: 26px;
+  background: var(--vs-bg);
+  border: 4px solid var(--vs-frame);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5), 0 0 26px var(--vs-glow), inset 0 2px 0 rgba(255, 255, 255, 0.15);
+  transition: box-shadow 0.4s;
+}
+
+.vs-machine.free-mode {
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5), 0 0 60px var(--vs-glow), 0 0 0 4px var(--vs-frame);
+}
+
+.vs-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 14px;
+  margin-bottom: 10px;
+}
+
+.vs-title {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.3rem;
+  color: var(--vs-frame);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+}
+
+.vs-status {
+  font-weight: 700;
+  color: #fff;
+}
+
+.vs-status b {
+  color: var(--gold-light);
+}
+
+.vs-window {
+  position: relative;
+  padding: 8px;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.45);
+  box-shadow: inset 0 4px 14px rgba(0, 0, 0, 0.6);
+}
+
+.vs-reels {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.vs-reel {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1 / 2.55;
+  border-radius: 10px;
+  background: var(--vs-reel);
+  box-shadow: inset 0 10px 14px -8px rgba(0, 0, 0, 0.45), inset 0 -10px 14px -8px rgba(0, 0, 0, 0.45);
+}
+
+.vs-reel.anticipation {
+  box-shadow: 0 0 0 3px var(--gold-light), 0 0 26px var(--gold);
+  animation: anticipation 0.35s ease-in-out infinite alternate;
+}
+
+@keyframes anticipation {
+  to { box-shadow: 0 0 0 3px #fff, 0 0 40px var(--gold); }
+}
+
+.vs-strip {
+  will-change: transform;
+}
+
+.vs-strip.blur {
+  filter: blur(1.5px);
+}
+
+.vs-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1 / 0.85;
+  font-size: clamp(1.6rem, 4.8vw, 2.9rem);
+  line-height: 1;
+}
+
+.vs-label {
+  margin-top: 2px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.65);
+  color: var(--gold-light);
+  font-size: clamp(0.42rem, 1.1vw, 0.6rem);
+  font-weight: 900;
+  letter-spacing: 0.5px;
+}
+
+.vs-letter {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(1.5rem, 4.4vw, 2.6rem);
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
+}
+
+.vs-letter.vs-L1 { color: #c0392b; }
+.vs-letter.vs-L2 { color: #2c64c9; }
+.vs-letter.vs-L3 { color: #1e8a4c; }
+.vs-letter.vs-L4 { color: #8e44ad; }
+
+.vs-cell.win {
+  z-index: 1;
+  background: radial-gradient(circle, rgba(255, 229, 138, 0.85), rgba(255, 229, 138, 0) 70%);
+  animation: vs-cell-win 0.6s ease-in-out infinite alternate;
+}
+
+.vs-cell.feature {
+  background: radial-gradient(circle, rgba(90, 216, 255, 0.85), rgba(90, 216, 255, 0) 70%);
+}
+
+@keyframes vs-cell-win {
+  to { transform: scale(1.12); }
+}
+
+.vs-lines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.vs-lines polyline {
+  fill: none;
+  stroke-width: 4;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  opacity: 0.9;
+  filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.8));
+  stroke-dasharray: 2000;
+  animation: line-draw 0.8s ease-out;
+}
+
+@keyframes line-draw {
+  from { stroke-dashoffset: 2000; }
+  to { stroke-dashoffset: 0; }
+}
+
+.vs-overlay {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.78);
+  animation: fade-in 0.3s;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+}
+
+.vs-ov-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  text-align: center;
+}
+
+.vs-ov-title {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(1.2rem, 3.6vw, 1.8rem);
+  color: var(--gold-light);
+  text-shadow: 0 0 16px var(--vs-glow);
+  animation: message-pop 0.5s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+.vs-ov-big {
+  font-size: clamp(1.8rem, 6vw, 2.8rem);
+  font-weight: 900;
+}
+
+.vs-ov-text b {
+  color: var(--gold-light);
+}
+
+.vs-chests {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.vs-chest {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: clamp(52px, 11vw, 74px);
+  height: clamp(52px, 11vw, 74px);
+  border: 2px solid var(--vs-frame);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: clamp(1.5rem, 4.5vw, 2.2rem);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.vs-chest:not(:disabled):active {
+  transform: scale(0.92);
+}
+
+.vs-chest b {
+  font-size: 0.9rem;
+  color: #2a1d00;
+}
+
+.vs-chest.open {
+  background: var(--gold-grad);
+  animation: mine-found 0.35s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+.vs-chest.missed {
+  opacity: 0.45;
+}
+
+.vs-chest.missed b {
+  color: #fff;
+}
+
+.vs-win {
+  min-height: 1.6em;
+  margin: 10px 0 4px;
+  text-align: center;
+  font-weight: 800;
+  color: var(--gold-light);
+}
+
+.vs-win.loss {
+  color: var(--loss);
+}
+
+.vs-win.vs-win-pop {
+  animation: message-pop 0.45s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+.vs-paytable {
+  flex: 0 1 300px;
+}
+
+.vs-pay-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 3px 0;
+  font-size: 0.85rem;
+}
+
+.vs-pay-row b {
+  color: var(--gold-light);
+}
+
+.vs-cell.mini {
+  display: inline-flex;
+  flex: none;
+  width: 42px;
+  height: 36px;
+  aspect-ratio: auto;
+  vertical-align: middle;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.85);
+  font-size: 1.3rem;
+}
+
+.vs-cell.mini .vs-letter {
+  font-size: 1.3rem;
+}
+
+.vs-cell.mini .vs-label {
+  display: none;
 }
 
 /* ---------- Tablet / iPad (8. Generation: 810 × 1080 hochkant, 1080 × 810 quer) ---------- */

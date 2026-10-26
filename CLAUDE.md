@@ -32,7 +32,7 @@ Online über GitHub Pages aus `main`: https://rafaelo28.github.io/Gamble-Klicker
 
 - `node tests/poker.test.js` – Handbewertung, Poker-Engine, Preisverteilung.
 - `node tests/casino.test.js` – Quoten und Zufall der Casino-Spiele (Rubbellose, Glücksrad,
-  Münzfall, Schatzinsel, Kanonenkugel, Schiffsrennen, Slot-Maschine).
+  Münzfall, Schatzinsel, Kanonenkugel, Schiffsrennen, Slot-Maschine, Video-Slots).
 - Im Browser mit Playwright (Chromium ist vorinstalliert), auch in der iPad-Emulation
   `devices['iPad (gen 7)']` hoch und quer: keine Konsolenfehler, kein seitliches Scrollen,
   Kontostand = Start − Einsätze + Auszahlungen.
