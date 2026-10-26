@@ -352,7 +352,7 @@ window.GK = window.GK || {};
             <button class="btn btn-primary btn-big scratch-buy"></button>
             <button class="btn scratch-reveal">✨ Alles aufdecken</button>
           </div>
-          <p class="muted small">Auszahlungsquote 92 % · Gewinnchance ca. 1 zu 3,3 · Hauptgewinn: 1.000× Lospreis</p>
+          <p class="muted small">Hauptgewinn: 1.000× Lospreis 👑</p>
         </div>
       </div>`;
     els = {

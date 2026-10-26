@@ -111,7 +111,7 @@ window.GK = window.GK || {};
                 <tr><td class="paytable-icon">${s.icon}</td><td>×${s.three}</td><td>${s.two ? '×' + s.two : '–'}</td></tr>`).join('')}
             </tbody>
           </table>
-          <p class="muted small">Gewinne als Vielfaches des Einsatzes (inklusive Einsatz). Auszahlungsquote ca. 96 %.</p>
+          <p class="muted small">Gewinne als Vielfaches des Einsatzes (inklusive Einsatz).</p>
         </div>
       </div>`;
 
