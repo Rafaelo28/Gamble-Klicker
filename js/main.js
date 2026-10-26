@@ -71,6 +71,7 @@ window.GK = window.GK || {};
     GK.casino.refresh();
     GK.sideSlot.refresh();
     GK.poker.mp.resume();
+    GK.room.resume();
     renderSettings();
     GK.sound.applyVolume();
     GK.achievements.refresh();
@@ -232,6 +233,7 @@ window.GK = window.GK || {};
 
   function init() {
     GK.load();
+    GK.room.readInviteLink();
     GK.poker.mp.readInviteLink();
     GK.onSave = flashSaveIndicator;
     if (!GK.storageAvailable) {
@@ -251,6 +253,7 @@ window.GK = window.GK || {};
     GK.casino.init();
     GK.sideSlot.init();
     GK.poker.mp.resume();
+    GK.room.resume();
     showTab(GK.state.ui.tab);
     GK.achievements.check();
     render();

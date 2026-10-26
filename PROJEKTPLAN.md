@@ -227,8 +227,15 @@ Einsatz verloren geht.
 - Gewinntabelle zeigt die Beträge passend zum eigenen Einsatz; Freispiele und Bonusrunde
   überstehen das Neuladen; Automatik stoppt bei Features und großen Gewinnen
 
+### Erweiterung: Lügenwürfel und Spielräume ✅ (Paket 3)
+- **Allgemeine Spielräume** (`js/mp/room.js`) für neue Spiele mit Freunden: Raum-Code und
+  Einladungs-Link, Eintritt bestätigen, Computer-Gegner für freie Plätze, Bedenkzeit, Herzschlag,
+  Wiederverbinden nach dem Neuladen, Erstattung, wenn der Gastgeber verschwindet, Preisgeld nach Platz.
+  „Gegen Computer“ nutzt denselben Ablauf ohne Netzwerk.
+- **🎲 Lügenwürfel**: 2–6 Spieler, 3 oder 5 Würfel, Einsen sind Joker, bieten oder „Lüge!“ rufen,
+  Computer-Gegner rechnen Wahrscheinlichkeiten und bluffen je nach Typ
+
 ### Als Nächstes geplant
-- **Paket 3**: Lügenwürfel gegen Computer und online (mit allgemeiner Multiplayer-Grundlage)
 - **Paket 4**: Minigolf online um Dublonen
 - **Paket 5**: Billard (8-Ball) online um Dublonen
 

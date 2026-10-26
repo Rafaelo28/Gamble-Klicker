@@ -20,6 +20,8 @@ Online über GitHub Pages aus `main`: https://rafaelo28.github.io/Gamble-Klicker
   und neue Dateien aus dem Zwischenspeicher.
 - **Spielstände bleiben kompatibel**: Neue Felder bekommen Standardwerte in `js/state.js`
   (`createDefaultState` / `applyData`), damit alte Spielstände weiter laden.
+- **Spiele mit Freunden** (außer Poker) bauen auf `js/mp/room.js` auf: Raum, Eintritt, Verbindung,
+  Abrechnung und „gegen Computer“ kommen von dort, das Spiel liefert nur Regeln und Darstellung.
 - **Dublonen** nur über `GK.earn` / `GK.spend` bzw. im Casino über `GK.casino.bet`,
   `payout`, `refund` und `record` bewegen. Spielzustände über `GK.casino.data(id)` lesen,
   laufende Runden sofort speichern (Neuladen darf keinen Einsatz kosten).
@@ -31,6 +33,7 @@ Online über GitHub Pages aus `main`: https://rafaelo28.github.io/Gamble-Klicker
 ## Testen
 
 - `node tests/poker.test.js` – Handbewertung, Poker-Engine, Preisverteilung.
+- `node tests/dice.test.js` – Lügenwürfel: Regeln und komplette Partien zwischen Computer-Gegnern.
 - `node tests/casino.test.js` – Quoten und Zufall der Casino-Spiele (Rubbellose, Glücksrad,
   Münzfall, Schatzinsel, Kanonenkugel, Schiffsrennen, Slot-Maschine, Video-Slots).
 - Im Browser mit Playwright (Chromium ist vorinstalliert), auch in der iPad-Emulation
