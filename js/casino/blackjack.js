@@ -359,6 +359,7 @@ window.GK = window.GK || {};
 
   GK.casino.register({
     id: 'blackjack',
+    category: 'table',
     name: 'Blackjack',
     emoji: '🃏',
     desc: 'Komm näher an 21 als der Dealer.',

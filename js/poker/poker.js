@@ -335,6 +335,7 @@ window.GK = window.GK || {};
 
   GK.casino.register({
     id: 'poker',
+    category: 'table',
     name: "Texas Hold'em",
     emoji: '♠️',
     desc: 'Turnier gegen Computer – oder online mit Freunden.',

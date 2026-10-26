@@ -201,7 +201,15 @@ window.GK = window.GK || {};
 
   // ---------- Lobby & Navigation ----------
 
-  // game: { id, name, emoji, desc, init(bodyEl), render(), onShow() }
+  // Bereiche der Lobby, in dieser Reihenfolge
+  const CATEGORIES = [
+    { id: 'slots',   title: '🎰 Automaten' },
+    { id: 'quick',   title: '⚡ Schnelle Spiele' },
+    { id: 'table',   title: '🃏 Tischspiele' },
+    { id: 'friends', title: '👥 Mit Freunden' },
+  ];
+
+  // game: { id, name, emoji, desc, category, init(bodyEl), render(), onShow(), onHide() }
   function register(game) {
     games.push(game);
   }
@@ -220,22 +228,33 @@ window.GK = window.GK || {};
     casino().openGame = id;
     document.getElementById('casino-lobby').hidden = !!id;
     games.forEach(g => {
+      const wasOpen = !g.root.hidden;
       g.root.hidden = g.id !== id;
+      if (wasOpen && g.root.hidden && g.onHide) g.onHide();
       if (g.id === id && g.onShow) g.onShow();
     });
     if (!id) renderLobbyInfo();
   }
 
   function buildLobby() {
-    const grid = document.getElementById('casino-grid');
+    const sections = document.getElementById('casino-grid');
     const container = document.getElementById('casino-games');
+    const grids = {};
+    CATEGORIES.forEach(cat => {
+      if (!games.some(g => (g.category || 'quick') === cat.id)) return;
+      const section = document.createElement('section');
+      section.className = 'casino-section';
+      section.innerHTML = `<h3 class="casino-section-title">${cat.title}</h3><div class="casino-grid"></div>`;
+      sections.appendChild(section);
+      grids[cat.id] = section.querySelector('.casino-grid');
+    });
     games.forEach(game => {
       const card = document.createElement('button');
       card.className = 'casino-card';
       card.dataset.game = game.id;
       card.innerHTML = `<div class="casino-emoji">${game.emoji}</div><h3>${game.name}</h3><p>${game.desc}</p>`;
       card.addEventListener('click', () => openGame(game.id));
-      grid.appendChild(card);
+      grids[game.category || 'quick'].appendChild(card);
 
       const root = document.createElement('div');
       root.className = 'casino-game';

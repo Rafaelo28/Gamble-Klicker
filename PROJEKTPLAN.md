@@ -207,6 +207,23 @@ Einsatz verloren geht.
 - Wer vorher ausscheidet, geht leer aus. Aussteigen gegen Computer = Auszahlung, als wäre jetzt Schluss.
 - Rangliste mit Auszahlungen am Tischende, Erfolg „Blitzgescheit“
 
+### Erweiterung: Mehr Casino ✅ (Paket 1)
+- **Rubbellose** mit besseren Chancen: fast jedes zweite Los gewinnt (vorher jedes dritte)
+- **Lobby nach Bereichen**: Automaten, Schnelle Spiele, Tischspiele, Mit Freunden
+- **🍀 Glücksrad**: unterschiedlich große Felder, ⭐ startet das Bonusrad (3× bis 25×),
+  einmal am Tag ein Gratis-Dreh im Wert von 10 Minuten Einkommen
+- **🪙 Münzfall**: 12 Nagelreihen, drei Risikostufen, mehrere Münzen gleichzeitig, Automatik
+- **🏝️ Schatzinsel**: 5×5 Felder, 1–20 Totenköpfe, Multiplikator steigt mit jedem Fund
+- **💣 Kanonenkugel**: steigender Multiplikator bis zur Explosion, Auto-Abkassieren; wer das Spiel
+  verlässt oder neu lädt, kassiert automatisch ab
+- **⛵ Schiffsrennen**: fünf Schiffe mit neuen Quoten vor jedem Rennen, Führungswechsel-Kommentare
+
+### Als Nächstes geplant
+- **Paket 2**: Video-Slots mit eigenen Themen, 5 Walzen, Freispielen und Bonusrunde
+- **Paket 3**: Lügenwürfel gegen Computer und online (mit allgemeiner Multiplayer-Grundlage)
+- **Paket 4**: Minigolf online um Dublonen
+- **Paket 5**: Billard (8-Ball) online um Dublonen
+
 ## Entscheidungen
 
 ### Multiplayer: Wie spielen die Freunde zusammen? → **Variante A**

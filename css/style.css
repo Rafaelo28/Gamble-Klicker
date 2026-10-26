@@ -1133,6 +1133,18 @@ main {
 }
 
 /* ---------- Casino: Lobby ---------- */
+.casino-section-title {
+  margin: 22px 0 0;
+  color: var(--gold);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  letter-spacing: 0.5px;
+}
+
+.casino-section .casino-grid {
+  margin-top: 10px;
+}
+
 .casino-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
@@ -3207,6 +3219,8 @@ body.reduced-effects .coin-stage::before,
 body.reduced-effects .btn.btn-primary::after,
 body.reduced-effects .casino-emoji,
 body.reduced-effects .logo-coin,
+body.reduced-effects .race-track,
+body.reduced-effects .wheel-free.ready,
 body.reduced-effects .upgrade,
 body.reduced-effects .upgrade::after,
 body.reduced-effects .combo-fill,
@@ -3228,6 +3242,459 @@ body.reduced-effects .golden-coin {
   .win-title,
   .slot-lights {
     animation: none !important;
+  }
+}
+
+/* ---------- Lobby: Farben der neuen Spiele ---------- */
+.casino-card[data-game="wheel"]  { --accent: rgba(120, 230, 120, 0.4); }
+.casino-card[data-game="plinko"] { --accent: rgba(255, 200, 60, 0.45); }
+.casino-card[data-game="mines"]  { --accent: rgba(60, 200, 220, 0.4); }
+.casino-card[data-game="crash"]  { --accent: rgba(255, 110, 50, 0.45); }
+.casino-card[data-game="race"]   { --accent: rgba(80, 150, 255, 0.4); }
+
+/* Gemeinsames Layout: Spielfeld links, Bedienung rechts (auf schmalen Geräten untereinander) */
+.wheel-layout,
+.plinko-layout,
+.mines-layout,
+.crash-layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.wheel-controls,
+.plinko-controls,
+.mines-controls,
+.crash-controls {
+  flex: 1 1 280px;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ---------- Glücksrad ---------- */
+.wheel-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.fortune-wrap {
+  position: relative;
+  width: min(86vw, 400px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  box-shadow: 0 0 0 8px #5a3a1a, 0 0 0 12px #b8860b, 0 18px 40px rgba(0, 0, 0, 0.55), 0 0 50px rgba(245, 197, 66, 0.25);
+  transition: box-shadow 0.4s;
+}
+
+.fortune-wrap.bonus {
+  box-shadow: 0 0 0 8px #7a1a1a, 0 0 0 12px #ffd95e, 0 18px 40px rgba(0, 0, 0, 0.55), 0 0 70px rgba(255, 217, 94, 0.7);
+}
+
+.fortune-wheel {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.fortune-pointer {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  z-index: 2;
+  width: 0;
+  height: 0;
+  margin-left: -16px;
+  border-left: 16px solid transparent;
+  border-right: 16px solid transparent;
+  border-top: 34px solid #ff4d4d;
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.6));
+  transform-origin: 50% 0;
+}
+
+.fortune-pointer.wheel-pointer-flick {
+  animation: pointer-flick 0.12s ease-out;
+}
+
+@keyframes pointer-flick {
+  50% { transform: rotate(-14deg); }
+}
+
+.fortune-hub {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 22%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff8d0, #f5c542 50%, #a87408);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  font-size: clamp(1.4rem, 5vw, 2.2rem);
+}
+
+.fortune-wrap.wheel-bonus-flash {
+  animation: bonus-flash 1.2s ease-out;
+}
+
+@keyframes bonus-flash {
+  20%, 60% { box-shadow: 0 0 0 8px #fff3b0, 0 0 0 12px #ffd95e, 0 0 90px rgba(255, 217, 94, 1); }
+}
+
+.wheel-results,
+.crash-history {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  max-width: 420px;
+}
+
+.wheel-result,
+.crash-chip {
+  padding: 3px 9px;
+  border-radius: 99px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border);
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+
+.wheel-paytable {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.wheel-paytable p {
+  margin: 6px 0;
+  line-height: 1.9;
+}
+
+.wheel-chip {
+  display: inline-block;
+  min-width: 38px;
+  padding: 1px 8px;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: 800;
+  text-align: center;
+}
+
+.wheel-chip.gold {
+  background: linear-gradient(135deg, #fff3b0, #d4a017);
+  color: #3a2a00;
+}
+
+.wheel-free.ready {
+  border-color: var(--gold);
+  box-shadow: 0 0 16px rgba(245, 197, 66, 0.45);
+  animation: upgrade-ready 1.6s ease-in-out infinite alternate;
+}
+
+/* ---------- Münzfall ---------- */
+.plinko-board {
+  flex: 1 1 360px;
+  max-width: 560px;
+  padding: 12px;
+  border-radius: var(--radius);
+  background: radial-gradient(ellipse at top, #24543f, #0b2219 75%);
+  border: 1px solid var(--border-soft);
+  box-shadow: var(--shadow);
+}
+
+.plinko-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.plinko-risks,
+.mines-skulls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.plinko-risk.active,
+.mines-skull.active {
+  background: var(--gold-grad);
+  color: #2a1d00;
+  border-color: var(--gold);
+}
+
+/* ---------- Schatzinsel ---------- */
+.mines-island {
+  flex: 1 1 340px;
+  max-width: 470px;
+  padding: 18px;
+  border-radius: 32px;
+  background:
+    radial-gradient(ellipse at center, #f3d9a0 0%, #e2bf78 58%, #3aa0b8 60%, #1b6e8a 100%);
+  box-shadow: var(--shadow), inset 0 0 40px rgba(0, 0, 0, 0.25);
+}
+
+.mines-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.mine-cell {
+  aspect-ratio: 1;
+  min-height: 52px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(160deg, #e9cf92, #c79f55);
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.18), 0 3px 6px rgba(0, 0, 0, 0.25);
+  font-size: clamp(1.4rem, 5vw, 2.1rem);
+  cursor: pointer;
+  transition: transform 0.1s, background 0.2s;
+}
+
+.mine-cell:not(:disabled):active {
+  transform: scale(0.92);
+}
+
+@media (hover: hover) {
+  .mine-cell:not(:disabled):hover {
+    background: linear-gradient(160deg, #f3dca5, #d4ad62);
+  }
+}
+
+.mine-cell:disabled {
+  cursor: default;
+}
+
+.mine-cell.found {
+  background: radial-gradient(circle, #fff3b0, #e0a91b);
+  animation: mine-found 0.35s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+@keyframes mine-found {
+  from { transform: scale(0.5) rotate(-15deg); }
+}
+
+.mine-cell.skull {
+  background: radial-gradient(circle, #5a5a66, #23232b);
+}
+
+.mine-cell.hit {
+  background: radial-gradient(circle, #ff6b4a, #8a1c0c);
+}
+
+.mine-cell.faded {
+  opacity: 0.45;
+}
+
+.mine-cell.mine-boom {
+  animation: mine-boom 0.5s ease-out;
+}
+
+@keyframes mine-boom {
+  20% { transform: scale(1.35); }
+  40% { transform: scale(0.9) rotate(8deg); }
+  60% { transform: scale(1.1) rotate(-6deg); }
+}
+
+.mines-info {
+  margin-top: 10px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.mines-info b {
+  color: var(--gold-light);
+}
+
+/* ---------- Kanonenkugel ---------- */
+.crash-scene {
+  flex: 1 1 420px;
+  max-width: 680px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.crash-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, #0b1030 0%, #1d2a5a 55%, #3b4a7a 100%);
+  border: 1px solid var(--border-soft);
+  box-shadow: var(--shadow);
+}
+
+.crash-chip.low  { color: var(--loss); }
+.crash-chip.high { color: var(--win); }
+.crash-chip.huge { color: #ffd95e; border-color: var(--gold); }
+
+.crash-auto {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 10px 0 0;
+  color: var(--text-muted);
+}
+
+.crash-auto .bet-input {
+  width: 90px;
+}
+
+.btn.crash-cash {
+  min-width: 260px;
+  background: linear-gradient(180deg, #8ff0a8, #2fa866);
+  color: #0b2a16;
+}
+
+/* ---------- Schiffsrennen ---------- */
+.race-layout {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.race-comment {
+  min-height: 1.6em;
+  margin-bottom: 8px;
+  font-weight: 800;
+  color: var(--gold-light);
+  text-align: center;
+}
+
+.race-lanes {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, #0e4d6b, #06283a);
+  box-shadow: var(--shadow);
+}
+
+.race-lane {
+  display: grid;
+  grid-template-columns: 150px auto 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 6px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.18);
+  border-left: 5px solid var(--ship);
+}
+
+.race-lane.winner {
+  background: rgba(245, 197, 66, 0.18);
+  box-shadow: 0 0 16px rgba(245, 197, 66, 0.35);
+}
+
+.race-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.race-name {
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+
+.race-mult {
+  font-weight: 900;
+  color: var(--gold-light);
+}
+
+.race-stake {
+  font-size: 0.8rem;
+  color: var(--win);
+  min-height: 1em;
+}
+
+.race-track {
+  position: relative;
+  height: 52px;
+  border-radius: 10px;
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 26px, rgba(255, 255, 255, 0.07) 26px 30px),
+    linear-gradient(180deg, #1b6e8a, #13506a);
+  background-size: 60px 100%, 100% 100%;
+  animation: waves 1.6s linear infinite;
+}
+
+/* Ziellinie */
+.race-track::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 6px;
+  bottom: 0;
+  width: 8px;
+  background: repeating-linear-gradient(180deg, #fff 0 8px, #222 8px 16px);
+  opacity: 0.85;
+}
+
+@keyframes waves {
+  to { background-position: -60px 0, 0 0; }
+}
+
+.race-ship {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  margin-top: -22px;
+  font-size: 2.2rem;
+  line-height: 44px;
+  will-change: transform;
+}
+
+.race-flag {
+  position: absolute;
+  top: 2px;
+  left: 18px;
+  width: 14px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--ship);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6);
+}
+
+.race-place {
+  position: absolute;
+  right: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.5rem;
+  font-weight: 900;
+}
+
+.race-total {
+  margin-top: 10px;
+  font-weight: 700;
+}
+
+@media (max-width: 600px) {
+  .race-lane {
+    grid-template-columns: 1fr auto;
+  }
+
+  .race-track {
+    grid-column: 1 / -1;
   }
 }
 

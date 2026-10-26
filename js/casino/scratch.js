@@ -1,6 +1,6 @@
 // Rubbellose: 9 Felder freirubbeln (mit Finger oder Maus). Drei gleiche Beträge = dieser Betrag gewinnt.
 // Das Ergebnis steht schon beim Kauf fest und wird gespeichert – Neuladen ändert nichts daran.
-// Auszahlungsquote: 92 %, Gewinnchance ca. 31 % (1 von 3,3 Losen).
+// Auszahlungsquote: 99 %, fast jedes zweite Los gewinnt (ca. 44,5 %).
 window.GK = window.GK || {};
 
 (function () {
@@ -15,14 +15,14 @@ window.GK = window.GK || {};
 
   // Gewinne als Vielfaches des Lospreises – Gewicht von 100.000 Losen
   const PRIZES = [
-    { mult: 1,    weight: 12000, icon: '🪙' },
-    { mult: 2,    weight: 10000, icon: '🪙' },
-    { mult: 3,    weight: 4000,  icon: '💰' },
-    { mult: 5,    weight: 3000,  icon: '💰' },
-    { mult: 10,   weight: 1200,  icon: '💎' },
-    { mult: 20,   weight: 400,   icon: '💎' },
-    { mult: 50,   weight: 120,   icon: '🏆' },
-    { mult: 100,  weight: 40,    icon: '🏆' },
+    { mult: 1,    weight: 22000, icon: '🪙' },
+    { mult: 2,    weight: 13000, icon: '🪙' },
+    { mult: 3,    weight: 6000,  icon: '💰' },
+    { mult: 5,    weight: 2400,  icon: '💰' },
+    { mult: 10,   weight: 800,   icon: '💎' },
+    { mult: 20,   weight: 250,   icon: '💎' },
+    { mult: 50,   weight: 60,    icon: '🏆' },
+    { mult: 100,  weight: 20,    icon: '🏆' },
     { mult: 1000, weight: 3,     icon: '👑' },
   ];
   const TOTAL_WEIGHT = 100000;
@@ -398,6 +398,7 @@ window.GK = window.GK || {};
 
   GK.casino.register({
     id: 'scratch',
+    category: 'quick',
     name: 'Rubbellose',
     emoji: '🎟️',
     desc: 'Rubbeln, drei gleiche Beträge finden – bis zu ×1.000!',
