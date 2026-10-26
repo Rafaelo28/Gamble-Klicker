@@ -12,7 +12,7 @@ window.GK = window.GK || {};
     { id: 'pawnshop',  icon: '💍', name: 'Pfandhaus',        baseCost: 130000, baseCps: 260,   desc: 'Kauft alles, was glänzt.' },
     { id: 'bank',      icon: '🏦', name: 'Bank',             baseCost: 1.4e6,  baseCps: 1400,  desc: 'Zinsen auf Spielgeld.' },
     { id: 'goldmine',  icon: '⛏️', name: 'Goldmine',         baseCost: 2e7,    baseCps: 7800,  desc: 'Tief unten glitzert es.' },
-    { id: 'mint',      icon: '🖨️', name: 'Gelddruckerei',    baseCost: 3.3e8,  baseCps: 44000, desc: 'Druckt Coins am laufenden Band.' },
+    { id: 'mint',      icon: '🏛️', name: 'Münzprägerei',     baseCost: 3.3e8,  baseCps: 44000, desc: 'Prägt Dublonen am laufenden Band.' },
   ];
 
   // Upgrades: Klickkraft, Klick-Anteil am Einkommen und Verdopplung je Gebäude
@@ -126,12 +126,14 @@ window.GK = window.GK || {};
     const cost = buildingCost(building, owned(building.id), buyAmount);
     if (!GK.spend(cost)) return;
     GK.state.buildings[building.id] = owned(building.id) + buyAmount;
+    GK.save();
     render();
   }
 
   function buyUpgrade(upgrade) {
     if (has(upgrade.id) || !GK.spend(upgrade.cost)) return;
     GK.state.upgrades.push(upgrade.id);
+    GK.save();
     lastUpgradeSignature = '';
     render();
   }
@@ -209,7 +211,7 @@ window.GK = window.GK || {};
       els.icon.textContent = mystery ? '❓' : b.icon;
       els.name.textContent = mystery ? '???' : b.name;
       els.desc.textContent = mystery ? 'Noch unbekannt' : b.desc;
-      els.cost.textContent = '🪙 ' + GK.formatNumber(cost);
+      els.cost.innerHTML = GK.COIN + ' ' + GK.formatNumber(cost);
       els.owned.textContent = owned(b.id) || '';
       els.meta.textContent = mystery
         ? ''
@@ -231,12 +233,12 @@ window.GK = window.GK || {};
         const el = document.createElement('button');
         el.className = 'upgrade';
         el.dataset.id = u.id;
-        el.title = `${u.name}\n${u.desc}\nPreis: ${GK.formatNumber(u.cost)} Coins`;
+        el.title = `${u.name}\n${u.desc}\nPreis: ${GK.formatNumber(u.cost)} Dublonen`;
         el.innerHTML = `
           <span class="upgrade-icon">${u.icon}</span>
           <span class="upgrade-name">${u.name}</span>
           <span class="upgrade-desc">${u.desc}</span>
-          <span class="upgrade-cost">🪙 ${GK.formatNumber(u.cost)}</span>`;
+          <span class="upgrade-cost">${GK.COIN} ${GK.formatNumber(u.cost)}</span>`;
         el.addEventListener('click', () => buyUpgrade(u));
         list.appendChild(el);
       });

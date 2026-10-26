@@ -10,8 +10,9 @@
   <header class="topbar">
     <div class="logo">🎰 Gamble Klicker</div>
     <div class="wallet">
-      <div class="wallet-money"><span id="money">0</span> <span class="coin-icon">🪙</span></div>
-      <div class="wallet-cps"><span id="cps">0</span> pro Sekunde</div>
+      <div class="wallet-money"><span id="money">0</span> <i class="dublone" aria-label="Dublonen"></i></div>
+      <div class="wallet-cps"><span id="cps">0</span> Dublonen pro Sekunde</div>
+      <div id="save-indicator" class="save-indicator">💾 gespeichert</div>
     </div>
   </header>
 
@@ -26,8 +27,8 @@
     <section id="tab-clicker" class="tab-panel active">
       <div class="clicker-layout">
         <div class="click-area">
-          <button id="big-coin" class="big-coin" aria-label="Münze klicken">
-            <span class="big-coin-inner">GK</span>
+          <button id="big-coin" class="big-coin" aria-label="Dublone klicken">
+            <span class="big-coin-inner">D</span>
           </button>
           <div class="click-power">+<span id="click-power">1</span> pro Klick</div>
           <div id="float-layer" class="float-layer"></div>
@@ -55,16 +56,24 @@
       </div>
     </section>
 
-    <!-- Casino (Vorschau) -->
+    <!-- Casino -->
     <section id="tab-casino" class="tab-panel">
-      <h2>Casino</h2>
-      <p class="muted">Hier kannst du bald dein Spielgeld einsetzen. Die Spiele werden Schritt für Schritt freigeschaltet.</p>
-      <div class="casino-grid">
-        <div class="casino-card locked"><div class="casino-emoji">🎰</div><h3>Slot-Maschine</h3><p>Kommt in Phase 2</p></div>
-        <div class="casino-card locked"><div class="casino-emoji">🎡</div><h3>Roulette</h3><p>Kommt in Phase 3</p></div>
-        <div class="casino-card locked"><div class="casino-emoji">🃏</div><h3>Blackjack</h3><p>Kommt in Phase 4</p></div>
-        <div class="casino-card locked"><div class="casino-emoji">♠️</div><h3>Poker</h3><p>Kommt in Phase 5</p></div>
+      <div id="casino-lobby">
+        <h2>Casino</h2>
+        <p class="muted">Setze deine Dublonen ein – aber denk dran: Auf Dauer gewinnt immer das Haus. 😉</p>
+        <div id="casino-grid" class="casino-grid"></div>
+        <div class="casino-info">
+          <div class="casino-info-box">
+            <h3>Casino-Statistik</h3>
+            <dl id="casino-stats" class="stats-list compact"></dl>
+          </div>
+          <div class="casino-info-box">
+            <h3>Letzte Runden</h3>
+            <ul id="casino-history" class="casino-history"></ul>
+          </div>
+        </div>
       </div>
+      <div id="casino-games"></div>
     </section>
 
     <!-- Statistiken -->
@@ -80,11 +89,31 @@
         <dt>Upgrades gekauft</dt><dd id="stat-upgrades">0</dd>
         <dt>Spielzeit</dt><dd id="stat-playtime">0</dd>
       </dl>
+
+      <h2 class="section-gap">Spielstand</h2>
+      <p id="storage-warning" class="warning" hidden>
+        ⚠️ Dein Browser erlaubt hier kein Speichern (z.&nbsp;B. in einer Vorschau oder im privaten Modus).
+        Dein Fortschritt geht beim Neuladen verloren. Öffne das Spiel direkt im Browser oder sichere ihn mit „Exportieren“.
+      </p>
+      <p class="muted small">
+        Dein Fortschritt wird automatisch alle paar Sekunden, nach jedem Kauf und beim Schließen der Seite in deinem Browser gespeichert.
+        Zuletzt gespeichert: <span id="last-saved">–</span>
+      </p>
       <div class="stats-actions">
         <button id="save-btn" class="btn">💾 Jetzt speichern</button>
+        <button id="export-btn" class="btn">📤 Exportieren</button>
+        <button id="import-btn" class="btn">📥 Importieren</button>
         <button id="reset-btn" class="btn btn-danger">🗑️ Spielstand zurücksetzen</button>
       </div>
-      <p class="muted small">Alles ist reines Spielgeld ohne echten Wert. Der Spielstand wird automatisch in deinem Browser gespeichert.</p>
+      <div id="transfer-box" class="transfer-box" hidden>
+        <p id="transfer-hint" class="muted small"></p>
+        <textarea id="transfer-text" rows="4" spellcheck="false"></textarea>
+        <div class="stats-actions">
+          <button id="transfer-confirm" class="btn">Laden</button>
+          <button id="transfer-close" class="btn">Schließen</button>
+        </div>
+      </div>
+      <p class="muted small">Alles ist reines Spielgeld ohne echten Wert.</p>
     </section>
   </main>
 
@@ -93,6 +122,15 @@
   <script src="js/format.js"></script>
   <script src="js/state.js"></script>
   <script src="js/clicker.js"></script>
+  <script src="js/casino/casino.js"></script>
+  <script src="js/casino/cards.js"></script>
+  <script src="js/casino/slots.js"></script>
+  <script src="js/casino/roulette.js"></script>
+  <script src="js/casino/blackjack.js"></script>
+  <script src="js/poker/evaluator.js"></script>
+  <script src="js/poker/engine.js"></script>
+  <script src="js/poker/ai.js"></script>
+  <script src="js/poker/poker.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>
