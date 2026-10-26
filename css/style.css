@@ -4980,6 +4980,36 @@ body.reduced-effects .golden-coin {
   font-weight: 700;
 }
 
+/* ---------- Kanonenduell ---------- */
+.casino-card[data-game="duel"] { --accent: rgba(255, 140, 60, 0.45); }
+
+.duel-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.duel-canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 1;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.duel-canvas.nope {
+  animation: shake 0.35s;
+}
+
+.duel-flag {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  vertical-align: -1px;
+}
+
 /* ---------- Tablet / iPad (8. Generation: 810 × 1080 hochkant, 1080 × 810 quer) ---------- */
 @media (max-width: 1180px) {
   .clicker-layout {
