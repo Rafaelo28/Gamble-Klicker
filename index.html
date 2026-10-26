@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gamble Klicker</title>
+  <meta name="description" content="Klicke dich reich und verzocke deine Dublonen im Casino! Browser-Spiel aus Cookie Clicker und Casino – nur Spielgeld.">
+  <meta name="author" content="Rafaelo28">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -15,10 +17,12 @@
       <div id="save-indicator" class="save-indicator">💾 gespeichert</div>
     </div>
   </header>
+  <div id="buff-bar" class="buff-bar" aria-live="polite"></div>
 
   <nav class="tabs">
     <button class="tab active" data-tab="clicker">👆 Klicker</button>
     <button class="tab" data-tab="casino">🎲 Casino</button>
+    <button class="tab" data-tab="progress">🏆 Fortschritt</button>
     <button class="tab" data-tab="stats">📊 Statistiken</button>
   </nav>
 
@@ -68,6 +72,10 @@
             <dl id="casino-stats" class="stats-list compact"></dl>
           </div>
           <div class="casino-info-box">
+            <h3>VIP-Karte</h3>
+            <div id="casino-vip"></div>
+          </div>
+          <div class="casino-info-box">
             <h3>Letzte Runden</h3>
             <ul id="casino-history" class="casino-history"></ul>
           </div>
@@ -76,17 +84,48 @@
       <div id="casino-games"></div>
     </section>
 
+    <!-- Fortschritt -->
+    <section id="tab-progress" class="tab-panel">
+      <div class="progress-grid">
+        <div class="panel">
+          <h2>🗺️ Große Fahrt</h2>
+          <p class="muted">
+            Hast du genug Dublonen verdient, kannst du auf große Fahrt gehen: Du fängst mit dem Klicker
+            von vorne an, bekommst dafür aber <b>Schatzkarten</b>. Jede Schatzkarte gibt dir für immer
+            <b>+10 % Einkommen</b> und Klickkraft. Erfolge, VIP-Karte und Casino-Statistik bleiben erhalten.
+          </p>
+          <dl id="prestige-stats" class="stats-list compact"></dl>
+          <button id="prestige-btn" class="btn btn-primary">⛵ Auf große Fahrt gehen</button>
+          <p id="prestige-hint" class="muted small"></p>
+        </div>
+        <div class="panel">
+          <h2>⚡ Deine Boni</h2>
+          <dl id="bonus-stats" class="stats-list compact"></dl>
+          <p class="muted small">
+            ✨ Halte Ausschau nach der <b>goldenen Dublone</b>: Sie taucht ab und zu irgendwo auf.
+            Schnell anklicken – sie bringt einen Schatzfund, Goldrausch (Einkommen ×7) oder Klickfieber (Klicks ×25)!
+          </p>
+        </div>
+      </div>
+      <h2 class="section-gap">🏆 Erfolge <span id="achievement-count"></span></h2>
+      <p class="muted small">Jeder Erfolg gibt dir dauerhaft +1 % Einkommen.</p>
+      <div id="achievement-grid" class="achievement-grid"></div>
+    </section>
+
     <!-- Statistiken -->
     <section id="tab-stats" class="tab-panel">
       <h2>Statistiken</h2>
       <dl class="stats-list">
         <dt>Aktuelles Guthaben</dt><dd id="stat-money">0</dd>
-        <dt>Insgesamt verdient</dt><dd id="stat-total">0</dd>
+        <dt>Verdient auf dieser Fahrt</dt><dd id="stat-total">0</dd>
+        <dt>Insgesamt verdient</dt><dd id="stat-all-time">0</dd>
         <dt>Durch Klicks verdient</dt><dd id="stat-click-earned">0</dd>
         <dt>Anzahl Klicks</dt><dd id="stat-clicks">0</dd>
         <dt>Einkommen pro Sekunde</dt><dd id="stat-cps">0</dd>
         <dt>Gebäude insgesamt</dt><dd id="stat-buildings">0</dd>
         <dt>Upgrades gekauft</dt><dd id="stat-upgrades">0</dd>
+        <dt>Goldene Dublonen gefangen</dt><dd id="stat-golden">0</dd>
+        <dt>Erfolge</dt><dd id="stat-achievements">0</dd>
         <dt>Spielzeit</dt><dd id="stat-playtime">0</dd>
       </dl>
 
@@ -117,10 +156,22 @@
     </section>
   </main>
 
+  <footer class="footer">
+    🎰 Gamble Klicker · Entwickelt von <a href="https://github.com/Rafaelo28" target="_blank" rel="noopener">Rafaelo28</a>
+    · <a href="https://github.com/Rafaelo28/Gamble-Klicker" target="_blank" rel="noopener">Quellcode auf GitHub</a>
+    · Nur Spielgeld – kein echtes Geld
+  </footer>
+
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="notify-stack" class="notify-stack" aria-live="polite"></div>
+
+  <!-- PeerJS für den Poker-Multiplayer (Verbindung direkt zwischen den Browsern) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
 
   <script src="js/format.js"></script>
   <script src="js/state.js"></script>
+  <script src="js/achievements.js"></script>
+  <script src="js/progress.js"></script>
   <script src="js/clicker.js"></script>
   <script src="js/casino/casino.js"></script>
   <script src="js/casino/cards.js"></script>
@@ -130,6 +181,9 @@
   <script src="js/poker/evaluator.js"></script>
   <script src="js/poker/engine.js"></script>
   <script src="js/poker/ai.js"></script>
+  <script src="js/poker/tournament.js"></script>
+  <script src="js/poker/table-ui.js"></script>
+  <script src="js/poker/multiplayer.js"></script>
   <script src="js/poker/poker.js"></script>
   <script src="js/main.js"></script>
 </body>

@@ -64,6 +64,7 @@ window.GK = window.GK || {};
     if (!p) return;
     s.pending = null;
     GK.casino.payout(p.payout);
+    if (s.reels.every(r => r === 'seven')) GK.unlockAchievement('slots777');
     GK.casino.record('slots', p.bet, p.payout, p.text);
     spinning = false;
     showReels(s.reels);

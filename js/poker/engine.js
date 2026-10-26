@@ -85,7 +85,7 @@ GK.poker = GK.poker || {};
 
   function startHand(t) {
     if (t.players.filter(isActive).length < 2) {
-      t.phase = 'finished';
+      finishIfDecided(t);
       return;
     }
     t.handNo++;
@@ -289,15 +289,23 @@ GK.poker = GK.poker || {};
       p.place = activeBefore - (busted.length - 1 - i);
       log(t, `${p.name} scheidet aus (${p.place}. Platz)`);
     });
-    const left = t.players.filter(isActive);
-    if (left.length === 1) {
-      left[0].place = 1;
-      t.phase = 'finished';
-      log(t, `🏆 ${left[0].name} gewinnt das Turnier!`);
-    }
+    finishIfDecided(t);
   }
 
-  // Spieler gibt das Turnier auf (z. B. „Tisch verlassen“) – zählt wie Ausscheiden
+  // Ist nur noch ein Spieler übrig, hat er das Turnier gewonnen
+  function finishIfDecided(t) {
+    const left = t.players.filter(isActive);
+    if (left.length > 1 || t.phase === 'finished') return;
+    if (left.length === 1) {
+      left[0].place = 1;
+      log(t, `🏆 ${left[0].name} gewinnt das Turnier!`);
+    }
+    t.phase = 'finished';
+    t.toAct = -1;
+  }
+
+  // Spieler gibt das Turnier auf (z. B. „Tisch verlassen“) – zählt wie Ausscheiden.
+  // Seine Chips im Pot bleiben im Pot, der Rest verfällt. Das Spiel läuft für die anderen weiter.
   function forfeit(t, seat) {
     const p = t.players[seat];
     if (p.out) return;
@@ -305,6 +313,16 @@ GK.poker = GK.poker || {};
     p.out = true;
     p.folded = true;
     p.chips = 0;
+    p.lastAction = 'Aufgegeben';
+    log(t, `${p.name} verlässt das Turnier (${p.place}. Platz)`);
+    if (t.phase === 'betting') {
+      if (t.toAct === seat) {
+        advance(t);
+      } else if (t.players.filter(inHand).length === 1) {
+        awardUncontested(t, t.players.findIndex(inHand));
+      }
+    }
+    if (t.phase !== 'betting') finishIfDecided(t);
   }
 
   GK.poker.engine = { createTable, startHand, legalActions, act, forfeit, pot, blinds, inHand, canAct };

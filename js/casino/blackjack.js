@@ -197,6 +197,10 @@ window.GK = window.GK || {};
     round.totalBet = totalBet;
     round.totalPayout = totalPayout;
     GK.casino.payout(totalPayout);
+    if (playerNatural && !dealerHasBj) GK.unlockAchievement('bjNatural');
+    if (round.hands.length > 1 && round.results.every(r => r.payout > 0 && r.text !== 'Unentschieden')) {
+      GK.unlockAchievement('bjSplitWin');
+    }
     const summary = round.results.map(r => r.text).join(' / ');
     GK.casino.record('blackjack', totalBet, totalPayout, summary);
   }

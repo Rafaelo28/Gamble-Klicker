@@ -3,6 +3,7 @@ global.window = global;
 const R = require('path').join(__dirname, '..', 'js') + '/';
 require(R + 'casino/casino.js'); require(R + 'casino/cards.js');
 require(R + 'poker/evaluator.js'); require(R + 'poker/engine.js'); require(R + 'poker/ai.js');
+require(R + 'poker/tournament.js');
 const ev = c => GK.poker.evaluate(c.split(' '));
 const assert = (cond, msg) => { if (!cond) { console.log('FAIL', msg); process.exitCode = 1; } };
 // Handbewertung: bekannte Hände
@@ -50,3 +51,32 @@ if (!process.exitCode) console.log('Alle Tests bestanden.');
 console.log('hands', hands, 'avg per tournament', hands/30, 'showdowns', showdowns, 'multi-winner', splitPots, 'ms', Date.now()-t0);
 // Equity-Plausibilität
 console.log('AA vs 1', GK.poker.ai.equity(['AS','AH'], [], 1, 3000).toFixed(2), '72o vs 1', GK.poker.ai.equity(['7S','2H'], [], 1, 3000).toFixed(2), 'AA vs 5', GK.poker.ai.equity(['AS','AH'], [], 5, 3000).toFixed(2));
+
+// Turniere, in denen zufällig Spieler aufgeben (z. B. Mitspieler verlässt den Raum):
+// Das Spiel muss für die anderen weiterlaufen und mit eindeutigen Plätzen enden.
+for (let n = 0; n < 40; n++) {
+  const t = GK.poker.tournament.createTable(GK.poker.tournament.botSeats(2 + (n % 5)));
+  const count = t.players.length;
+  let guard = 0;
+  while (t.phase !== 'finished' && guard++ < 2000) {
+    if (t.phase !== 'betting') GK.poker.engine.startHand(t);
+    if (t.phase !== 'betting') continue;
+    if (Math.random() < 0.05) {
+      const seat = Math.floor(Math.random() * count);
+      GK.poker.engine.forfeit(t, seat);
+      continue;
+    }
+    GK.poker.engine.act(t, GK.poker.ai.decide(t));
+    t.players.forEach(p => assert(p.chips >= 0, 'negative chips after forfeit'));
+  }
+  assert(t.phase === 'finished', 'forfeit tournament did not finish');
+  const places = t.players.map(p => p.place).sort((a, b) => a - b).join(',');
+  assert(places === Array.from({ length: count }, (_, i) => i + 1).join(','), 'forfeit places ' + places);
+}
+// Preise: Summe aller Preise = alle Eintritte, bei 6 Spielern 3× / 1,8× / 1,2×
+for (let players = 2; players <= 6; players++) {
+  const sum = [1, 2, 3, 4, 5, 6].reduce((s, place) => s + GK.poker.tournament.prize(place, 1000, players), 0);
+  assert(sum === 1000 * players, `prize sum ${players}: ${sum}`);
+}
+assert(GK.poker.tournament.prize(1, 1000, 6) === 3000 && GK.poker.tournament.prize(3, 1000, 6) === 1200, 'prize 6 players');
+console.log(process.exitCode ? 'Forfeit-/Preis-Tests FEHLGESCHLAGEN' : 'Forfeit- und Preis-Tests bestanden.');

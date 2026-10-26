@@ -4,9 +4,13 @@ window.GK = window.GK || {};
 (function () {
   const AUTOSAVE_INTERVAL = 5000;  // ms
   const RENDER_INTERVAL = 100;     // ms
+  const CHECK_INTERVAL = 1000;     // ms – Erfolge prüfen
+  const MAX_CATCH_UP = 8 * 3600;   // Sekunden, die ein Hintergrund-Tab nachgeholt wird
 
   let lastTick = performance.now();
   let lastRender = 0;
+  let lastCheck = 0;
+  let hiddenAt = null;
 
   function $(id) {
     return document.getElementById(id);
@@ -18,6 +22,20 @@ window.GK = window.GK || {};
     el.classList.add('show');
     clearTimeout(GK.toast.timer);
     GK.toast.timer = setTimeout(() => el.classList.remove('show'), 2500);
+  };
+
+  // Größere Meldung unten rechts (Erfolge, goldene Dublone …); mehrere stapeln sich
+  GK.notify = function (html, duration = 5000) {
+    const el = document.createElement('div');
+    el.className = 'notify';
+    el.innerHTML = html;
+    el.addEventListener('click', () => el.remove());
+    const stack = $('notify-stack');
+    stack.appendChild(el);
+    // Höchstens 3 Meldungen gleichzeitig – die älteste verschwindet zuerst
+    while (stack.children.length > 3) stack.firstChild.remove();
+    setTimeout(() => el.classList.add('hide'), duration);
+    setTimeout(() => el.remove(), duration + 400);
   };
 
   function showTab(name) {
@@ -41,6 +59,8 @@ window.GK = window.GK || {};
     const currentTab = document.querySelector('.tab.active').dataset.tab;
     GK.clicker.refresh();
     GK.casino.refresh();
+    GK.poker.mp.resume();
+    GK.achievements.refresh();
     showTab(currentTab);
     render();
   }
@@ -100,6 +120,9 @@ window.GK = window.GK || {};
     const s = GK.state;
     $('stat-money').innerHTML = GK.formatMoneyHTML(s.money);
     $('stat-total').innerHTML = GK.formatMoneyHTML(s.totalEarned);
+    $('stat-all-time').innerHTML = GK.formatMoneyHTML(s.allTimeEarned);
+    $('stat-golden').textContent = GK.formatNumber(s.goldenClicks);
+    $('stat-achievements').textContent = `${s.achievements.length} von ${GK.achievements.total}`;
     $('stat-click-earned').innerHTML = GK.formatMoneyHTML(s.clickEarned);
     $('stat-clicks').textContent = GK.formatNumber(s.totalClicks);
     $('stat-cps').innerHTML = GK.formatMoneyHTML(GK.clicker.getCps(), true);
@@ -118,6 +141,8 @@ window.GK = window.GK || {};
     document.title = `${money} Dublonen – Gamble Klicker`;
     GK.clicker.render();
     GK.casino.render();
+    GK.progress.update(GK.state.ui.tab === 'progress');
+    if (GK.state.ui.tab === 'progress') GK.achievements.render();
     renderStats();
   }
 
@@ -128,6 +153,10 @@ window.GK = window.GK || {};
     GK.state.playTime += seconds;
     GK.clicker.tick(seconds);
 
+    if (now - lastCheck >= CHECK_INTERVAL) {
+      lastCheck = now;
+      GK.achievements.check();
+    }
     if (now - lastRender >= RENDER_INTERVAL) {
       lastRender = now;
       render();
@@ -135,8 +164,25 @@ window.GK = window.GK || {};
     requestAnimationFrame(loop);
   }
 
+  // Im Hintergrund-Tab läuft die Spielschleife nicht – die Zeit wird bei der Rückkehr nachgeholt
+  function onVisibilityChange() {
+    if (document.visibilityState === 'hidden') {
+      hiddenAt = Date.now();
+      GK.save();
+    } else if (hiddenAt) {
+      const seconds = Math.min((Date.now() - hiddenAt) / 1000, MAX_CATCH_UP);
+      hiddenAt = null;
+      if (seconds > 1) {
+        GK.state.playTime += seconds;
+        GK.clicker.tick(seconds);
+      }
+      lastTick = performance.now();
+    }
+  }
+
   function init() {
     GK.load();
+    GK.poker.mp.readInviteLink();
     GK.onSave = flashSaveIndicator;
     if (!GK.storageAvailable) {
       $('storage-warning').hidden = false;
@@ -145,16 +191,18 @@ window.GK = window.GK || {};
     setupTabs();
     setupStatsActions();
     GK.clicker.init();
+    GK.progress.init();
+    GK.progress.applyOfflineEarnings();
     GK.casino.init();
+    GK.poker.mp.resume();
     showTab(GK.state.ui.tab);
+    GK.achievements.check();
     render();
 
     // Automatisch speichern: regelmäßig, beim Wechsel in einen anderen Tab/App
     // und beim Schließen bzw. Neuladen (pagehide funktioniert auch auf dem Handy)
     setInterval(GK.save, AUTOSAVE_INTERVAL);
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'hidden') GK.save();
-    });
+    document.addEventListener('visibilitychange', onVisibilityChange);
     window.addEventListener('pagehide', GK.save);
     window.addEventListener('beforeunload', GK.save);
     requestAnimationFrame(loop);

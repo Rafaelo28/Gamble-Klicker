@@ -54,6 +54,10 @@ window.GK = window.GK || {};
 
   function placeBet(key, amount) {
     if (spinning) return false;
+    if (totalBets(state().bets) + amount > GK.casino.maxBet()) {
+      showMessage(`Dein Limit sind ${GK.formatNumber(GK.casino.maxBet())} Dublonen pro Drehung – eine bessere VIP-Karte erhöht es.`, 'loss');
+      return false;
+    }
     if (!GK.casino.bet(amount)) {
       showMessage('Nicht genug Dublonen für diesen Chip.', 'loss');
       return false;
@@ -76,6 +80,10 @@ window.GK = window.GK || {};
 
   function repeatBets() {
     const last = state().lastBets;
+    if (totalBets(state().bets) + totalBets(last) > GK.casino.maxBet()) {
+      showMessage('Das würde dein Einsatz-Limit pro Drehung überschreiten.', 'loss');
+      return;
+    }
     if (!GK.canAfford(totalBets(last))) {
       showMessage('Nicht genug Dublonen, um die letzten Wetten zu wiederholen.', 'loss');
       return;
@@ -120,6 +128,12 @@ window.GK = window.GK || {};
     s.results.unshift(p.result);
     s.results.length = Math.min(s.results.length, 15);
     GK.casino.payout(p.payout);
+    Object.keys(p.bets || {}).forEach(key => {
+      if (key.startsWith('n') && betInfo(key).wins(p.result)) {
+        GK.unlockAchievement('rouletteNumber');
+        if (p.result === 0) GK.unlockAchievement('rouletteZero');
+      }
+    });
     const colorName = { green: 'Grün', red: 'Rot', black: 'Schwarz' }[colorOf(p.result)];
     GK.casino.record('roulette', p.bet, p.payout, `${p.result} ${colorName}`);
 

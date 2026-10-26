@@ -87,12 +87,28 @@ window.GK = window.GK || {};
     return mult;
   }
 
+  // Einkommen ohne Boni aus Schatzkarten, Erfolgen usw.
+  function baseCps() {
+    return BUILDINGS.reduce((sum, b) => sum + owned(b.id) * b.baseCps * buildingMultiplier(b.id), 0);
+  }
+
+  // Alle Boni zusammen (dauerhaft × zeitlich begrenzt, z. B. Goldrausch)
+  function incomeMult() {
+    return GK.progress.permanentMult() * GK.progress.buffMult('income');
+  }
+
+  // Einkommen eines einzelnen Gebäudes inklusive aller Boni
   function buildingCps(building) {
-    return building.baseCps * buildingMultiplier(building.id);
+    return building.baseCps * buildingMultiplier(building.id) * incomeMult();
   }
 
   function getCps() {
-    return BUILDINGS.reduce((sum, b) => sum + owned(b.id) * buildingCps(b), 0);
+    return baseCps() * incomeMult();
+  }
+
+  // Einkommen nur mit dauerhaften Boni (für Offline-Einnahmen und Erfolge)
+  function getCpsPermanent() {
+    return baseCps() * GK.progress.permanentMult();
   }
 
   function getClickPower() {
@@ -104,7 +120,7 @@ window.GK = window.GK || {};
       if (u.type === 'clickMult') mult *= u.value;
       if (u.type === 'clickCps') cpsShare += u.value;
     }
-    return mult + getCps() * cpsShare;
+    return (mult * GK.progress.permanentMult() + getCps() * cpsShare) * GK.progress.buffMult('click');
   }
 
   function availableUpgrades() {
@@ -280,7 +296,9 @@ window.GK = window.GK || {};
     render,
     refresh,
     getCps,
+    getCpsPermanent,
     getClickPower,
     totalBuildings: () => BUILDINGS.reduce((sum, b) => sum + owned(b.id), 0),
+    ownsAllBuildings: () => BUILDINGS.every(b => owned(b.id) > 0),
   };
 })();
