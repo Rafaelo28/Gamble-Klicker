@@ -4539,6 +4539,137 @@ body.reduced-effects .golden-coin {
   max-width: 620px;
 }
 
+/* ---------- Flugkapitän ---------- */
+.casino-card[data-game="flight"] { --accent: rgba(90, 190, 255, 0.45); }
+
+.flight-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, #4fa3e0 0%, #8fd0f5 60%, #c9ecff 100%);
+  border: 1px solid var(--border-soft);
+  box-shadow: var(--shadow);
+}
+
+/* Hochkant (iPad): Flugfeld über die volle Breite, Bedienung darunter */
+@media (max-width: 900px) {
+  .flight-scene {
+    flex-basis: 100%;
+    max-width: none;
+  }
+}
+
+/* ---------- Vier gewinnt ---------- */
+.casino-card[data-game="connect4"] { --accent: rgba(230, 60, 60, 0.45); }
+
+.c4-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.c4-disc {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  margin-right: 4px;
+  border-radius: 50%;
+  vertical-align: -3px;
+}
+
+.c4-disc.gold,
+.c4-cell.gold::after {
+  background: radial-gradient(circle at 35% 30%, #fff3b0, #f5c542 45%, #a87a10);
+}
+
+.c4-disc.red,
+.c4-cell.red::after {
+  background: radial-gradient(circle at 35% 30%, #ff9c8c, #e0332a 45%, #8a1410);
+}
+
+.c4-board {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  width: min(92vw, 600px);
+  padding: 10px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #2456b8, #163a85);
+  border: 3px solid #0e2a66;
+  box-shadow: var(--shadow), inset 0 2px 0 rgba(255, 255, 255, 0.2);
+}
+
+.c4-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  overflow: hidden;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.c4-col:disabled {
+  cursor: default;
+}
+
+.c4-col:not(:disabled):active {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+@media (hover: hover) {
+  .c4-col:not(:disabled):hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.c4-cell {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #0b1f4a;
+  box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.6);
+}
+
+.c4-cell.filled::after {
+  content: '';
+  position: absolute;
+  inset: 6%;
+  border-radius: 50%;
+  box-shadow: inset 0 -3px 5px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.c4-cell.drop::after {
+  animation: c4-drop 0.42s cubic-bezier(0.5, 0, 0.75, 1.15);
+}
+
+@keyframes c4-drop {
+  from { transform: translateY(calc(var(--fall, 6) * -124%)); }
+  to   { transform: translateY(0); }
+}
+
+.c4-cell.win::after {
+  animation: c4-win 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes c4-win {
+  from { box-shadow: 0 0 0 2px #fff, 0 0 10px rgba(255, 255, 255, 0.6); }
+  to   { box-shadow: 0 0 0 4px #ffd95e, 0 0 24px rgba(255, 217, 94, 0.95); }
+}
+
+.c4-hint {
+  min-height: 1.5em;
+  text-align: center;
+  font-weight: 700;
+}
+
 /* ---------- Tablet / iPad (8. Generation: 810 × 1080 hochkant, 1080 × 810 quer) ---------- */
 @media (max-width: 1180px) {
   .clicker-layout {

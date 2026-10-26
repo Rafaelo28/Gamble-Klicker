@@ -85,6 +85,7 @@ window.GK = window.GK || {};
     if (g.mines && g.mines.round) return 'Beende zuerst deine Schatzsuche.';
     if (g.crash && g.crash.round && !g.crash.round.cashed) return 'Warte, bis die Kanonenkugel gelandet ist.';
     if ((g.wheel && g.wheel.pending) || (g.race && (g.race.pending || Object.keys(g.race.bets || {}).length))) return 'Warte, bis deine Runde vorbei ist.';
+    if (g.flight && g.flight.pending) return 'Warte, bis dein Flugzeug gelandet ist.';
     if (g.plinko && g.plinko.pending && g.plinko.pending.length) return 'Warte, bis alle Münzen gefallen sind.';
     const vs = ['vsPirate', 'vsOcean', 'vsVolcano'].map(id => g[id]).filter(Boolean);
     if (vs.some(x => x.pending || x.free || x.bonus)) return 'Spiel zuerst deine Freispiele bzw. die Bonusrunde zu Ende.';

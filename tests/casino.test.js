@@ -2,7 +2,7 @@
 global.window = global;
 const R = require('path').join(__dirname, '..', 'js') + '/';
 require(R + 'casino/casino.js');
-['slot-machine', 'scratch', 'wheel', 'plinko', 'mines', 'crash', 'race', 'video-slots'].forEach(f => require(R + 'casino/' + f + '.js'));
+['slot-machine', 'scratch', 'wheel', 'plinko', 'mines', 'crash', 'race', 'flight', 'video-slots'].forEach(f => require(R + 'casino/' + f + '.js'));
 const assert = (cond, msg) => { if (!cond) { console.log('FAIL', msg); process.exitCode = 1; } };
 const between = (x, lo, hi, msg) => assert(x >= lo && x <= hi, `${msg}: ${x}`);
 const C = GK.casino;
@@ -80,6 +80,28 @@ for (let k = 0; k < 500; k++) {
   assert(V.evalLine(['W', 'W', 'W', 'W', 'W']).pay === V.PAYS.H1[2], 'Linie: 5× WILD');
   assert(V.evalLine(['W', 'W', 'W', 'L4', 'H2']).sym === 'H1', 'Linie: 3 WILD zahlen mehr als 4× J');
   assert(V.evalLine(['L1', 'S', 'L1', 'L1', 'L1']).pay === 0, 'Linie: Scatter unterbricht');
+}
+
+// Flugkapitän: Rechnung und Simulation je Geschwindigkeit, schnellere Flüge zahlen mehr, landen seltener
+{
+  const F = C.flightMath;
+  let lastE = 0;
+  let lastLanding = 1;
+  Object.keys(F.MODES).forEach(mode => {
+    between(F.rtp(mode), 0.965, 0.975, `Flugkapitän ${mode}: Rechnung`);
+    assert(F.modeExpectation(mode) > lastE && F.landingChance(mode) < lastLanding, `Flugkapitän ${mode}: schneller = mehr Gewinn, seltener Landung`);
+    lastE = F.modeExpectation(mode);
+    lastLanding = F.landingChance(mode);
+    const n = 200000;
+    let total = 0;
+    for (let i = 0; i < n; i++) {
+      const f = F.makeFlight(mode);
+      const [lo, hi] = F.MODES[mode].events;
+      if (i < 200) assert(f.events.length >= lo && f.events.length <= hi && f.events[f.events.length - 1].counter === f.counter, `Flugkapitän ${mode}: Flug stimmig`);
+      if (f.landed) total += f.counter;
+    }
+    between(total / n, 0.9, 1.04, `Flugkapitän ${mode}: Simulation`);
+  });
 }
 
 // Slot-Maschine (bestehend)
