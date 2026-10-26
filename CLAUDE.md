@@ -40,6 +40,8 @@ Online über GitHub Pages aus `main`: https://rafaelo28.github.io/Gamble-Klicker
 - `node tests/minigolf.test.js` – Minigolf: Physik (muss überall gleich rechnen) und komplette Runden.
 - `node tests/billiards.test.js` – Billard: Aufbau, Physik, Regeln und komplette Partien.
 - `node tests/connect4.test.js` – Vier gewinnt: Gewinnerkennung, Züge und Partien zwischen Computer-Gegnern.
+- `node tests/battleship.test.js` – Seeschlacht: Flotte, Regeln, geheime Ansicht, Computer-Gegner.
+- `node tests/darts.test.js` – Darts: Wertung, Ablauf mit 2–4 Spielern, Stechen, Aufgeben.
 - `node tests/casino.test.js` – Quoten und Zufall der Casino-Spiele (Rubbellose, Glücksrad,
   Münzfall, Schatzinsel, Kanonenkugel, Schiffsrennen, Flugkapitän, Slot-Maschine, Video-Slots).
 - Im Browser mit Playwright (Chromium ist vorinstalliert), auch in der iPad-Emulation

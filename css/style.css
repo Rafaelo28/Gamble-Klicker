@@ -4670,6 +4670,316 @@ body.reduced-effects .golden-coin {
   font-weight: 700;
 }
 
+/* ---------- Seeschlacht ---------- */
+.casino-card[data-game="battleship"] { --accent: rgba(70, 130, 220, 0.45); }
+
+.bs-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.bs-seas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 20px;
+  width: 100%;
+}
+
+.bs-sea {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bs-enemy { width: min(92vw, 520px); }
+.bs-own { width: min(92vw, 400px); }
+.bs-wrap.placing .bs-enemy { display: none; }
+.bs-wrap.placing .bs-own { width: min(92vw, 520px); }
+
+.bs-title {
+  text-align: center;
+  font-weight: 800;
+  color: var(--gold-light);
+}
+
+.bs-grid {
+  display: grid;
+  grid-template-columns: 0.6fr repeat(10, 1fr);
+  gap: 2px;
+  padding: 8px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #0d3a66, #082848);
+  border: 1px solid var(--border-soft);
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.3s;
+}
+
+.bs-wrap.my-turn .bs-enemy .bs-grid {
+  box-shadow: var(--shadow), 0 0 0 3px var(--gold), 0 0 22px rgba(245, 197, 66, 0.4);
+}
+
+.bs-grid.nope {
+  animation: shake 0.35s;
+}
+
+.bs-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: rgba(200, 225, 255, 0.7);
+}
+
+.bs-cell {
+  position: relative;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: rgba(80, 150, 220, 0.28);
+  color: inherit;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bs-cell.target { cursor: crosshair; }
+.bs-cell.target:active { background: rgba(255, 224, 102, 0.55); }
+
+@media (hover: hover) {
+  .bs-cell.target:hover { background: rgba(255, 224, 102, 0.45); }
+  .bs-wrap.placing .bs-own .bs-cell { cursor: pointer; }
+}
+
+.bs-cell.ship {
+  background: linear-gradient(180deg, #a7b2bd, #5c6874);
+  border-radius: 2px;
+}
+
+.bs-cell.ship.h.bow   { border-radius: 50% 2px 2px 50%; }
+.bs-cell.ship.h.stern { border-radius: 2px 35% 35% 2px; }
+.bs-cell.ship.v.bow   { border-radius: 50% 50% 2px 2px; }
+.bs-cell.ship.v.stern { border-radius: 2px 2px 35% 35%; }
+
+.bs-cell.ship.selected {
+  background: linear-gradient(180deg, #ffe58a, #c89a1a);
+  box-shadow: 0 0 10px rgba(255, 217, 94, 0.8);
+}
+
+.bs-cell.ship.sunk {
+  background: linear-gradient(180deg, #6a4030, #2a1a12);
+}
+
+.bs-cell.miss::after {
+  content: '';
+  position: absolute;
+  inset: 36%;
+  border-radius: 50%;
+  background: rgba(230, 245, 255, 0.75);
+}
+
+.bs-cell.hit:not(.ship) {
+  background: rgba(200, 60, 40, 0.6);
+}
+
+.bs-cell.hit::after {
+  content: '🔥';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(10px, 2.4vw, 22px);
+}
+
+.bs-cell.hit.sunk::after {
+  content: '✖';
+  color: #ff7a5a;
+  font-weight: 900;
+}
+
+.bs-cell.boom {
+  z-index: 2;
+  animation: bs-boom 0.7s ease-out;
+}
+
+.bs-cell.splash {
+  animation: bs-splash 0.7s ease-out;
+}
+
+@keyframes bs-boom {
+  0%   { transform: scale(1.4); box-shadow: 0 0 0 0 rgba(255, 170, 60, 0.95); }
+  100% { transform: scale(1); box-shadow: 0 0 0 16px rgba(255, 170, 60, 0); }
+}
+
+@keyframes bs-splash {
+  0%   { box-shadow: 0 0 0 0 rgba(200, 235, 255, 0.9); }
+  100% { box-shadow: 0 0 0 12px rgba(200, 235, 255, 0); }
+}
+
+.bs-fleet {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.bs-mini {
+  display: inline-flex;
+  gap: 1px;
+}
+
+.bs-mini i {
+  width: 7px;
+  height: 9px;
+  border-radius: 2px;
+  background: #a7b2bd;
+}
+
+.bs-mini.gone i {
+  background: #ff6a4a;
+  opacity: 0.45;
+}
+
+.bs-hint {
+  max-width: 620px;
+  min-height: 1.5em;
+  text-align: center;
+  font-weight: 700;
+}
+
+.bs-log,
+.darts-log {
+  text-align: center;
+}
+
+/* ---------- Darts in der Taverne ---------- */
+.casino-card[data-game="darts"] { --accent: rgba(200, 70, 60, 0.45); }
+
+.darts-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.darts-main {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
+.darts-board {
+  width: min(92vw, 560px, 64vh);
+}
+
+.darts-canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.darts-side {
+  flex: 1 1 260px;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.darts-scores {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.darts-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid transparent;
+}
+
+.darts-row.active {
+  border-color: var(--gold);
+  box-shadow: 0 0 14px rgba(245, 197, 66, 0.4);
+}
+
+.darts-row.out { opacity: 0.45; }
+
+.darts-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+.darts-last {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.darts-total {
+  min-width: 48px;
+  text-align: right;
+  font-size: 1.25rem;
+  color: var(--gold-light);
+}
+
+.darts-turn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+}
+
+.darts-slot {
+  min-width: 54px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border);
+  text-align: center;
+  font-weight: 800;
+}
+
+.darts-slot.great {
+  color: #ffd95e;
+  border-color: var(--gold);
+}
+
+.darts-slot.miss { color: var(--loss); }
+
+.darts-sum {
+  margin-left: 4px;
+  font-weight: 800;
+  color: var(--gold-light);
+}
+
+.darts-hint {
+  min-height: 1.5em;
+  text-align: center;
+  font-weight: 700;
+}
+
 /* ---------- Tablet / iPad (8. Generation: 810 × 1080 hochkant, 1080 × 810 quer) ---------- */
 @media (max-width: 1180px) {
   .clicker-layout {
