@@ -262,8 +262,18 @@ Einsatz verloren geht.
 - **🔴 Vier gewinnt** zu zweit, gegen Computer oder online. Ist das Brett voll, wird es geleert und
   weitergespielt. Computer-Gegner rechnen je nach Können 3 bis 6 Züge voraus.
 
+### Erweiterung: Seeschlacht und Darts ✅ (Teil 2)
+- **⚓ Seeschlacht** zu zweit, gegen Computer oder online: 10 × 10 Felder, fünf Schiffe (5, 4, 3, 3, 2),
+  die sich nicht berühren. Beide stellen gleichzeitig auf (zufällig verteilt, Schiffe antippen,
+  drehen und verschieben; online höchstens 60 Sekunden), dann wird abwechselnd geschossen – wer trifft,
+  darf nochmal. Jeder sieht nur die eigenen und die schon versenkten gegnerischen Schiffe.
+  Computer-Gegner rechnen für jedes Feld aus, wie viele Schiffslagen noch hineinpassen.
+- **🎯 Darts in der Taverne**: 2–4 Spieler, 3, 5 oder 8 Runden mit je 3 Pfeilen. Zielen per Tippen,
+  die Hand zittert – im richtigen Moment „Werfen!“. Bei Gleichstand an der Spitze gibt es ein Stechen.
+- `js/mp/room.js` kann jetzt auch Phasen, in denen alle gleichzeitig handeln (`canAct`), mit
+  gemeinsamer Zeitgrenze (`phaseDeadline`).
+
 ### Geplant
-- Teil 2: ⚓ Seeschlacht (Schiffe versenken) und 🎯 Darts in der Taverne
 - Teil 3: 💥 Kanonenduell
 
 ## Entscheidungen

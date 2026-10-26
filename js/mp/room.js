@@ -15,6 +15,8 @@
 //   autoDelay(z) → ms bis zum nächsten automatischen Schritt (oder null) · advance(z)
 //   forfeit(z, platz) · placeOf(z, platz) → Platz (1 = Sieger) oder null · finished(z)
 //   view(z, platz) → was dieser Spieler sehen darf · draw(container, view, ui) · turnTime(z)
+//   optional: canAct(z, platz) → darf dieser Platz gerade handeln (statt nur actor) ·
+//   phaseDeadline(z) → gemeinsame Zeitgrenze (Zeitstempel), solange niemand Bestimmtes dran ist
 window.GK = window.GK || {};
 
 (function () {
@@ -345,7 +347,9 @@ window.GK = window.GK || {};
   function playerAction(seat, action) {
     const s = session();
     const d = def();
-    if (!s.state || seat < 0 || d.actor(s.state) !== seat || !action || typeof action !== 'object') return;
+    if (!s.state || seat < 0 || !action || typeof action !== 'object') return;
+    // Spiele, in denen mehrere gleichzeitig handeln (z. B. Flotte aufstellen), sagen das über canAct
+    if (!(d.canAct ? d.canAct(s.state, seat) : d.actor(s.state) === seat)) return;
     if (d.act(s.state, seat, action)) {
       s.state.step = (s.state.step || 0) + 1;
       afterHostChange();
@@ -433,6 +437,8 @@ window.GK = window.GK || {};
         const human = actor >= 0 && !st.players[actor].isBot;
         const offline = human && !s.solo && st.players[actor].id !== store().playerId && !net.conns.has(st.players[actor].id);
         s.deadline = human && !s.solo ? Date.now() + (offline ? OFFLINE_TURN_TIME : d.turnTime(st)) : null;
+        // Gemeinsame Zeitgrenze, wenn niemand Bestimmtes am Zug ist (z. B. alle stellen ihre Flotte auf)
+        if (actor < 0 && d.phaseDeadline && !s.solo) s.deadline = d.phaseDeadline(st) || null;
       }
       const meSeat = seatOf(st, store().playerId);
       const place = d.placeOf(st, meSeat);
