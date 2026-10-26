@@ -512,7 +512,7 @@ window.GK = window.GK || {};
     let animPos = null;
     if (anim && anim.holeKey === `${v.hole}`) {
       const t = (now - anim.start) / 1000;
-      const i = Math.min(Math.floor(t * 60), anim.r.path.length / 2 - 1);
+      const i = Math.max(0, Math.min(Math.floor(t * 60), anim.r.path.length / 2 - 1));
       animPos = [anim.r.path[i * 2], anim.r.path[i * 2 + 1]];
       // Geräusche an Banden und Bumpern
       anim.r.bounces.forEach((b, k) => {
