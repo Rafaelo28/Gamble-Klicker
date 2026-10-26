@@ -198,5 +198,6 @@ Jeder gemergte Pull Request wird nach 1–2 Minuten automatisch veröffentlicht
 
 ## Hinweise zum Spielen
 - Alles ist Spielgeld ohne jeden echten Wert. Es gibt keine Käufe mit echtem Geld.
-- Die Casino-Spiele nutzen faire Zufallszahlen mit realistischen Gewinnchancen –
-  das Haus gewinnt auf Dauer, genau wie im echten Casino.
+- Die Casino-Spiele nutzen faire Zufallszahlen (kryptografischer Zufall des Browsers).
+- Im Spiel werden bewusst keine Auszahlungsquoten angezeigt; die Werte oben sind nur zur
+  Entwicklung dokumentiert.
