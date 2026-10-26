@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gamble Klicker</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="logo">🎰 Gamble Klicker</div>
+    <div class="wallet">
+      <div class="wallet-money"><span id="money">0</span> <span class="coin-icon">🪙</span></div>
+      <div class="wallet-cps"><span id="cps">0</span> pro Sekunde</div>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="clicker">👆 Klicker</button>
+    <button class="tab" data-tab="casino">🎲 Casino</button>
+    <button class="tab" data-tab="stats">📊 Statistiken</button>
+  </nav>
+
+  <main>
+    <!-- Klicker -->
+    <section id="tab-clicker" class="tab-panel active">
+      <div class="clicker-layout">
+        <div class="click-area">
+          <button id="big-coin" class="big-coin" aria-label="Münze klicken">
+            <span class="big-coin-inner">GK</span>
+          </button>
+          <div class="click-power">+<span id="click-power">1</span> pro Klick</div>
+          <div id="float-layer" class="float-layer"></div>
+        </div>
+
+        <div class="shop">
+          <div class="shop-section">
+            <h2>Upgrades</h2>
+            <div id="upgrade-list" class="upgrade-list"></div>
+            <p id="upgrade-empty" class="muted">Noch keine Upgrades verfügbar – sammle weiter!</p>
+          </div>
+
+          <div class="shop-section">
+            <div class="shop-header">
+              <h2>Gebäude</h2>
+              <div class="buy-amount" role="group" aria-label="Kaufmenge">
+                <button class="amount-btn active" data-amount="1">×1</button>
+                <button class="amount-btn" data-amount="10">×10</button>
+                <button class="amount-btn" data-amount="100">×100</button>
+              </div>
+            </div>
+            <div id="building-list" class="building-list"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Casino (Vorschau) -->
+    <section id="tab-casino" class="tab-panel">
+      <h2>Casino</h2>
+      <p class="muted">Hier kannst du bald dein Spielgeld einsetzen. Die Spiele werden Schritt für Schritt freigeschaltet.</p>
+      <div class="casino-grid">
+        <div class="casino-card locked"><div class="casino-emoji">🎰</div><h3>Slot-Maschine</h3><p>Kommt in Phase 2</p></div>
+        <div class="casino-card locked"><div class="casino-emoji">🎡</div><h3>Roulette</h3><p>Kommt in Phase 3</p></div>
+        <div class="casino-card locked"><div class="casino-emoji">🃏</div><h3>Blackjack</h3><p>Kommt in Phase 4</p></div>
+        <div class="casino-card locked"><div class="casino-emoji">♠️</div><h3>Poker</h3><p>Kommt in Phase 5</p></div>
+      </div>
+    </section>
+
+    <!-- Statistiken -->
+    <section id="tab-stats" class="tab-panel">
+      <h2>Statistiken</h2>
+      <dl class="stats-list">
+        <dt>Aktuelles Guthaben</dt><dd id="stat-money">0</dd>
+        <dt>Insgesamt verdient</dt><dd id="stat-total">0</dd>
+        <dt>Durch Klicks verdient</dt><dd id="stat-click-earned">0</dd>
+        <dt>Anzahl Klicks</dt><dd id="stat-clicks">0</dd>
+        <dt>Einkommen pro Sekunde</dt><dd id="stat-cps">0</dd>
+        <dt>Gebäude insgesamt</dt><dd id="stat-buildings">0</dd>
+        <dt>Upgrades gekauft</dt><dd id="stat-upgrades">0</dd>
+        <dt>Spielzeit</dt><dd id="stat-playtime">0</dd>
+      </dl>
+      <div class="stats-actions">
+        <button id="save-btn" class="btn">💾 Jetzt speichern</button>
+        <button id="reset-btn" class="btn btn-danger">🗑️ Spielstand zurücksetzen</button>
+      </div>
+      <p class="muted small">Alles ist reines Spielgeld ohne echten Wert. Der Spielstand wird automatisch in deinem Browser gespeichert.</p>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/format.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/clicker.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
