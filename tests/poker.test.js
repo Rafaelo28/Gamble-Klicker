@@ -80,3 +80,62 @@ for (let players = 2; players <= 6; players++) {
 }
 assert(GK.poker.tournament.prize(1, 1000, 6) === 3000 && GK.poker.tournament.prize(3, 1000, 6) === 1200, 'prize 6 players');
 console.log(process.exitCode ? 'Forfeit-/Preis-Tests FEHLGESCHLAGEN' : 'Forfeit- und Preis-Tests bestanden.');
+
+// Turbo-Modus: weniger Chips, Blinds steigen schneller – Turniere müssen deutlich kürzer sein
+const T = GK.poker.tournament;
+function playOut(modeId) {
+  const t = T.createTable(T.botSeats(6), modeId);
+  let guard = 0;
+  while (t.phase !== 'finished' && guard++ < 1000) {
+    GK.poker.engine.startHand(t);
+    while (t.phase === 'betting') GK.poker.engine.act(t, GK.poker.ai.decide(t));
+  }
+  const total = t.players.reduce((s, p) => s + p.chips, 0);
+  assert(total === 6 * T.mode(modeId).startChips, `${modeId}: chips ${total}`);
+  assert(t.mode === modeId, `${modeId}: Modus am Tisch gespeichert`);
+  return t.handNo;
+}
+const RUNS = 12;
+let classicHands = 0, turboHands = 0;
+for (let n = 0; n < RUNS; n++) { classicHands += playOut('classic'); turboHands += playOut('turbo'); }
+assert(turboHands < classicHands * 0.6, `Turbo nicht schneller: ${turboHands} vs ${classicHands}`);
+assert(T.mode('gibtsnicht').id === 'classic' && T.mode(undefined).id === 'classic', 'unbekannter Modus = klassisch');
+console.log('Hände pro Turnier – klassisch', (classicHands / RUNS).toFixed(1), 'turbo', (turboHands / RUNS).toFixed(1));
+
+// ICM (anteilige Auszahlung beim Aussteigen)
+const near = (a, b, msg) => assert(Math.abs(a - b) < 1e-6, `${msg}: ${a} statt ${b}`);
+const prizes6 = [3000, 1800, 1200];
+const sum = a => a.reduce((s, x) => s + x, 0);
+let eq = T.icm([1500, 1500, 1500, 1500, 1500, 1500], prizes6);
+eq.forEach(e => near(e, 1000, 'gleiche Stacks = Eintritt zurück'));
+eq = T.icm([5000, 2000, 1000, 500, 500, 0], prizes6);
+near(sum(eq), 6000, 'ICM verteilt genau das Preisgeld');
+assert(eq[0] > eq[1] && eq[1] > eq[2] && eq[2] > eq[3], 'mehr Chips = mehr wert');
+assert(eq[0] < 3000 && eq[5] === 0, 'niemand bekommt mehr als Platz 1, ohne Chips nichts');
+near(T.icm([7000, 2000], [3000, 1800])[0], 3000 * 7 / 9 + 1800 * 2 / 9, 'Heads-up');
+near(T.icm([9000], [3000])[0], 3000, 'allein übrig = Platz 1');
+
+// cashOutValue: Zwischen zwei Händen verteilt es genau das offene Preisgeld. Mitten in einer Hand
+// verliert, wer aussteigt, seine Chips im Pot – dann ist die Summe kleiner, aber nie größer.
+for (let n = 0; n < 20; n++) {
+  const t = T.createTable(T.botSeats(6), n % 2 ? 'turbo' : 'classic');
+  const values = () => t.players.map((p, i) => T.cashOutValue(t, i, 1000));
+  GK.poker.engine.startHand(t);
+  assert(sum(values()) <= 6000, 'Start: höchstens das Preisgeld');
+  const handsToPlay = 1 + Math.floor(Math.random() * 25);
+  while (t.phase !== 'finished') {
+    if (t.phase !== 'betting') {
+      if (t.handNo >= handsToPlay) break;
+      GK.poker.engine.startHand(t);
+      continue;
+    }
+    GK.poker.engine.act(t, GK.poker.ai.decide(t));
+    assert(sum(values()) + t.players.filter(p => p.out).reduce((s, p) => s + T.prize(p.place, 1000, 6), 0) <= 6000, 'mitten in der Hand: nie mehr als das Preisgeld');
+  }
+  const decided = t.players.filter(p => p.out).reduce((s, p) => s + T.prize(p.place, 1000, 6), 0);
+  const open = sum(values());
+  assert(t.phase !== 'betting', 'zwischen zwei Händen');
+  assert(open + decided <= 6000 && open + decided >= 6000 - t.players.length, `zwischen Händen: offen ${open} + vergeben ${decided}`);
+  t.players.forEach((p, i) => { if (p.out) assert(T.cashOutValue(t, i, 1000) === 0, 'Ausgeschiedene bekommen nichts'); });
+}
+console.log(process.exitCode ? 'Turbo-/ICM-Tests FEHLGESCHLAGEN' : 'Turbo- und ICM-Tests bestanden.');

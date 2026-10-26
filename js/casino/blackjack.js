@@ -1,5 +1,6 @@
 // Blackjack gegen den Dealer: 6 Decks, Dealer steht auf 17, Blackjack zahlt 3:2,
-// Verdoppeln (auch nach Teilen) und Teilen bis zu 4 Hände.
+// Verdoppeln (auch nach Teilen) und Teilen bis zu 4 Hände. Jede geteilte Hand darf so viele
+// Karten ziehen, wie sie möchte – auch geteilte Asse.
 // Jede Aktion wird sofort gespeichert – eine angefangene Runde übersteht das Neuladen.
 window.GK = window.GK || {};
 
@@ -57,7 +58,7 @@ window.GK = window.GK || {};
   }
 
   function canDouble(hand) {
-    return hand && hand.cards.length === 2 && !hand.splitAces && GK.canAfford(hand.bet);
+    return hand && hand.cards.length === 2 && GK.canAfford(hand.bet);
   }
 
   function canSplit(hand) {
@@ -77,7 +78,7 @@ window.GK = window.GK || {};
     }
     if (s.shoe.length < RESHUFFLE_AT) s.shoe = GK.cards.createDeck(DECKS);
 
-    const hand = { cards: [], bet: s.bet, done: false, splitAces: false, split: false };
+    const hand = { cards: [], bet: s.bet, done: false, split: false };
     s.round = { hands: [hand], active: 0, dealer: [], finished: false, results: [] };
     hand.cards.push(draw());
     s.round.dealer.push(draw());
@@ -123,18 +124,11 @@ window.GK = window.GK || {};
     const round = state().round;
     const hand = activeHand();
     if (!canSplit(hand) || !GK.casino.bet(hand.bet)) return;
-    const aces = GK.cards.rank(hand.cards[0]) === 'A';
-    const second = { cards: [hand.cards.pop()], bet: hand.bet, done: false, splitAces: aces, split: true };
+    const second = { cards: [hand.cards.pop()], bet: hand.bet, done: false, split: true };
     hand.split = true;
-    hand.splitAces = aces;
     hand.cards.push(draw());
     second.cards.push(draw());
     round.hands.splice(round.active + 1, 0, second);
-    // Geteilte Asse bekommen nur je eine Karte
-    if (aces) {
-      hand.done = true;
-      second.done = true;
-    }
     if (handValue(hand.cards).total === 21) hand.done = true;
     nextHand();
   }
@@ -252,6 +246,7 @@ window.GK = window.GK || {};
     seen = { round, dealer: round.dealer.length, hands: round.hands.map(h => h.cards.length), holeHidden: hideHole };
     els.dealerValue.textContent = hideHole ? String(handValue([round.dealer[0]]).total) : valueLabel(round.dealer);
 
+    els.hands.classList.toggle('split', round.hands.length > 1);
     els.hands.innerHTML = round.hands.map((hand, i) => {
       const active = !round.finished && i === round.active;
       const result = round.finished ? round.results[i] : null;
@@ -259,6 +254,7 @@ window.GK = window.GK || {};
       return `<div class="bj-hand ${active ? 'active' : ''} ${result ? 'done-' + (resultCls || 'push') : ''}">
         <div class="bj-cards">${handCards[i]}</div>
         <div class="bj-hand-info">
+          ${round.hands.length > 1 ? `<span class="bj-hand-no">Hand ${i + 1}</span>` : ''}
           <span class="bj-value">${valueLabel(hand.cards)}</span>
           <span class="bj-bet">${GK.formatMoneyHTML(hand.bet)}${hand.doubled ? ' (verdoppelt)' : ''}</span>
           ${result ? `<span class="bj-result ${resultCls}" style="animation-delay: ${delay + 0.1}s">${result.text}</span>` : ''}
@@ -280,7 +276,8 @@ window.GK = window.GK || {};
       else if (diff === 0) showMessage('Einsatz zurück.', '');
       else showMessage(`Verloren: −${GK.formatMoneyHTML(-diff)}`, 'loss');
     } else {
-      showMessage(round.hands.length > 1 ? `Hand ${round.active + 1} von ${round.hands.length} ist dran.` : 'Karte oder bleiben?', '');
+      showMessage(round.hands.length > 1
+        ? `Hand ${round.active + 1} von ${round.hands.length} ist dran: Karte oder bleiben?` : 'Karte oder bleiben?', '');
     }
     updateButtons();
   }
@@ -296,6 +293,7 @@ window.GK = window.GK || {};
     const hand = activeHand();
     els.deal.hidden = playing;
     els.playActions.hidden = !playing;
+    els.hit.textContent = round && round.hands.length > 1 && hand ? `Karte für Hand ${round.active + 1}` : 'Karte';
     els.double.disabled = !canDouble(hand);
     els.split.disabled = !canSplit(hand);
     betControl.setDisabled(playing);
@@ -334,6 +332,7 @@ window.GK = window.GK || {};
       playActions: body.querySelector('.bj-play-actions'),
       double: body.querySelector('.bj-double'),
       split: body.querySelector('.bj-split'),
+      hit: body.querySelector('.bj-hit'),
     };
     betControl = GK.casino.createBetControl(body.querySelector('.bj-bet'), {
       min: MIN_BET,
@@ -341,7 +340,7 @@ window.GK = window.GK || {};
       set: v => { state().bet = v; },
     });
     els.deal.addEventListener('click', deal);
-    body.querySelector('.bj-hit').addEventListener('click', hit);
+    els.hit.addEventListener('click', hit);
     body.querySelector('.bj-stand').addEventListener('click', stand);
     els.double.addEventListener('click', double);
     els.split.addEventListener('click', split);

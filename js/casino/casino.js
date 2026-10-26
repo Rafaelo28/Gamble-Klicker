@@ -61,10 +61,12 @@ window.GK = window.GK || {};
   // ---------- VIP-Karten: höhere Einsatz-Limits und bessere Poker-Tische ----------
 
   const VIP_LEVELS = [
-    { name: 'Standard', icon: '🎫', cost: 0,   maxBet: 10000 },
-    { name: 'Silber',   icon: '🥈', cost: 250000,   maxBet: 1000000 },
-    { name: 'Gold',     icon: '🥇', cost: 50000000, maxBet: 100000000 },
-    { name: 'Diamant',  icon: '💎', cost: 5000000000, maxBet: Infinity },
+    { name: 'Standard',       icon: '🎫', cost: 0,      maxBet: 1e4,      achievement: '' },
+    { name: 'Silber',         icon: '🥈', cost: 2.5e5,  maxBet: 1e6,      achievement: 'vipSilver' },
+    { name: 'Gold',           icon: '🥇', cost: 5e7,    maxBet: 1e8,      achievement: 'vipGold' },
+    { name: 'Diamant',        icon: '💎', cost: 5e9,    maxBet: 1e10,     achievement: 'vipDiamond' },
+    { name: 'Schwarze Perle', icon: '🖤', cost: 5e11,   maxBet: 1e12,     achievement: 'vipPearl' },
+    { name: 'Kaiserkrone',    icon: '👑', cost: 5e13,   maxBet: Infinity, achievement: 'vipEmperor' },
   ];
 
   function vipLevel() {
@@ -80,9 +82,11 @@ window.GK = window.GK || {};
     const next = VIP_LEVELS[vipLevel() + 1];
     if (!next || !GK.spend(next.cost)) return false;
     casino().vip = vipLevel() + 1;
-    GK.sound.play('upgrade');
-    GK.fx.confetti(80);
-    GK.unlockAchievement(['', 'vipSilver', 'vipGold', 'vipDiamond'][casino().vip]);
+    const top = vipLevel() >= 4;
+    GK.sound.play(top ? 'powerup' : 'upgrade');
+    GK.fx.confetti(top ? 160 : 80);
+    if (top) GK.fx.coinRain(2.5, 50);
+    GK.unlockAchievement(next.achievement);
     GK.save();
     renderLobbyInfo();
     GK.toast(`${next.icon} ${next.name}-Karte gekauft! Neues Einsatz-Limit: ${formatLimit(next.maxBet)}`);
@@ -262,14 +266,15 @@ window.GK = window.GK || {};
 
     const level = VIP_LEVELS[vipLevel()];
     const next = VIP_LEVELS[vipLevel() + 1];
+    const nextTable = next && GK.poker.tournament.TIERS.find(t => t.vip === vipLevel() + 1);
     document.getElementById('casino-vip').innerHTML = `
       <div class="vip-card vip-${vipLevel()}">${level.icon} ${level.name}-Karte</div>
       <p>Einsatz-Limit pro Runde: <b>${formatLimit(level.maxBet)}</b></p>
       ${next ? `
         <p class="muted small">Nächste Stufe: ${next.icon} ${next.name} – Limit ${formatLimit(next.maxBet)}${
-          vipLevel() + 1 <= 2 ? `, schaltet den Poker-Tisch „${GK.poker.tournament.TIERS[vipLevel() + 1].name}“ frei` : ''}.</p>
+          nextTable ? `, schaltet den Poker-Tisch „${nextTable.name}“ frei` : ''}.</p>
         <button class="btn btn-primary vip-buy">${next.name}-Karte kaufen (${GK.formatNumber(next.cost)} Dublonen)</button>`
-        : '<p class="muted small">Höchste Stufe erreicht – du bist ein echter High Roller! 💎</p>'}`;
+        : '<p class="muted small">Höchste Stufe erreicht – mehr Glanz gibt es nicht! 👑</p>'}`;
     const buy = document.querySelector('.vip-buy');
     if (buy) {
       buy.disabled = !GK.canAfford(next.cost);

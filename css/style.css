@@ -590,6 +590,120 @@ main {
   100% { opacity: 0; transform: translate(-50%, -200%) scale(1); }
 }
 
+/* Hohe Combo: rot-goldene Zahlen */
+.float-text.hot {
+  color: #ffb347;
+  text-shadow: 0 2px 0 #8a2d00, 0 0 14px rgba(255, 120, 40, 0.9);
+}
+
+/* Kritischer Klick: groß, rot und wackelnd */
+.float-text.crit {
+  z-index: 3;
+  font-size: 2.1rem;
+  color: #ff5a3c;
+  text-shadow: 0 3px 0 #5c0d00, 0 0 18px rgba(255, 70, 30, 0.95), 0 0 4px #fff;
+  animation: crit-up 1.25s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+}
+
+@keyframes crit-up {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.4) rotate(-8deg); }
+  12%  { opacity: 1; transform: translate(-50%, -70%) scale(1.45) rotate(4deg); }
+  22%  { transform: translate(-50%, -80%) scale(1.15) rotate(-2deg); }
+  100% { opacity: 0; transform: translate(-50%, -260%) scale(1) rotate(0); }
+}
+
+/* Ring, der sich von der Tipp-Stelle ausbreitet */
+.click-ring {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 3px solid rgba(255, 229, 138, 0.9);
+  border-radius: 50%;
+  animation: click-ring 0.45s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes click-ring {
+  to { transform: scale(4); opacity: 0; border-width: 1px; }
+}
+
+.big-coin.coin-crit {
+  animation: coin-crit 0.35s ease-out, coin-float 3s ease-in-out 0.35s infinite;
+}
+
+@keyframes coin-crit {
+  0%   { transform: scale(1); filter: brightness(1); }
+  30%  { transform: scale(0.84) rotate(-8deg); filter: brightness(1.6) saturate(1.4); }
+  60%  { transform: scale(1.08) rotate(5deg); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+/* Combo-Anzeige oben über der Münze (schwebt, damit nichts verrutscht) */
+.combo-meter {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: calc(100% - 32px);
+  max-width: 300px;
+  padding: 3px 10px;
+  border-radius: 99px;
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transform: translateX(-50%) scale(0.9);
+  transition: opacity 0.25s, transform 0.25s;
+  pointer-events: none;
+}
+
+.combo-meter.active {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
+.combo-count,
+.combo-mult {
+  font-weight: 900;
+  font-size: 0.95rem;
+  color: #ffb347;
+  white-space: nowrap;
+  text-shadow: 0 0 8px rgba(255, 120, 40, 0.6);
+}
+
+.combo-bar {
+  flex: 1;
+  height: 10px;
+  border-radius: 99px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 179, 71, 0.35);
+  overflow: hidden;
+}
+
+.combo-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #ffd95e, #ff8a3c, #ff3d2e);
+  transition: width 0.12s;
+}
+
+.combo-meter.maxed .combo-fill {
+  animation: combo-max 0.5s ease-in-out infinite alternate;
+}
+
+.combo-meter.maxed .combo-mult {
+  color: #fff;
+  text-shadow: 0 0 10px #ff3d2e, 0 0 20px #ff8a3c;
+}
+
+@keyframes combo-max {
+  to { filter: brightness(1.5); box-shadow: 0 0 12px #ff8a3c; }
+}
+
 /* ---------- Side-Slot (unter der Klick-Münze) ---------- */
 .side-slot {
   position: relative;
@@ -792,6 +906,88 @@ main {
   font-size: 0.9rem;
 }
 
+.upgrade-more {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.upgrade-gain {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--win);
+}
+
+.upgrade-gain:empty {
+  display: none;
+}
+
+/* Seltenheit: Farbe des Rands und Leuchten je nach Stufe */
+.upgrade {
+  --rarity: rgba(245, 197, 66, 0.55);
+  --rarity-glow: rgba(245, 197, 66, 0.35);
+  position: relative;
+  overflow: hidden;
+  border-left: 4px solid var(--rarity);
+}
+
+.upgrade:not(:disabled) {
+  border-color: var(--rarity);
+  border-left-width: 4px;
+}
+
+.rarity-crit     { --rarity: #ff5a3c; --rarity-glow: rgba(255, 90, 60, 0.45); }
+.rarity-combo    { --rarity: #ff9f3c; --rarity-glow: rgba(255, 159, 60, 0.45); }
+.rarity-bronze   { --rarity: #cd7f32; --rarity-glow: rgba(205, 127, 50, 0.4); }
+.rarity-silver   { --rarity: #d6dde3; --rarity-glow: rgba(214, 221, 227, 0.4); }
+.rarity-gold     { --rarity: #f5c542; --rarity-glow: rgba(245, 197, 66, 0.45); }
+.rarity-platinum { --rarity: #9fe6d8; --rarity-glow: rgba(159, 230, 216, 0.45); }
+.rarity-diamond  { --rarity: #5ad8ff; --rarity-glow: rgba(90, 216, 255, 0.55); }
+.rarity-legend   { --rarity: #c27bff; --rarity-glow: rgba(194, 123, 255, 0.6); }
+.rarity-mythic   { --rarity: #ff5ad1; --rarity-glow: rgba(255, 90, 209, 0.65); }
+.rarity-synergy  { --rarity: #6fdc8c; --rarity-glow: rgba(111, 220, 140, 0.45); }
+
+.upgrade.rarity-crit,
+.upgrade.rarity-combo,
+.upgrade.rarity-diamond,
+.upgrade.rarity-legend,
+.upgrade.rarity-mythic {
+  background: linear-gradient(160deg, color-mix(in srgb, var(--rarity) 18%, transparent), rgba(0, 0, 0, 0.25) 60%);
+}
+
+.upgrade.rarity-mythic {
+  border-image: linear-gradient(180deg, #ff5ad1, #ffd95e, #5ad8ff) 1;
+  border-left-width: 4px;
+}
+
+.upgrade:not(:disabled) {
+  animation: upgrade-ready-rarity 1.6s ease-in-out infinite alternate;
+}
+
+@keyframes upgrade-ready-rarity {
+  to { box-shadow: 0 0 16px var(--rarity-glow); }
+}
+
+/* Glanzstreifen über seltenen, bezahlbaren Upgrades */
+.upgrade.rarity-diamond:not(:disabled)::after,
+.upgrade.rarity-legend:not(:disabled)::after,
+.upgrade.rarity-mythic:not(:disabled)::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+  animation: upgrade-shine 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes upgrade-shine {
+  0%, 40% { left: -60%; }
+  100% { left: 130%; }
+}
+
 .building-list {
   display: flex;
   flex-direction: column;
@@ -869,6 +1065,71 @@ main {
   font-weight: 800;
   color: var(--gold-light);
   opacity: 0.85;
+}
+
+.building-owned.count-pop {
+  animation: count-pop 0.35s ease-out;
+}
+
+@keyframes count-pop {
+  40% { transform: scale(1.5); color: #fff; }
+}
+
+/* Sterne für gekaufte Upgrades des Gebäudes */
+.building-stars {
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+}
+
+.star {
+  font-style: normal;
+  color: var(--rarity);
+  text-shadow: 0 0 6px var(--rarity-glow);
+}
+
+/* Fortschritt bis zum nächsten Upgrade */
+.building-progress {
+  display: block;
+  height: 5px;
+  margin-top: 5px;
+  border-radius: 99px;
+  background: rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+.building-progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: var(--rarity, var(--gold));
+  box-shadow: 0 0 6px var(--rarity-glow, transparent);
+  transition: width 0.3s;
+}
+
+.building-next {
+  margin-top: 2px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* Nach einem Upgrade leuchtet das Gebäude kräftig auf */
+.building.powered {
+  animation: powered 0.9s ease-out;
+}
+
+@keyframes powered {
+  0%   { box-shadow: 0 0 0 0 rgba(90, 216, 255, 0.9), inset 0 0 30px rgba(255, 229, 138, 0.6); background: rgba(245, 197, 66, 0.3); }
+  60%  { box-shadow: 0 0 0 18px rgba(90, 216, 255, 0), inset 0 0 10px rgba(255, 229, 138, 0.2); }
+  100% { box-shadow: none; }
+}
+
+.building.powered .building-icon {
+  animation: powered-icon 0.9s ease-out;
+}
+
+@keyframes powered-icon {
+  30% { transform: scale(1.35) rotate(-10deg); }
+  60% { transform: scale(0.95) rotate(6deg); }
 }
 
 /* ---------- Casino: Lobby ---------- */
@@ -1440,6 +1701,22 @@ button.casino-card:active {
 .theme-gold   { background: linear-gradient(135deg, #fff1b0, #e0a91b); }
 .theme-red    { background: linear-gradient(135deg, #ffc9c9, #c0392b); }
 .theme-purple { background: linear-gradient(135deg, #eadcff, #7b4fc9); }
+.theme-ice    { background: linear-gradient(135deg, #e6fbff, #5ad8ff 55%, #b48cff); }
+.theme-black  { background: linear-gradient(135deg, #5c5c6a, #15151c 60%, #b8860b); color: #ffe58a; }
+
+.vip-card.vip-4 { background: linear-gradient(135deg, #3a3a46, #0d0d12 60%, #6a6a7a); color: #f1f1f8; border-color: #8a8a9a; }
+.vip-card.vip-5 {
+  background: linear-gradient(135deg, #fff3b0, #f5c542 35%, #b8860b 55%, #fff3b0 75%, #c38d12);
+  background-size: 200% 200%;
+  color: #3a2a00;
+  border-color: #fff3b0;
+  box-shadow: 0 0 18px rgba(245, 197, 66, 0.6);
+  animation: vip-shine 3s ease-in-out infinite alternate;
+}
+
+@keyframes vip-shine {
+  to { background-position: 100% 100%; }
+}
 
 .scratch-main {
   display: flex;
@@ -1805,6 +2082,24 @@ button.casino-card:active {
 .bj-hand.active {
   border-color: var(--gold);
   background: rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0 16px rgba(245, 197, 66, 0.35);
+}
+
+/* Nach dem Teilen: Karten einer Hand überlappen, damit auch viele Karten nebeneinander passen */
+.bj-hands.split .bj-cards {
+  gap: 0;
+}
+
+.bj-hands.split .bj-cards > * + * {
+  margin-left: -26px;
+}
+
+.bj-hand-no {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .bj-hand-info {
@@ -2465,6 +2760,68 @@ button.casino-card:active {
 .vip-card.vip-2 { background: linear-gradient(135deg, #fff3b0, var(--gold-dark)); color: #3a2a00; }
 .vip-card.vip-3 { background: linear-gradient(135deg, #d6f4ff, #6ab7ff 50%, #b48cff); color: #10233a; }
 
+/* ---------- Poker: Spielmodus (Klassisch / Turbo) ---------- */
+.poker-modes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 0 4px;
+  max-width: 560px;
+}
+
+.poker-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 56px;
+  padding: 10px 14px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, transform 0.08s;
+}
+
+.poker-mode:active {
+  transform: scale(0.98);
+}
+
+.poker-mode.active {
+  border-color: var(--gold);
+  background: rgba(245, 197, 66, 0.14);
+  box-shadow: 0 0 14px rgba(245, 197, 66, 0.25);
+}
+
+.poker-mode[data-mode="turbo"].active {
+  border-color: #5ad8ff;
+  background: rgba(90, 216, 255, 0.12);
+  box-shadow: 0 0 14px rgba(90, 216, 255, 0.3);
+}
+
+.poker-mode-name {
+  font-weight: 800;
+}
+
+.poker-mode-desc {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.mp-modes {
+  margin: 4px 0 8px;
+}
+
+.poker-skip {
+  margin-top: 8px;
+}
+
+/* Der Betrag auf dem Aussteigen-Knopf ändert sich laufend: Tipps sollen immer den Knopf treffen */
+.poker-leave * {
+  pointer-events: none;
+}
+
 /* ---------- Poker mit Freunden ---------- */
 .poker-section-title {
   margin: 24px 0 8px;
@@ -2816,6 +3173,8 @@ body.reduced-effects .btn.btn-primary::after,
 body.reduced-effects .casino-emoji,
 body.reduced-effects .logo-coin,
 body.reduced-effects .upgrade,
+body.reduced-effects .upgrade::after,
+body.reduced-effects .combo-fill,
 body.reduced-effects .win-rays,
 body.reduced-effects .win-title,
 body.reduced-effects .slot-lights,

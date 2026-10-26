@@ -20,7 +20,7 @@
   <meta name="description" content="Klicke dich reich und verzocke deine Dublonen im Casino! Browser-Spiel aus Cookie Clicker und Casino – nur Spielgeld.">
   <meta name="author" content="Rafaelo28">
   <!-- ?v=… ist die Spielversion: bei jedem Update erhöhen, damit Browser keine alten Dateien mischen -->
-  <link rel="stylesheet" href="css/style.css?v=2026102602">
+  <link rel="stylesheet" href="css/style.css?v=2026102603">
 </head>
 <body>
   <div class="app-header">
@@ -53,6 +53,11 @@
             </button>
           </div>
           <div class="click-power">+<span id="click-power">1</span> pro Klick</div>
+          <div id="combo-meter" class="combo-meter" aria-hidden="true">
+            <span class="combo-count"></span>
+            <span class="combo-bar"><span class="combo-fill"></span></span>
+            <span class="combo-mult"></span>
+          </div>
           <div id="side-slot" class="side-slot"></div>
           <div id="float-layer" class="float-layer"></div>
         </div>
@@ -61,6 +66,7 @@
           <div class="shop-section">
             <h2>Upgrades</h2>
             <div id="upgrade-list" class="upgrade-list"></div>
+            <button id="upgrade-more" class="btn btn-small upgrade-more" hidden></button>
             <p id="upgrade-empty" class="muted">Noch keine Upgrades verfügbar – sammle weiter!</p>
           </div>
 
@@ -140,6 +146,8 @@
         <dt>Insgesamt verdient</dt><dd id="stat-all-time">0</dd>
         <dt>Durch Klicks verdient</dt><dd id="stat-click-earned">0</dd>
         <dt>Anzahl Klicks</dt><dd id="stat-clicks">0</dd>
+        <dt>Kritische Klicks</dt><dd id="stat-crits">0</dd>
+        <dt>Längste Klick-Combo</dt><dd id="stat-combo">0</dd>
         <dt>Einkommen pro Sekunde</dt><dd id="stat-cps">0</dd>
         <dt>Gebäude insgesamt</dt><dd id="stat-buildings">0</dd>
         <dt>Upgrades gekauft</dt><dd id="stat-upgrades">0</dd>
@@ -206,28 +214,28 @@
   <!-- PeerJS für den Poker-Multiplayer (Verbindung direkt zwischen den Browsern) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
 
-  <script src="js/format.js?v=2026102602"></script>
-  <script src="js/state.js?v=2026102602"></script>
-  <script src="js/sound.js?v=2026102602"></script>
-  <script src="js/fx.js?v=2026102602"></script>
-  <script src="js/achievements.js?v=2026102602"></script>
-  <script src="js/progress.js?v=2026102602"></script>
-  <script src="js/clicker.js?v=2026102602"></script>
-  <script src="js/casino/casino.js?v=2026102602"></script>
-  <script src="js/casino/cards.js?v=2026102602"></script>
-  <script src="js/casino/slot-machine.js?v=2026102602"></script>
-  <script src="js/casino/slots.js?v=2026102602"></script>
-  <script src="js/casino/scratch.js?v=2026102602"></script>
-  <script src="js/casino/roulette.js?v=2026102602"></script>
-  <script src="js/casino/blackjack.js?v=2026102602"></script>
-  <script src="js/poker/evaluator.js?v=2026102602"></script>
-  <script src="js/poker/engine.js?v=2026102602"></script>
-  <script src="js/poker/ai.js?v=2026102602"></script>
-  <script src="js/poker/tournament.js?v=2026102602"></script>
-  <script src="js/poker/table-ui.js?v=2026102602"></script>
-  <script src="js/poker/multiplayer.js?v=2026102602"></script>
-  <script src="js/poker/poker.js?v=2026102602"></script>
-  <script src="js/side-slot.js?v=2026102602"></script>
-  <script src="js/main.js?v=2026102602"></script>
+  <script src="js/format.js?v=2026102603"></script>
+  <script src="js/state.js?v=2026102603"></script>
+  <script src="js/sound.js?v=2026102603"></script>
+  <script src="js/fx.js?v=2026102603"></script>
+  <script src="js/achievements.js?v=2026102603"></script>
+  <script src="js/progress.js?v=2026102603"></script>
+  <script src="js/clicker.js?v=2026102603"></script>
+  <script src="js/casino/casino.js?v=2026102603"></script>
+  <script src="js/casino/cards.js?v=2026102603"></script>
+  <script src="js/casino/slot-machine.js?v=2026102603"></script>
+  <script src="js/casino/slots.js?v=2026102603"></script>
+  <script src="js/casino/scratch.js?v=2026102603"></script>
+  <script src="js/casino/roulette.js?v=2026102603"></script>
+  <script src="js/casino/blackjack.js?v=2026102603"></script>
+  <script src="js/poker/evaluator.js?v=2026102603"></script>
+  <script src="js/poker/engine.js?v=2026102603"></script>
+  <script src="js/poker/ai.js?v=2026102603"></script>
+  <script src="js/poker/tournament.js?v=2026102603"></script>
+  <script src="js/poker/table-ui.js?v=2026102603"></script>
+  <script src="js/poker/multiplayer.js?v=2026102603"></script>
+  <script src="js/poker/poker.js?v=2026102603"></script>
+  <script src="js/side-slot.js?v=2026102603"></script>
+  <script src="js/main.js?v=2026102603"></script>
 </body>
 </html>

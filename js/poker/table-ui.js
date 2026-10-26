@@ -76,14 +76,13 @@ GK.poker = GK.poker || {};
    *   onAction(action),  eigene Aktion (Passen, Checken, …)
    *   onNext,            „Nächste Hand“ – nur wer den Tisch leitet; sonst null
    *   nextLabel,
+   *   onSkip,            „Hand vorspulen“, wenn man selbst nichts mehr tun kann; sonst null
    *   onLeave, leaveLabel,
    *   notice,            Hinweis über den Knöpfen (z. B. Verbindungsprobleme)
    *   deadline,          Zeitpunkt (ms), bis zu dem der Spieler am Zug handeln muss
    * }
    */
   function render(container, t, opts) {
-    const oldLog = container.querySelector('.poker-log');
-    if (oldLog) container.dataset.logOpen = oldLog.open ? '1' : '';
     const anim = animationState(container, t, opts);
     let boardDelay = 0;
     const board = [0, 1, 2, 3, 4].map(i => {
@@ -95,30 +94,55 @@ GK.poker = GK.poker || {};
       return GK.cards.html(t.board[i], false, 'deal-in', `animation-delay: ${d}s`);
     }).join('');
 
-    container.innerHTML = `
-      <div class="poker-info">${opts.info.map(i => `<span>${i}</span>`).join('')}</div>
-      <div class="poker-table">
-        <div class="poker-felt">
-          <div class="poker-board">${board}</div>
-          <div class="poker-pot">Pot: ${GK.formatNumber(engine().pot(t))}</div>
-          <div class="poker-message">${feltMessage(t, opts.mySeat)}</div>
-          <div class="turn-timer" data-deadline="${opts.deadline || ''}"></div>
-        </div>
-        ${t.players.map((p, i) => seatHtml(t, p, i, opts, anim)).join('')}
+    // Das Grundgerüst wird nur einmal angelegt. Knöpfe werden nur ersetzt, wenn sie sich ändern –
+    // sonst ginge ein Tipp verloren, während die Gegner (z. B. im Turbo-Modus) schnell spielen.
+    if (!container.querySelector(':scope > .poker-table')) {
+      container.innerHTML = `
+        <div class="poker-info"></div>
+        <div class="poker-table"></div>
+        <div class="poker-notice" hidden></div>
+        <div class="poker-controls"></div>
+        <div class="poker-bottom">
+          <details class="poker-log">
+            <summary>Spielverlauf</summary>
+            <ul></ul>
+          </details>
+          <button class="btn btn-danger poker-leave" hidden></button>
+        </div>`;
+      container.querySelector('.poker-leave').addEventListener('click', () => {
+        const leave = container._pokerOpts.onLeave;
+        if (leave) leave();
+      });
+    }
+    container._pokerOpts = opts;
+    const $ = sel => container.querySelector(`:scope > ${sel}`);
+    setHtml($('.poker-info'), opts.info.map(i => `<span>${i}</span>`).join(''));
+    $('.poker-table').innerHTML = `
+      <div class="poker-felt">
+        <div class="poker-board">${board}</div>
+        <div class="poker-pot">Pot: ${GK.formatNumber(engine().pot(t))}</div>
+        <div class="poker-message">${feltMessage(t, opts.mySeat)}</div>
+        <div class="turn-timer" data-deadline="${opts.deadline || ''}"></div>
       </div>
-      ${opts.notice ? `<div class="poker-notice">${opts.notice}</div>` : ''}
-      <div class="poker-controls"></div>
-      <div class="poker-bottom">
-        <details class="poker-log" ${container.dataset.logOpen ? 'open' : ''}>
-          <summary>Spielverlauf</summary>
-          <ul>${t.log.map(l => `<li>${escapeHtml(l)}</li>`).join('')}</ul>
-        </details>
-        ${opts.onLeave ? `<button class="btn btn-danger poker-leave">${opts.leaveLabel || 'Turnier verlassen'}</button>` : ''}
-      </div>`;
-    if (opts.onLeave) container.querySelector('.poker-leave').addEventListener('click', opts.onLeave);
-    renderControls(container.querySelector('.poker-controls'), t, opts);
+      ${t.players.map((p, i) => seatHtml(t, p, i, opts, anim)).join('')}`;
+    const notice = $('.poker-notice');
+    setHtml(notice, opts.notice || '');
+    notice.hidden = !opts.notice;
+    setHtml(container.querySelector('.poker-log ul'), t.log.map(l => `<li>${escapeHtml(l)}</li>`).join(''));
+    const leave = container.querySelector('.poker-leave');
+    setHtml(leave, opts.leaveLabel || 'Turnier verlassen');
+    leave.hidden = !opts.onLeave;
+    renderControls($('.poker-controls'), t, opts);
     tick(container);
     playEffects(container, t, opts, anim);
+  }
+
+  // Inhalt nur ersetzen, wenn er sich geändert hat. Gibt true zurück, wenn neu aufgebaut wurde.
+  function setHtml(el, html) {
+    if (el._html === html) return false;
+    el._html = html;
+    el.innerHTML = html;
+    return true;
   }
 
   // Vergleicht mit dem letzten Zeichnen: Was ist neu? (Nach dem Neuladen wird nichts animiert.)
@@ -178,25 +202,40 @@ GK.poker = GK.poker || {};
 
   function renderControls(el, t, opts) {
     const me = t.players[opts.mySeat];
-    const handName = me && me.cards.length && me.cards[0] && !me.out
+    const handName = me && me.cards.length && me.cards[0] && !me.out && !me.folded
       ? (t.board.length ? GK.poker.evaluate([...me.cards, ...t.board]).name
         : GK.cards.rank(me.cards[0]) === GK.cards.rank(me.cards[1]) ? 'Ein Paar' : '')
       : '';
     const handInfo = handName ? `<div class="poker-hand-name">Deine Hand: <b>${handName}</b></div>` : '';
+    // Die Knöpfe rufen immer die aktuellen Funktionen auf (el._opts), auch wenn sie nicht neu gebaut wurden
+    el._opts = opts;
+    const call = (name, ...args) => {
+      el._html = null; // nach einer Aktion beim nächsten Zeichnen auf jeden Fall neu aufbauen
+      if (el._opts[name]) el._opts[name](...args);
+    };
 
     if (t.phase !== 'betting') {
       if (opts.onNext) {
-        el.innerHTML = `${handInfo}<button class="btn btn-primary poker-next">${opts.nextLabel || 'Nächste Hand ▶'}</button>`;
-        el.querySelector('.poker-next').addEventListener('click', opts.onNext);
+        if (setHtml(el, `${handInfo}<button class="btn btn-primary poker-next">${opts.nextLabel || 'Nächste Hand ▶'}</button>`)) {
+          el.querySelector('.poker-next').addEventListener('click', () => call('onNext'));
+        }
       } else {
-        el.innerHTML = `${handInfo}<div class="muted">${t.phase === 'finished' ? 'Das Turnier ist vorbei.' : 'Gleich geht es mit der nächsten Hand weiter …'}</div>`;
+        setHtml(el, `${handInfo}<div class="muted">${t.phase === 'finished' ? 'Das Turnier ist vorbei.' : 'Gleich geht es mit der nächsten Hand weiter …'}</div>`);
       }
       return;
     }
     if (!me || t.toAct !== opts.mySeat) {
       const text = !me || me.out ? 'Du schaust zu.'
-        : me.folded ? 'Du hast gepasst – warte auf die nächste Hand.' : 'Warte auf die anderen Spieler …';
-      el.innerHTML = `${handInfo}<div class="muted">${text}</div>`;
+        : me.folded ? 'Du hast gepasst – warte auf die nächste Hand.'
+          : me.allIn ? 'Du bist All-in – jetzt heißt es Daumen drücken!' : 'Warte auf die anderen Spieler …';
+      const html = `${handInfo}<div class="muted">${text}</div>` +
+        (opts.onSkip ? '<button class="btn poker-skip">⏩ Hand vorspulen</button>' : '');
+      if (setHtml(el, html) && opts.onSkip) {
+        el.querySelector('.poker-skip').addEventListener('click', e => {
+          e.currentTarget.disabled = true;
+          call('onSkip');
+        });
+      }
       return;
     }
 
@@ -205,7 +244,7 @@ GK.poker = GK.poker || {};
     let raiseTo = clampRaise(la.minRaiseTo);
     const betWord = t.currentBet === 0 ? 'Setzen' : 'Erhöhen auf';
 
-    el.innerHTML = `
+    const changed = setHtml(el, `
       ${handInfo}
       <div class="game-actions">
         <button class="btn btn-danger" data-act="fold">Passen</button>
@@ -219,7 +258,8 @@ GK.poker = GK.poker || {};
           <button class="btn btn-small" data-size="half">½ Pot</button>
           <button class="btn btn-small" data-size="pot">Pot</button>
           <button class="btn btn-small" data-size="all">All-in</button>
-        </div>` : ''}`;
+        </div>` : ''}`);
+    if (!changed) return; // gleiche Lage: Knöpfe und gewählter Betrag bleiben, wie sie sind
 
     const valueEl = el.querySelector('.raise-value');
     const slider = el.querySelector('.raise-slider');
@@ -250,10 +290,21 @@ GK.poker = GK.poker || {};
       btn.addEventListener('click', () => {
         const type = btn.dataset.act;
         el.querySelectorAll('button').forEach(b => { b.disabled = true; }); // kein Doppelklick
-        opts.onAction(type === 'raise' ? { type, to: raiseTo } : { type });
+        call('onAction', type === 'raise' ? { type, to: raiseTo } : { type });
       });
     });
   }
 
-  GK.poker.ui = { render, tick, escapeHtml };
+  // Auswahl Klassisch/Turbo (für Computer-Turniere und neue Räume mit Freunden)
+  function modePicker(selected, cls) {
+    return `<div class="poker-modes ${cls}" role="group" aria-label="Spielmodus">
+      ${Object.values(GK.poker.tournament.MODES).map(m => `
+        <button type="button" class="poker-mode ${m.id === selected ? 'active' : ''}" data-mode="${m.id}">
+          <span class="poker-mode-name">${m.icon} ${m.name}</span>
+          <span class="poker-mode-desc">${m.desc}</span>
+        </button>`).join('')}
+    </div>`;
+  }
+
+  GK.poker.ui = { render, tick, escapeHtml, modePicker };
 })();

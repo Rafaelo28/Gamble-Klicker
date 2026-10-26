@@ -174,6 +174,30 @@ Einsatz verloren geht.
   Tippflächen, kein Doppeltipp-Zoom, keine versehentliche Textauswahl, schnelles Tippen mit
   mehreren Fingern, Rubbeln ohne Scrollen, Vollbild-App über „Zum Home-Bildschirm“ mit eigenem Symbol
 
+### Erweiterung: Spannender klicken, größer zocken ✅
+- **Klick-Combo**: Schnelle Klicks hintereinander geben bis zu +25 % (mit Upgrades +50 % bzw. +100 %),
+  Anzeige mit Feuerbalken über der Münze
+- **Kritische Klicks**: Upgrades Glückstreffer und Adlerauge (Chance), Volltreffer-Hand (×25 statt ×10),
+  großer roter Text, Schlag-Sound und Münzexplosion
+- **Mehr Klick-Upgrades**: Goldene Faust, Hand des Midas, Klick-Imperium
+- **Gebäude-Upgrades in 7 Stufen**: Bronze, Silber, Gold, Platin, Diamant (100 Stück, ×3),
+  Legenden (150, ×3), Mythos (200, ×4) – Kacheln in der Farbe ihrer Stufe, seltene mit Glanz
+- **Synergien**: Jedes Gebäude bekommt +1 % Einkommen pro Stück des vorherigen Gebäudes
+- **Fortschrittsbalken** bis zum nächsten Upgrade, Sterne für gekaufte Stufen, Meilenstein-Feier
+  (10/25/50/100/150/200 Stück), Vorschau, wie viel ein Upgrade pro Sekunde bringt; lange
+  Upgrade-Listen werden eingeklappt
+- **VIP-Karten**: neu *Schwarze Perle* (Limit 1 Bio.) und *Kaiserkrone* (unbegrenzt);
+  die Diamant-Karte hat jetzt ein Limit von 10 Mrd.
+- **Poker-Tische**: Diamanten-Saal (1 Mrd.), Perlen-Lounge (100 Mrd.), Thron des Kaisers (10 Bio.)
+- **Rubbellose**: Diamanten-Los (10 Mio.) und Kaiserschatz (1 Mrd.)
+- **Blackjack**: Nach dem Teilen darf jede Hand beliebig viele Karten ziehen (auch geteilte Asse)
+- **Poker-Modi**: *Klassisch* (1.500 Chips, Blinds alle 8 Hände) und *Turbo* (1.000 Chips,
+  Blinds alle 3 Hände, flotte Gegner, 15 s Bedenkzeit) – gegen Computer und mit Freunden
+- **Hand vorspulen**: Wer gepasst hat oder All-in ist, lässt die Computer-Gegner die Hand sofort beenden
+- **Anteilig aussteigen**: Gegen Computer bekommt man beim Verlassen ausgezahlt, was die eigenen
+  Chips wert sind (Berechnung nach ICM, wie bei echten Turnier-Deals); der Betrag steht auf dem Knopf
+- 11 neue Erfolge
+
 ## Entscheidungen
 
 ### Multiplayer: Wie spielen die Freunde zusammen? → **Variante A**
