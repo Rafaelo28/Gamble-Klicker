@@ -198,6 +198,15 @@ Einsatz verloren geht.
   Chips wert sind (Berechnung nach ICM, wie bei echten Turnier-Deals); der Betrag steht auf dem Knopf
 - 11 neue Erfolge
 
+### Erweiterung: Poker-Blitz ✅
+- **Blitz-Modus** (gegen Computer und mit Freunden): Es werden nur **3, 5 oder 10 Hände** gespielt,
+  die Blinds steigen jede Hand (letzte Hand 300/600, bei 10 Händen 500/1.000)
+- Danach entscheiden die Chips: Die **besten 4** (bei 6 Spielern) teilen das ganze Preisgeld im
+  Verhältnis ihrer Chips – auch wenn Platz 5 und 6 noch Chips haben. Bei weniger Spielern werden
+  weniger Plätze bezahlt (5 → 3, 4 → 2, 2–3 → 1). Gleichstand an der Grenze zählt mit.
+- Wer vorher ausscheidet, geht leer aus. Aussteigen gegen Computer = Auszahlung, als wäre jetzt Schluss.
+- Rangliste mit Auszahlungen am Tischende, Erfolg „Blitzgescheit“
+
 ## Entscheidungen
 
 ### Multiplayer: Wie spielen die Freunde zusammen? → **Variante A**

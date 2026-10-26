@@ -1,6 +1,7 @@
 // Texas Hold'em im Casino: Sit-&-Go-Turnier gegen 5 Computer-Gegner – oder mit Freunden
 // (siehe multiplayer.js). Man zahlt einmal Eintritt in Dublonen, alle bekommen gleich viele
-// Tisch-Chips. Die besten Plätze bekommen Dublonen ausgezahlt. Zwei Modi: Klassisch und Turbo.
+// Tisch-Chips. Die besten Plätze bekommen Dublonen ausgezahlt. Modi: Klassisch, Turbo und Blitz
+// (nur 3, 5 oder 10 Hände, danach teilen die Besten das Preisgeld nach Chips).
 // Wer gegen Computer vorzeitig aussteigt, bekommt anteilig ausgezahlt, was seine Chips wert sind.
 window.GK = window.GK || {};
 
@@ -14,7 +15,7 @@ window.GK = window.GK || {};
   let timer = null;
 
   function state() {
-    return GK.casino.data('poker', () => ({ table: null, tierId: null, lastResult: null, mode: 'classic' }));
+    return GK.casino.data('poker', () => ({ table: null, tierId: null, lastResult: null, mode: 'classic', hands: 5 }));
   }
 
   function tier() {
@@ -50,7 +51,7 @@ window.GK = window.GK || {};
     GK.casino.bet(tr.entry);
     const seats = [{ id: 'you', name: 'Du', avatar: '🙂', isBot: false }].concat(T().botSeats(SEATS - 1));
     const s = state();
-    const table = T().createTable(seats, s.mode);
+    const table = T().createTable(seats, s.mode, s.hands);
     s.table = table;
     s.tierId = tierId;
     s.lastResult = null;
@@ -108,16 +109,17 @@ window.GK = window.GK || {};
     const m = mode();
     const left = typeof cashOut === 'number';
     const place = t.players[HUMAN].place;
-    const win = left ? cashOut : T().prize(place, tr.entry, SEATS);
+    const win = left ? cashOut : T().payout(t, HUMAN, tr.entry);
     GK.casino.payout(win);
     s.lastResult = { place, prize: win, tierName: tr.name, entry: tr.entry, left, mode: m.id };
     s.table = null;
     if (!left && place === 1) {
       GK.unlockAchievement('pokerWin');
       if (m.id === 'turbo') GK.unlockAchievement('pokerTurbo');
+      if (m.id === 'blitz') GK.unlockAchievement('pokerBlitz');
       if (tr.id === 'throne') GK.unlockAchievement('pokerThrone');
     }
-    const label = m.id === 'turbo' ? `${tr.name} (Turbo)` : tr.name;
+    const label = m.id === 'classic' ? tr.name : `${tr.name} (${T().modeLabel(m.id, t.maxHands).replace(/^\S+ /, '')})`;
     GK.casino.record('poker', tr.entry, win, left ? `Ausgestiegen · ${label}` : `${place}. Platz · ${label}`);
     afterChange();
     if (left) {
@@ -149,6 +151,8 @@ window.GK = window.GK || {};
   // Nach jeder Änderung: speichern, neu zeichnen und den nächsten Schritt planen
   function afterChange() {
     const t = state().table;
+    // Blitz: Nach der letzten Hand ist Schluss, die Chips entscheiden
+    if (t && T().handLimitReached(t)) T().finishByChips(t);
     if (t && t.result && t.result.hands && t.result.hands[HUMAN] === 'Royal Flush') {
       GK.unlockAchievement('pokerRoyal');
     }
@@ -177,6 +181,8 @@ window.GK = window.GK || {};
     } else if (t.phase !== 'betting') {
       step = continueAfterHand;
       delay = t.result && t.result.showdown ? m.nextDelayShowdown : m.nextDelay;
+      // Am Ende etwas länger, damit man das Ergebnis am Tisch sieht
+      if (t.phase === 'finished') delay = Math.max(delay, 4000);
     }
     if (step) {
       timer = setTimeout(() => {
@@ -193,9 +199,21 @@ window.GK = window.GK || {};
     else drawLobby();
   }
 
-  function prizeLine(entry) {
+  function prizeLine(entry, t) {
+    if (t && T().isBlitz(t)) {
+      return `Die besten ${T().blitzPaidPlaces(SEATS)} teilen ${GK.formatMoneyHTML(entry * SEATS)} nach Chips`;
+    }
     const p = place => GK.formatMoneyHTML(T().prize(place, entry, SEATS));
     return `🥇 ${p(1)} 🥈 ${p(2)} 🥉 ${p(3)}`;
+  }
+
+  // Blitz am Ende: Rangliste mit Auszahlungen
+  function blitzRanking(t, entry) {
+    return t.players.map((p, i) => ({ p, i })).sort((a, b) => a.p.place - b.p.place)
+      .map(({ p, i }) => {
+        const win = T().payout(t, i, entry);
+        return `${p.place}. ${p.avatar || ''} ${GK.poker.ui.escapeHtml(p.name)}${win ? ` +${GK.formatMoneyHTML(win)}` : ''}`;
+      }).join(' · ');
   }
 
   function drawLobby() {
@@ -221,15 +239,19 @@ window.GK = window.GK || {};
         5 Computer-Gegner – gleich viele Tisch-Chips. Gespielt wird, bis einer alle Chips hat.
         Preise: 🥇 3× · 🥈 1,8× · 🥉 1,2× Eintritt. Steigst du vorher aus, bekommst du anteilig
         ausgezahlt, was deine Chips wert sind.
+        <b>Blitz:</b> Nach 3, 5 oder 10 Händen ist Schluss – dann teilen die besten 4 das ganze
+        Preisgeld im Verhältnis ihrer Chips.
       </p>
-      ${GK.poker.ui.modePicker(m.id, 'sp-modes')}
+      ${GK.poker.ui.modePicker(m.id, T().blitzHands(state().hands), 'sp-modes')}
       <div class="casino-grid poker-tiers">
         ${T().TIERS.map(tr => `
           <div class="casino-card poker-tier">
             <div class="casino-emoji">${tr.icon}</div>
             <h3>${tr.name}</h3>
             <p>Eintritt: ${GK.formatMoneyHTML(tr.entry)}</p>
-            <p class="small">1. Platz: ${GK.formatMoneyHTML(T().prize(1, tr.entry, SEATS))}</p>
+            <p class="small">${m.id === 'blitz'
+              ? `Top ${T().blitzPaidPlaces(SEATS)} teilen ${GK.formatMoneyHTML(tr.entry * SEATS)}`
+              : `1. Platz: ${GK.formatMoneyHTML(T().prize(1, tr.entry, SEATS))}`}</p>
             <button class="btn btn-primary poker-join" data-tier="${tr.id}">Platz nehmen</button>
             <p class="small poker-block-reason"></p>
           </div>`).join('')}
@@ -242,6 +264,14 @@ window.GK = window.GK || {};
     body.querySelectorAll('.sp-modes .poker-mode').forEach(btn => {
       btn.addEventListener('click', () => {
         state().mode = btn.dataset.mode;
+        GK.sound.play('chip');
+        GK.save();
+        drawLobby();
+      });
+    });
+    body.querySelectorAll('.sp-modes .poker-hands-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state().hands = Number(btn.dataset.hands);
         GK.sound.play('chip');
         GK.save();
         drawLobby();
@@ -268,16 +298,21 @@ window.GK = window.GK || {};
     const { sb, bb } = engine().blinds(t);
     const handsLeft = t.handsPerLevel - ((t.handNo - 1) % t.handsPerLevel);
     const last = t.phase === 'finished' || t.players[HUMAN].out;
+    const blitz = T().isBlitz(t);
+    let progress;
+    if (blitz) progress = t.handNo >= t.maxHands ? `🔥 Letzte Hand (${t.maxHands}/${t.maxHands})` : `Hand ${t.handNo}/${t.maxHands}`;
+    else progress = t.level < t.blindLevels.length - 1 ? `Erhöhung in ${handsLeft} ${handsLeft === 1 ? 'Hand' : 'Händen'}` : 'Höchste Stufe';
     GK.poker.ui.render(body, t, {
       mySeat: HUMAN,
       info: [
         `${tr.icon} ${tr.name}`,
-        `${m.icon} ${m.name}`,
+        T().modeLabel(m.id, t.maxHands),
         `Blinds ${GK.formatNumber(sb)}/${GK.formatNumber(bb)}`,
-        t.level < T().BLIND_LEVELS.length - 1 ? `Erhöhung in ${handsLeft} ${handsLeft === 1 ? 'Hand' : 'Händen'}` : 'Höchste Stufe',
+        progress,
         `Spieler: ${t.players.filter(p => !p.out).length}/${SEATS}`,
-        prizeLine(tr.entry),
+        prizeLine(tr.entry, t),
       ],
+      notice: blitz && t.phase === 'finished' ? `🏁 Schluss! ${blitzRanking(t, tr.entry)}` : '',
       onAction: humanAct,
       onNext: continueAfterHand,
       nextLabel: last ? 'Turnier beenden ▶' : 'Nächste Hand ▶',

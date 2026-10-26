@@ -2763,10 +2763,10 @@ button.casino-card:active {
 /* ---------- Poker: Spielmodus (Klassisch / Turbo) ---------- */
 .poker-modes {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 10px;
   margin: 12px 0 4px;
-  max-width: 560px;
+  max-width: 760px;
 }
 
 .poker-mode {
@@ -2811,6 +2811,41 @@ button.casino-card:active {
 
 .mp-modes {
   margin: 4px 0 8px;
+}
+
+.poker-mode[data-mode="blitz"].active {
+  border-color: #ff8a3c;
+  background: rgba(255, 138, 60, 0.12);
+  box-shadow: 0 0 14px rgba(255, 138, 60, 0.3);
+}
+
+/* Blitz: Zahl der Hände wählen */
+.poker-hands {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.poker-hands-btn {
+  min-width: 56px;
+  min-height: 44px;
+  padding: 6px 14px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--text);
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.poker-hands-btn.active {
+  border-color: #ff8a3c;
+  background: rgba(255, 138, 60, 0.2);
+  color: #ffd2a8;
 }
 
 .poker-skip {

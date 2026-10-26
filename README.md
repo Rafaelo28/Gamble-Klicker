@@ -9,7 +9,8 @@ Schatztruhe voll ist, wartet das Casino:
 - 🎡 **Roulette** – Rot oder Schwarz? Oder alles auf die 17?
 - 🃏 **Blackjack** – schlag den Dealer, ohne über 21 zu kommen; nach dem Teilen so viele Karten, wie du willst
 - ♠️ **Texas Hold'em** – Turnier gegen Käpt'n Blaubart, Long John und andere Piraten, jeder mit eigener
-  Spielweise, *klassisch* oder als schnelles *Turbo*-Turnier. Steigst du früher aus, bekommst du anteilig
+  Spielweise, *klassisch*, als schnelles *Turbo*-Turnier oder als *Blitz* mit nur 3, 5 oder 10 Händen
+  (danach teilen die besten 4 das Preisgeld nach Chips). Steigst du früher aus, bekommst du anteilig
   ausgezahlt, was deine Chips wert sind
 - 👥 **Poker mit Freunden** – eröffne einen Online-Raum, leg Eintritt und Modus fest und spiel um den Pott
 
@@ -55,7 +56,7 @@ ab iPadOS 15. Ton gibt es nach dem ersten Antippen (Vorgabe von Safari).
 
 ### Poker mit Freunden
 
-1. Casino → Texas Hold'em → **Mit Freunden spielen**: Namen eintragen, Modus (Klassisch/Turbo) wählen,
+1. Casino → Texas Hold'em → **Mit Freunden spielen**: Namen eintragen, Modus (Klassisch/Turbo/Blitz) wählen,
    **Eintritt festlegen**, **Eröffnen**.
 2. Den **Raum-Code** (oder den Einladungs-Link) an deine Freunde schicken.
 3. Freunde geben den Code bei **Raum beitreten** ein, sehen den Eintritt und bestätigen ihn.
@@ -76,7 +77,7 @@ Den Fahrplan mit allen Phasen findest du in [PROJEKTPLAN.md](PROJEKTPLAN.md).
 - ♠️ Texas Hold'em als Turnier gegen Computer-Gegner und online mit Freunden
 - 🏆 Erfolge, goldene Dublone, Offline-Einnahmen, große Fahrt (Prestige) und VIP-Karten
 - 🔊 Soundeffekte, ✨ Gewinn-Animationen, 📱 iPad-Optimierung
-- 🔥 Klick-Combos, kritische Klicks, Gebäude-Stufen bis Mythos, Synergien, Poker-Turbo-Modus
+- 🔥 Klick-Combos, kritische Klicks, Gebäude-Stufen bis Mythos, Synergien, Poker-Modi Turbo und Blitz
 
 ## Tests
 
@@ -84,5 +85,5 @@ Den Fahrplan mit allen Phasen findest du in [PROJEKTPLAN.md](PROJEKTPLAN.md).
 node tests/poker.test.js
 ```
 Prüft die Poker-Handbewertung, spielt komplette Turniere zwischen Computer-Gegnern durch
-(auch mit Spielern, die mittendrin aufgeben, und im Turbo-Modus) und kontrolliert die
+(auch mit Spielern, die mittendrin aufgeben, im Turbo- und im Blitz-Modus) und kontrolliert die
 Preisverteilung sowie die anteilige Auszahlung beim Aussteigen.
