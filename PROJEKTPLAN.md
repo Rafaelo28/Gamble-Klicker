@@ -244,8 +244,17 @@ Einsatz verloren geht.
   Der Gastgeber entscheidet, alle anderen spielen den Schlag zur Anzeige nach.
 - Computer-Gegner probieren viele Schläge durch und wählen den besten, je nach Können mit Fehlern.
 
-### Als Nächstes geplant
-- **Paket 5**: Billard (8-Ball) online um Dublonen
+### Erweiterung: Billard ✅ (Paket 5)
+- **🎱 Billard (8-Ball)** zu zweit, gegen Computer oder online. Volle 1–7 / Halbe 9–15, zuletzt die 8.
+- Fouls (Weiße versenkt, nichts oder zuerst eine fremde Kugel getroffen) geben „Ball in der Hand“:
+  Die Weiße wird frei hingelegt (beim Anstoß links der Kopflinie). Die 8 zu früh = verloren,
+  fällt sie beim Anstoß, kommt sie zurück auf den Tisch.
+- Zielen per Ziehen mit Queue, gestrichelter Linie, Geisterball und Laufrichtung der getroffenen Kugel.
+- Physik wie beim Minigolf auf jedem Gerät gleich; Computer-Gegner zielen über den „Geisterball“
+  auf passende Löcher und rechnen mehrere Stöße durch.
+
+### Ideen für später
+- Weitere Spiele mit Freunden: Seeschlacht (Schiffe versenken), Kanonenduell, Messerwerfen/Darts, Vier gewinnt
 
 ## Entscheidungen
 

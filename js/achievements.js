@@ -66,6 +66,7 @@ window.GK = window.GK || {};
     { id: 'diceWin',     icon: '🎲', name: 'Meisterlügner',         desc: 'Eine Partie Lügenwürfel gewonnen.' },
     { id: 'golfWin',     icon: '⛳', name: 'Golfkapitän',           desc: 'Eine Runde Minigolf gewonnen.' },
     { id: 'golfAce',     icon: '🕳️', name: 'Ass!',                  desc: 'Beim Minigolf mit einem Schlag eingelocht.' },
+    { id: 'poolWin',     icon: '🎱', name: 'Queue-Meister',         desc: 'Eine Partie Billard gewonnen.' },
     { id: 'roomPlay',    icon: '🤝', name: 'Spielrunde',            desc: 'Ein Spiel mit Freunden online gespielt.' },
     { id: 'pokerRoyal',  icon: '🤴', name: 'Royal Flush',           desc: 'Beim Showdown einen Royal Flush gezeigt.' },
     { id: 'pokerMpPlay', icon: '👥', name: 'Unter Freunden',        desc: 'Ein Poker-Turnier mit Freunden gespielt.' },
