@@ -9,6 +9,8 @@ window.GK = window.GK || {};
     { id: 'chest',  icon: '🧰', name: 'Goldene Truhe',   price: 1000,   theme: 'gold' },
     { id: 'pirate', icon: '🏴‍☠️', name: 'Piratenschatz',   price: 10000,  theme: 'red' },
     { id: 'crown',  icon: '👑', name: 'Kronjuwelen',     price: 100000, theme: 'purple' },
+    { id: 'diamond', icon: '💎', name: 'Diamanten-Los',  price: 1e7,    theme: 'ice' },
+    { id: 'emperor', icon: '🏰', name: 'Kaiserschatz',   price: 1e9,    theme: 'black' },
   ];
 
   // Gewinne als Vielfaches des Lospreises – Gewicht von 100.000 Losen
@@ -163,6 +165,7 @@ window.GK = window.GK || {};
     const colors = {
       green: ['#c9d6cf', '#8fa59a'], gold: ['#f7e7a1', '#c9a227'],
       red: ['#e6c1c1', '#a35b5b'], purple: ['#ddd0f2', '#8a6bbd'],
+      ice: ['#d2f3ff', '#5aa9c9'], black: ['#9a9aa6', '#2c2c36'],
     }[theme];
     const grad = ctx.createLinearGradient(0, 0, w, h);
     grad.addColorStop(0, colors[0]);

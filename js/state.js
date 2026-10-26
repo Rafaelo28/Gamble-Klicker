@@ -13,7 +13,7 @@ window.GK = window.GK || {};
       won: 0,          // insgesamt ausgezahlt
       rounds: 0,
       biggestWin: 0,
-      vip: 0,          // VIP-Karte: 0 Standard, 1 Silber, 2 Gold, 3 Diamant
+      vip: 0,          // VIP-Karte: 0 Standard, 1 Silber, 2 Gold, 3 Diamant, 4 Schwarze Perle, 5 Kaiserkrone
       history: [],     // letzte Runden: { game, bet, payout, text, time }
       openGame: null,  // zuletzt geöffnetes Spiel
       games: {},       // { spielId: Zustand des Spiels }
@@ -42,6 +42,8 @@ window.GK = window.GK || {};
       achievements: [],                        // freigeschaltete Erfolge
       buffs: [],                               // zeitlich begrenzte Boni (Goldrausch …)
       goldenClicks: 0,
+      crits: 0,        // kritische Klicks
+      bestCombo: 0,    // längste Klick-Combo
       casino: createDefaultCasino(),
       ui: { tab: 'clicker' },
       settings: createDefaultSettings(),

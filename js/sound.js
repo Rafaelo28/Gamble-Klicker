@@ -199,6 +199,30 @@ window.GK = window.GK || {};
     deal(t) {
       noise(t, 0.12, { freq: 800, sweepTo: 3000, q: 0.7, gain: 0.15 });
     },
+    // Kritischer Klick: dumpfer Schlag plus helles Klirren
+    crit(t) {
+      tone(110, t, 0.2, { type: 'sine', gain: 0.35, slideTo: 45 });
+      noise(t, 0.08, { freq: 1200, q: 0.7, gain: 0.25 });
+      tone(1760, t + 0.02, 0.3, { type: 'square', gain: 0.05, slideTo: 2637 });
+      jingle(t + 0.05, 0.3, 6);
+    },
+    // Combo-Stufe erreicht: aufsteigender Ton
+    combo(t) {
+      tone(440, t, 0.35, { type: 'sawtooth', gain: 0.05, slideTo: 1760 });
+      arpeggio(t + 0.15, [1319, 1760, 2093], 0.05, { type: 'triangle', gain: 0.08, duration: 0.25 });
+    },
+    // Gebäude-Meilenstein: kleine Fanfare
+    milestone(t) {
+      arpeggio(t, [659, 784, 1047], 0.1, { type: 'square', gain: 0.06, duration: 0.25 });
+      [784, 1047, 1319].forEach(f => tone(f, t + 0.32, 0.7, { type: 'triangle', gain: 0.07 }));
+      jingle(t + 0.3, 0.6, 10);
+    },
+    // Seltenes Upgrade (Diamant und höher): Glitzern mit tiefem Grundton
+    powerup(t) {
+      tone(98, t, 0.6, { type: 'sine', gain: 0.25 });
+      arpeggio(t, [523, 784, 1047, 1568, 2093, 2637], 0.05, { type: 'triangle', gain: 0.08, duration: 0.4 });
+      jingle(t + 0.25, 0.8, 16);
+    },
   };
 
   function play(name, ...args) {

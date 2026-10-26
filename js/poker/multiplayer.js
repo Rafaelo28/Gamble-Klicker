@@ -4,7 +4,7 @@
 // - Ein Spieler eröffnet einen Raum und wird Gastgeber. Er bekommt einen Raum-Code.
 // - Freunde geben den Code ein. Die Browser verbinden sich direkt miteinander (WebRTC über
 //   die Bibliothek PeerJS; deren kostenloser Server hilft nur beim Finden der Mitspieler).
-// - Der Gastgeber legt den Eintritt fest. Wer beitritt, sieht ihn und bestätigt die Zahlung.
+// - Der Gastgeber legt den Eintritt und den Modus (Klassisch oder Turbo) fest. Wer beitritt, sieht ihn und bestätigt die Zahlung.
 //   Alle bekommen gleich viele Tisch-Chips, das Preisgeld sind alle Eintritte zusammen.
 // - Der Gastgeber führt die Spiel-Engine aus, steuert die Computer-Gegner und schickt jedem
 //   Spieler nur die Karten, die er sehen darf.
@@ -18,7 +18,6 @@ GK.poker = GK.poker || {};
   const ID_PREFIX = 'gamble-klicker-';
   const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // ohne leicht verwechselbare Zeichen (0/O, 1/I)
   const CODE_LENGTH = 5;
-  const TURN_TIME = 30000;         // Bedenkzeit pro Zug
   const OFFLINE_TURN_TIME = 5000;  // Bedenkzeit, wenn die Verbindung des Spielers weg ist
   const RETRY_DELAY = 3000;
   const CONNECT_TIMEOUT = 10000;
@@ -55,6 +54,7 @@ GK.poker = GK.poker || {};
       avatar: AVATARS[GK.rng.int(AVATARS.length)],
       playerId: randomId(),
       lastEntry: 1000,
+      lastMode: 'classic',
       session: null,
       lastResult: null,
     }));
@@ -98,6 +98,11 @@ GK.poker = GK.poker || {};
   // Anzeige-Infos zum Raum (Eintritt legt der Gastgeber fest)
   function sessionTier() {
     return { icon: '👥', name: 'Freundesrunde', entry: session().entry };
+  }
+
+  // Spielmodus des Raums (Räume älterer Versionen: klassisch)
+  function sessionMode() {
+    return T().mode(session().mode);
   }
 
   // Eigenen Platz abrechnen (genau einmal pro Turnier)
@@ -172,18 +177,20 @@ GK.poker = GK.poker || {};
 
   // ========== Gastgeber ==========
 
-  function createRoom(entry) {
+  function createRoom(entry, modeId) {
     entry = Math.floor(Number(entry) || 0);
     if (entry < MIN_ENTRY) return GK.toast(`Der Eintritt muss mindestens ${GK.formatNumber(MIN_ENTRY)} Dublonen betragen.`);
     if (GK.poker.singleActive()) return GK.toast('Beende zuerst dein Turnier gegen die Computer-Gegner.');
     if (!GK.casino.bet(entry)) return GK.toast('Nicht genug Dublonen für den Eintritt.');
     const me = store();
     me.lastEntry = entry;
+    me.lastMode = T().mode(modeId).id;
     me.session = {
       role: 'host',
       code: newCode(),
       fresh: true,            // Raum-Code noch nicht beim Server angemeldet
       entry,
+      mode: me.lastMode,
       phase: 'lobby',
       paid: true,
       settled: false,
@@ -350,7 +357,7 @@ GK.poker = GK.poker || {};
     s.members = s.members.filter(m => m.ready);
     let seats = s.members.map(m => ({ id: m.playerId, name: m.name, avatar: m.avatar, isBot: false }));
     if (s.fillBots) seats = seats.concat(T().botSeats(T().MAX_SEATS - seats.length));
-    s.table = T().createTable(seats);
+    s.table = T().createTable(seats, s.mode);
     s.phase = 'playing';
     engine().startHand(s.table);
     afterHostChange();
@@ -392,7 +399,7 @@ GK.poker = GK.poker || {};
       if (key !== s.turnKey) {
         s.turnKey = key;
         const p = key && t.players[t.toAct];
-        s.deadline = p && !p.isBot ? Date.now() + (p.offline ? OFFLINE_TURN_TIME : TURN_TIME) : null;
+        s.deadline = p && !p.isBot ? Date.now() + (p.offline ? OFFLINE_TURN_TIME : sessionMode().turnTime) : null;
       }
       const meSeat = t.players.findIndex(p => p.id === store().playerId);
       const me = t.players[meSeat];
@@ -411,11 +418,12 @@ GK.poker = GK.poker || {};
     const s = session();
     if (!s || s.role !== 'host' || s.phase !== 'playing') return;
     const t = s.table;
+    const m = sessionMode();
     if (t.phase === 'betting') {
-      if (t.players[t.toAct].isBot) hostTimer = setTimeout(hostBotStep, 900);
+      if (t.players[t.toAct].isBot) hostTimer = setTimeout(hostBotStep, m.botDelay);
       else hostTimer = setTimeout(hostTimeout, Math.max(0, s.deadline - Date.now()));
     } else {
-      hostTimer = setTimeout(hostNextHand, t.result && t.result.showdown ? 4500 : 3000);
+      hostTimer = setTimeout(hostNextHand, t.result && t.result.showdown ? m.nextDelayShowdown : m.nextDelay + 500);
     }
   }
 
@@ -438,6 +446,7 @@ GK.poker = GK.poker || {};
       v: PROTOCOL,
       code: s.code,
       entry: s.entry,
+      mode: s.mode,
       phase: s.phase,
       hostId: store().playerId,
       fillBots: s.fillBots,
@@ -592,6 +601,7 @@ GK.poker = GK.poker || {};
     if (msg.type !== 'state' || !(entry >= MIN_ENTRY)) return;
     // Der Eintritt wird erst bezahlt, wenn der Spieler ihn bestätigt (clientConfirm)
     if (!s.paid) s.entry = entry;
+    s.mode = T().mode(msg.mode).id;
     s.joined = true;
     s.phase = msg.phase;
     s.members = Array.isArray(msg.members) ? msg.members : [];
@@ -757,7 +767,7 @@ GK.poker = GK.poker || {};
       ${resultHtml}
       <p class="muted">
         Spielt online zusammen: Einer eröffnet einen Raum und schickt den anderen den Raum-Code.
-        Jeder zahlt den Eintritt, alle bekommen ${GK.formatNumber(T().START_CHIPS)} Tisch-Chips,
+        Jeder zahlt den Eintritt, alle bekommen gleich viele Tisch-Chips,
         freie Plätze können Computer-Gegner übernehmen.
       </p>
       ${peerAvailable() ? '' : '<p class="warning">Der Multiplayer braucht eine Internetverbindung (die Bibliothek PeerJS konnte nicht geladen werden).</p>'}
@@ -771,6 +781,7 @@ GK.poker = GK.poker || {};
         </div>
         <div class="mp-form">
           <label class="bet-label" for="mp-entry">Raum eröffnen – Eintritt pro Spieler</label>
+          ${GK.poker.ui.modePicker(T().mode(me.lastMode).id, 'mp-modes')}
           <div class="bet-row">
             <input id="mp-entry" type="number" class="bet-input mp-entry" min="${MIN_ENTRY}" step="100" inputmode="numeric" value="${me.lastEntry}">
             <button type="button" class="btn btn-primary mp-create">Eröffnen</button>
@@ -811,9 +822,17 @@ GK.poker = GK.poker || {};
       });
     });
     entryInput.addEventListener('input', () => updateJoinPanel(el));
+    el.querySelectorAll('.mp-modes .poker-mode').forEach(btn => {
+      btn.addEventListener('click', () => {
+        store().lastMode = btn.dataset.mode;
+        el.querySelectorAll('.mp-modes .poker-mode').forEach(b => b.classList.toggle('active', b === btn));
+        GK.sound.play('chip');
+        GK.save();
+      });
+    });
     el.querySelector('.mp-create').addEventListener('click', () => {
       save();
-      createRoom(entryInput.value);
+      createRoom(entryInput.value, store().lastMode);
     });
     el.querySelector('.mp-join').addEventListener('click', () => {
       save();
@@ -869,7 +888,7 @@ GK.poker = GK.poker || {};
               <button class="btn btn-small mp-copy-link">🔗 Einladungs-Link kopieren</button>
             </div>` : ''}
         </div>
-        ${tr ? `<p class="mp-tier-info">${tr.icon} <b>${tr.name}</b> · Eintritt ${GK.formatMoneyHTML(tr.entry)}<br>Preise: ${prizes}</p>` : ''}
+        ${tr ? `<p class="mp-tier-info">${tr.icon} <b>${tr.name}</b> · ${sessionMode().icon} ${sessionMode().name} · Eintritt ${GK.formatMoneyHTML(tr.entry)}<br>Preise: ${prizes}</p>` : ''}
         ${s.phase === 'connecting' ? '<p class="muted">Suche den Raum …</p>' : `
           <h3>Spieler (${members.length}/${T().MAX_SEATS})</h3>
           <ul class="mp-members">
@@ -952,7 +971,7 @@ GK.poker = GK.poker || {};
       mySeat,
       info: [
         `👥 Raum ${s.code}`,
-        `${tr.icon} ${tr.name}`,
+        `${sessionMode().icon} ${sessionMode().name}`,
         `Blinds ${GK.formatNumber(sb)}/${GK.formatNumber(bb)}`,
         `Spieler: ${t.players.filter(p => !p.out).length}/${players}`,
         T().prizeShares(players).map((_, i) => `${['🥇', '🥈', '🥉'][i]} ${GK.formatMoneyHTML(T().prize(i + 1, tr.entry, players))}`).join(' '),
