@@ -234,6 +234,7 @@ window.GK = window.GK || {};
       if (g.id === id && g.onShow) g.onShow();
     });
     if (!id) renderLobbyInfo();
+    else if (GK.track) GK.track('spiel-' + id, games.find(g => g.id === id).name);
   }
 
   function buildLobby() {

@@ -87,6 +87,17 @@ Wer die Seite neu lädt, wird automatisch wieder verbunden. Wer länger als 90 S
 Verbindung hat, scheidet aus, damit die anderen nicht warten müssen – fällt dagegen der Gastgeber
 selbst aus, scheidet niemand aus, und nach 30 Sekunden darf man mit Erstattung des Eintritts gehen.
 
+## Besucherzahlen
+
+Die Online-Version zählt anonym mit [GoatCounter](https://www.goatcounter.com) – ohne Cookies und ohne
+persönliche Daten. Gezählt werden Seitenaufrufe, welche Spiele geöffnet werden (`spiel-…`) und wer einen
+Online-Raum eröffnet oder beitritt (`online-…`), jeweils höchstens einmal pro Besuch.
+
+- **Zahlen ansehen:** https://gamble-klicker.goatcounter.com (mit dem GoatCounter-Konto anmelden)
+- **Eigene Besuche nicht mitzählen:** einmal https://rafaelo28.github.io/Gamble-Klicker/#toggle-goatcounter
+  öffnen (gilt für diesen Browser; nochmal öffnen schaltet das Zählen wieder ein)
+- Lokal geöffnet (`index.html` vom eigenen Rechner) wird nichts gezählt.
+
 ## Projektplan
 
 Den Fahrplan mit allen Phasen findest du in [PROJEKTPLAN.md](PROJEKTPLAN.md).
