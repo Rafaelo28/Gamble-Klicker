@@ -281,6 +281,16 @@ Einsatz verloren geht.
 - Flugbahn nur mit Grundrechenarten und Wurzel: Jedes Gerät rechnet einen Schuss exakt gleich.
   Computer-Gegner rechnen über tausend Schüsse durch und zielen je nach Können ungenauer.
 
+### Pflege: Flugkapitän und Mehrspieler ✅
+- **Flugkapitän**: Landeanflug neu – bei einer Landung bremst das Schiff unter dem Flugzeug, bei einem
+  Absturz ist es sichtbar zu weit weg, das Flugzeug qualmt und stürzt davor ins Meer. Banner
+  „Gelandet“ bzw. „Abgestürzt“, das Endbild bleibt bis zum nächsten Flug stehen.
+- **Mehrspieler** (Spiele mit Freunden und Poker): Fehler einer einzelnen Verbindung und kurze Ausfälle
+  des Vermittlungsservers trennen den Raum nicht mehr; immer nur ein Verbindungsversuch zum Gastgeber.
+  Wer länger als 90 Sekunden weg ist, scheidet aus (nicht, wenn der Gastgeber selbst offline ist).
+  Aktionen ohne Verbindung werden gemeldet statt still verloren.
+- Spielstand-Export funktioniert auch mit großen Spielständen (Safari-Grenze für Funktionsargumente).
+
 ## Entscheidungen
 
 ### Multiplayer: Wie spielen die Freunde zusammen? → **Variante A**
