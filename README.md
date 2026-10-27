@@ -83,7 +83,9 @@ Lügenwürfel, Minigolf, Billard, Vier gewinnt, Seeschlacht, Darts und das Kanon
 
 Die Browser verbinden sich direkt miteinander (WebRTC über [PeerJS](https://peerjs.com/)).
 Der Gastgeber leitet den Tisch – er sollte das Spiel geöffnet lassen, bis das Turnier vorbei ist.
-Wer die Seite neu lädt, wird automatisch wieder verbunden.
+Wer die Seite neu lädt, wird automatisch wieder verbunden. Wer länger als 90 Sekunden keine
+Verbindung hat, scheidet aus, damit die anderen nicht warten müssen – fällt dagegen der Gastgeber
+selbst aus, scheidet niemand aus, und nach 30 Sekunden darf man mit Erstattung des Eintritts gehen.
 
 ## Projektplan
 

@@ -30,6 +30,7 @@ window.GK = window.GK || {};
   let betControl;
   let ctx;
   let flying = null;   // laufende Animation
+  let ended = null;    // Endbild des letzten Flugs (bleibt bis zum nächsten Start stehen)
   let clouds = [];
 
   function state() {
@@ -126,7 +127,8 @@ window.GK = window.GK || {};
     showMessage('✈️ Abflug!', '');
     updateButtons();
     GK.sound.play('spinStart');
-    flying = { p: s.pending, start: performance.now(), done: 0, shown: 0, effects: [], crashed: false, celebrated: false };
+    ended = null;
+    flying = { p: s.pending, start: performance.now(), done: 0, effects: [], sputter: false, outcomeAt: 0 };
     requestAnimationFrame(frame);
   }
 
@@ -173,6 +175,11 @@ window.GK = window.GK || {};
     return alts;
   }
 
+  // Landeanflug: so viele Schritte nach dem letzten Ereignis setzt das Flugzeug auf (oder stürzt ab),
+  // danach wird abgerechnet
+  const APPROACH = 2.2;
+  const END = 3.6;
+
   function frame(now) {
     if (!flying) return;
     const f = flying;
@@ -194,29 +201,52 @@ window.GK = window.GK || {};
         GK.fx.shake('small');
       }
     }
-    draw(now, t);
-    // Landeanflug: 2 Schritte nach dem letzten Ereignis
-    if (t >= n + 2.4) {
-      if (!p.landed && !f.crashed) {
-        f.crashed = true;
+    // Absturz kündigt sich an: der Motor stottert
+    if (!p.landed && !f.sputter && t >= n + 0.9) {
+      f.sputter = true;
+      GK.sound.play('denied');
+    }
+    // Aufsetzen bzw. Aufprall aufs Wasser
+    if (!f.outcomeAt && t >= n + APPROACH) {
+      f.outcomeAt = now;
+      if (p.landed) GK.sound.play('reelStop');
+      else {
         GK.sound.play('boom');
-      }
-      if (t >= n + 3.2) {
-        flying = null;
-        settle(true);
-        draw(now, n + 3.2, true);
-        return;
+        GK.fx.shake('small');
       }
     }
+    if (t >= n + END) {
+      // Das Endbild bleibt stehen, bis der nächste Flug startet
+      flying = null;
+      // Endbild mit fertigem Banner – auch wenn die Animation übersprungen wurde (z. B. App gewechselt)
+      ended = { p, t: n + END, outcomeAt: Math.min(f.outcomeAt || now, now - 1000) };
+      settle(true);
+      draw(now);
+      return;
+    }
+    draw(now, t);
     requestAnimationFrame(frame);
   }
 
-  function draw(now = performance.now(), t = null, final = false) {
+  const smooth = k => k * k * (3 - 2 * k);
+  const clamp01 = k => Math.max(0, Math.min(1, k));
+
+  // Wo das Zielschiff gerade ist: bei einer Landung bremst es genau unter dem Flugzeug,
+  // bei einem Absturz ist es noch zu weit weg
+  function targetShipX(p, t) {
+    const n = p.events.length;
+    const from = W + 150;
+    const to = p.landed ? PLANE_X - 30 : PLANE_X + 360;
+    const u = clamp01((t - (n - 0.6)) / (APPROACH + 0.6));
+    return from + (to - from) * (1 - (1 - u) * (1 - u));
+  }
+
+  function draw(now = performance.now(), tNow = null) {
     if (!ctx) return;
     ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
     ctx.clearRect(0, 0, W, H);
-    const p = flying ? flying.p : null;
-    const speed = p ? 0.25 : 0.04;
+    const sc = flying || ended;
+    const speed = flying ? 0.25 : 0.04;
     // Wolken (ziehen nach links)
     clouds.forEach(c => {
       const x = ((c.x - now * speed * c.z) % (W + 200) + W + 200) % (W + 200) - 100;
@@ -235,25 +265,24 @@ window.GK = window.GK || {};
     ctx.fillStyle = sea;
     ctx.beginPath();
     ctx.moveTo(0, H);
-    for (let x = 0; x <= W; x += 20) ctx.lineTo(x, SEA_Y + Math.sin(x / 35 + now / (p ? 250 : 700)) * 4);
+    for (let x = 0; x <= W; x += 20) ctx.lineTo(x, SEA_Y + Math.sin(x / 35 + now / (flying ? 250 : 700)) * 4);
     ctx.lineTo(W, H);
     ctx.fill();
 
-    if (!p || t === null) {
+    if (!sc) {
       // Ruhezustand: Flugzeug steht auf dem Schiff
       drawShip(PLANE_X - 40);
       drawPlane(PLANE_X, SEA_Y - 64, 0, now, false);
       drawCounter(state().pending ? state().pending.counter : null, null);
       return;
     }
+    const p = sc.p;
+    const t = flying ? tNow : sc.t;
     const n = p.events.length;
     const alts = altitudes(p.events);
     // Startschiff zieht nach links weg, Zielschiff kommt am Ende von rechts
     if (t < 1.5) drawShip(PLANE_X - 40 - t * 260);
-    const shipX = W + 120 - Math.max(0, t - (n - 0.5)) * 300;
-    const targetX = PLANE_X - 30;
-    const landX = Math.max(targetX, shipX);
-    if (t > n - 1) drawShip(landX);
+    if (t > n - 1) drawShip(targetShipX(p, t));
     // Objekte, die auf das Flugzeug zufliegen
     p.events.forEach((e, i) => {
       const dist = i + 1 - t;
@@ -264,28 +293,50 @@ window.GK = window.GK || {};
       else drawBubble(x, y, e, now, p.bet);
     });
     // Flugzeug: Höhe zwischen den Ereignissen weich überblenden
+    let x = PLANE_X;
     let y;
     let tilt = 0;
+    const deck = SEA_Y - 64;
+    const outcomeAt = flying ? flying.outcomeAt : sc.outcomeAt;
     if (t <= n) {
       const i = Math.floor(t);
       const k = t - i;
       const a0 = alts[Math.min(i, n)];
       const a1 = alts[Math.min(i + 1, n)];
-      const ease = k * k * (3 - 2 * k);
-      y = a0 + (a1 - a0) * ease;
+      y = a0 + (a1 - a0) * smooth(k);
       tilt = (a1 - a0) / 200;
-      if (t < 1) y = SEA_Y - 64 + (alts[1] - (SEA_Y - 64)) * ease;
+      if (t < 1) y = deck + (alts[1] - deck) * smooth(k);
+    } else if (p.landed) {
+      // Sinkflug aufs Deck, aufsetzen, ausrollen
+      const k = clamp01((t - n) / APPROACH);
+      y = alts[n] + (deck - alts[n]) * smooth(k);
+      tilt = 0.12 * Math.sin(Math.PI * k);
+      const r = clamp01((t - n - APPROACH) / 0.9);
+      x += 40 * (1 - (1 - r) * (1 - r));
+      y -= 7 * Math.sin(Math.PI * r) * (1 - r);
     } else {
-      // Landeanflug
-      const k = Math.min(1, (t - n) / 2.4);
-      const deck = SEA_Y - 64;
-      const end = p.landed ? deck : SEA_Y + 10;
-      y = alts[n] + (end - alts[n]) * k * k;
-      tilt = p.landed ? (1 - k) * 0.25 : 0.2 + k * 0.5;
+      // Motor stottert, das Flugzeug sackt durch und stürzt vor dem Schiff ins Meer
+      const k = clamp01((t - n) / APPROACH);
+      const drop = clamp01((k - 0.35) / 0.65);
+      y = alts[n] + (deck - alts[n]) * 0.35 * smooth(Math.min(1, k / 0.35)) + (SEA_Y + 10 - (alts[n] + (deck - alts[n]) * 0.35)) * drop * drop;
+      tilt = 0.1 + drop * 0.8;
+      if (drop > 0 && !outcomeAt) drawSmoke(x, y, now, drop);
     }
-    const crashed = flying && flying.crashed;
-    if (!crashed || final) drawPlane(PLANE_X, y, tilt, now, true);
-    if (crashed) drawSplash(PLANE_X, SEA_Y, now - flying.start);
+    const crashed = !p.landed && outcomeAt;
+    if (!crashed) drawPlane(x, y, tilt, now, true);
+    else {
+      // Versinken: nur der Teil über dem Wasser ist zu sehen
+      const age = now - outcomeAt;
+      if (flying && age < 900) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, W, SEA_Y);
+        ctx.clip();
+        drawPlane(x + age / 30, SEA_Y + 6 + age / 18, 0.95, now, false);
+        ctx.restore();
+      }
+      drawSplash(PLANE_X + 30, SEA_Y, flying ? age : 5000);
+    }
     // Treffer-Effekte
     if (flying) {
       flying.effects = flying.effects.filter(fx => now - fx.at < 700);
@@ -300,22 +351,80 @@ window.GK = window.GK || {};
         ctx.globalAlpha = 1;
       });
     }
-    const shownCounter = flying && flying.done > 0 ? p.events[flying.done - 1].counter : final ? p.counter : 0;
-    drawCounter(shownCounter, p);
+    const shownCounter = flying ? (flying.done > 0 ? p.events[flying.done - 1].counter : 0) : p.counter;
+    drawCounter(shownCounter, p, !p.landed && !!outcomeAt);
+    // Ergebnis groß anzeigen
+    if (outcomeAt) {
+      const k = clamp01((now - outcomeAt) / 250);
+      if (p.landed) drawBanner(`🛬 GELANDET! ×${fmt(p.counter)}`, '#2fa866', k);
+      else drawBanner('🌊 ABGESTÜRZT – Schiff verfehlt', '#c62828', k);
+    } else if (t > n + 0.2) {
+      drawBanner('Landeanflug …', 'rgba(0, 0, 0, 0.45)', 1);
+    }
   }
 
-  function drawCounter(counter, p) {
+  function drawBanner(text, color, k) {
+    ctx.save();
+    ctx.globalAlpha = k;
+    ctx.font = '900 30px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const w = ctx.measureText(text).width + 48;
+    const cx = W / 2 + 60;
+    const cy = 70;
+    ctx.fillStyle = color;
+    // Abgerundetes Rechteck selbst zeichnen (ctx.roundRect gibt es erst ab Safari 16)
+    const x0 = cx - w / 2;
+    const y0 = cy - 28;
+    const r = 16;
+    ctx.beginPath();
+    ctx.moveTo(x0 + r, y0);
+    ctx.arcTo(x0 + w, y0, x0 + w, y0 + 56, r);
+    ctx.arcTo(x0 + w, y0 + 56, x0, y0 + 56, r);
+    ctx.arcTo(x0, y0 + 56, x0, y0, r);
+    ctx.arcTo(x0, y0, x0 + w, y0, r);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    ctx.shadowBlur = 6;
+    ctx.fillText(text, cx, cy + 1);
+    ctx.restore();
+  }
+
+  function drawSmoke(x, y, now, k) {
+    for (let j = 0; j < 6; j++) {
+      const off = ((now / 6) % 30) + j * 30;
+      ctx.globalAlpha = Math.max(0, 0.55 - j * 0.09) * Math.min(1, k * 3);
+      ctx.fillStyle = '#4a4a4a';
+      ctx.beginPath();
+      ctx.arc(x - 40 - off, y - 12 - j * 5, 9 + j * 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawCounter(counter, p, lost) {
     const bet = p ? p.bet : state().bet;
     ctx.font = '900 22px system-ui, sans-serif';
     ctx.textAlign = 'left';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
     ctx.fillText('Gewinn', 24, 40);
     ctx.font = '900 48px system-ui, sans-serif';
-    ctx.fillStyle = '#ffe58a';
+    ctx.fillStyle = lost ? 'rgba(255, 255, 255, 0.55)' : '#ffe58a';
     ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
     ctx.shadowBlur = 10;
-    ctx.fillText(counter == null ? '–' : GK.formatNumber(Math.floor(counter * bet)), 24, 90);
+    const text = counter == null ? '–' : GK.formatNumber(Math.floor(counter * bet));
+    ctx.fillText(text, 24, 90);
     ctx.shadowBlur = 0;
+    if (lost) {
+      ctx.strokeStyle = '#ff5a3a';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(20, 74);
+      ctx.lineTo(28 + ctx.measureText(text).width, 74);
+      ctx.stroke();
+    }
     if (counter != null) {
       ctx.font = '700 20px system-ui, sans-serif';
       ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
@@ -445,14 +554,30 @@ window.GK = window.GK || {};
   }
 
   function drawSplash(x, y, age) {
-    const k = Math.min(1, (age % 100000) / 600);
-    ctx.fillStyle = 'rgba(200, 235, 255, 0.85)';
-    for (let i = 0; i < 9; i++) {
-      const a = Math.PI + (i / 8) * Math.PI;
-      ctx.beginPath();
-      ctx.arc(x + Math.cos(a) * 40 * k, y + Math.sin(a) * 60 * k, 7 * (1 - k * 0.5), 0, Math.PI * 2);
-      ctx.fill();
+    if (age < 900) {
+      const k = age / 900;
+      ctx.fillStyle = `rgba(210, 240, 255, ${0.9 * (1 - k)})`;
+      for (let i = 0; i < 11; i++) {
+        const dx = (i - 5) * 9 * (0.4 + k);
+        const up = (1 - Math.abs(i - 5) / 6) * 90;
+        ctx.beginPath();
+        ctx.arc(x + dx, y - up * (k * 2 - k * k * 1.6) - 4, 6 * (1 - k * 0.5), 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
+    // Ringe und Blasen auf dem Wasser
+    const r = Math.min(1, age / 1200);
+    ctx.strokeStyle = 'rgba(220, 245, 255, 0.6)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.ellipse(x, y + 6, 20 + 50 * r, 5 + 8 * r, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(220, 245, 255, 0.7)';
+    [[-14, 2], [6, -2], [18, 4]].forEach(([dx, dy], i) => {
+      ctx.beginPath();
+      ctx.arc(x + dx, y + dy + 4 - ((age / 12 + i * 9) % 12), 3, 0, Math.PI * 2);
+      ctx.fill();
+    });
   }
 
   function drawHistory() {
@@ -526,6 +651,7 @@ window.GK = window.GK || {};
 
   function refresh() {
     flying = null;
+    ended = null;
     // Flug aus der letzten Sitzung: sofort abrechnen
     if (state().pending) settle(false);
     else showMessage('Wähle Einsatz und Geschwindigkeit – und dann ab in die Luft!', '');

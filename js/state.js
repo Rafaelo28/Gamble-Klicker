@@ -141,8 +141,11 @@ window.GK = window.GK || {};
 
   // Spielstand als Text (Base64), z. B. zum Sichern oder Übertragen auf ein anderes Gerät
   GK.exportSave = function () {
-    const json = JSON.stringify(GK.state);
-    return btoa(String.fromCharCode(...new TextEncoder().encode(json)));
+    const bytes = new TextEncoder().encode(JSON.stringify(GK.state));
+    // In Stücken umwandeln: Safari erlaubt nur begrenzt viele Argumente pro Funktionsaufruf
+    let binary = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(binary);
   };
 
   GK.importSave = function (text) {

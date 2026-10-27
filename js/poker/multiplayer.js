@@ -22,6 +22,7 @@ GK.poker = GK.poker || {};
   const RETRY_DELAY = 3000;
   const CONNECT_TIMEOUT = 10000;
   const ABANDON_AFTER = 30000;     // so lange muss der Gastgeber weg sein, bis man mit Erstattung gehen darf
+  const DROP_AFTER = 90000;        // so lange ohne Verbindung am Tisch → scheidet aus
   const HEARTBEAT = 2000;          // Lebenszeichen alle 2 Sekunden …
   const HEARTBEAT_TIMEOUT = 8000;  // … bleibt es so lange aus, gilt die Verbindung als getrennt
   const MAX_NAME = 16;
@@ -42,9 +43,12 @@ GK.poker = GK.poker || {};
     lostSince: null,
     retryTimer: null,
     connectTimer: null,
+    serverTimer: null, // erneutes Anmelden beim Vermittlungsserver
+    pendingConn: null, // Mitspieler: laufender Verbindungsversuch zum Gastgeber
   };
   let hostTimer = null;
   let pendingCode = '';
+  const offlineSince = new Map(); // Gastgeber: playerId → seit wann ohne Verbindung
 
   // ---------- Gespeicherte Daten ----------
 
@@ -161,12 +165,17 @@ GK.poker = GK.poker || {};
   function destroyPeer() {
     clearTimeout(net.retryTimer);
     clearTimeout(net.connectTimer);
+    clearTimeout(net.serverTimer);
     net.conns.forEach(c => c.close());
     net.conns.clear();
     if (net.hostConn) net.hostConn.close();
     net.hostConn = null;
-    if (net.peer) net.peer.destroy();
+    if (net.pendingConn) net.pendingConn.close();
+    net.pendingConn = null;
+    // Erst abmelden, dann zerstören: PeerJS meldet beim Zerstören noch „disconnected“
+    const peer = net.peer;
     net.peer = null;
+    if (peer) peer.destroy();
     net.status = 'idle';
     net.lostSince = null;
   }
@@ -174,6 +183,26 @@ GK.poker = GK.poker || {};
   function retry(fn) {
     clearTimeout(net.retryTimer);
     net.retryTimer = setTimeout(() => { if (active()) fn(); }, RETRY_DELAY);
+  }
+
+  // Nur die Verbindung zum Vermittlungsserver ist weg: die direkten Verbindungen zwischen den Browsern
+  // laufen weiter. Mit derselben ID neu anmelden – so lange, bis es klappt.
+  function reconnectServer(peer) {
+    clearTimeout(net.serverTimer);
+    net.serverTimer = setTimeout(() => {
+      if (net.peer === peer && !peer.destroyed && peer.disconnected) peer.reconnect();
+    }, RETRY_DELAY);
+  }
+
+  // PeerJS meldet einen Fehler, bevor es den Peer zerstört bzw. vom Server trennt – deshalb erst
+  // einen Takt später entscheiden. Fehler einzelner Verbindungen (z. B. WebRTC) betreffen nicht den
+  // ganzen Tisch: die Verbindung meldet sich dann selbst mit „close“, der Herzschlag erkennt den Rest.
+  function afterPeerError(peer, whenDestroyed) {
+    setTimeout(() => {
+      if (net.peer !== peer || !active()) return;
+      if (peer.destroyed) whenDestroyed();
+      else if (peer.disconnected) reconnectServer(peer);
+    }, 0);
   }
 
   function send(conn, msg) {
@@ -235,20 +264,26 @@ GK.poker = GK.poker || {};
     peer.on('connection', setupHostConn);
     peer.on('disconnected', () => {
       // Nur die Verbindung zum Vermittlungs-Server ist weg – bestehende Spieler bleiben verbunden
-      if (net.peer === peer && !peer.destroyed) setTimeout(() => !peer.destroyed && peer.reconnect(), RETRY_DELAY);
+      if (net.peer === peer) {
+        reconnectServer(peer);
+        GK.poker.redraw();
+      }
     });
     peer.on('error', err => {
       if (net.peer !== peer) return;
       const s2 = session();
+      if (!s2) return;
       if (err.type === 'unavailable-id' && s2.fresh) {
         s2.code = newCode(); // Code zufällig schon vergeben → neuen nehmen
         connectHost();
         return;
       }
-      // z. B. nach dem Neuladen hält der Server den alten Code noch kurz fest → erneut versuchen
-      net.status = 'lost';
-      GK.poker.redraw();
-      retry(connectHost);
+      // z. B. nach dem Neuladen hält der Server den alten Code noch kurz fest → neu aufbauen
+      afterPeerError(peer, () => {
+        net.status = 'lost';
+        GK.poker.redraw();
+        retry(connectHost);
+      });
     });
   }
 
@@ -540,10 +575,9 @@ GK.poker = GK.poker || {};
     net.status = 'connecting';
     const peer = new window.Peer(peerOptions());
     net.peer = peer;
-    peer.on('open', openHostConn);
-    peer.on('disconnected', () => {
-      if (net.peer === peer && !peer.destroyed) setTimeout(() => !peer.destroyed && peer.reconnect(), RETRY_DELAY);
-    });
+    // Nach einem Neuverbinden mit dem Server steht die Verbindung zum Gastgeber meist noch
+    peer.on('open', () => { if (!net.hostConn || !net.hostConn.open) openHostConn(); });
+    peer.on('disconnected', () => { if (net.peer === peer) reconnectServer(peer); });
     peer.on('error', err => {
       if (net.peer !== peer) return;
       const s = session();
@@ -551,8 +585,11 @@ GK.poker = GK.poker || {};
         endSession(`Raum ${s.code} nicht gefunden. Stimmt der Code?`, true);
         return;
       }
-      hostLost();
-      if (err.type !== 'peer-unavailable') retry(connectClient);
+      if (err.type === 'peer-unavailable') {
+        hostLost(); // Gastgeber gerade nicht erreichbar → regelmäßig neu versuchen
+        return;
+      }
+      afterPeerError(peer, hostLost);
     });
   }
 
@@ -560,21 +597,29 @@ GK.poker = GK.poker || {};
     const s = session();
     if (!s || !net.peer || net.peer.destroyed) return;
     if (net.peer.disconnected) {
-      retry(connectClient);
+      reconnectServer(net.peer); // nach dem Neuverbinden baut der „open“-Handler die Verbindung auf
       return;
     }
     const conn = net.peer.connect(ID_PREFIX + s.code, { reliable: true });
+    // Nur ein Verbindungsversuch zur Zeit: einen älteren, noch nicht offenen abbrechen
+    const older = net.pendingConn;
+    net.pendingConn = conn;
+    if (older && !older.open) older.close();
     clearTimeout(net.connectTimer);
     net.connectTimer = setTimeout(() => {
-      if (!conn.open) {
+      if (!conn.open && net.pendingConn === conn) {
+        net.pendingConn = null;
         conn.close();
         hostLost();
       }
     }, CONNECT_TIMEOUT);
     conn.on('open', () => {
       clearTimeout(net.connectTimer);
+      if (net.pendingConn === conn) net.pendingConn = null;
       conn.lastSeen = Date.now();
+      const previous = net.hostConn;
       net.hostConn = conn;
+      if (previous && previous !== conn) previous.close();
       net.status = 'online';
       net.lostSince = null;
       const me = store();
@@ -585,7 +630,14 @@ GK.poker = GK.poker || {};
       conn.lastSeen = Date.now();
       onClientMessage(msg);
     });
-    const lost = () => { if (net.hostConn === conn || !net.hostConn) hostLost(); };
+    // Nur die aktuelle Verbindung (oder der laufende Versuch) zählt – alte, ersetzte nicht
+    const lost = () => {
+      if (net.hostConn === conn) hostLost();
+      else if (net.pendingConn === conn) {
+        net.pendingConn = null;
+        if (!net.hostConn || !net.hostConn.open) hostLost();
+      }
+    };
     conn.on('close', lost);
     conn.on('error', lost);
   }
@@ -598,7 +650,12 @@ GK.poker = GK.poker || {};
     if (net.status !== 'lost') net.lostSince = Date.now();
     net.status = 'lost';
     GK.poker.redraw();
-    retry(() => (net.peer && !net.peer.destroyed && !net.peer.disconnected ? openHostConn() : connectClient()));
+    retry(() => {
+      const peer = net.peer;
+      if (!peer || peer.destroyed) connectClient();
+      else if (peer.disconnected) reconnectServer(peer); // danach verbindet der „open“-Handler
+      else openHostConn();
+    });
   }
 
   function onClientMessage(msg) {
@@ -698,6 +755,10 @@ GK.poker = GK.poker || {};
           send(conn, { type: 'ping' });
         }
       });
+      // War die Seite des Gastgebers eingeschlafen (z. B. iPad gesperrt), zählt die Abwesenheit neu
+      if (net.lastBeat && now - net.lastBeat > 10000) offlineSince.clear();
+      net.lastBeat = now;
+      dropAbsentPlayers(now);
     } else if (net.hostConn) {
       const conn = net.hostConn;
       if (now - conn.lastSeen > HEARTBEAT_TIMEOUT) {
@@ -713,10 +774,42 @@ GK.poker = GK.poker || {};
   }
   setInterval(heartbeat, HEARTBEAT);
 
+  // Ist der Gastgeber selbst gerade mit dem Netz verbunden? (Vermittlungsserver erreichbar, Browser online)
+  function hostOnline() {
+    return net.status === 'online' && !!net.peer && !net.peer.destroyed && !net.peer.disconnected && navigator.onLine !== false;
+  }
+
+  // Wer länger ohne Verbindung ist, scheidet aus – sonst warten alle anderen bei jeder Hand auf ihn
+  function dropAbsentPlayers(now) {
+    const s = session();
+    // Ist der Gastgeber selbst offline, liegt es an ihm – dann scheidet niemand aus
+    if (!s || s.role !== 'host' || s.phase !== 'playing' || !s.table || !hostOnline()) {
+      offlineSince.clear();
+      return;
+    }
+    const t = s.table;
+    let changed = false;
+    t.players.forEach((p, seat) => {
+      if (p.isBot || p.out || p.id === store().playerId || net.conns.has(p.id)) {
+        offlineSince.delete(p.id);
+        return;
+      }
+      if (!offlineSince.has(p.id)) offlineSince.set(p.id, now);
+      else if (now - offlineSince.get(p.id) >= DROP_AFTER && t.phase !== 'finished') {
+        engine().forfeit(t, seat);
+        offlineSince.delete(p.id);
+        changed = true;
+      }
+    });
+    if (changed) afterHostChange();
+  }
+
   function myAction(action) {
     const s = session();
     if (s.role === 'host') {
       playerAction(s.table.players.findIndex(p => p.id === store().playerId), action);
+    } else if (!net.hostConn || !net.hostConn.open) {
+      GK.toast('Keine Verbindung zum Gastgeber – versuche es gleich noch einmal.');
     } else {
       send(net.hostConn, { type: 'action', action });
     }
@@ -760,13 +853,19 @@ GK.poker = GK.poker || {};
     const s = session();
     if (!peerAvailable()) return '<span class="mp-status lost">🔴 Multiplayer nicht verfügbar – keine Internetverbindung?</span>';
     if (net.status === 'online') {
+      if (s.role === 'host' && net.peer && net.peer.disconnected && !net.peer.destroyed) {
+        return '<span class="mp-status connecting">🟡 Verbindung zum Server wird erneuert – wer schon am Tisch sitzt, bleibt verbunden …</span>';
+      }
       return s.role === 'host'
         ? '<span class="mp-status online">🟢 Raum ist online</span>'
         : '<span class="mp-status online">🟢 Mit dem Gastgeber verbunden</span>';
     }
     if (net.status === 'lost') {
-      const secs = net.lostSince ? Math.floor((Date.now() - net.lostSince) / 1000) : 0;
-      return `<span class="mp-status lost">🔴 Keine Verbindung${s.role === 'client' ? ` zum Gastgeber (seit ${secs} s)` : ''} – versuche es erneut …</span>`;
+      const ms = net.lostSince ? Date.now() - net.lostSince : 0;
+      // Nur wer noch mitspielt (nicht schon ausgeschieden und abgerechnet), bekommt den Eintritt zurück
+      const gone = s.role === 'client' && s.phase === 'playing' && !s.settled && ms >= ABANDON_AFTER
+        ? ' Du kannst das Turnier auch verlassen – dann bekommst du deinen Eintritt zurück.' : '';
+      return `<span class="mp-status lost">🔴 Keine Verbindung${s.role === 'client' ? ` zum Gastgeber (seit ${Math.floor(ms / 1000)} s)` : ''} – versuche es erneut …${gone}</span>`;
     }
     return '<span class="mp-status connecting">🟡 Verbinde …</span>';
   }

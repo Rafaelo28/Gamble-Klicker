@@ -341,7 +341,7 @@ window.GK = window.GK || {};
     } else if (changed) {
       GK.sound.play('chip');
       container._fleet = changed;
-      ui.act({ type: 'place', ships: changed });
+      if (!ui.act({ type: 'place', ships: changed })) container._fleet = null;
     }
     draw(container, v, ui);
   }
@@ -390,7 +390,7 @@ window.GK = window.GK || {};
         container._fleet = fleet;
         container._sel = -1;
         GK.sound.play('flip');
-        current.ui.act({ type: 'place', ships: fleet });
+        if (!current.ui.act({ type: 'place', ships: fleet })) container._fleet = null;
         draw(container, current.view, current.ui);
       });
       container.querySelector('.bs-ready').addEventListener('click', () => {

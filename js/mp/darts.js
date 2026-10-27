@@ -327,17 +327,30 @@ window.GK = window.GK || {};
     container._raf = requestAnimationFrame(() => frame(container));
   }
 
+  // Wurf abgeschickt, aber noch nicht gewertet? Nach 4 Sekunden ohne Antwort (Verbindung weg)
+  // darf man es nochmal versuchen
+  function thrownRecently(container, no) {
+    return container._thrownFor === no && Date.now() - (container._thrownAt || 0) < 4000;
+  }
+
   function throwNow(container) {
     if (!shown) return;
     const { view: v, ui } = shown;
     // Nur ein Wurf pro Pfeil, bis der Gastgeber ihn gewertet hat
     const no = v.lastDart ? v.lastDart.no : 0;
-    if (v.phase !== 'throw' || v.order[v.idx] !== ui.mySeat || container._thrownFor === no) return;
+    if (v.phase !== 'throw' || v.order[v.idx] !== ui.mySeat || thrownRecently(container, no)) return;
     container._thrownFor = no;
+    container._thrownAt = Date.now();
+    // Kommt keine Antwort, den Knopf nach Ablauf der Sperre wieder freigeben
+    setTimeout(() => { if (shown && container._thrownFor === no) draw(container, shown.view, shown.ui); }, 4100);
     const w = wobble(performance.now() / 1000);
     const aim = container._aim || T20;
     GK.sound.play('click');
-    ui.act({ type: 'throw', x: aim.x + w.x, y: aim.y + w.y });
+    // Keine Verbindung: Knopf wieder freigeben, damit man es gleich nochmal versuchen kann
+    if (!ui.act({ type: 'throw', x: aim.x + w.x, y: aim.y + w.y })) {
+      container._thrownFor = undefined;
+      draw(container, v, ui);
+    }
   }
 
   function setAim(container, e) {
@@ -416,7 +429,7 @@ window.GK = window.GK || {};
         + `<span class="darts-sum">= ${darts.reduce((s, x) => s + x.points, 0)}</span>`
       : '');
     const btn = container.querySelector('.darts-throw');
-    btn.disabled = !myTurn || container._thrownFor === (d ? d.no : 0);
+    btn.disabled = !myTurn || thrownRecently(container, d ? d.no : 0);
     btn.hidden = v.phase === 'finished';
     let hint;
     if (v.phase === 'finished') {

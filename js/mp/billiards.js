@@ -552,8 +552,8 @@ window.GK = window.GK || {};
       const dy = a.start[1] - a.now[1];
       const power = Math.min(1, Math.sqrt(dx * dx + dy * dy) / 300);
       if (power >= 0.03 && v.phase === 'aim' && v.turn === ui.mySeat) {
-        ui.act({ type: 'shot', dx, dy, power, place: v.inHand ? cuePos(v) : null });
-        place = null;
+        // Hingelegte Weiße nur vergessen, wenn der Stoß auch angekommen ist
+        if (ui.act({ type: 'shot', dx, dy, power, place: v.inHand ? cuePos(v) : null })) place = null;
       }
     };
     canvas.addEventListener('pointerup', release);
