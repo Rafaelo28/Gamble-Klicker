@@ -245,6 +245,7 @@ GK.poker = GK.poker || {};
     };
     me.lastResult = null;
     GK.save();
+    if (GK.track) GK.track('online-poker', "Online: Texas Hold'em");
     connectHost();
     GK.poker.redraw();
   }
@@ -566,6 +567,7 @@ GK.poker = GK.poker || {};
     };
     store().lastResult = null;
     GK.save();
+    if (GK.track) GK.track('online-poker', "Online: Texas Hold'em");
     connectClient();
     GK.poker.redraw();
   }

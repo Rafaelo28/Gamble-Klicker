@@ -264,6 +264,7 @@ window.GK = window.GK || {};
     if (solo) {
       startGame(bots);
     } else {
+      if (GK.track) GK.track('online-' + gameId, 'Online: ' + d.name);
       connectHost();
       redraw(gameId);
     }
@@ -569,6 +570,7 @@ window.GK = window.GK || {};
     };
     store().results[gameId] = null;
     GK.save();
+    if (GK.track) GK.track('online-' + gameId, 'Online: ' + games[gameId].name);
     connectClient();
     redraw(gameId);
   }

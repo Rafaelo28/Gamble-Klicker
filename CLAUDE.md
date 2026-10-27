@@ -33,6 +33,9 @@ Online über GitHub Pages aus `main`: https://rafaelo28.github.io/Gamble-Klicker
 - **Physik in Online-Spielen** (Minigolf, Billard, Kanonenduell) nur mit + − × ÷ und `Math.sqrt` rechnen, keine
   Winkelfunktionen in der Simulation – sonst kommen auf verschiedenen Geräten andere Ergebnisse heraus.
 
+- **Besucherzählung** (`js/analytics.js`, GoatCounter): nur Seitenaufrufe und Ereignisse wie
+  `GK.track('spiel-…', name)` – niemals Namen, Raum-Codes, Spieler-IDs oder Spielstände mitsenden.
+
 ## Testen
 
 - `node tests/poker.test.js` – Handbewertung, Poker-Engine, Preisverteilung.
