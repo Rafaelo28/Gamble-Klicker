@@ -35,6 +35,7 @@ Schnelle Klicks bauen eine **Combo** auf, mit etwas Glück landest du einen **kr
 Synergien zwischen den Gebäuden und Upgrades für alle Gebäude zusammen.
 Direkt unter der Klick-Münze wartet der **Side-Slot**: klicken und nebenbei zocken.
 Wer lieber nur klickt, kann das **passive Einkommen** der Gebäude unter der Gebäude-Liste ausschalten.
+Deinen **Namen** und dein Bild für Spiele mit Freunden und Poker legst du unter *Statistiken → Einstellungen* fest.
 
 In der **🎨 Schatzkammer** (Tab *Fortschritt*) gibt es Cosmetics: je 5 Münz-Designs, Klick-Effekte, Farbthemen,
 Namensschilder für Spiele mit Freunden (die anderen sehen sie) und Casino-Looks (Filz und Kartenrücken),

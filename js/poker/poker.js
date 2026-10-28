@@ -49,7 +49,7 @@ window.GK = window.GK || {};
       return;
     }
     GK.casino.bet(tr.entry);
-    const seats = [{ id: 'you', name: 'Du', avatar: '🙂', badge: GK.cosmetics.myBadge(), isBot: false }].concat(T().botSeats(SEATS - 1));
+    const seats = [{ id: 'you', name: GK.player.name(), avatar: GK.player.avatar(), badge: GK.cosmetics.myBadge(), isBot: false }].concat(T().botSeats(SEATS - 1));
     const s = state();
     const table = T().createTable(seats, s.mode, s.hands);
     s.table = table;
@@ -153,7 +153,7 @@ window.GK = window.GK || {};
     const t = state().table;
     // Blitz: Nach der letzten Hand ist Schluss, die Chips entscheiden
     if (t && T().handLimitReached(t)) T().finishByChips(t);
-    if (t && t.result && t.result.hands && t.result.hands[HUMAN] === 'Royal Flush') {
+    if (t && t.result && t.result.hands && GK.poker.quadsOrBetter(t.result.hands[HUMAN])) {
       GK.unlockAchievement('pokerRoyal');
     }
     GK.save();

@@ -357,6 +357,15 @@ Einsatz verloren geht.
 - Fußzeile: „Entwickelt von Rafael (Rafaelo28) mit der Community · Idee von Adrian“.
 - Erfolg „Flieger-Ass“ (Flugkapitän, mit ×20 landen) entfernt.
 
+### Pflege: Erfolge erreichbar, spielweiter Name ✅
+- Fünf fast unerreichbare Erfolge leichter gemacht (Erfolge bleiben, wer sie hat, behält sie):
+  „Glückliche Sieben“ (zwei Siebenen statt drei, etwa 1 von 800 Drehungen), „Großer Fang“ (Rubbellos ab 100-fach
+  statt 1.000-fach), „Walzenkönig“ (Video-Slot 25-fach statt 100-fach, etwa 1 von 1.200 Drehungen), „Vierling!“
+  (Vierling oder besser statt Royal Flush), „Schatzkönig“ (alle Schätze, egal mit wie vielen Totenköpfen).
+- **Spielweiter Name und Bild** unter *Statistiken → Einstellungen*. Gilt für alle Spiele mit Freunden, Poker
+  (auch gegen Computer) und das Namensschild. Ändert man ihn in einer Lobby, ändert er sich überall.
+  Ältere Spielstände übernehmen den Namen aus den Spielen mit Freunden bzw. dem Poker.
+
 ## Entscheidungen
 
 ### Multiplayer: Wie spielen die Freunde zusammen? → **Variante A**

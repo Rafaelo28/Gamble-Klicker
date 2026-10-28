@@ -1,6 +1,7 @@
 // Tests für Lügenwürfel: komplette Partien zwischen Computer-Gegnern. Ausführen mit: node tests/dice.test.js
 global.window = global;
 const R = require('path').join(__dirname, '..', 'js') + '/';
+require(R + 'state.js');
 require(R + 'casino/casino.js');
 require(R + 'mp/room.js');
 require(R + 'mp/dice.js');

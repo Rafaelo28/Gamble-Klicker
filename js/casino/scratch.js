@@ -220,7 +220,7 @@ window.GK = window.GK || {};
       GK.casino.payout(payout);
       GK.casino.record('scratch', t.price, payout,
         winMult ? `${t.name}: 3× ${GK.formatNumber(payout)}` : `${t.name}: Niete`);
-      if (winMult >= 1000) GK.unlockAchievement('scratchTop');
+      if (winMult >= 100) GK.unlockAchievement('scratchTop');
       results.push({ ticketId: t.id, fields: makeFields(winMult), winMult, settled: true });
     }
     GK.unlockAchievement('scratch1');
@@ -262,7 +262,7 @@ window.GK = window.GK || {};
     c.settled = true;
     GK.casino.payout(payout);
     GK.unlockAchievement('scratch1');
-    if (c.winMult >= 1000) GK.unlockAchievement('scratchTop');
+    if (c.winMult >= 100) GK.unlockAchievement('scratchTop');
     GK.casino.record('scratch', t.price, payout,
       c.winMult ? `${t.name}: 3× ${GK.formatNumber(payout)}` : `${t.name}: Niete`);
     clearInterval(checkTimer);

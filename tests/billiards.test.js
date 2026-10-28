@@ -1,6 +1,7 @@
 // Tests für Billard: Aufbau, Physik und komplette Partien. Ausführen mit: node tests/billiards.test.js
 global.window = global;
 const R = require('path').join(__dirname, '..', 'js') + '/';
+require(R + 'state.js');
 require(R + 'casino/casino.js');
 require(R + 'mp/room.js');
 require(R + 'mp/billiards.js');

@@ -2922,6 +2922,23 @@ button.casino-card:active {
   max-width: 640px;
 }
 
+/* Spielweiter Name in den Einstellungen */
+.setting-hint {
+  display: block;
+  margin-top: 2px;
+  font-weight: 400;
+}
+
+.name-edit {
+  display: flex;
+  flex: none;
+  gap: 6px;
+}
+
+.name-edit .bet-input {
+  width: 170px;
+}
+
 /* Schalter für das passive Einkommen unter den Gebäuden */
 .passive-toggle {
   margin-top: 12px;
