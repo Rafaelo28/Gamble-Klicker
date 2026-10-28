@@ -66,9 +66,15 @@ window.GK = window.GK || {};
     let timers = [];
     let ticking = null;
 
+    // Neues Ergebnis ohne Drehen zeigen (z. B. nach dem Neuladen), mit neuen Symbolen ober- und unterhalb
     function show(result) {
       current = result.slice();
       neighbors = current.map(() => [randomSymbol(), randomSymbol()]);
+      draw();
+    }
+
+    // Stehende Walzen zeichnen: genau die Symbole, die gerade zu sehen sind
+    function draw() {
       strips.forEach((strip, i) => {
         strip.style.transition = 'none';
         strip.style.transform = 'translateY(0)';
@@ -116,7 +122,8 @@ window.GK = window.GK || {};
           if (i === 2) {
             clearInterval(ticking);
             ticking = null;
-            show(result);
+            // Die Symbole ober- und unterhalb der Linie bleiben so, wie die Walzen angehalten haben
+            draw();
             onDone();
           }
         }, duration));
