@@ -298,6 +298,9 @@ Einsatz verloren geht.
 - **Preise gegen Computer** (alle Spiele mit Freunden außer Poker): Bisher zählten die Eintritte der
   Computer-Gegner mit, sodass z. B. Platz 2 bei 4 Spielern das 1,4-fache bekam. Jetzt macht nur der Sieger
   Gewinn, Platz 2 bekommt ab 3 Spielern den halben Einsatz zurück; bei gleich starken Gegnern 95 % Rückfluss.
+- **Mit Freunden und Computer-Gegnern** (auch Poker): Die Eintritte der Computer-Gegner zählten zum
+  Preisgeld – zwei Freunde mit zwei Computern bekamen z. B. bei Darts 2,6× und 1,4×. Jetzt spielen
+  Computer-Gegner nur mit: Das Preisgeld sind eure Eintritte, verteilt nach eurer Reihenfolge.
 
 ## Entscheidungen
 
