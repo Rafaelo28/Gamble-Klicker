@@ -118,16 +118,93 @@ window.GK = window.GK || {};
     casino().wagered -= amount;
   }
 
+  // Statistik eines Spiels (leer, wenn es noch nie gespielt wurde)
+  function gameStats(gameId) {
+    return casino().stats[gameId] ||
+      { rounds: 0, wagered: 0, won: 0, wins: 0, biggestWin: 0, bestMult: 0, streak: 0, bestStreak: 0, last: 0 };
+  }
+
+  function countRound(gameId, betAmount, payoutAmount) {
+    const st = casino().stats[gameId] = gameStats(gameId);
+    st.rounds++;
+    st.wagered += betAmount;
+    st.won += payoutAmount;
+    st.last = Date.now();
+    if (payoutAmount > betAmount) {
+      st.wins++;
+      st.streak++;
+      st.bestStreak = Math.max(st.bestStreak, st.streak);
+      st.biggestWin = Math.max(st.biggestWin, payoutAmount - betAmount);
+    } else if (payoutAmount < betAmount) {
+      st.streak = 0;
+    }
+    if (betAmount > 0) st.bestMult = Math.max(st.bestMult, payoutAmount / betAmount);
+  }
+
   // Runde im Verlauf festhalten und speichern
   function record(gameId, betAmount, payoutAmount, text) {
     const c = casino();
     c.rounds++;
+    countRound(gameId, betAmount, payoutAmount);
     c.biggestWin = Math.max(c.biggestWin, payoutAmount - betAmount);
     c.history.unshift({ game: gameId, bet: betAmount, payout: payoutAmount, text, time: Date.now() });
     c.history.length = Math.min(c.history.length, HISTORY_LENGTH);
     if (GK.state.money < 1 && payoutAmount < betAmount) GK.unlockAchievement('broke');
     GK.save();
     renderLobbyInfo();
+    refreshGameStats(gameId);
+  }
+
+  // ---------- Statistik je Spiel ----------
+
+  const signed = n => `<span class="${n >= 0 ? 'win' : 'loss'}">${n >= 0 ? '+' : '−'}${GK.formatMoneyHTML(Math.abs(n))}</span>`;
+  const formatMult = m => (m >= 100 ? GK.formatNumber(Math.floor(m)) : new Intl.NumberFormat('de-DE', { maximumFractionDigits: 2 }).format(m));
+
+  // Werte eines Spiels als Liste (im Spiel und im Statistik-Tab)
+  function statsHTML(gameId) {
+    const st = gameStats(gameId);
+    if (!st.rounds) return '<p class="muted small">Noch keine Runde gespielt – viel Glück! 🍀</p>';
+    return `<dl class="stats-list compact game-stats-list">
+      <dt>Runden</dt><dd>${GK.formatNumber(st.rounds)}</dd>
+      <dt>Davon gewonnen</dt><dd>${GK.formatNumber(st.wins)}</dd>
+      <dt>Eingesetzt</dt><dd>${GK.formatMoneyHTML(st.wagered)}</dd>
+      <dt>Ausgezahlt</dt><dd>${GK.formatMoneyHTML(st.won)}</dd>
+      <dt>Bilanz</dt><dd>${signed(st.won - st.wagered)}</dd>
+      <dt>Größter Gewinn</dt><dd>${GK.formatMoneyHTML(st.biggestWin)}</dd>
+      ${st.bestMult > 1 ? `<dt>Bester Treffer</dt><dd>×${formatMult(st.bestMult)} Einsatz</dd>` : ''}
+      ${st.bestStreak > 1 ? `<dt>Längste Glückssträhne</dt><dd>${GK.formatNumber(st.bestStreak)} Gewinne in Folge</dd>` : ''}
+      <dt>Zuletzt gespielt</dt><dd>vor ${GK.formatDuration((Date.now() - st.last) / 1000)}</dd>
+    </dl>`;
+  }
+
+  // Hinweis für ältere Spielstände: die Werte je Spiel zählen erst seit dem Update
+  function statsSinceText() {
+    const since = casino().statsSince;
+    return since ? `Gezählt seit ${new Date(since).toLocaleDateString('de-DE')}.` : '';
+  }
+
+  // Aufklappbare Statistik im Spiel neu zeichnen, falls sie offen ist
+  function refreshGameStats(gameId) {
+    const game = games.find(g => g.id === gameId);
+    const panel = game && game.root && game.root.querySelector('.game-stats');
+    if (panel && !panel.hidden) {
+      panel.innerHTML = `<h3>📊 Deine Statistik</h3>${statsHTML(gameId)}<p class="muted small">${statsSinceText()}</p>`;
+    }
+  }
+
+  // Alle gespielten Spiele für den Statistik-Tab, meistgespielte zuerst
+  let lastAllStats = '';
+  function renderAllStats(el) {
+    const ids = Object.keys(casino().stats).filter(id => casino().stats[id].rounds > 0)
+      .sort((a, b) => casino().stats[b].rounds - casino().stats[a].rounds);
+    const html = ids.length
+      ? ids.map(id => `<div class="game-stats-card"><h3>${gameName(id)}</h3>${statsHTML(id).replace(/<dt>Zuletzt gespielt.*?<\/dd>/s, '')}</div>`).join('')
+      : `<p class="muted">${casino().statsSince ? 'Seit dem Update noch keine Casino-Runde gespielt.' : 'Noch keine Casino-Runden gespielt.'}</p>`;
+    const full = html + (statsSinceText() ? `<p class="muted small game-stats-note">${statsSinceText()}</p>` : '');
+    if (full !== lastAllStats || !el.innerHTML) {
+      lastAllStats = full;
+      el.innerHTML = full;
+    }
   }
 
   // ---------- Einsatz-Auswahl (wird von allen Spielen benutzt) ----------
@@ -276,9 +353,20 @@ window.GK = window.GK || {};
         <div class="game-header">
           <button class="btn back-btn">← Lobby</button>
           <h2>${game.emoji} ${game.name}</h2>
+          <button class="btn game-stats-btn" aria-expanded="false">📊 Statistik</button>
         </div>
+        <div class="game-stats casino-info-box" hidden></div>
         <div class="game-body"></div>`;
       root.querySelector('.back-btn').addEventListener('click', () => openGame(null));
+      const statsBtn = root.querySelector('.game-stats-btn');
+      statsBtn.addEventListener('click', () => {
+        const panel = root.querySelector('.game-stats');
+        panel.hidden = !panel.hidden;
+        statsBtn.classList.toggle('active', !panel.hidden);
+        statsBtn.setAttribute('aria-expanded', String(!panel.hidden));
+        refreshGameStats(game.id);
+        GK.sound.play('click');
+      });
       container.appendChild(root);
       game.root = root;
       game.init(root.querySelector('.game-body'));
@@ -357,6 +445,6 @@ window.GK = window.GK || {};
 
   GK.casino = {
     register, registerName, data, bet, payout, refund, record, createBetControl, init, render, refresh, openGame, show,
-    VIP_LEVELS, vipLevel, maxBet, buyVip,
+    VIP_LEVELS, vipLevel, maxBet, buyVip, gameStats, statsHTML, renderAllStats,
   };
 })();

@@ -1311,6 +1311,52 @@ button.casino-card:active {
   margin: 0;
 }
 
+/* ---------- Statistik je Spiel ---------- */
+.game-stats-btn {
+  margin-left: auto;
+}
+
+.game-stats-btn.active {
+  background: var(--gold-grad);
+  color: #2a1d00;
+}
+
+.game-stats {
+  max-width: 560px;
+  margin: 0 auto 16px;
+}
+
+.game-stats h3,
+.game-stats-card h3 {
+  margin: 0 0 8px;
+  color: var(--gold);
+}
+
+.game-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.game-stats-card {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-panel);
+}
+
+.game-stats-list .win {
+  color: var(--win);
+}
+
+.game-stats-list .loss {
+  color: var(--loss);
+}
+
+.game-stats-note {
+  grid-column: 1 / -1;
+}
+
 .game-message {
   min-height: 1.6em;
   margin: 12px 0;

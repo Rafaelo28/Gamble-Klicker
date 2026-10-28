@@ -179,6 +179,7 @@ window.GK = window.GK || {};
     $('stat-buildings').textContent = GK.formatNumber(GK.clicker.totalBuildings());
     $('stat-upgrades').textContent = GK.formatNumber(s.upgrades.length);
     $('stat-playtime').textContent = GK.formatDuration(s.playTime);
+    if (s.ui.tab === 'stats') GK.casino.renderAllStats($('game-stats-all'));
     $('last-saved').textContent = GK.storageAvailable
       ? 'vor ' + GK.formatDuration((Date.now() - s.lastSaved) / 1000)
       : 'nicht möglich';
