@@ -406,6 +406,13 @@ Einsatz verloren geht.
   Perlenreihe. Erfolg „Gleichstand“.
 - Alle Runden werden sofort gespeichert; Ziehungen und Hände stehen beim Start fest (Neuladen rechnet ab).
 
+### Erweiterung: Kniffel mit Freunden ✅
+- **📝 Kniffel** (Spiele mit Freunden, auf `room.js`): 5 Würfel, bis zu 3 Würfe pro Zug, Würfel antippen zum Halten,
+  dann ein Feld im Spielblock wählen und eintragen (oder mit 0 streichen). Voller Block (13 Felder, 35 Bonus ab 63
+  in der oberen Hälfte) oder schnell (7 Felder der unteren Hälfte). 2–4 Spieler, gegen Computer oder online.
+  Computer-Gegner halten sinnvoll (Paschs, Straßen) und wählen Felder nach einer einfachen Bewertung.
+  Gleichstand: obere Hälfte, dann Sitzreihenfolge. Erfolge „Würfelkönig“ und „Kniffel!“.
+
 ## Entscheidungen
 
 ### Multiplayer: Wie spielen die Freunde zusammen? → **Variante A**

@@ -6000,6 +6000,198 @@ body.reduced-effects .golden-coin {
   }
 }
 
+/* ---------- Kniffel ---------- */
+.casino-card[data-game="kniffel"] { --accent: rgba(240, 240, 240, 0.35); }
+
+.kf-table {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.kf-table .kf-log {
+  grid-column: 1 / -1;
+}
+
+.kf-board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 14px 22px;
+  border: 6px solid var(--rail);
+  border-radius: 26px;
+  background: var(--felt);
+  box-shadow: var(--rail-glow);
+}
+
+.kf-turn {
+  min-height: 2.6em;
+  font-weight: 700;
+  text-align: center;
+}
+
+.kf-dice {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  padding-bottom: 14px;
+}
+
+.kf-die {
+  position: relative;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: none;
+  cursor: default;
+  touch-action: manipulation;
+  transition: transform 0.15s;
+}
+
+.kf-die .die {
+  --d: 58px;
+}
+
+.kf-die.can {
+  cursor: pointer;
+}
+
+.kf-die.held {
+  transform: translateY(-8px);
+}
+
+.kf-die.held .die {
+  box-shadow: 0 0 0 3px var(--gold), 0 0 14px rgba(245, 197, 66, 0.7);
+}
+
+.kf-held {
+  position: absolute;
+  left: 50%;
+  bottom: -18px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  white-space: nowrap;
+  color: var(--gold-light);
+  transform: translateX(-50%);
+}
+
+.die.roll {
+  animation: dice-roll 0.5s ease-out;
+}
+
+.kf-actions .game-actions {
+  margin: 4px 0 0;
+}
+
+.kf-sheet-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-panel);
+}
+
+.kf-sheet {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.kf-sheet th,
+.kf-sheet td {
+  padding: 7px 8px;
+  border-bottom: 1px solid var(--border-soft);
+  text-align: center;
+}
+
+.kf-sheet tbody th {
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.kf-sheet tbody th small {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.kf-sheet thead th {
+  font-size: 0.8rem;
+  vertical-align: bottom;
+}
+
+.kf-sheet thead th.turn {
+  color: var(--gold-light);
+  box-shadow: inset 0 -3px 0 var(--gold);
+}
+
+.kf-sheet thead th.out {
+  opacity: 0.5;
+}
+
+.kf-cell.filled {
+  font-weight: 800;
+}
+
+.kf-cell.zero {
+  color: var(--text-muted);
+}
+
+.kf-cell.last {
+  background: rgba(245, 197, 66, 0.18);
+}
+
+.kf-cell.can {
+  padding: 10px 8px;
+  background: rgba(111, 220, 140, 0.08);
+  font-style: italic;
+  color: #9fe0b0;
+  cursor: pointer;
+}
+
+.kf-cell.can.zero {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.kf-cell.picked {
+  background: rgba(245, 197, 66, 0.35);
+  box-shadow: inset 0 0 0 2px var(--gold);
+  font-style: normal;
+  font-weight: 800;
+  color: #fff;
+}
+
+.kf-sum th,
+.kf-sum td {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.kf-sum.total th,
+.kf-sum.total td {
+  font-size: 1rem;
+  color: var(--gold-light);
+}
+
+@media (hover: hover) {
+  .kf-cell.can:hover {
+    background: rgba(111, 220, 140, 0.2);
+  }
+
+  .kf-die.can:hover {
+    transform: translateY(-3px);
+  }
+}
+
+@media (max-width: 900px) {
+  .kf-table {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ---------- Vier gewinnt ---------- */
 .casino-card[data-game="connect4"] { --accent: rgba(230, 60, 60, 0.45); }
 
