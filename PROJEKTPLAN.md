@@ -413,6 +413,15 @@ Einsatz verloren geht.
   Computer-Gegner halten sinnvoll (Paschs, Straßen) und wählen Felder nach einer einfachen Bewertung.
   Gleichstand: obere Hälfte, dann Sitzreihenfolge. Erfolge „Würfelkönig“ und „Kniffel!“.
 
+### Erweiterung: Mau-Mau mit Freunden ✅
+- **🃏 Mau-Mau** (Spiele mit Freunden, auf `room.js`): 32 Karten, je 5 auf die Hand. Gleiche Farbe oder gleicher
+  Wert auf die Ablage, sonst eine Karte ziehen (die man gleich legen darf) oder passen. **7**: der Nächste zieht
+  zwei, mit einer 7 weitergeben stapelt (+2 je 7). **8**: der Nächste setzt aus. **Bube**: passt immer (nicht auf
+  einen Buben), man wünscht sich eine Farbe. Ist der Stapel leer, wird die Ablage neu gemischt.
+- Wer zuerst keine Karten mehr hat, gewinnt; die anderen werden nach Kartenzahl, dann Kartenwert platziert.
+  2–4 Spieler, gegen Computer oder online; fremde Karten werden nie verschickt. Erfolge „Mau-Mau!“ und
+  „Siebener-Kette“.
+
 ## Entscheidungen
 
 ### Multiplayer: Wie spielen die Freunde zusammen? → **Variante A**

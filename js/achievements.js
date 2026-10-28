@@ -85,6 +85,8 @@ window.GK = window.GK || {};
     { id: 'pokerThrone', icon: '🏰', name: 'Herrscher des Throns',  desc: 'Ein Turnier am Thron des Kaisers gewonnen.' },
     { id: 'diceWin',     icon: '🎲', name: 'Meisterlügner',         desc: 'Eine Partie Lügenwürfel gewonnen.' },
     { id: 'kniffelWin',  icon: '📝', name: 'Würfelkönig',           desc: 'Eine Partie Kniffel gewonnen.' },
+    { id: 'maumauWin',   icon: '🃏', name: 'Mau-Mau!',              desc: 'Eine Partie Mau-Mau gewonnen.' },
+    { id: 'maumauStack', icon: '7️⃣', name: 'Siebener-Kette',         desc: 'Bei Mau-Mau eine 7 draufgelegt, sodass der Nächste 6 Karten ziehen muss.' },
     { id: 'kniffel50',   icon: '🎲', name: 'Kniffel!',              desc: 'Bei Kniffel fünf gleiche gewürfelt und als Kniffel eingetragen.' },
     { id: 'golfWin',     icon: '⛳', name: 'Golfkapitän',           desc: 'Eine Runde Minigolf gewonnen.' },
     { id: 'golfAce',     icon: '🕳️', name: 'Ass!',                  desc: 'Beim Minigolf mit einem Schlag eingelocht.' },

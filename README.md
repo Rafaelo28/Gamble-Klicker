@@ -130,7 +130,7 @@ Den Fahrplan mit allen Phasen findest du in [PROJEKTPLAN.md](PROJEKTPLAN.md).
 - 🍀 Glücksrad · 🪙 Münzfall · 🏝️ Schatzinsel · 💣 Kanonenkugel · ⛵ Schiffsrennen · ✈️ Flugkapitän · 🐔 Chicken Road
   · 🧗 Mast-Kletterei · 🗺️ Schatzkarten-Keno · 🔼 Höher oder tiefer · 🎴 Baccarat
 - 🏴‍☠️ 🐙 🌋 Drei Video-Slots mit Freispielen und Bonusrunde
-- 🎲 Lügenwürfel, 📝 Kniffel, ⛳ Minigolf, 🎱 Billard, 🔴 Vier gewinnt, ⚓ Seeschlacht, 🎯 Darts und 💥 Kanonenduell gegen Computer und online mit Freunden
+- 🎲 Lügenwürfel, 📝 Kniffel, 🃏 Mau-Mau, ⛳ Minigolf, 🎱 Billard, 🔴 Vier gewinnt, ⚓ Seeschlacht, 🎯 Darts und 💥 Kanonenduell gegen Computer und online mit Freunden
 - ♠️ Poker als Turnier gegen Computer-Gegner und online mit Freunden
 - 🏆 Erfolge, goldene Dublone, Offline-Einnahmen, große Fahrt (Prestige) und VIP-Karten
 - 🔊 Soundeffekte, ✨ Gewinn-Animationen, 📱 iPad-Optimierung
@@ -153,6 +153,7 @@ node tests/cannon.test.js
 node tests/chicken.test.js
 node tests/kraken.test.js
 node tests/kniffel.test.js
+node tests/maumau.test.js
 ```
 Prüft die Poker-Handbewertung, spielt komplette Turniere zwischen Computer-Gegnern durch
 (auch mit Spielern, die mittendrin aufgeben, im Turbo- und im Blitz-Modus) und kontrolliert die

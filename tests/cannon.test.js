@@ -81,15 +81,16 @@ const src = fs.readFileSync(R + 'mp/cannon.js', 'utf8');
 
 // Computer-Gegner: der beste Schuss trifft, und komplette Partien enden
 {
+  // 200 Schüsse, damit der Zufall den Test nicht kippen lässt (im Schnitt trifft er gut 80 %)
   let hits = 0;
-  for (let i = 0; i < 40; i++) {
+  for (let i = 0; i < 200; i++) {
     const st = C.create(bots(1, 1));
     const s = st.turn;
     C.act(st, s, C.botAct(st, s));
     if (st.lastShot.damage[1 - s] > 0) hits++;
   }
-  console.log('Starker Computer trifft', hits, 'von 40');
-  assert(hits >= 28, 'starker Computer trifft meistens');
+  console.log('Starker Computer trifft', hits, 'von 200');
+  assert(hits >= 140, 'starker Computer trifft meistens');
 }
 let strongWins = 0;
 for (let g = 0; g < 40; g++) {
