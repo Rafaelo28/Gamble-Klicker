@@ -2788,6 +2788,24 @@ button.casino-card:active {
   max-width: 640px;
 }
 
+/* Schalter für das passive Einkommen unter den Gebäuden */
+.passive-toggle {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: none;
+  cursor: pointer;
+}
+
+.passive-hint {
+  display: block;
+  margin-top: 2px;
+}
+
+.building-list.paused .building-meta {
+  opacity: 0.6;
+}
+
 .transfer-box textarea {
   width: 100%;
   padding: 8px;

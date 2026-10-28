@@ -130,7 +130,7 @@ window.GK = window.GK || {};
   // Beim Laden: Einnahmen seit dem letzten Speichern gutschreiben
   function applyOfflineEarnings() {
     const seconds = (Date.now() - GK.state.lastSaved) / 1000;
-    if (seconds < 60) return;
+    if (seconds < 60 || !GK.clicker.passiveActive()) return;
     const counted = Math.min(seconds, OFFLINE_MAX);
     const amount = GK.clicker.getCpsPermanent() * counted * OFFLINE_RATE;
     if (amount < 1) return;

@@ -34,6 +34,7 @@ Schnelle Klicks bauen eine **Combo** auf, mit etwas Glück landest du einen **kr
 16 Gebäude vom Hilfsfinger bis zum Sternenportal, Gebäude-Upgrades in neun Stufen bis *Götter*,
 Synergien zwischen den Gebäuden und Upgrades für alle Gebäude zusammen.
 Direkt unter der Klick-Münze wartet der **Side-Slot**: klicken und nebenbei zocken.
+Wer lieber nur klickt, kann das **passive Einkommen** der Gebäude unter der Gebäude-Liste ausschalten.
 Alle Automaten startet man mit einem echten **Hebel** – herunterziehen oder antippen.
 Beträge lassen sich abgekürzt eingeben: `500k`, `2,5M`, `1B` (Milliarde), `3 Mio.` …
 Jedes Casino-Spiel hat seine eigene **📊 Statistik** (im Spiel und unter *Statistiken*).

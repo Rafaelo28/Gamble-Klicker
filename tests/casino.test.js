@@ -2,10 +2,33 @@
 global.window = global;
 const R = require('path').join(__dirname, '..', 'js') + '/';
 require(R + 'casino/casino.js');
-['slot-machine', 'scratch', 'wheel', 'plinko', 'mines', 'crash', 'race', 'flight', 'video-slots'].forEach(f => require(R + 'casino/' + f + '.js'));
+['slot-machine', 'scratch', 'wheel', 'plinko', 'mines', 'crash', 'race', 'flight', 'video-slots', 'roulette'].forEach(f => require(R + 'casino/' + f + '.js'));
 const assert = (cond, msg) => { if (!cond) { console.log('FAIL', msg); process.exitCode = 1; } };
 const between = (x, lo, hi, msg) => assert(x >= lo && x <= hi, `${msg}: ${x}`);
 const C = GK.casino;
+
+// Roulette: Kessel mit 0–36, Farben im Wechsel, jede Wette zahlt im Schnitt 36/37 zurück, jede Zahl gleich oft
+{
+  const M = C.rouletteMath;
+  const order = M.WHEEL_ORDER;
+  assert(order.length === 37 && new Set(order).size === 37 && order.every(n => n >= 0 && n <= 36) && order[0] === 0, 'Roulette: Kessel mit 0–36');
+  assert(M.RED.size === 18 && !M.RED.has(0), 'Roulette: 18 rote Zahlen');
+  for (let i = 1; i < 36; i++) assert(M.colorOf(order[i]) !== M.colorOf(order[i + 1]), `Roulette: Farben wechseln bei ${order[i]}`);
+  const keys = Object.keys(M.OUTSIDE_BETS).concat(order.map(n => 'n' + n));
+  keys.forEach(key => {
+    const bet = M.betInfo(key);
+    let back = 0;
+    for (let r = 0; r <= 36; r++) if (bet.wins(r)) back += bet.mult / 37;
+    assert(Math.abs(back - 36 / 37) < 1e-12, `Roulette: Wette ${key} zahlt im Schnitt ${back}`);
+  });
+  // Zufall: jede Zahl (auch die 0) gleich oft – Chi-Quadrat mit 36 Freiheitsgraden (99,99 %-Grenze ≈ 78)
+  const n = 370000;
+  const counts = new Array(37).fill(0);
+  for (let i = 0; i < n; i++) counts[GK.rng.int(37)]++;
+  const chi = counts.reduce((sum, c) => sum + (c - n / 37) ** 2 / (n / 37), 0);
+  assert(chi < 85, `Roulette: Zufall gleichmäßig (Chi-Quadrat ${chi.toFixed(1)})`);
+  between(counts[0] / n, 0.0255, 0.0286, 'Roulette: Anteil der 0');
+}
 
 // Rubbellose: fast jedes zweite Los gewinnt, Rückzahlung knapp unter dem Einsatz
 between(C.scratchRtp(), 0.97, 1.0, 'Rubbellose Quote');
