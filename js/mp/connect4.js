@@ -202,7 +202,7 @@ window.GK = window.GK || {};
     current = { view: v, ui };
     setHtml(container.querySelector('.c4-players'), v.players.map((p, seat) => `
       <div class="pool-player c4-player ${v.turn === seat && v.phase === 'play' ? 'active' : ''}">
-        <span class="c4-disc ${DISCS[seat]}"></span> ${p.avatar} ${esc(p.name)}${seat === ui.mySeat ? ' (du)' : ''}
+        <span class="c4-disc ${DISCS[seat]}"></span> ${GK.cosmetics.nameTag(p)}${seat === ui.mySeat ? ' (du)' : ''}
       </div>`).join('<span class="pool-vs">vs</span>'));
     const myTurn = v.phase === 'play' && v.turn === ui.mySeat;
     const win = new Set((v.winLine || []).map(([c, r]) => `${c}:${r}`));

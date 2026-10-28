@@ -45,7 +45,7 @@ GK.poker = GK.poker || {};
     return `<div class="${classes.join(' ')}">
       <div class="seat-cards">${p.out ? '' : p.cards.map((c, i) => GK.cards.html(c, !showCards, cardClass, cardStyle(i))).join('')}</div>
       <div class="seat-plate">
-        <div class="seat-name">${p.avatar || ''} ${escapeHtml(p.name)}${t.dealer === seat ? ' <span class="dealer-btn">D</span>' : ''}</div>
+        <div class="seat-name">${GK.cosmetics ? GK.cosmetics.nameTag(p) : `${p.avatar || ''} ${escapeHtml(p.name)}`}${t.dealer === seat ? ' <span class="dealer-btn">D</span>' : ''}</div>
         <div class="seat-chips">${GK.formatNumber(p.chips)} Chips</div>
         <div class="seat-status">${status ? escapeHtml(status) : '&nbsp;'}</div>
       </div>

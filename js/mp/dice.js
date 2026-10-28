@@ -241,7 +241,7 @@ window.GK = window.GK || {};
         ? p.dice.map(d => dieHtml(d, d === matchFace || d === 1 ? 'match small' : 'small')).join('')
         : p.out ? '' : `<span class="dice-cup">🥤</span><span class="dice-count">${p.count}</span>`;
       return `<div class="${cls.join(' ')}">
-        <div class="dice-name">${p.avatar} ${esc(p.name)}</div>
+        <div class="dice-name">${GK.cosmetics.nameTag(p)}</div>
         <div class="dice-row">${p.out ? `☠️ ${p.place}. Platz` : dice}</div>
         <div class="dice-status">${p.lastBid ? `bietet <b>${p.lastBid.replace(/(\d+)× (\d)/, '$1 × $2')}</b>` : '&nbsp;'}</div>
       </div>`;
@@ -256,7 +256,7 @@ window.GK = window.GK || {};
           ${ok ? 'das Gebot stimmt!' : 'gelogen!'} <b>${esc(v.players[reveal.loser].name)}</b> verliert einen Würfel.</div>`;
     } else if (v.phase === 'finished') {
       const winner = v.players.find(p => p.place === 1);
-      center = `<div class="dice-bid">🏆 ${winner ? `${winner.avatar} ${esc(winner.name)} gewinnt!` : 'Spiel vorbei'}</div>`;
+      center = `<div class="dice-bid">🏆 ${winner ? `${GK.cosmetics.nameTag(winner)} gewinnt!` : 'Spiel vorbei'}</div>`;
     } else if (v.bid) {
       center = `<div class="dice-bid">Gebot von ${esc(v.players[v.bid.seat].name)}: <b>${v.bid.q} ×</b> ${dieHtml(v.bid.f)}</div>
         <div class="muted small">Insgesamt liegen ${totalDice(v)} Würfel auf dem Tisch.</div>`;

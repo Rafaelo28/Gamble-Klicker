@@ -33,6 +33,15 @@
   --glow-1: rgba(52, 120, 84, 0.55);
   --glow-2: rgba(120, 80, 10, 0.25);
   --glow-3: rgba(20, 90, 60, 0.3);
+  /* Casino-Look (Schatzkammer): Filz der Spieltische, Bande und Kartenrücken */
+  --felt: radial-gradient(ellipse at center, #17784a 0%, #0b5a32 70%);
+  --felt-flat: #0b5a32;
+  --rail: #5a3a1a;
+  --rail-glow: 0 0 0 transparent;
+  --card-back: radial-gradient(circle at 50% 50%, rgba(245, 197, 66, 0.5) 0 18%, transparent 19%), repeating-linear-gradient(45deg, #7b1e1e 0 6px, #962626 6px 12px);
+  --card-back-edge: #fdfdfd;
+  --card-back-mark: '';
+  --card-back-mark-color: transparent;
 }
 
 /* Münz-Design (Schatzkammer): Standard ist die Golddublone */
@@ -1540,10 +1549,24 @@ button.casino-card:active {
 }
 
 .card-back {
-  background:
-    radial-gradient(circle at 50% 50%, rgba(245, 197, 66, 0.5) 0 18%, transparent 19%),
-    repeating-linear-gradient(45deg, #7b1e1e 0 6px, #962626 6px 12px);
-  border: 3px solid #fdfdfd;
+  background: var(--card-back);
+  border: 3px solid var(--card-back-edge);
+}
+
+/* Zeichen in der Mitte des Kartenrückens (Casino-Look „Schatzkarte“ und „Kaisertisch“) */
+.card-back::after {
+  content: var(--card-back-mark);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--card-back-mark-color);
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.card-back.small::after {
+  font-size: 1rem;
 }
 
 .card-placeholder {
@@ -2321,7 +2344,7 @@ button.casino-card:active {
   grid-template-rows: repeat(5, 44px);
   gap: 3px;
   min-width: 520px;
-  background: #0b5a32;
+  background: var(--felt);
   border: 3px solid var(--gold-dark);
   border-radius: 10px;
   padding: 6px;
@@ -2378,8 +2401,9 @@ button.casino-card:active {
 .bj-table {
   max-width: 760px;
   margin: 0 auto;
-  background: radial-gradient(ellipse at center, #17784a 0%, #0b5a32 70%);
-  border: 6px solid #5a3a1a;
+  background: var(--felt);
+  border: 6px solid var(--rail);
+  box-shadow: var(--rail-glow);
   border-radius: 24px 24px 120px 120px;
   padding: 20px 20px 36px;
 }
@@ -2521,10 +2545,10 @@ button.casino-card:active {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: radial-gradient(ellipse at center, #17784a 0%, #0b5a32 70%);
-  border: 10px solid #5a3a1a;
+  background: var(--felt);
+  border: 10px solid var(--rail);
   border-radius: 50%;
-  box-shadow: 0 0 0 3px var(--gold-dark), 0 10px 30px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 0 3px var(--gold-dark), 0 10px 30px rgba(0, 0, 0, 0.5), var(--rail-glow);
 }
 
 .poker-board {
@@ -4445,9 +4469,9 @@ body.reduced-effects .golden-coin {
   gap: 14px;
   padding: 18px 12px;
   border-radius: 28px;
-  background: radial-gradient(ellipse at center, #17784a 0%, #0b5a32 70%);
-  border: 6px solid #5a3a1a;
-  box-shadow: var(--shadow);
+  background: var(--felt);
+  border: 6px solid var(--rail);
+  box-shadow: var(--shadow), var(--rail-glow);
 }
 
 .dice-seats {
@@ -6224,4 +6248,224 @@ body.reduced-effects .coin-skin-crystal .big-coin-inner {
   display: block;
   font-size: 3rem;
   line-height: 1.2;
+}
+
+/* ---------- Casino-Look: Filz, Bande und Kartenrücken ---------- */
+.table-look-felt {
+  --felt: radial-gradient(ellipse at center, #17784a 0%, #0b5a32 70%);
+  --felt-flat: #0b5a32;
+  --rail: #5a3a1a;
+  --rail-glow: 0 0 0 transparent;
+  --card-back: radial-gradient(circle at 50% 50%, rgba(245, 197, 66, 0.5) 0 18%, transparent 19%), repeating-linear-gradient(45deg, #7b1e1e 0 6px, #962626 6px 12px);
+  --card-back-edge: #fdfdfd;
+  --card-back-mark: '';
+  --card-back-mark-color: transparent;
+}
+
+:root[data-table="velvet"],
+.table-look-velvet {
+  --felt: radial-gradient(ellipse at center, #2a6fc0 0%, #123a73 72%);
+  --felt-flat: #123a73;
+  --rail: #2b1d12;
+  --card-back: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.4) 0 16%, transparent 17%), repeating-linear-gradient(45deg, #1d4f9a 0 6px, #2a64b8 6px 12px);
+  --card-back-edge: #f2f6ff;
+  --rail-glow: 0 0 0 transparent;
+  --card-back-mark: '';
+  --card-back-mark-color: transparent;
+}
+
+:root[data-table="bordeaux"],
+.table-look-bordeaux {
+  --felt: radial-gradient(ellipse at center, #9a2a3a 0%, #520f1c 72%);
+  --felt-flat: #520f1c;
+  --rail: #3a1f10;
+  --card-back: radial-gradient(circle at 50% 50%, rgba(245, 197, 66, 0.6) 0 18%, transparent 19%), repeating-linear-gradient(-45deg, #6e1422 0 5px, #8a1d2e 5px 10px);
+  --card-back-edge: #f5c542;
+  --rail-glow: 0 0 0 transparent;
+  --card-back-mark: '';
+  --card-back-mark-color: transparent;
+}
+
+:root[data-table="ebony"],
+.table-look-ebony {
+  --felt: radial-gradient(ellipse at center, #3a3a42 0%, #121216 74%);
+  --felt-flat: #16161b;
+  --rail: #26262c;
+  --rail-glow: 0 0 0 2px rgba(201, 209, 216, 0.35);
+  --card-back:
+    repeating-linear-gradient(45deg, rgba(220, 225, 235, 0.4) 0 2px, transparent 2px 9px),
+    repeating-linear-gradient(-45deg, rgba(220, 225, 235, 0.4) 0 2px, transparent 2px 9px),
+    #15151a;
+  --card-back-edge: #c9d1d8;
+  --card-back-mark: '';
+  --card-back-mark-color: transparent;
+}
+
+:root[data-table="map"],
+.table-look-map {
+  --felt:
+    repeating-linear-gradient(0deg, transparent 0 46px, rgba(60, 30, 10, 0.16) 46px 48px),
+    repeating-linear-gradient(90deg, transparent 0 46px, rgba(60, 30, 10, 0.16) 46px 48px),
+    radial-gradient(ellipse at center, #9c7240 0%, #5a3a17 76%);
+  --felt-flat: #6b4722;
+  --rail: #3b2410;
+  --card-back: repeating-linear-gradient(45deg, #d6b47a 0 6px, #c39c5e 6px 12px);
+  --card-back-edge: #5a3a17;
+  --card-back-mark: '☠\FE0E';
+  --card-back-mark-color: #3b2410;
+  --rail-glow: 0 0 0 transparent;
+}
+
+:root[data-table="emperor"],
+.table-look-emperor {
+  --felt:
+    radial-gradient(circle at 50% 50%, rgba(245, 197, 66, 0.12) 0 2px, transparent 3px) 0 0 / 22px 22px,
+    radial-gradient(ellipse at center, #241d12 0%, #070604 76%);
+  --felt-flat: #0d0b07;
+  --rail: #b8860b;
+  --rail-glow: 0 0 22px rgba(245, 197, 66, 0.45);
+  --card-back: radial-gradient(circle at 35% 25%, #fff3b0 0%, #f5c542 35%, #c38d12 70%, #8a6508 100%);
+  --card-back-edge: #fff3b0;
+  --card-back-mark: '♛';
+  --card-back-mark-color: #5a3d00;
+}
+
+/* Vorschau in der Schatzkammer: kleiner Tisch mit zwei Karten */
+.table-swatch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 104px;
+  height: 64px;
+  border-radius: 32px;
+  border: 5px solid var(--rail);
+  background: var(--felt);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45), var(--rail-glow);
+}
+
+.ts-card {
+  position: relative;
+  width: 22px;
+  height: 31px;
+  border-radius: 3px;
+  border: 2px solid var(--card-back-edge);
+  background: var(--card-back);
+}
+
+.ts-card::after {
+  content: var(--card-back-mark);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--card-back-mark-color);
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.ts-card + .ts-card {
+  transform: rotate(10deg);
+}
+
+/* ---------- Namensschilder in Spielen mit Freunden ---------- */
+.nametag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 1px 8px 1px 6px;
+  border-radius: 999px;
+  border: 1px solid var(--nt);
+  background: var(--nt-bg);
+  box-shadow: 0 0 8px var(--nt-glow);
+  vertical-align: middle;
+  line-height: 1.5;
+}
+
+.nt-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nt-title {
+  flex: none;
+  color: var(--nt);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.nt-helmsman {
+  --nt: #dfe6ec;
+  --nt-bg: linear-gradient(180deg, rgba(223, 230, 236, 0.22), rgba(120, 132, 144, 0.12));
+  --nt-glow: rgba(223, 230, 236, 0.2);
+}
+
+.nt-hunter {
+  --nt: #6fdc8c;
+  --nt-bg: linear-gradient(180deg, rgba(60, 150, 90, 0.35), rgba(20, 70, 40, 0.3));
+  --nt-glow: rgba(111, 220, 140, 0.25);
+  border-style: dashed;
+}
+
+.nt-captain {
+  --nt: #b4c3ff;
+  --nt-bg: linear-gradient(90deg, rgba(50, 80, 210, 0.45), rgba(140, 60, 210, 0.45));
+  --nt-glow: rgba(140, 120, 255, 0.5);
+}
+
+.nt-kraken {
+  --nt: #5ff0dc;
+  --nt-bg: linear-gradient(90deg, rgba(0, 90, 100, 0.55), rgba(20, 40, 90, 0.55));
+  --nt-glow: rgba(79, 209, 197, 0.45);
+  animation: kraken-glow 2.4s ease-in-out infinite alternate;
+}
+
+@keyframes kraken-glow {
+  to { box-shadow: 0 0 16px rgba(79, 209, 197, 0.85); }
+}
+
+.nt-admiral {
+  --nt: #ffe58a;
+  --nt-glow: rgba(245, 197, 66, 0.6);
+  border-color: #f5c542;
+  background: linear-gradient(110deg, rgba(110, 72, 0, 0.6) 30%, rgba(255, 229, 138, 0.55) 50%, rgba(110, 72, 0, 0.6) 70%) 0 0 / 250% 100%;
+  animation: admiral-shine 3.2s linear infinite;
+}
+
+@keyframes admiral-shine {
+  from { background-position: 125% 0; }
+  to { background-position: -125% 0; }
+}
+
+body.reduced-effects .nt-kraken,
+body.reduced-effects .nt-admiral {
+  animation: none;
+}
+
+.profile-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  font-weight: 700;
+}
+
+/* Am Poker-Platz ist wenig Platz: Titel unter den Namen */
+.seat-name .nametag {
+  flex-direction: column;
+  gap: 0;
+  padding: 1px 10px 2px;
+  border-radius: 10px;
+  line-height: 1.25;
+}
+
+.seat-name .nt-title {
+  font-size: 0.56rem;
 }

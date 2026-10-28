@@ -7,15 +7,15 @@ require(R + 'cosmetics.js');
 const assert = (cond, msg) => { if (!cond) { console.log('FAIL', msg); process.exitCode = 1; } };
 const C = GK.cosmetics;
 
-// Katalog: 3 Kategorien mit Standard + 5 Cosmetics (2 selten, 2 episch, 1 legendär), eindeutige IDs
-assert(C.CATEGORIES.length === 3, 'drei Kategorien');
+// Katalog: 5 Kategorien mit Standard + 5 Cosmetics (2 selten, 2 episch, 1 legendär), eindeutige IDs
+assert(C.CATEGORIES.length === 5, 'fünf Kategorien');
 C.CATEGORIES.forEach(cat => {
   const r = cat.items.map(i => i.rarity);
   assert(cat.items.length === 6 && r[0] === 'common', `${cat.name}: Standard + 5`);
   assert(r.filter(x => x === 'rare').length === 2 && r.filter(x => x === 'epic').length === 2 && r.filter(x => x === 'legendary').length === 1,
     `${cat.name}: 2 selten, 2 episch, 1 legendär`);
 });
-assert(new Set(C._ITEMS.map(i => i.id)).size === C._ITEMS.length && C.total === 15, 'eindeutige IDs, 15 zum Sammeln');
+assert(new Set(C._ITEMS.map(i => i.id)).size === C._ITEMS.length && C.total === 25, 'eindeutige IDs, 25 zum Sammeln');
 // Je seltener, desto teurer – in Dublonen und in Gebäuden
 const { rare, epic, legendary } = C.RARITIES;
 assert(rare.price < epic.price && epic.price < legendary.price, 'Preise steigen');
@@ -32,7 +32,8 @@ for (let k = 0; k < 20000; k++) {
   items.forEach(id => { seen[C._ITEMS.find(i => i.id === id).rarity]++; });
 }
 // pro Cosmetic: seltene Sachen landen häufiger auf dem Rad als legendäre
-assert(seen.rare / 6 > seen.epic / 6 && seen.epic / 6 > seen.legendary / 3, `Rad: selten > episch > legendär (${JSON.stringify(seen)})`);
+const per = r => seen[r] / C._ITEMS.filter(i => i.rarity === r).length;
+assert(per('rare') > per('epic') && per('epic') > per('legendary'), `Rad: selten > episch > legendär (${JSON.stringify(seen)})`);
 // Fast alles gesammelt: nur die fehlenden stehen auf dem Rad, der Rest ist Flaute
 GK.state.cosmetics.owned = C._ITEMS.filter(i => i.rarity !== 'common' && !['royal', 'flames'].includes(i.id)).map(i => i.id);
 for (let k = 0; k < 200; k++) {
@@ -40,4 +41,9 @@ for (let k = 0; k < 200; k++) {
   assert(items.join() === 'flames,royal', `Rad: nur fehlende Cosmetics (${items})`);
 }
 assert(C.unownedCount() === 2, 'zwei fehlen noch');
+// Namensschilder: nur bekannte Profil-Cosmetics, Namen werden maskiert
+assert(C.validBadge('admiral') === 'admiral' && C.validBadge('sailor') === '' && C.validBadge('cosmic') === '' && C.validBadge('<b>') === '', 'nur gültige Namensschilder');
+assert(C.nameTag({ name: '<b>Ann</b>', avatar: '🦜' }) === '🦜 &lt;b&gt;Ann&lt;/b&gt;', 'ohne Schild: Bild + maskierter Name');
+assert(/nt-admiral/.test(C.nameTag({ name: 'Ann', avatar: '🦜', badge: 'admiral' })) && /Großadmiral/.test(C.nameTag({ name: 'Ann', badge: 'admiral' })), 'mit Schild: Titel');
+assert(!/nametag/.test(C.nameTag({ name: 'Ann', badge: 'kaputt' })), 'unbekanntes Schild wird ignoriert');
 console.log(process.exitCode ? 'Schatzkammer-Tests FEHLGESCHLAGEN' : 'Schatzkammer-Tests bestanden.');

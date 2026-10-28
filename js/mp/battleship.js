@@ -253,7 +253,7 @@ window.GK = window.GK || {};
       lastShot: st.lastShot,
       log: st.log.slice(0, 6),
       players: st.players.map((p, i) => ({
-        id: p.id, name: p.name, avatar: p.avatar, isBot: p.isBot, place: p.place, out: p.out, ready: p.ready,
+        id: p.id, name: p.name, avatar: p.avatar, badge: p.badge, isBot: p.isBot, place: p.place, out: p.out, ready: p.ready,
         grid: p.grid.slice(),
         ships: (i === seat || st.phase === 'finished' ? p.ships : p.ships.filter(s => s.sunk)).map(s => ({ ...s, idx: p.ships.indexOf(s) })),
         sunk: p.ships.map(s => s.sunk),
@@ -415,7 +415,7 @@ window.GK = window.GK || {};
     wrap.classList.toggle('my-turn', myTurn);
     setHtml(container.querySelector('.bs-players'), v.players.map((p, i) => `
       <div class="pool-player ${v.turn === i && v.phase === 'battle' ? 'active' : ''}">
-        <div class="pool-name">${p.avatar} ${esc(p.name)}${i === ui.mySeat ? ' (du)' : ''}</div>
+        <div class="pool-name">${GK.cosmetics.nameTag(p)}${i === ui.mySeat ? ' (du)' : ''}</div>
         ${placing ? `<div class="pool-group">${p.ready ? '✅ bereit' : '⏳ stellt auf …'}</div>` : fleetHtml(p)}
       </div>`).join('<span class="pool-vs">vs</span>'));
     const last = v.lastShot;

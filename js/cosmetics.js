@@ -51,6 +51,28 @@ window.GK = window.GK || {};
         { id: 'royal',   name: 'Kaiserpalast', icon: '👑', rarity: 'legendary', desc: 'Schwarz und Gold – mit wanderndem Goldglanz.' },
       ],
     },
+    {
+      // Namensschild mit Titel – sehen auch die anderen in Spielen mit Freunden
+      id: 'profile', name: 'Profil für Spiele mit Freunden', icon: '🎖️', items: [
+        { id: 'sailor',   name: 'Matrose',        icon: '⛵', rarity: 'common',    title: '',               desc: 'Name und Bild – ganz schlicht.' },
+        { id: 'helmsman', name: 'Steuermann',     icon: '🧭', rarity: 'rare',      title: 'Steuermann',     desc: 'Silbernes Namensschild mit Titel.' },
+        { id: 'hunter',   name: 'Schatzjäger',    icon: '🗺️', rarity: 'rare',      title: 'Schatzjäger',    desc: 'Grünes Schild mit gestricheltem Kartenrand.' },
+        { id: 'captain',  name: 'Kapitän',        icon: '⚓', rarity: 'epic',      title: 'Kapitän',        desc: 'Leuchtet in Tiefblau und Violett.' },
+        { id: 'kraken',   name: 'Krakenbändiger', icon: '🦑', rarity: 'epic',      title: 'Krakenbändiger', desc: 'Dunkles Meeresgrün, das in Wellen glüht.' },
+        { id: 'admiral',  name: 'Großadmiral',    icon: '🎖️', rarity: 'legendary', title: 'Großadmiral',    desc: 'Goldenes Schild mit wanderndem Glanz – alle am Tisch sehen es.' },
+      ],
+    },
+    {
+      // Filz der Spieltische (Blackjack, Poker, Roulette, Lügenwürfel) und die Kartenrücken
+      id: 'table', name: 'Casino-Look', icon: '🃏', items: [
+        { id: 'felt',     name: 'Grüner Filz',  icon: '🟩', rarity: 'common',    desc: 'Der klassische Spieltisch.' },
+        { id: 'velvet',   name: 'Blauer Samt',  icon: '🟦', rarity: 'rare',      desc: 'Tiefblauer Samt und blaue Kartenrücken.' },
+        { id: 'bordeaux', name: 'Bordeaux',     icon: '🍷', rarity: 'rare',      desc: 'Weinroter Filz, Karten mit goldenem Rand.' },
+        { id: 'ebony',    name: 'Ebenholz',     icon: '🖤', rarity: 'epic',      desc: 'Schwarzer Filz, silberne Rauten auf den Karten.' },
+        { id: 'map',      name: 'Schatzkarte',  icon: '📜', rarity: 'epic',      desc: 'Ein Tisch aus altem Kartenleder – ☠ auf jeder Karte.' },
+        { id: 'emperor',  name: 'Kaisertisch',  icon: '🏰', rarity: 'legendary', desc: 'Schwarz und Gold, goldene Bande und Kronen auf den Karten.' },
+      ],
+    },
   ];
 
   const ITEMS = [];
@@ -116,6 +138,40 @@ window.GK = window.GK || {};
     const theme = equipped('theme');
     if (theme === DEFAULTS.theme) delete document.documentElement.dataset.theme;
     else document.documentElement.dataset.theme = theme;
+    const table = equipped('table');
+    if (table === DEFAULTS.table) delete document.documentElement.dataset.table;
+    else document.documentElement.dataset.table = table;
+  }
+
+  // ---------- Profil in Spielen mit Freunden ----------
+
+  const escapeHtml = text => String(text == null ? '' : text).replace(/[&<>"']/g, ch =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+
+  // Eigenes Namensschild, das an die anderen geschickt wird ('' = schlicht)
+  function myBadge() {
+    const id = equipped('profile');
+    return id === DEFAULTS.profile ? '' : id;
+  }
+
+  // Von anderen empfangenes Namensschild prüfen (nur bekannte Profil-Cosmetics)
+  function validBadge(id) {
+    return byId[id] && byId[id].category === 'profile' && byId[id].rarity !== 'common' ? id : '';
+  }
+
+  // Bild + Name eines Spielers, mit Namensschild und Titel, wenn er eins trägt (p: { name, avatar, badge })
+  function nameTag(p) {
+    const base = `${p.avatar || ''} ${escapeHtml(p.name)}`.trim();
+    const item = byId[validBadge(p.badge)];
+    if (!item) return base;
+    return `<span class="nametag nt-${item.id}"><span class="nt-name">${base}</span><span class="nt-title">${item.title}</span></span>`;
+  }
+
+  // Name und Bild aus den Spielen mit Freunden (für die Vorschau)
+  function myProfile() {
+    const games = GK.state.casino.games;
+    const room = games.room || games.pokerMp || {};
+    return { name: room.name || 'Du', avatar: room.avatar || '🦜' };
   }
 
   function equip(id) {
@@ -325,6 +381,8 @@ window.GK = window.GK || {};
   function preview(item) {
     if (item.category === 'coin') return `<span class="mini-coin coin-skin-${item.id}"><span>${item.letter}</span></span>`;
     if (item.category === 'theme') return `<span class="theme-swatch" data-swatch="${item.id}"><i></i><i></i><i></i></span>`;
+    if (item.category === 'profile') return `<span class="profile-preview">${nameTag(Object.assign(myProfile(), { badge: item.id }))}</span>`;
+    if (item.category === 'table') return `<span class="table-swatch table-look-${item.id}"><i class="ts-card"></i><i class="ts-card"></i></span>`;
     return `<span class="effect-icon">${item.icon}</span>`;
   }
 
@@ -396,6 +454,7 @@ window.GK = window.GK || {};
 
   GK.cosmetics = {
     init, refresh, render, apply, equip, buy, clickBurst, journeyReward, completeCategories,
+    nameTag, myBadge, validBadge,
     unownedCount: () => unowned().length,
     total: COLLECTIBLE.length,
     CATEGORIES, RARITIES,
