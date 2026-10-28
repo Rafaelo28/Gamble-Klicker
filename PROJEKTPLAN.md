@@ -345,6 +345,18 @@ Einsatz verloren geht.
   legendär 10 Bio. + ¾ (ab 500). Vorher zeigt das Spiel, wie viele Gebäude weggehen und wie das Einkommen sinkt.
 - 3 neue Erfolge: erstes Cosmetic, eine Kategorie komplett, alles gesammelt.
 
+### Erweiterung: Profil, Casino-Look, Rubbellose automatisch ✅
+- **🎖️ Profil für Spiele mit Freunden**: Namensschild mit Titel – Steuermann, Schatzjäger, Kapitän,
+  Krakenbändiger (glüht), Großadmiral (Goldglanz). Wird im Raum mitgeschickt und überall angezeigt, wo Namen
+  stehen (Lobby, alle Spiele, Poker-Tisch, Rangliste). Der Gastgeber nimmt nur bekannte Schilder an.
+- **🃏 Casino-Look**: Filz, Bande und Kartenrücken von Blackjack, Poker, Roulette und Lügenwürfel –
+  Blauer Samt, Bordeaux, Ebenholz, Schatzkarte (☠ auf den Karten), Kaisertisch (Gold, ♛ auf den Karten).
+- Jetzt 25 Cosmetics in 5 Kategorien, alle auch am Glücksrad der großen Fahrt.
+- **Rubbellose automatisch**: „Auto-Rubbeln ×10“ (eine Münze rubbelt sichtbar, stoppbar, hört bei großen
+  Gewinnen auf) und „10 Lose sofort“ mit Übersicht aller Ergebnisse.
+- Fußzeile: „Entwickelt von Rafael (Rafaelo28) mit der Community · Idee von Adrian“.
+- Erfolg „Flieger-Ass“ (Flugkapitän, mit ×20 landen) entfernt.
+
 ## Entscheidungen
 
 ### Multiplayer: Wie spielen die Freunde zusammen? → **Variante A**

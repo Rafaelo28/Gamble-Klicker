@@ -419,7 +419,7 @@ window.GK = window.GK || {};
     setHtml(container.querySelector('.darts-scores'), ranked.map(i => {
       const p = v.players[i];
       return `<div class="darts-row ${i === seat && v.phase !== 'finished' ? 'active' : ''} ${p.out ? 'out' : ''}">
-        <span class="darts-name">${p.avatar} ${esc(p.name)}${i === ui.mySeat ? ' (du)' : ''}</span>
+        <span class="darts-name">${GK.cosmetics.nameTag(p)}${i === ui.mySeat ? ' (du)' : ''}</span>
         <span class="darts-last">${p.turns.length ? `+${p.turns[p.turns.length - 1]}` : ''}</span>
         <b class="darts-total">${p.out ? '–' : p.score}</b>
       </div>`;

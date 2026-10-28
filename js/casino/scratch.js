@@ -29,6 +29,10 @@ window.GK = window.GK || {};
   const TOTAL_WEIGHT = 100000;
   const BRUSH = 22;            // Radius des „Fingers“ in Pixeln
   const FIELD_REVEAL = 0.45;   // ab diesem Anteil frei gilt ein Feld als aufgedeckt
+  const AUTO_COUNT = 10;       // Auto-Rubbeln: so viele Lose nacheinander (zum Zuschauen)
+  const AUTO_TIME = 2400;      // ms, bis eine Münze ein Los freigerubbelt hat
+  const AUTO_STOP_MULT = 50;   // bei so großen Gewinnen hört die Automatik auf, damit man ihn mitbekommt
+  const BATCH_COUNT = 10;      // „Lose sofort“: so viele auf einmal
 
   let body;
   let els = {};
@@ -38,6 +42,9 @@ window.GK = window.GK || {};
   let lastPoint = null;
   let revealedFields = [];
   let checkTimer = null;
+  let autoLeft = 0;            // Auto-Rubbeln: noch offene Lose
+  let autoFrame = 0;
+  let autoTimer = null;
 
   function state() {
     return GK.casino.data('scratch', () => ({ ticketId: 'clover', current: null, count: 0 }));
@@ -83,25 +90,165 @@ window.GK = window.GK || {};
     return PRIZES.reduce((sum, p) => sum + p.mult * p.weight, 0) / TOTAL_WEIGHT;
   }
 
+  // Ein Los kaufen. Gibt true zurück, wenn es geklappt hat.
   function buy() {
     const s = state();
-    if (s.current && !s.current.settled) return;
+    if (s.current && !s.current.settled) return false;
     const t = ticket(s.ticketId);
     if (t.price > GK.casino.maxBet()) {
       GK.toast(`Dieses Los braucht eine höhere VIP-Karte.`);
-      return;
+      return false;
     }
     if (!GK.casino.bet(t.price)) {
       GK.sound.play('denied');
       GK.toast('Nicht genug Dublonen für dieses Los.');
-      return;
+      return false;
     }
     const winMult = drawPrize();
     s.current = { ticketId: t.id, fields: makeFields(winMult), winMult, settled: false };
     s.count++;
     GK.save();
     GK.sound.play('card');
+    els.batch.hidden = true;
     draw();
+    return true;
+  }
+
+  // ---------- Automatisch: zuschauen oder sofort ----------
+
+  function startAuto() {
+    if (autoLeft > 0) {
+      stopAuto();
+      return;
+    }
+    autoLeft = AUTO_COUNT;
+    els.batch.hidden = true;
+    nextAuto();
+  }
+
+  function stopAuto() {
+    autoLeft = 0;
+    cancelAnimationFrame(autoFrame);
+    clearTimeout(autoTimer);
+    autoFrame = 0;
+    const coin = els.grid && els.grid.querySelector('.scratch-coin');
+    if (coin) coin.remove();
+    updateButtons();
+  }
+
+  function nextAuto() {
+    if (autoLeft <= 0) return stopAuto();
+    const c = state().current;
+    if ((!c || c.settled) && !buy()) return stopAuto();
+    autoLeft--;
+    updateButtons();
+    animateScratch(() => {
+      const done = state().current;
+      const big = done && done.winMult >= AUTO_STOP_MULT;
+      if (big || autoLeft <= 0) stopAuto();
+      else autoTimer = setTimeout(nextAuto, 1100);
+    });
+  }
+
+  // Eine Münze rubbelt das Los Reihe für Reihe im Zickzack frei
+  function animateScratch(onDone) {
+    if (!ctx || !els.canvas || els.canvas.hidden) {
+      revealAll(true);
+      autoTimer = setTimeout(onDone, 700);
+      return;
+    }
+    const rect = els.grid.getBoundingClientRect();
+    const w = rect.width;
+    const h = rect.height;
+    const points = [];
+    for (let row = 0; row < 3; row++) {
+      const yc = (row + 0.5) * h / 3;
+      for (let k = 0; k <= 12; k++) {
+        const t = row % 2 ? 1 - k / 12 : k / 12;
+        points.push({ x: 14 + (w - 28) * t, y: yc + (k % 2 ? 1 : -1) * h / 3 * 0.3 });
+      }
+    }
+    const coin = document.createElement('div');
+    coin.className = 'scratch-coin';
+    els.grid.appendChild(coin);
+    const fast = GK.state.settings.effects === 'reduced';
+    const total = fast ? 500 : AUTO_TIME;
+    const start = performance.now();
+    lastPoint = points[0];
+    let index = 0;
+    if (!checkTimer) checkTimer = setInterval(checkProgress, 200);
+    const step = now => {
+      const target = Math.min(points.length - 1, Math.floor((now - start) / total * (points.length - 1)));
+      while (index < target) {
+        index++;
+        scratchTo(points[index]);
+      }
+      coin.style.transform = `translate(${points[index].x}px, ${points[index].y}px)`;
+      if (index < points.length - 1 && state().current && !state().current.settled) {
+        autoFrame = requestAnimationFrame(step);
+        return;
+      }
+      autoFrame = 0;
+      coin.remove();
+      checkProgress();
+      if (state().current && !state().current.settled) revealAll(true);
+      autoTimer = setTimeout(onDone, 900);
+    };
+    autoFrame = requestAnimationFrame(step);
+  }
+
+  // Mehrere Lose auf einmal kaufen und aufdecken – mit Übersicht
+  function openBatch() {
+    const s = state();
+    if (autoLeft > 0 || (s.current && !s.current.settled)) return;
+    const t = ticket(s.ticketId);
+    if (t.price > GK.casino.maxBet()) {
+      GK.toast('Dieses Los braucht eine höhere VIP-Karte.');
+      return;
+    }
+    if (!GK.canAfford(t.price * BATCH_COUNT)) {
+      GK.sound.play('denied');
+      GK.toast(`Für ${BATCH_COUNT} Lose brauchst du ${GK.formatNumber(t.price * BATCH_COUNT)} Dublonen.`);
+      return;
+    }
+    const results = [];
+    for (let i = 0; i < BATCH_COUNT; i++) {
+      if (!GK.casino.bet(t.price)) break;
+      const winMult = drawPrize();
+      const payout = winMult * t.price;
+      s.count++;
+      GK.casino.payout(payout);
+      GK.casino.record('scratch', t.price, payout,
+        winMult ? `${t.name}: 3× ${GK.formatNumber(payout)}` : `${t.name}: Niete`);
+      if (winMult >= 1000) GK.unlockAchievement('scratchTop');
+      results.push({ ticketId: t.id, fields: makeFields(winMult), winMult, settled: true });
+    }
+    GK.unlockAchievement('scratch1');
+    s.current = results[results.length - 1]; // das letzte Los liegt aufgedeckt da
+    GK.save();
+    draw();
+    showBatch(results, t);
+  }
+
+  function showBatch(results, t) {
+    const paid = results.reduce((sum, c) => sum + c.winMult * t.price, 0);
+    const cost = results.length * t.price;
+    const wins = results.filter(c => c.winMult > 0).length;
+    els.batch.hidden = false;
+    els.batch.innerHTML = `
+      <div class="sb-head">⚡ ${results.length} × ${t.icon} ${t.name}: <b>${wins}</b> ${wins === 1 ? 'Gewinn' : 'Gewinne'} ·
+        ausgezahlt ${GK.formatMoneyHTML(paid)}</div>
+      <div class="sb-grid">${results.map((c, i) => `
+        <div class="sb-ticket ${c.winMult > 1 ? 'win' : c.winMult === 1 ? 'even' : 'lose'}" style="animation-delay: ${i * 0.12}s">
+          <span class="sb-icon">${c.winMult ? prizeIcon(c.winMult) : '✖'}</span>
+          <span class="sb-amount">${c.winMult ? GK.formatNumber(c.winMult * t.price) : 'Niete'}</span>
+        </div>`).join('')}</div>`;
+    results.forEach((c, i) => setTimeout(() => GK.sound.play(c.winMult ? 'coin' : 'flip'), i * 120));
+    const diff = paid - cost;
+    showMessage(diff > 0 ? `🎉 Plus von ${GK.formatMoneyHTML(diff)} mit ${results.length} Losen!`
+      : diff === 0 ? 'Genau den Einsatz zurück.' : `${results.length} Lose: ${wins} ${wins === 1 ? 'Gewinn' : 'Gewinne'}, insgesamt ${GK.formatMoneyHTML(-diff)} weniger.`,
+    diff > 0 ? 'win' : diff < 0 ? 'loss' : '');
+    setTimeout(() => GK.fx.celebrate(paid, cost, { el: els.batch, subtitle: `${results.length} Lose` }), results.length * 120);
   }
 
   // ---------- Aufdecken & abrechnen ----------
@@ -256,7 +403,7 @@ window.GK = window.GK || {};
 
   function onPointerDown(e) {
     const c = state().current;
-    if (!c || c.settled) return;
+    if (!c || c.settled || autoFrame) return;
     e.preventDefault();
     scratching = true;
     els.canvas.setPointerCapture(e.pointerId);
@@ -287,14 +434,22 @@ window.GK = window.GK || {};
     const s = state();
     const open = s.current && !s.current.settled;
     const t = ticket(s.ticketId);
-    els.buy.hidden = open;
-    els.revealBtn.hidden = !open;
-    els.buy.disabled = t.price > GK.casino.maxBet() || !GK.canAfford(t.price);
+    const auto = autoLeft > 0 || !!autoFrame;
+    const locked = t.price > GK.casino.maxBet();
+    els.buy.hidden = open || auto;
+    els.revealBtn.hidden = !open || auto;
+    els.buy.disabled = locked || !GK.canAfford(t.price);
     els.buy.textContent = s.current ? `🎟️ Neues Los kaufen (${GK.formatNumber(t.price)})` : `🎟️ Los kaufen (${GK.formatNumber(t.price)})`;
+    els.auto.textContent = auto ? `⏹ Stopp (${autoLeft})` : `🪄 Auto-Rubbeln ×${AUTO_COUNT}`;
+    els.auto.classList.toggle('active', auto);
+    els.auto.disabled = !auto && (locked || (!open && !GK.canAfford(t.price)));
+    els.batchBtn.hidden = open || auto;
+    els.batchBtn.disabled = locked || !GK.canAfford(t.price * BATCH_COUNT);
+    els.batchBtn.textContent = `⚡ ${BATCH_COUNT} Lose sofort (${GK.formatNumber(t.price * BATCH_COUNT)})`;
     els.picker.querySelectorAll('.ticket-choice').forEach(btn => {
       const tt = ticket(btn.dataset.ticket);
       btn.classList.toggle('active', tt.id === s.ticketId);
-      btn.disabled = open;
+      btn.disabled = open || auto;
       btn.querySelector('.ticket-lock').textContent = tt.price > GK.casino.maxBet() ? '🔒 VIP' : '';
     });
   }
@@ -357,6 +512,11 @@ window.GK = window.GK || {};
             <button class="btn btn-primary btn-big scratch-buy"></button>
             <button class="btn scratch-reveal">✨ Alles aufdecken</button>
           </div>
+          <div class="game-actions scratch-auto-actions">
+            <button class="btn scratch-auto"></button>
+            <button class="btn scratch-batch-btn"></button>
+          </div>
+          <div class="scratch-batch" hidden></div>
           <p class="muted small">Hauptgewinn: 1.000× Lospreis 👑</p>
         </div>
       </div>`;
@@ -369,6 +529,9 @@ window.GK = window.GK || {};
       message: body.querySelector('.game-message'),
       buy: body.querySelector('.scratch-buy'),
       revealBtn: body.querySelector('.scratch-reveal'),
+      auto: body.querySelector('.scratch-auto'),
+      batchBtn: body.querySelector('.scratch-batch-btn'),
+      batch: body.querySelector('.scratch-batch'),
       fields: [],
       canvas: null,
     };
@@ -385,12 +548,15 @@ window.GK = window.GK || {};
         if (s.current && !s.current.settled) return;
         s.ticketId = btn.dataset.ticket;
         s.current = null;
+        els.batch.hidden = true;
         GK.sound.play('chip');
         draw();
       });
     });
     els.buy.addEventListener('click', buy);
     els.revealBtn.addEventListener('click', () => revealAll(true));
+    els.auto.addEventListener('click', startAuto);
+    els.batchBtn.addEventListener('click', openBatch);
     window.addEventListener('resize', () => {
       const c = state().current;
       if (c && !c.settled && els.canvas && !els.canvas.hidden && body.offsetParent) setupCanvas();
@@ -405,9 +571,13 @@ window.GK = window.GK || {};
     emoji: '🎟️',
     desc: 'Rubbeln, drei gleiche Beträge finden – bis zu ×1.000!',
     init,
-    refresh: () => draw(),
+    refresh: () => {
+      stopAuto();
+      draw();
+    },
     // Die Rubbelfläche braucht die echte Größe – erst zeichnen, wenn das Spiel sichtbar ist
     onShow: () => draw(),
+    onHide: stopAuto,
     render: () => updateButtons(),
   });
 

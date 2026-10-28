@@ -423,7 +423,7 @@ window.GK = window.GK || {};
     const rows = v.players.map((p, seat) => {
       const total = p.strokes.reduce((a, b) => a + (b || 0), 0);
       return `<tr class="${seat === v.turn && v.phase === 'aim' ? 'turn' : ''} ${p.out ? 'out' : ''}">
-        <td><span class="golf-dot" style="background:${p.color}"></span>${p.avatar} ${esc(p.name)}${seat === ui.mySeat ? ' (du)' : ''}</td>
+        <td><span class="golf-dot" style="background:${p.color}"></span>${GK.cosmetics.nameTag(p)}${seat === ui.mySeat ? ' (du)' : ''}</td>
         ${holes.map((h, i) => {
           const n = p.strokes[i];
           const cls = n === undefined ? '' : n === 1 ? 'ace' : n < h.par ? 'under' : n > h.par ? 'over' : 'even';

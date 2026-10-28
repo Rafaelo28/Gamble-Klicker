@@ -245,7 +245,7 @@ GK.poker = GK.poker || {};
       phase: 'lobby',
       paid: true,
       settled: false,
-      members: [{ playerId: me.playerId, name: me.name, avatar: me.avatar, ready: true }],
+      members: [{ playerId: me.playerId, name: me.name, avatar: me.avatar, badge: GK.cosmetics.myBadge(), ready: true }],
       fillBots: true,
       table: null,
       deadline: null,
@@ -351,6 +351,7 @@ GK.poker = GK.poker || {};
         member.name = name;
         member.avatar = avatar;
       }
+      if (s.phase === 'lobby') member.badge = GK.cosmetics.validBadge(msg.badge); // Namensschild aus der Schatzkammer
       if (msg.paid) member.ready = true; // hat den Eintritt schon bezahlt (z. B. nach dem Neuladen)
       const old = net.conns.get(playerId);
       conn.playerId = playerId;
@@ -413,7 +414,7 @@ GK.poker = GK.poker || {};
       if (conn) setTimeout(() => conn.close(), 500);
     });
     s.members = s.members.filter(m => m.ready);
-    let seats = s.members.map(m => ({ id: m.playerId, name: m.name, avatar: m.avatar, isBot: false }));
+    let seats = s.members.map(m => ({ id: m.playerId, name: m.name, avatar: m.avatar, badge: m.badge || '', isBot: false }));
     if (s.fillBots) seats = seats.concat(T().botSeats(T().MAX_SEATS - seats.length));
     s.table = T().createTable(seats, s.mode, s.hands);
     s.phase = 'playing';
@@ -633,7 +634,7 @@ GK.poker = GK.poker || {};
       net.status = 'online';
       net.lostSince = null;
       const me = store();
-      send(conn, { type: 'hello', v: PROTOCOL, playerId: me.playerId, name: me.name, avatar: me.avatar, paid: session().paid });
+      send(conn, { type: 'hello', v: PROTOCOL, playerId: me.playerId, name: me.name, avatar: me.avatar, badge: GK.cosmetics.myBadge(), paid: session().paid });
       GK.poker.redraw();
     });
     conn.on('data', msg => {
@@ -1046,7 +1047,7 @@ GK.poker = GK.poker || {};
           <h3>Spieler (${members.length}/${T().MAX_SEATS})</h3>
           <ul class="mp-members">
             ${members.map(m => `<li class="${m.ready ? '' : 'not-ready'}">
-              <span>${m.avatar} ${esc(m.name)}</span>
+              <span>${GK.cosmetics.nameTag(m)}</span>
               ${m.ready ? '' : '<span class="mp-tag waiting">⏳ zahlt noch</span>'}
               ${m.playerId === hostId ? '<span class="mp-tag">👑 Gastgeber</span>' : ''}
               ${m.playerId === store().playerId ? '<span class="mp-tag">Du</span>' : ''}
@@ -1118,7 +1119,7 @@ GK.poker = GK.poker || {};
     if (s.phase === 'ended') {
       const ranking = t.players.map((p, i) => ({ p, win: blitz ? mpPayout(t, i, tr.entry) : 0 }))
         .sort((a, b) => a.p.place - b.p.place)
-        .map(({ p, win }) => `${p.place}. ${p.avatar || ''} ${esc(p.name)}${win ? ` +${GK.formatMoneyHTML(win)}` : ''}`).join(' · ');
+        .map(({ p, win }) => `${p.place}. ${GK.cosmetics.nameTag(p)}${win ? ` +${GK.formatMoneyHTML(win)}` : ''}`).join(' · ');
       notices.push(`🏁 Turnier vorbei! ${ranking}` + (s.result && !s.result.refunded
         ? `<br>Dein Ergebnis: <b>${s.result.place}. Platz</b>${s.result.prize ? ` – ${GK.formatMoneyHTML(s.result.prize)} gewonnen!` : '.'}` : ''));
     }

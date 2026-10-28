@@ -475,7 +475,7 @@ window.GK = window.GK || {};
     setHtml(container.querySelector('.pool-players'), v.players.map((p, seat) => {
       const left = p.group ? (p.group === 'solid' ? SOLIDS : STRIPES).filter(n => v.balls.some(b => b.n === n && !b.potted)) : [];
       return `<div class="pool-player ${v.turn === seat && v.phase === 'aim' ? 'active' : ''}">
-        <div class="pool-name">${p.avatar} ${esc(p.name)}${seat === ui.mySeat ? ' (du)' : ''}</div>
+        <div class="pool-name">${GK.cosmetics.nameTag(p)}${seat === ui.mySeat ? ' (du)' : ''}</div>
         <div class="pool-group">${p.group ? (p.group === 'solid' ? 'Volle' : 'Halbe') : 'Farbe noch offen'}</div>
         <div class="pool-left">${p.group ? (left.length ? left.map(n => ballChip(n)).join('') : ballChip(8) + ' jetzt die 8!') : ''}</div>
       </div>`;

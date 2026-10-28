@@ -24,7 +24,7 @@ window.GK = window.GK || {};
 
   // Schatzkammer: gekaufte bzw. gewonnene Cosmetics, was angelegt ist, und ein noch nicht gedrehtes Glücksrad
   function createDefaultCosmetics() {
-    return { owned: [], equipped: { coin: 'gold', effect: 'coins', theme: 'tavern' }, wheel: null };
+    return { owned: [], equipped: { coin: 'gold', effect: 'coins', theme: 'tavern', profile: 'sailor', table: 'felt' }, wheel: null };
   }
 
   // Einstellungen: Ton und Animationen (bei „Bewegung reduzieren“ im System automatisch ruhiger)

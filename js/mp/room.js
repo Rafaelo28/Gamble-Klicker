@@ -279,7 +279,7 @@ window.GK = window.GK || {};
       phase: 'lobby',
       paid: true,
       settled: false,
-      members: [{ playerId: me.playerId, name: me.name, avatar: me.avatar, ready: true }],
+      members: [{ playerId: me.playerId, name: me.name, avatar: me.avatar, badge: GK.cosmetics.myBadge(), ready: true }],
       fillBots: !!d.bots,
       state: null,
       deadline: null,
@@ -380,6 +380,7 @@ window.GK = window.GK || {};
         m = { playerId, name: cleanName(msg.name), avatar: AVATARS.includes(msg.avatar) ? msg.avatar : AVATARS[0], ready: false };
         s.members.push(m);
       }
+      if (s.phase === 'lobby') m.badge = GK.cosmetics.validBadge(msg.badge); // Namensschild aus der Schatzkammer
       if (msg.paid) m.ready = true;
       const old = net.conns.get(playerId);
       conn.playerId = playerId;
@@ -449,10 +450,15 @@ window.GK = window.GK || {};
       if (conn) setTimeout(() => conn.close(), 500);
     });
     s.members = ready;
-    let seats = ready.map(m => ({ id: m.playerId, name: m.name, avatar: m.avatar, isBot: false }));
+    let seats = ready.map(m => ({ id: m.playerId, name: m.name, avatar: m.avatar, badge: m.badge || '', isBot: false }));
     const bots = s.solo ? botCount : (s.fillBots ? d.maxPlayers - seats.length : 0);
     seats = seats.concat(botSeats(Math.max(0, Math.min(bots, d.maxPlayers - seats.length))));
     s.state = d.create(seats, s.settings || d.settings.defaults);
+    // Namensschilder (Schatzkammer) an die Spieler hängen – die Spiele kennen sie nicht
+    s.state.players.forEach(p => {
+      const seat = seats.find(x => x.id === p.id);
+      if (seat && seat.badge) p.badge = seat.badge;
+    });
     s.state.step = 0;
     s.phase = 'playing';
     afterHostChange();
@@ -654,7 +660,7 @@ window.GK = window.GK || {};
       net.status = 'online';
       net.lostSince = null;
       const me = store();
-      send(conn, { type: 'hello', v: PROTOCOL, game: s.game, playerId: me.playerId, name: me.name, avatar: me.avatar, paid: session().paid });
+      send(conn, { type: 'hello', v: PROTOCOL, game: s.game, playerId: me.playerId, name: me.name, avatar: me.avatar, badge: GK.cosmetics.myBadge(), paid: session().paid });
       redraw();
     });
     conn.on('data', msg => {
@@ -1090,7 +1096,7 @@ window.GK = window.GK || {};
           <h3>Spieler (${members.length}/${d.maxPlayers})</h3>
           <ul class="mp-members">
             ${members.map(m => `<li class="${m.ready ? '' : 'not-ready'}">
-              <span>${m.avatar} ${esc(m.name)}</span>
+              <span>${GK.cosmetics.nameTag(m)}</span>
               ${m.ready ? '' : '<span class="mp-tag waiting">⏳ zahlt noch</span>'}
               ${m.playerId === hostId ? '<span class="mp-tag">👑 Gastgeber</span>' : ''}
               ${m.playerId === store().playerId ? '<span class="mp-tag">Du</span>' : ''}
@@ -1189,7 +1195,7 @@ window.GK = window.GK || {};
     }
     if (s.phase === 'ended') {
       const ranking = view.players.map((p, i) => ({ p, place: d.placeOf(view, i) })).sort((a, b) => a.place - b.place)
-        .map(({ p, place }) => `${place}. ${p.avatar || ''} ${esc(p.name)}`).join(' · ');
+        .map(({ p, place }) => `${place}. ${GK.cosmetics.nameTag(p)}`).join(' · ');
       notices.push(`🏁 Spiel vorbei! ${ranking}`);
     }
     const notice = container.querySelector('.room-notice');

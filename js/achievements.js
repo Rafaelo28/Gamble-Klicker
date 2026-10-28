@@ -60,7 +60,6 @@ window.GK = window.GK || {};
     { id: 'plinkoEdge',  icon: '🪙', name: 'Randlage',              desc: 'Beim Münzfall ein Fach mit mindestens ×24 getroffen.' },
     { id: 'minesAll',    icon: '🏝️', name: 'Schatzkönig',           desc: 'Auf der Schatzinsel alle Schätze gefunden (mit mind. 3 Totenköpfen).' },
     { id: 'crash10',     icon: '💣', name: 'Kanonier',              desc: 'Bei der Kanonenkugel ab ×10 abkassiert.' },
-    { id: 'flightAce',   icon: '✈️', name: 'Flieger-Ass',           desc: 'Beim Flugkapitän mit mindestens ×20 gelandet.' },
     { id: 'raceOutsider', icon: '⛵', name: 'Außenseiter-Glück',    desc: 'Beim Schiffsrennen auf einen Außenseiter (ab ×6) gesetzt und gewonnen.' },
     { id: 'vsFree',      icon: '🎉', name: 'Freispiel-Fieber',      desc: 'An einem Video-Slot Freispiele ausgelöst.' },
     { id: 'vsBonus',     icon: '🧰', name: 'Kistenknacker',         desc: 'An einem Video-Slot die Bonusrunde erreicht.' },
@@ -115,6 +114,8 @@ window.GK = window.GK || {};
 
   // Regelmäßig aufgerufen: Bedingungen prüfen
   function check() {
+    // Entfernte Erfolge (z. B. „Flieger-Ass“) zählen nicht mehr mit
+    if (GK.state.achievements.some(id => !byId[id])) GK.state.achievements = GK.state.achievements.filter(id => byId[id]);
     ACHIEVEMENTS.forEach(a => {
       if (a.check && !has(a.id) && a.check(GK.state)) GK.unlockAchievement(a.id);
     });

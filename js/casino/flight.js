@@ -141,7 +141,6 @@ window.GK = window.GK || {};
     GK.casino.payout(p.payout);
     s.history.unshift(p.landed ? Math.round(p.counter * 100) / 100 : 0);
     s.history.length = Math.min(s.history.length, 14);
-    if (p.landed && p.counter >= 20) GK.unlockAchievement('flightAce');
     const mult = fmt(p.counter);
     GK.casino.record('flight', p.bet, p.payout, p.landed ? `🛬 Gelandet mit ×${mult}` : `🌊 Ins Meer gestürzt (×${mult})`);
     if (p.landed && p.payout > 0) {

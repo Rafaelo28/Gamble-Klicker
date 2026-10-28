@@ -97,7 +97,10 @@ GK.poker = GK.poker || {};
     });
     table.mode = mode(modeId).id;
     if (cfg.maxHands) table.maxHands = cfg.maxHands;
-    table.players.forEach((p, i) => { p.avatar = seats[i].avatar || ''; });
+    table.players.forEach((p, i) => {
+      p.avatar = seats[i].avatar || '';
+      if (seats[i].badge) p.badge = seats[i].badge; // Namensschild aus der Schatzkammer
+    });
     return table;
   }
 

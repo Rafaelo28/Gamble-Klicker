@@ -541,7 +541,7 @@ window.GK = window.GK || {};
     container.querySelector('.duel-table').classList.toggle('my-turn', myTurn);
     setHtml(container.querySelector('.duel-players'), v.players.map((p, i) => `
       <div class="pool-player ${v.turn === i && v.phase === 'aim' ? 'active' : ''}">
-        <div class="pool-name"><span class="duel-flag" style="background:${COLORS[i]}"></span> ${p.avatar} ${esc(p.name)}${i === ui.mySeat ? ' (du)' : ''}</div>
+        <div class="pool-name"><span class="duel-flag" style="background:${COLORS[i]}"></span> ${GK.cosmetics.nameTag(p)}${i === ui.mySeat ? ' (du)' : ''}</div>
         <div class="pool-group">❤️ ${p.hp} · 🎯 ${p.hits} Treffer</div>
       </div>`).join('<span class="pool-vs">vs</span>'));
     let hint;

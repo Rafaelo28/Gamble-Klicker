@@ -49,7 +49,7 @@ window.GK = window.GK || {};
       return;
     }
     GK.casino.bet(tr.entry);
-    const seats = [{ id: 'you', name: 'Du', avatar: '🙂', isBot: false }].concat(T().botSeats(SEATS - 1));
+    const seats = [{ id: 'you', name: 'Du', avatar: '🙂', badge: GK.cosmetics.myBadge(), isBot: false }].concat(T().botSeats(SEATS - 1));
     const s = state();
     const table = T().createTable(seats, s.mode, s.hands);
     s.table = table;
@@ -212,7 +212,7 @@ window.GK = window.GK || {};
     return t.players.map((p, i) => ({ p, i })).sort((a, b) => a.p.place - b.p.place)
       .map(({ p, i }) => {
         const win = T().payout(t, i, entry);
-        return `${p.place}. ${p.avatar || ''} ${GK.poker.ui.escapeHtml(p.name)}${win ? ` +${GK.formatMoneyHTML(win)}` : ''}`;
+        return `${p.place}. ${GK.cosmetics.nameTag(p)}${win ? ` +${GK.formatMoneyHTML(win)}` : ''}`;
       }).join(' · ');
   }
 
