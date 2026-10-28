@@ -1365,6 +1365,13 @@ button.casino-card:active {
   color: var(--gold);
 }
 
+/* Ausgeschriebener Betrag unter einem Eingabefeld („5M“ → 5,00 Mio.) */
+.amount-preview {
+  min-height: 1.3em;
+  font-weight: 700;
+  color: var(--gold);
+}
+
 .bet-warning {
   color: var(--loss);
   font-weight: 400;

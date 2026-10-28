@@ -258,7 +258,7 @@ window.GK = window.GK || {};
   // ========== Gastgeber ==========
 
   function createRoom(gameId, entry, settings, solo, bots) {
-    entry = Math.floor(Number(entry) || 0);
+    entry = Math.floor(GK.parseAmount(entry) || 0);
     const d = games[gameId];
     if (entry < MIN_ENTRY) return GK.toast(`Der Eintritt muss mindestens ${GK.formatNumber(MIN_ENTRY)} Dublonen betragen.`);
     const busy = busyElsewhere();
@@ -977,9 +977,10 @@ window.GK = window.GK || {};
         <div class="mp-form">
           <label class="bet-label">Raum eröffnen – Eintritt pro Spieler</label>
           <div class="bet-row">
-            <input type="number" class="bet-input mp-entry room-entry" min="${MIN_ENTRY}" step="100" inputmode="numeric" value="${me.lastEntry}">
+            <input class="bet-input mp-entry room-entry" ${GK.AMOUNT_INPUT} value="${GK.formatAmount(me.lastEntry)}">
             <button type="button" class="btn btn-primary room-create">Eröffnen</button>
           </div>
+          <div class="small amount-preview room-entry-preview"></div>
           <div class="bet-row mp-presets">
             ${ENTRY_PRESETS.map(v => `<button type="button" class="btn btn-small room-preset" data-entry="${v}">${GK.formatNumber(v)}</button>`).join('')}
           </div>
@@ -1042,8 +1043,10 @@ window.GK = window.GK || {};
       GK.save();
     });
     const entryInput = container.querySelector('.room-entry');
+    const updatePreview = GK.amountPreview(entryInput, container.querySelector('.room-entry-preview'));
     container.querySelectorAll('.room-preset').forEach(btn => btn.addEventListener('click', () => {
-      entryInput.value = btn.dataset.entry;
+      entryInput.value = GK.formatAmount(Number(btn.dataset.entry));
+      updatePreview();
       GK.sound.play('chip');
     }));
     container.querySelector('.room-create').addEventListener('click', () => {

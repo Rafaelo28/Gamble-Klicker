@@ -140,7 +140,7 @@ window.GK = window.GK || {};
     root.innerHTML = `
       <label class="bet-label">${options.label || 'Einsatz'}</label>
       <div class="bet-row">
-        <input type="number" class="bet-input" min="${min}" step="1" inputmode="numeric">
+        <input class="bet-input" ${GK.AMOUNT_INPUT}>
         <button type="button" class="btn btn-small" data-op="min">Min</button>
         <button type="button" class="btn btn-small" data-op="half">½</button>
         <button type="button" class="btn btn-small" data-op="double">×2</button>
@@ -153,7 +153,7 @@ window.GK = window.GK || {};
     const display = root.querySelector('.bet-display');
 
     function clamp(value) {
-      value = Math.floor(Number(value) || 0);
+      value = Math.floor(GK.parseAmount(value) || 0);
       const max = Math.max(min, Math.min(Math.floor(GK.state.money), maxBet()));
       return Math.min(Math.max(value, min), max);
     }
@@ -169,13 +169,24 @@ window.GK = window.GK || {};
         value = maxBet(); // z. B. aus einem alten Spielstand ohne Limit
         options.set(value);
       }
-      if (document.activeElement !== input) input.value = value;
+      if (document.activeElement !== input) input.value = GK.formatAmount(value);
       display.innerHTML = GK.formatMoneyHTML(value) +
         (GK.canAfford(value) ? '' : ' <span class="bet-warning">– nicht genug Dublonen</span>') +
         (maxBet() < Infinity ? ` <span class="bet-limit">(Limit ${GK.formatNumber(maxBet())})</span>` : '');
     }
 
-    input.addEventListener('change', () => apply(input.value));
+    // Eingabe wie „5M“ oder „2,5 Mrd.“: beim Tippen gleich übernehmen, Unbekanntes anmerken
+    input.addEventListener('input', () => {
+      const value = GK.parseAmount(input.value);
+      if (isFinite(value)) apply(value);
+      else if (input.value.trim()) display.innerHTML = '<span class="bet-warning">Zahl nicht erkannt – z. B. 500k, 2,5M oder 1B</span>';
+    });
+    input.addEventListener('change', () => {
+      if (isFinite(GK.parseAmount(input.value))) apply(input.value);
+      input.value = GK.formatAmount(options.get());
+      refresh();
+    });
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); });
     root.querySelectorAll('[data-op]').forEach(btn => {
       btn.addEventListener('click', () => {
         const current = options.get();

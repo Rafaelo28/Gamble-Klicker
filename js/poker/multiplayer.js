@@ -226,7 +226,7 @@ GK.poker = GK.poker || {};
   // ========== Gastgeber ==========
 
   function createRoom(entry, modeId, hands) {
-    entry = Math.floor(Number(entry) || 0);
+    entry = Math.floor(GK.parseAmount(entry) || 0);
     if (entry < MIN_ENTRY) return GK.toast(`Der Eintritt muss mindestens ${GK.formatNumber(MIN_ENTRY)} Dublonen betragen.`);
     if (GK.poker.singleActive()) return GK.toast('Beende zuerst dein Turnier gegen die Computer-Gegner.');
     if (GK.room && GK.room.active()) return GK.toast('Verlasse zuerst deinen anderen Spielraum.');
@@ -914,7 +914,7 @@ GK.poker = GK.poker || {};
           <label class="bet-label" for="mp-entry">Raum eröffnen – Eintritt pro Spieler</label>
           <div class="mp-mode-slot">${GK.poker.ui.modePicker(T().mode(me.lastMode).id, T().blitzHands(me.lastHands), 'mp-modes')}</div>
           <div class="bet-row">
-            <input id="mp-entry" type="number" class="bet-input mp-entry" min="${MIN_ENTRY}" step="100" inputmode="numeric" value="${me.lastEntry}">
+            <input id="mp-entry" class="bet-input mp-entry" ${GK.AMOUNT_INPUT} value="${GK.formatAmount(me.lastEntry)}">
             <button type="button" class="btn btn-primary mp-create">Eröffnen</button>
           </div>
           <div class="bet-row mp-presets">
@@ -947,7 +947,7 @@ GK.poker = GK.poker || {};
     const entryInput = el.querySelector('.mp-entry');
     el.querySelectorAll('.mp-preset').forEach(btn => {
       btn.addEventListener('click', () => {
-        entryInput.value = btn.dataset.entry;
+        entryInput.value = GK.formatAmount(Number(btn.dataset.entry));
         GK.sound.play('chip');
         updateJoinPanel(el);
       });
@@ -992,15 +992,20 @@ GK.poker = GK.poker || {};
   function updateJoinPanel(root) {
     const input = root.querySelector('.mp-entry');
     if (!input) return;
-    const entry = Math.floor(Number(input.value) || 0);
+    const parsed = GK.parseAmount(input.value);
+    const entry = Math.floor(parsed || 0);
     let reason = '';
     if (!peerAvailable()) reason = 'Keine Verbindung zum Internet';
+    else if (!isFinite(parsed)) reason = 'Zahl nicht erkannt – z. B. 500k, 2,5M oder 1B';
     else if (entry < MIN_ENTRY) reason = `Mindestens ${GK.formatNumber(MIN_ENTRY)} Dublonen`;
     else if (!GK.canAfford(entry)) reason = 'Nicht genug Dublonen';
-    else if (T().mode(store().lastMode).id === 'blitz') reason = `Bei 6 Freunden teilen die besten 4 ${GK.formatNumber(entry * 6)} Dublonen nach Chips`;
-    else reason = `Bei 6 Freunden gewinnt Platz 1: ${GK.formatNumber(T().prize(1, entry, 6))} Dublonen`;
-    root.querySelector('.mp-create-reason').classList.toggle('ok', !!reason.startsWith('Bei'));
-    root.querySelector('.mp-create').disabled = !reason.startsWith('Bei');
+    const ok = !reason;
+    // Eingegebenen Betrag ausgeschrieben zeigen (z. B. bei „5M“)
+    if (ok) reason = `Eintritt ${GK.formatNumber(entry)} Dublonen · ` + (T().mode(store().lastMode).id === 'blitz'
+      ? `bei 6 Freunden teilen die besten 4 ${GK.formatNumber(entry * 6)} nach Chips`
+      : `bei 6 Freunden gewinnt Platz 1: ${GK.formatNumber(T().prize(1, entry, 6))}`);
+    root.querySelector('.mp-create-reason').classList.toggle('ok', ok);
+    root.querySelector('.mp-create').disabled = !ok;
     root.querySelector('.mp-create-reason').textContent = reason;
     root.querySelector('.mp-join').disabled = !peerAvailable();
   }
