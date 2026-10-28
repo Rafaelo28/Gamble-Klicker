@@ -84,6 +84,8 @@ window.GK = window.GK || {};
     { id: 'pokerBlitz',  icon: '⏱️', name: 'Blitzgescheit',         desc: 'Ein Blitz-Turnier gegen die Computer-Gegner gewonnen.' },
     { id: 'pokerThrone', icon: '🏰', name: 'Herrscher des Throns',  desc: 'Ein Turnier am Thron des Kaisers gewonnen.' },
     { id: 'diceWin',     icon: '🎲', name: 'Meisterlügner',         desc: 'Eine Partie Lügenwürfel gewonnen.' },
+    { id: 'kniffelWin',  icon: '📝', name: 'Würfelkönig',           desc: 'Eine Partie Kniffel gewonnen.' },
+    { id: 'kniffel50',   icon: '🎲', name: 'Kniffel!',              desc: 'Bei Kniffel fünf gleiche gewürfelt und als Kniffel eingetragen.' },
     { id: 'golfWin',     icon: '⛳', name: 'Golfkapitän',           desc: 'Eine Runde Minigolf gewonnen.' },
     { id: 'golfAce',     icon: '🕳️', name: 'Ass!',                  desc: 'Beim Minigolf mit einem Schlag eingelocht.' },
     { id: 'poolWin',     icon: '🎱', name: 'Queue-Meister',         desc: 'Eine Partie Billard gewonnen.' },
