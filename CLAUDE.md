@@ -52,7 +52,8 @@ Online über GitHub Pages aus `main`: https://rafaelo28.github.io/Gamble-Klicker
 - `node tests/kraken.test.js` – Kraken-Angriff (Treffer, Diebstahl, Pause, Zeitplan) und Freundes-Rangliste (Austausch, Prüfung).
 - `node tests/payouts.test.js` – Preise mit Freunden (auch mit Computer-Gegnern, auch Poker) und gegen Computer.
 - `node tests/casino.test.js` – Quoten und Zufall der Casino-Spiele (Roulette, Rubbellose, Glücksrad,
-  Münzfall, Schatzinsel, Kanonenkugel, Schiffsrennen, Flugkapitän, Slot-Maschine, Video-Slots).
+  Münzfall, Schatzinsel, Kanonenkugel, Schiffsrennen, Flugkapitän, Höher oder tiefer, Mast-Kletterei,
+  Schatzkarten-Keno, Baccarat, Slot-Maschine, Video-Slots).
 - Im Browser mit Playwright (Chromium ist vorinstalliert), auch in der iPad-Emulation
   `devices['iPad (gen 7)']` hoch und quer: keine Konsolenfehler, kein seitliches Scrollen,
   Kontostand = Start − Einsätze + Auszahlungen.

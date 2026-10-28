@@ -2,7 +2,8 @@
 global.window = global;
 const R = require('path').join(__dirname, '..', 'js') + '/';
 require(R + 'casino/casino.js');
-['slot-machine', 'scratch', 'wheel', 'plinko', 'mines', 'crash', 'race', 'flight', 'video-slots', 'roulette'].forEach(f => require(R + 'casino/' + f + '.js'));
+['cards', 'slot-machine', 'scratch', 'wheel', 'plinko', 'mines', 'crash', 'race', 'flight', 'video-slots', 'roulette',
+  'hilo', 'tower', 'keno', 'baccarat'].forEach(f => require(R + 'casino/' + f + '.js'));
 const assert = (cond, msg) => { if (!cond) { console.log('FAIL', msg); process.exitCode = 1; } };
 const between = (x, lo, hi, msg) => assert(x >= lo && x <= hi, `${msg}: ${x}`);
 const C = GK.casino;
@@ -137,6 +138,113 @@ for (let k = 0; k < 500; k++) {
     }
     between(total / n, 0.9, 1.04, `Flugkapitän ${mode}: Simulation`);
   });
+}
+
+// Höher oder tiefer: Chancen, Multiplikator, im Schnitt 97 % – egal wie man tippt und wann man aufhört
+{
+  const H = C.hiloMath;
+  assert(H.chance('2S', 'hi') === 1 && H.chance('AS', 'lo') === 1 && Math.abs(H.chance('7H', 'hi') - 8 / 13) < 1e-12 && Math.abs(H.chance('7H', 'lo') - 6 / 13) < 1e-12, 'Höher oder tiefer: Chancen');
+  for (let v = 2; v <= 14; v++) {
+    const card = '23456789TJQKA'[v - 2] + 'S';
+    assert(Math.abs(H.chance(card, 'hi') + H.chance(card, 'lo') - 14 / 13) < 1e-12, 'Höher oder tiefer: gleich zählt bei beiden');
+  }
+  assert(H.wins('7H', '7S', 'hi') && H.wins('7H', '7S', 'lo') && H.wins('7H', '9D', 'hi') && !H.wins('7H', '9D', 'lo'), 'Höher oder tiefer: gleich gewinnt immer');
+  // Simulation: immer die wahrscheinlichere Seite (2 und Ass werden übersprungen), nach 1–5 Treffern auszahlen
+  [1, 3, 5].forEach(stop => {
+    const n = 100000;
+    let back = 0;
+    for (let i = 0; i < n; i++) {
+      let card = H.randomCard();
+      let prob = 1;
+      let steps = 0;
+      while (steps < stop) {
+        while (H.chance(card, 'hi') >= 1 || H.chance(card, 'lo') >= 1) card = H.randomCard();
+        const dir = H.chance(card, 'hi') >= H.chance(card, 'lo') ? 'hi' : 'lo';
+        const next = H.randomCard();
+        if (!H.wins(card, next, dir)) { prob = 0; break; }
+        prob *= H.chance(card, dir);
+        card = next;
+        steps++;
+      }
+      if (prob) back += H.multiplier(prob);
+    }
+    between(back / n, 0.945, 0.99, `Höher oder tiefer: auszahlen nach ${stop} Treffern`);
+  });
+}
+
+// Mast-Kletterei: Multiplikator je Stufe, morsche Seile richtig verteilt, im Schnitt 97 %
+{
+  const T = C.towerMath;
+  Object.keys(T.MODES).forEach(mode => {
+    const m = T.MODES[mode];
+    for (let lv = 1; lv <= T.LEVELS; lv++) {
+      const r = Math.pow(T.chance(mode), lv) * T.multiplier(mode, lv);
+      assert(r <= 0.97 + 1e-9 && r >= 0.955, `Mast-Kletterei ${mode}: Stufe ${lv} zahlt im Schnitt ${r}`);
+      assert(T.multiplier(mode, lv) > T.multiplier(mode, lv - 1), `Mast-Kletterei ${mode}: Stufe ${lv} bringt mehr`);
+    }
+    for (let i = 0; i < 100; i++) {
+      const mast = T.makeMast(mode);
+      assert(mast.length === T.LEVELS && mast.every(lv => lv.length === m.broken && new Set(lv).size === m.broken && lv.every(x => x >= 0 && x < m.ropes)), `Mast-Kletterei ${mode}: Mast stimmt`);
+    }
+    // Zufall: jedes Seil reißt gleich oft
+    const counts = new Array(m.ropes).fill(0);
+    for (let i = 0; i < 20000; i++) T.makeMast(mode)[0].forEach(x => counts[x]++);
+    assert(counts.every(c => Math.abs(c / 20000 - m.broken / m.ropes) < 0.02), `Mast-Kletterei ${mode}: alle Seile gleich oft morsch`);
+  });
+}
+
+// Schatzkarten-Keno: Wahrscheinlichkeiten ergeben 1, jede Tabelle zahlt 94–97 %, Simulation passt
+{
+  const K = C.kenoMath;
+  for (let picks = 1; picks <= 10; picks++) {
+    let sum = 0;
+    for (let h = 0; h <= picks; h++) sum += K.hitChance(picks, h);
+    assert(Math.abs(sum - 1) < 1e-9, `Keno ${picks}: Wahrscheinlichkeiten ergeben 1`);
+    between(K.rtp(picks), 0.94, 0.97, `Keno ${picks} Inseln: Rechnung`);
+  }
+  const n = 100000;
+  let back5 = 0;
+  let back10 = 0;
+  const mine5 = [3, 9, 17, 28, 40];
+  const mine10 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  for (let i = 0; i < n; i++) {
+    const d = K.draw();
+    if (i < 500) assert(d.length === 10 && new Set(d).size === 10 && d.every(x => x >= 1 && x <= 40), 'Keno: 10 verschiedene Inseln gezogen');
+    back5 += K.payoutMult(5, mine5.filter(x => d.includes(x)).length);
+    back10 += K.payoutMult(10, mine10.filter(x => d.includes(x)).length);
+  }
+  between(back5 / n, 0.91, 0.99, 'Keno 5 Inseln: Simulation');
+  between(back10 / n, 0.88, 1.02, 'Keno 10 Inseln: Simulation');
+}
+
+// Baccarat: Regeln für die dritte Karte, Häufigkeiten und Rückzahlung wie im echten Spiel
+{
+  const B = C.baccaratMath;
+  assert(B.points('AS') === 1 && B.points('9H') === 9 && B.points('TD') === 0 && B.points('KC') === 0, 'Baccarat: Punktwerte');
+  assert(B.total(['9S', '8H']) === 7 && B.total(['KS', 'QH']) === 0, 'Baccarat: nur die Einerstelle zählt');
+  assert(B.bankerDraws(5, null) && !B.bankerDraws(6, null), 'Baccarat: Bank ohne dritte Spielerkarte');
+  assert(B.bankerDraws(3, '7S') && !B.bankerDraws(3, '8S') && B.bankerDraws(4, '2S') && !B.bankerDraws(4, 'AS') &&
+    B.bankerDraws(5, '4S') && !B.bankerDraws(5, '3S') && B.bankerDraws(6, '6S') && !B.bankerDraws(6, '5S') && !B.bankerDraws(7, '6S'), 'Baccarat: Tabelle der Bank');
+  const n = 200000;
+  const wins = { player: 0, banker: 0, tie: 0 };
+  const back = { player: 0, banker: 0, tie: 0 };
+  let shoe = [];
+  for (let i = 0; i < n; i++) {
+    if (shoe.length < 20) shoe = GK.cards.createDeck(8); // wie im Kasino: ein Schuh für viele Hände
+    const h = B.playHand(shoe);
+    wins[h.winner]++;
+    ['player', 'banker', 'tie'].forEach(c => { back[c] += B.payoutMult(c, h.winner); });
+    if (i < 300) {
+      assert(h.player.length >= 2 && h.player.length <= 3 && h.banker.length >= 2 && h.banker.length <= 3 && h.order.length === h.player.length + h.banker.length, 'Baccarat: Hand stimmig');
+      if (h.natural) assert(h.player.length === 2 && h.banker.length === 2, 'Baccarat: Natural – keine dritte Karte');
+    }
+  }
+  between(wins.banker / n, 0.452, 0.465, 'Baccarat: Bank gewinnt');
+  between(wins.player / n, 0.440, 0.452, 'Baccarat: Spieler gewinnt');
+  between(wins.tie / n, 0.091, 0.099, 'Baccarat: Unentschieden');
+  between(back.player / n, 0.98, 0.995, 'Baccarat: Wette auf Spieler');
+  between(back.banker / n, 0.98, 0.997, 'Baccarat: Wette auf Bank');
+  between(back.tie / n, 0.82, 0.89, 'Baccarat: Wette auf Unentschieden');
 }
 
 // Slot-Maschine (bestehend)

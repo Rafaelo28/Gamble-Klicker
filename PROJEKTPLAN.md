@@ -393,6 +393,19 @@ Einsatz verloren geht.
   Sonst nimmt jeder Arm 10 % seiner Sorte mit. Der Angriff wird gespeichert und pausiert außerhalb des Klickers.
   Abschaltbar in den Einstellungen. Neue Erfolge: Krakenjäger, Schrecken der Tiefsee, Freundeskreis.
 
+### Erweiterung: Vier neue Casino-Spiele ✅
+- **🔼 Höher oder tiefer** (Tischspiel): Ist die nächste Karte höher oder gleich bzw. tiefer oder gleich? Der
+  Multiplikator ergibt sich aus der Gesamt-Wahrscheinlichkeit aller Tipps (im Schnitt 97 %, egal wie man tippt),
+  dreimal pro Runde überspringen, auszahlen nach jedem richtigen Tipp. Erfolg „Hellseher“ (10 richtige).
+- **🧗 Mast-Kletterei** (schnelles Spiel): 9 Stufen bis ins Krähennest, je Stufe mehrere Seile, manche morsch.
+  Leicht (4 Seile, 1 reißt), Mittel (3/1), Schwer (2/1), Extrem (3/2). Erfolg „Ausguck“.
+- **🗺️ Schatzkarten-Keno** (schnelles Spiel): 40 Inseln, 1–10 markieren, 10 werden gezogen. Gewinntabellen je
+  Anzahl so abgestimmt, dass 94–97 % zurückfließen. Erfolg „Kartenleser“ (6 oder mehr Treffer).
+- **🎴 Baccarat** (Tischspiel): Punto Banco mit 8 Decks und den echten Regeln für die dritte Karte. Spieler 1:1,
+  Bank 0,95:1, Unentschieden 8:1, bei Unentschieden gibt es Einsätze auf Spieler/Bank zurück. Verlauf als
+  Perlenreihe. Erfolg „Gleichstand“.
+- Alle Runden werden sofort gespeichert; Ziehungen und Hände stehen beim Start fest (Neuladen rechnet ab).
+
 ## Entscheidungen
 
 ### Multiplayer: Wie spielen die Freunde zusammen? → **Variante A**
