@@ -343,4 +343,7 @@ window.GK = window.GK || {};
     refresh,
     render: () => chipControl.refresh(),
   });
+
+  // Für Tests: Kessel, Farben und Wetten
+  GK.casino.rouletteMath = { WHEEL_ORDER, RED, OUTSIDE_BETS, betInfo, colorOf };
 })();

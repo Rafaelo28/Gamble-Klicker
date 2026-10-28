@@ -374,7 +374,21 @@ window.GK = window.GK || {};
     render();
   }
 
+  // Passives Einkommen läuft (kann unter den Gebäuden ausgeschaltet werden)
+  function passiveActive() {
+    return !GK.state.passiveOff;
+  }
+
+  function setPassive(on) {
+    GK.state.passiveOff = !on;
+    GK.save();
+    GK.sound.play(on ? 'upgrade' : 'click');
+    GK.toast(on ? '💰 Passives Einkommen läuft wieder.' : '⏸️ Passives Einkommen ausgeschaltet – nur noch Klicks und Casino bringen Dublonen.');
+    render();
+  }
+
   function tick(seconds) {
+    if (!passiveActive()) return;
     const income = getCps() * seconds;
     if (income > 0) GK.earn(income, 'passive');
   }
@@ -494,7 +508,8 @@ window.GK = window.GK || {};
       els.meta.textContent = mystery
         ? ''
         : `+${GK.formatNumber(buildingCps(b), true)}/s pro Stück` +
-          (count ? ` · gesamt ${GK.formatNumber(buildingCps(b) * count, true)}/s` : '');
+          (count ? ` · gesamt ${GK.formatNumber(buildingCps(b) * count, true)}/s` : '') +
+          (passiveActive() ? '' : ' · pausiert');
 
       // Sterne für gekaufte Gebäude-Upgrades (Farbe je Stufe)
       const stars = BUILDING_TIERS.map((t, k) => (has(`${b.id}-${k + 1}`) ? `<i class="star rarity-${t.rarity}">★</i>` : '')).join('') +
@@ -560,6 +575,8 @@ window.GK = window.GK || {};
 
   function render() {
     document.getElementById('click-power').textContent = GK.formatNumber(getClickPower(), true);
+    document.getElementById('passive-toggle').checked = passiveActive();
+    document.getElementById('building-list').classList.toggle('paused', !passiveActive());
     renderBuildings();
     renderUpgrades();
     renderCombo();
@@ -575,6 +592,7 @@ window.GK = window.GK || {};
       click(e);
     });
     coin.addEventListener('click', e => { if (e.detail === 0) click(e); }); // Tastatur (Enter/Leertaste)
+    document.getElementById('passive-toggle').addEventListener('change', e => setPassive(e.target.checked));
     document.getElementById('upgrade-more').addEventListener('click', () => {
       showAllUpgrades = !showAllUpgrades;
       lastUpgradeSignature = '';
@@ -603,6 +621,7 @@ window.GK = window.GK || {};
     refresh,
     getCps,
     getCpsPermanent,
+    passiveActive,
     getClickPower,
     totalBuildings,
     ownsAllBuildings: () => BUILDINGS.every(b => owned(b.id) > 0),

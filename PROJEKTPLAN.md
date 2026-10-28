@@ -326,6 +326,14 @@ Einsatz verloren geht.
   neue Klick-, Krit- und Combo-Upgrades, fünf Upgrades für alle Gebäude (ab 50/150/300/500/800 Gebäuden)
   und 10 neue Erfolge.
 
+### Pflege: Roulette geprüft, passives Einkommen abschaltbar ✅
+- **Roulette** nachgeprüft, weil es sich für Spieler „unnatürlich“ anfühlte (gleiche Zahlen, kaum 0): Jede Zahl
+  kommt gleich oft (3,7 Mio. Drehungen, 0 = 2,70 %), Kessel und Kugel zeigen immer die ausgewertete Zahl.
+  Wiederholungen sind normal: In 15 Ergebnissen steht zu 96 % mindestens eine Zahl doppelt, 30 Drehungen ohne 0
+  kommen in 44 % der Fälle vor. Neuer Test in `tests/casino.test.js`.
+- **Passives Einkommen ausschalten**: Schalter unter den Gebäuden. Ausgeschaltet verdienen die Gebäude nichts,
+  auch keine Offline-Einnahmen; die Kopfzeile zeigt „Passives Einkommen aus“.
+
 ## Entscheidungen
 
 ### Multiplayer: Wie spielen die Freunde zusammen? → **Variante A**

@@ -20,7 +20,7 @@
   <meta name="description" content="Klicke dich reich und verzocke deine Dublonen im Casino! Browser-Spiel aus Cookie Clicker und Casino – nur Spielgeld.">
   <meta name="author" content="Rafaelo28">
   <!-- ?v=… ist die Spielversion: bei jedem Update erhöhen, damit Browser keine alten Dateien mischen -->
-  <link rel="stylesheet" href="css/style.css?v=2026102805">
+  <link rel="stylesheet" href="css/style.css?v=2026102806">
 </head>
 <body>
   <div class="app-header">
@@ -29,7 +29,7 @@
     <button id="sound-toggle" class="icon-btn" aria-label="Sound an/aus" title="Sound an/aus">🔊</button>
     <div class="wallet">
       <div class="wallet-money"><span id="money">0</span> <i class="dublone" aria-label="Dublonen"></i></div>
-      <div class="wallet-cps"><span id="cps">0</span> Dublonen pro Sekunde</div>
+      <div class="wallet-cps"><span id="cps-on"><span id="cps">0</span> Dublonen pro Sekunde</span><span id="cps-off" hidden>⏸️ Passives Einkommen aus</span></div>
       <div id="save-indicator" class="save-indicator">💾 gespeichert</div>
     </div>
   </header>
@@ -80,6 +80,11 @@
               </div>
             </div>
             <div id="building-list" class="building-list"></div>
+            <label class="setting passive-toggle">
+              <span>💰 Passives Einkommen der Gebäude
+                <span class="muted small passive-hint">Ausgeschaltet verdienen die Gebäude nichts – auch nicht, während das Spiel geschlossen ist.</span></span>
+              <input type="checkbox" id="passive-toggle" class="switch" checked>
+            </label>
           </div>
         </div>
       </div>
@@ -218,44 +223,44 @@
   <!-- PeerJS für den Poker-Multiplayer (Verbindung direkt zwischen den Browsern) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
 
-  <script src="js/analytics.js?v=2026102805"></script>
-  <script src="js/format.js?v=2026102805"></script>
-  <script src="js/state.js?v=2026102805"></script>
-  <script src="js/sound.js?v=2026102805"></script>
-  <script src="js/fx.js?v=2026102805"></script>
-  <script src="js/achievements.js?v=2026102805"></script>
-  <script src="js/progress.js?v=2026102805"></script>
-  <script src="js/clicker.js?v=2026102805"></script>
-  <script src="js/casino/casino.js?v=2026102805"></script>
-  <script src="js/casino/cards.js?v=2026102805"></script>
-  <script src="js/casino/slot-machine.js?v=2026102805"></script>
-  <script src="js/casino/slots.js?v=2026102805"></script>
-  <script src="js/casino/video-slots.js?v=2026102805"></script>
-  <script src="js/casino/scratch.js?v=2026102805"></script>
-  <script src="js/casino/roulette.js?v=2026102805"></script>
-  <script src="js/casino/blackjack.js?v=2026102805"></script>
-  <script src="js/casino/wheel.js?v=2026102805"></script>
-  <script src="js/casino/plinko.js?v=2026102805"></script>
-  <script src="js/casino/mines.js?v=2026102805"></script>
-  <script src="js/casino/crash.js?v=2026102805"></script>
-  <script src="js/casino/race.js?v=2026102805"></script>
-  <script src="js/casino/flight.js?v=2026102805"></script>
-  <script src="js/poker/evaluator.js?v=2026102805"></script>
-  <script src="js/poker/engine.js?v=2026102805"></script>
-  <script src="js/poker/ai.js?v=2026102805"></script>
-  <script src="js/poker/tournament.js?v=2026102805"></script>
-  <script src="js/poker/table-ui.js?v=2026102805"></script>
-  <script src="js/poker/multiplayer.js?v=2026102805"></script>
-  <script src="js/poker/poker.js?v=2026102805"></script>
-  <script src="js/mp/room.js?v=2026102805"></script>
-  <script src="js/mp/dice.js?v=2026102805"></script>
-  <script src="js/mp/minigolf.js?v=2026102805"></script>
-  <script src="js/mp/billiards.js?v=2026102805"></script>
-  <script src="js/mp/connect4.js?v=2026102805"></script>
-  <script src="js/mp/battleship.js?v=2026102805"></script>
-  <script src="js/mp/darts.js?v=2026102805"></script>
-  <script src="js/mp/cannon.js?v=2026102805"></script>
-  <script src="js/side-slot.js?v=2026102805"></script>
-  <script src="js/main.js?v=2026102805"></script>
+  <script src="js/analytics.js?v=2026102806"></script>
+  <script src="js/format.js?v=2026102806"></script>
+  <script src="js/state.js?v=2026102806"></script>
+  <script src="js/sound.js?v=2026102806"></script>
+  <script src="js/fx.js?v=2026102806"></script>
+  <script src="js/achievements.js?v=2026102806"></script>
+  <script src="js/progress.js?v=2026102806"></script>
+  <script src="js/clicker.js?v=2026102806"></script>
+  <script src="js/casino/casino.js?v=2026102806"></script>
+  <script src="js/casino/cards.js?v=2026102806"></script>
+  <script src="js/casino/slot-machine.js?v=2026102806"></script>
+  <script src="js/casino/slots.js?v=2026102806"></script>
+  <script src="js/casino/video-slots.js?v=2026102806"></script>
+  <script src="js/casino/scratch.js?v=2026102806"></script>
+  <script src="js/casino/roulette.js?v=2026102806"></script>
+  <script src="js/casino/blackjack.js?v=2026102806"></script>
+  <script src="js/casino/wheel.js?v=2026102806"></script>
+  <script src="js/casino/plinko.js?v=2026102806"></script>
+  <script src="js/casino/mines.js?v=2026102806"></script>
+  <script src="js/casino/crash.js?v=2026102806"></script>
+  <script src="js/casino/race.js?v=2026102806"></script>
+  <script src="js/casino/flight.js?v=2026102806"></script>
+  <script src="js/poker/evaluator.js?v=2026102806"></script>
+  <script src="js/poker/engine.js?v=2026102806"></script>
+  <script src="js/poker/ai.js?v=2026102806"></script>
+  <script src="js/poker/tournament.js?v=2026102806"></script>
+  <script src="js/poker/table-ui.js?v=2026102806"></script>
+  <script src="js/poker/multiplayer.js?v=2026102806"></script>
+  <script src="js/poker/poker.js?v=2026102806"></script>
+  <script src="js/mp/room.js?v=2026102806"></script>
+  <script src="js/mp/dice.js?v=2026102806"></script>
+  <script src="js/mp/minigolf.js?v=2026102806"></script>
+  <script src="js/mp/billiards.js?v=2026102806"></script>
+  <script src="js/mp/connect4.js?v=2026102806"></script>
+  <script src="js/mp/battleship.js?v=2026102806"></script>
+  <script src="js/mp/darts.js?v=2026102806"></script>
+  <script src="js/mp/cannon.js?v=2026102806"></script>
+  <script src="js/side-slot.js?v=2026102806"></script>
+  <script src="js/main.js?v=2026102806"></script>
 </body>
 </html>

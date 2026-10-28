@@ -46,6 +46,7 @@ window.GK = window.GK || {};
       goldenClicks: 0,
       crits: 0,        // kritische Klicks
       bestCombo: 0,    // längste Klick-Combo
+      passiveOff: false, // passives Einkommen der Gebäude ausgeschaltet (Schalter unter den Gebäuden)
       casino: createDefaultCasino(),
       ui: { tab: 'clicker' },
       settings: createDefaultSettings(),
