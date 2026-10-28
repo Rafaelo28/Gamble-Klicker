@@ -172,7 +172,7 @@ window.GK = window.GK || {};
       <dt>Bilanz</dt><dd>${signed(st.won - st.wagered)}</dd>
       <dt>Größter Gewinn</dt><dd>${GK.formatMoneyHTML(st.biggestWin)}</dd>
       ${st.bestMult > 1 ? `<dt>Bester Treffer</dt><dd>×${formatMult(st.bestMult)} Einsatz</dd>` : ''}
-      ${st.bestStreak > 1 ? `<dt>Längste Glückssträhne</dt><dd>${GK.formatNumber(st.bestStreak)} Gewinne in Folge</dd>` : ''}
+      ${st.bestStreak > 1 ? `<dt>Längste Glückssträhne</dt><dd>${GK.formatNumber(st.bestStreak)} in Folge</dd>` : ''}
       <dt>Zuletzt gespielt</dt><dd>vor ${GK.formatDuration((Date.now() - st.last) / 1000)}</dd>
     </dl>`;
   }

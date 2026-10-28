@@ -1352,11 +1352,29 @@ button.casino-card:active {
 
 .game-stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
   gap: 12px;
 }
 
+/* Bezeichnung links (darf umbrechen), Wert rechts in einer Zeile – auch bei sehr großen Zahlen */
+.stats-list.game-stats-list {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 12px;
+  max-width: none;
+}
+
+.game-stats-list dt {
+  min-width: 0;
+}
+
+.game-stats-list dd {
+  margin: 0;
+  text-align: right;
+  white-space: nowrap;
+}
+
 .game-stats-card {
+  min-width: 0;
   padding: 14px 16px;
   border: 1px solid var(--border);
   border-radius: 14px;
