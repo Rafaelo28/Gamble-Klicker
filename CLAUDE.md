@@ -40,6 +40,7 @@ Online über GitHub Pages aus `main`: https://rafaelo28.github.io/Gamble-Klicker
 
 - `node tests/poker.test.js` – Handbewertung, Poker-Engine, Preisverteilung.
 - `node tests/dice.test.js` – Lügenwürfel: Regeln und komplette Partien zwischen Computer-Gegnern.
+- `node tests/maumau.test.js` – Mau-Mau: Regeln, Sonderkarten (7, 8, Bube), Partien zwischen Computer-Gegnern, geheime Karten.
 - `node tests/kniffel.test.js` – Kniffel: Punkte je Feld, Ablauf eines Zugs, Partien zwischen Computer-Gegnern, Aufgeben, Rangfolge.
 - `node tests/minigolf.test.js` – Minigolf: Physik (muss überall gleich rechnen) und komplette Runden.
 - `node tests/billiards.test.js` – Billard: Aufbau, Physik, Regeln und komplette Partien.

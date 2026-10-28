@@ -6192,6 +6192,243 @@ body.reduced-effects .golden-coin {
   }
 }
 
+/* ---------- Mau-Mau ---------- */
+.casino-card[data-game="maumau"] { --accent: rgba(230, 80, 80, 0.4); }
+
+.mm-table {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 6px solid var(--rail);
+  border-radius: 28px;
+  background: var(--felt);
+  box-shadow: var(--rail-glow);
+}
+
+.mm-others {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.mm-seat {
+  min-width: 150px;
+  padding: 8px 10px;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.mm-seat.active {
+  border-color: var(--gold);
+  box-shadow: 0 0 14px rgba(245, 197, 66, 0.5);
+}
+
+.mm-seat.out {
+  opacity: 0.5;
+}
+
+.mm-fan {
+  display: flex;
+  justify-content: center;
+  min-height: 58px;
+  margin: 4px 0;
+}
+
+.mm-fan .card + .card {
+  margin-left: -24px;
+}
+
+.mm-count {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.mm-mau {
+  color: var(--gold-light);
+}
+
+.mm-center {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  min-height: 140px;
+}
+
+.mm-stack {
+  position: relative;
+}
+
+.mm-stack-count {
+  position: absolute;
+  right: -10px;
+  bottom: -8px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.65);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.card.mm-big,
+.card-back.mm-big {
+  width: 84px;
+  height: 118px;
+  border-radius: 10px;
+}
+
+.card.mm-big .card-corner {
+  font-size: 1.05rem;
+}
+
+.card.mm-big .card-suit {
+  font-size: 2.8rem;
+}
+
+.mm-pile {
+  position: relative;
+  width: 84px;
+  height: 118px;
+}
+
+.mm-under,
+.mm-top {
+  position: absolute;
+  inset: 0;
+}
+
+.mm-under {
+  transform: rotate(var(--r));
+}
+
+.mm-flags {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mm-flag {
+  padding: 6px 12px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.4);
+  font-weight: 800;
+}
+
+.mm-flag .red {
+  color: #ff6b6b;
+}
+
+.mm-flag.seven {
+  background: #c62828;
+  color: #fff;
+  animation: mm-blink 1s ease-in-out infinite alternate;
+}
+
+@keyframes mm-blink {
+  to { box-shadow: 0 0 16px rgba(255, 90, 60, 0.9); }
+}
+
+.mm-status {
+  min-height: 1.5em;
+  font-weight: 700;
+  text-align: center;
+}
+
+.mm-hand-label {
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.mm-hand-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.mm-hand-card {
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  cursor: default;
+  touch-action: manipulation;
+  transition: transform 0.15s;
+}
+
+.mm-hand-card .card {
+  width: 70px;
+  height: 98px;
+}
+
+.mm-hand-card .card-corner {
+  font-size: 0.95rem;
+}
+
+.mm-hand-card .card-suit {
+  font-size: 2.2rem;
+}
+
+.mm-hand.myturn .mm-hand-card:not(.mm-play) .card {
+  filter: brightness(0.7);
+}
+
+.mm-hand-card.mm-play {
+  cursor: pointer;
+  transform: translateY(-6px);
+}
+
+.mm-hand-card.mm-play .card {
+  box-shadow: 0 0 0 3px #6fdc8c, 0 6px 14px rgba(0, 0, 0, 0.5);
+}
+
+.mm-hand-card.chosen .card {
+  box-shadow: 0 0 0 4px var(--gold), 0 6px 14px rgba(0, 0, 0, 0.5);
+}
+
+.mm-wish-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.mm-wishes {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.mm-wish {
+  min-height: 52px;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.mm-wish.red {
+  color: #ff6b6b;
+}
+
+@media (hover: hover) {
+  .mm-hand-card.mm-play:hover {
+    transform: translateY(-10px);
+  }
+}
+
+@media (max-width: 560px) {
+  .mm-wishes {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 /* ---------- Vier gewinnt ---------- */
 .casino-card[data-game="connect4"] { --accent: rgba(230, 60, 60, 0.45); }
 
