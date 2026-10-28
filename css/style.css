@@ -957,17 +957,33 @@ main {
 .rarity-legend   { --rarity: #c27bff; --rarity-glow: rgba(194, 123, 255, 0.6); }
 .rarity-mythic   { --rarity: #ff5ad1; --rarity-glow: rgba(255, 90, 209, 0.65); }
 .rarity-synergy  { --rarity: #6fdc8c; --rarity-glow: rgba(111, 220, 140, 0.45); }
+.rarity-cosmic   { --rarity: #8c7bff; --rarity-glow: rgba(140, 123, 255, 0.65); }
+.rarity-divine   { --rarity: #fff1a8; --rarity-glow: rgba(255, 241, 168, 0.7); }
+.rarity-empire   { --rarity: #ffb347; --rarity-glow: rgba(255, 179, 71, 0.55); }
 
 .upgrade.rarity-crit,
 .upgrade.rarity-combo,
 .upgrade.rarity-diamond,
 .upgrade.rarity-legend,
-.upgrade.rarity-mythic {
+.upgrade.rarity-mythic,
+.upgrade.rarity-cosmic,
+.upgrade.rarity-divine,
+.upgrade.rarity-empire {
   background: linear-gradient(160deg, color-mix(in srgb, var(--rarity) 18%, transparent), rgba(0, 0, 0, 0.25) 60%);
 }
 
 .upgrade.rarity-mythic {
   border-image: linear-gradient(180deg, #ff5ad1, #ffd95e, #5ad8ff) 1;
+  border-left-width: 4px;
+}
+
+.upgrade.rarity-cosmic {
+  border-image: linear-gradient(180deg, #8c7bff, #5ad8ff, #c27bff) 1;
+  border-left-width: 4px;
+}
+
+.upgrade.rarity-divine {
+  border-image: linear-gradient(180deg, #fff1a8, #ffffff, #f5c542) 1;
   border-left-width: 4px;
 }
 
@@ -982,7 +998,9 @@ main {
 /* Glanzstreifen über seltenen, bezahlbaren Upgrades */
 .upgrade.rarity-diamond:not(:disabled)::after,
 .upgrade.rarity-legend:not(:disabled)::after,
-.upgrade.rarity-mythic:not(:disabled)::after {
+.upgrade.rarity-mythic:not(:disabled)::after,
+.upgrade.rarity-cosmic:not(:disabled)::after,
+.upgrade.rarity-divine:not(:disabled)::after {
   content: '';
   position: absolute;
   top: 0;
