@@ -31,8 +31,12 @@ Schatztruhe voll ist, wartet das Casino:
 - 💥 **Kanonenduell** – zwei Schiffe, eine Insel, wechselnder Wind: zielen wie mit einer Schleuder
 
 Schnelle Klicks bauen eine **Combo** auf, mit etwas Glück landest du einen **kritischen Treffer**.
-Gebäude-Upgrades gibt es in sieben Stufen bis *Mythos*, dazu Synergien zwischen den Gebäuden.
+16 Gebäude vom Hilfsfinger bis zum Sternenportal, Gebäude-Upgrades in neun Stufen bis *Götter*,
+Synergien zwischen den Gebäuden und Upgrades für alle Gebäude zusammen.
 Direkt unter der Klick-Münze wartet der **Side-Slot**: klicken und nebenbei zocken.
+Alle Automaten startet man mit einem echten **Hebel** – herunterziehen oder antippen.
+Beträge lassen sich abgekürzt eingeben: `500k`, `2,5M`, `1B` (Milliarde), `3 Mio.` …
+Jedes Casino-Spiel hat seine eigene **📊 Statistik** (im Spiel und unter *Statistiken*).
 Große Gewinne werden mit Münzregen, Konfetti und Jackpot-Fanfare gefeiert. 🎉
 
 Sammle Erfolge, fang die goldene Bonus-Dublone, kauf dir VIP-Karten bis zur Kaiserkrone für höhere
@@ -80,9 +84,9 @@ ab iPadOS 15. Ton gibt es nach dem ersten Antippen (Vorgabe von Safari).
 4. Der Gastgeber startet das Spiel. Freie Plätze können Computer-Gegner übernehmen.
 
 Lügenwürfel, Minigolf, Billard, Vier gewinnt, Seeschlacht, Darts und das Kanonenduell funktionieren genauso (Casino → Spiel → *Mit Freunden spielen*).
-Mit Freunden wird das Preisgeld (eure Eintritte) nach eurer Reihenfolge verteilt. Füllen Computer-Gegner
-freie Plätze auf, spielen sie mit, zahlen aber keinen Eintritt und gewinnen nichts – zu zweit bekommt also,
-wer vor dem anderen landet, beide Eintritte. **Gegen Computer** gewinnt nur der Sieger, Platz 2 bekommt ab
+Mit Freunden sind eure Eintritte das Preisgeld, verteilt nach dem Platz unter allen am Tisch. Füllen
+Computer-Gegner freie Plätze auf, zahlen sie keinen Eintritt, können aber Preise gewinnen – die behält dann
+das Casino. Zu zweit mit zwei Computern (je 1.000 Eintritt) gibt es z. B. 🥇 1.300 und 🥈 700. **Gegen Computer** gewinnt nur der Sieger, Platz 2 bekommt ab
 3 Spielern den halben Einsatz zurück.
 
 Die Browser verbinden sich direkt miteinander (WebRTC über [PeerJS](https://peerjs.com/)).
@@ -115,7 +119,8 @@ Den Fahrplan mit allen Phasen findest du in [PROJEKTPLAN.md](PROJEKTPLAN.md).
 - ♠️ Poker als Turnier gegen Computer-Gegner und online mit Freunden
 - 🏆 Erfolge, goldene Dublone, Offline-Einnahmen, große Fahrt (Prestige) und VIP-Karten
 - 🔊 Soundeffekte, ✨ Gewinn-Animationen, 📱 iPad-Optimierung
-- 🔥 Klick-Combos, kritische Klicks, Gebäude-Stufen bis Mythos, Synergien, Poker-Modi Turbo und Blitz
+- 🔥 Klick-Combos, kritische Klicks, Gebäude-Stufen bis Götter, Synergien, Poker-Modi Turbo und Blitz
+- 🎰 Hebel an den Automaten, Beträge mit Abkürzungen (k, M, B …), Statistik für jedes Spiel
 
 ## Tests
 

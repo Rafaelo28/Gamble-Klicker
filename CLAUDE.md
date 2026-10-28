@@ -46,6 +46,7 @@ Online über GitHub Pages aus `main`: https://rafaelo28.github.io/Gamble-Klicker
 - `node tests/battleship.test.js` – Seeschlacht: Flotte, Regeln, geheime Ansicht, Computer-Gegner.
 - `node tests/darts.test.js` – Darts: Wertung, Ablauf mit 2–4 Spielern, Stechen, Aufgeben.
 - `node tests/cannon.test.js` – Kanonenduell: Flugbahn (muss überall gleich rechnen), Schaden, Regeln, Partien.
+- `node tests/format.test.js` – Beträge mit Abkürzungen eingeben (500k, 2,5M, 1B, 3 Mio.).
 - `node tests/payouts.test.js` – Preise mit Freunden (auch mit Computer-Gegnern, auch Poker) und gegen Computer.
 - `node tests/casino.test.js` – Quoten und Zufall der Casino-Spiele (Rubbellose, Glücksrad,
   Münzfall, Schatzinsel, Kanonenkugel, Schiffsrennen, Flugkapitän, Slot-Maschine, Video-Slots).

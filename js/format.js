@@ -31,6 +31,81 @@ window.GK = window.GK || {};
     return intFormat.format(Math.floor(n));
   };
 
+  // ---------- Beträge eingeben: 500k, 2,5M, 1B, 3 Mio., 1.000.000 … ----------
+
+  // Abkürzungen → Zehnerpotenz. B steht wie in vielen Spielen für eine Milliarde (englisch „billion“),
+  // ausgeschrieben gelten die deutschen Wörter (Billion = 1.000 Milliarden, wie in der Anzeige „Bio.“).
+  const SUFFIXES = {
+    '': 0, k: 3, t: 3, tsd: 3, tausend: 3,
+    m: 6, mio: 6, million: 6, millionen: 6,
+    b: 9, mrd: 9, milliarde: 9, milliarden: 9,
+    bio: 12, billion: 12, billionen: 12,
+    brd: 15, billiarde: 15, billiarden: 15,
+    trio: 18, trillion: 18, trillionen: 18,
+    trd: 21, trilliarde: 21, trilliarden: 21,
+    quadr: 24, quadrd: 27, quint: 30, quintd: 33,
+  };
+
+  // Zahl vor der Abkürzung: Komma oder Punkt als Dezimalzeichen, das andere (bzw. mehrere gleiche)
+  // trennt Tausender wie in „1.000.000“. Ein Punkt vor genau drei Ziffern ist ein Tausenderpunkt („1.000“).
+  function numberPart(text) {
+    const count = ch => text.split(ch).length - 1;
+    let dec = null;
+    if (count('.') && count(',')) dec = text.lastIndexOf(',') > text.lastIndexOf('.') ? ',' : '.';
+    else if (count(',') === 1) dec = ',';
+    else if (count('.') === 1 && !/^\d{1,3}\.\d{3}$/.test(text)) dec = '.';
+    const cut = dec ? text.lastIndexOf(dec) : text.length;
+    const whole = text.slice(0, cut);
+    const frac = text.slice(cut + 1);
+    const sep = dec === ',' || (!dec && count('.')) ? '.' : ',';
+    const grouped = new RegExp('^\\d{1,3}(\\' + sep + '\\d{3})+$');
+    if (!/^\d*$/.test(frac) || !(whole + frac) || !(/^\d*$/.test(whole) || grouped.test(whole))) return null;
+    return whole.split(sep).join('') + (frac ? '.' + frac : '');
+  }
+
+  // Liest einen Betrag aus einem Eingabefeld. Unbekannte Eingaben ergeben NaN.
+  GK.parseAmount = function (value) {
+    if (typeof value === 'number') return value;
+    const text = String(value || '').toLowerCase().replace(/[\s\u00a0']/g, '');
+    const match = text.match(/^([\d.,]+?)([a-z.]*)$/);
+    if (!match) return NaN;
+    const num = numberPart(match[1]);
+    const exp = SUFFIXES[match[2].replace(/\./g, '')];
+    if (num === null || exp === undefined) return NaN;
+    const result = Number(num + 'e' + exp); // „2.3e6“ ist genau 2.300.000
+    return isFinite(result) ? result : NaN;
+  };
+
+  // Kurze, wieder einlesbare Schreibweise für ein Eingabefeld: 5 Mio. / 2,5 Mrd. / 12.345
+  GK.formatAmount = function (n) {
+    if (!isFinite(n)) return '';
+    for (const unit of BIG_UNITS) {
+      const q = n / unit.value;
+      if (Math.abs(n) >= unit.value && Math.abs(q * 100 - Math.round(q * 100)) < 1e-6) {
+        return new Intl.NumberFormat('de-DE', { maximumFractionDigits: 2 }).format(q) + ' ' + unit.name;
+      }
+    }
+    return intFormat.format(Math.floor(n));
+  };
+
+  // Eigenschaften für Betrags-Eingabefelder: Tastatur mit Buchstaben, ohne Autokorrektur
+  GK.AMOUNT_INPUT = 'type="text" inputmode="text" autocomplete="off" autocapitalize="off" autocorrect="off" ' +
+    'spellcheck="false" enterkeyhint="done" placeholder="z. B. 5M"';
+
+  // Zeigt beim Tippen, welcher Betrag gemeint ist (in target)
+  GK.amountPreview = function (input, target) {
+    const update = () => {
+      const raw = input.value.trim();
+      const value = GK.parseAmount(raw);
+      target.innerHTML = !raw ? '' : isFinite(value)
+        ? `= ${GK.formatMoneyHTML(Math.floor(value))}`
+        : '<span class="bet-warning">Zahl nicht erkannt – z. B. 500k, 2,5M oder 1B</span>';
+    };
+    input.addEventListener('input', update);
+    update();
+    return update;
+  };
+
   // Die Währung: goldene Dublone (wird per CSS gezeichnet)
   GK.COIN = '<i class="dublone" aria-hidden="true"></i>';
 

@@ -129,39 +129,29 @@ window.GK = window.GK || {};
     return players <= 2 ? [round(2 * SOLO_RETURN)] : [round(SOLO_RETURN * players - 0.5), 0.5];
   }
 
-  function prize(place, entry, players, solo) {
+  // players = alle Plätze am Tisch, paying = wer echten Eintritt bezahlt hat (ohne Computer-Gegner)
+  function prize(place, entry, players, solo, paying = players) {
     if (solo) {
       const mult = soloMultipliers(players);
       return place >= 1 && place <= mult.length ? Math.floor(entry * mult[place - 1]) : 0;
     }
     const shares = prizeShares(players);
-    return place >= 1 && place <= shares.length ? Math.floor(entry * players * shares[place - 1]) : 0;
+    return place >= 1 && place <= shares.length ? Math.floor(entry * paying * shares[place - 1]) : 0;
   }
 
   const humans = players => players.filter(p => !p.isBot).length;
 
-  // Rang unter den echten Spielern (Computer-Gegner zählen nicht mit). Wer noch keinen Platz hat, landet
-  // sicher davor – Plätze werden von hinten vergeben (Ausscheiden) oder alle am Ende.
-  function humanRank(d, view, seat, place) {
-    let rank = 1;
-    view.players.forEach((p, i) => {
-      if (i === seat || p.isBot) return;
-      const other = d.placeOf(view, i);
-      if (!other || other < place) rank++;
-    });
-    return rank;
-  }
-
-  // Auszahlung für einen Platz. Gegen Computer: Casino-Tabelle. Mit Freunden: Computer-Gegner spielen mit,
-  // zahlen aber keinen Eintritt und gewinnen nichts – eure Eintritte werden nach eurer Reihenfolge verteilt.
+  // Auszahlung für einen Platz. Gegen Computer: Casino-Tabelle. Mit Freunden: Das Preisgeld sind nur die
+  // echten Eintritte, verteilt nach Platz – Computer-Gegner zahlen nichts, können aber Preise gewinnen
+  // (die behält dann das Casino).
   function payoutFor(s, view, seat, place) {
     if (s.solo) return prize(place, s.entry, view.players.length, true);
-    return prize(humanRank(games[s.game], view, seat, place), s.entry, humans(view.players), false);
+    return prize(place, s.entry, view.players.length, false, humans(view.players));
   }
 
-  function prizeText(entry, players, solo) {
+  function prizeText(entry, players, solo, paying = players) {
     const places = solo ? soloMultipliers(players).length : prizeShares(players).length;
-    return Array.from({ length: places }, (_, i) => `${['🥇', '🥈', '🥉'][i]} ${GK.formatMoneyHTML(prize(i + 1, entry, players, solo))}`).join(' ');
+    return Array.from({ length: places }, (_, i) => `${['🥇', '🥈', '🥉'][i]} ${GK.formatMoneyHTML(prize(i + 1, entry, players, solo, paying))}`).join(' ');
   }
 
   // Läuft gerade woanders ein Spiel, das diesen Raum ausschließt?
@@ -268,7 +258,7 @@ window.GK = window.GK || {};
   // ========== Gastgeber ==========
 
   function createRoom(gameId, entry, settings, solo, bots) {
-    entry = Math.floor(Number(entry) || 0);
+    entry = Math.floor(GK.parseAmount(entry) || 0);
     const d = games[gameId];
     if (entry < MIN_ENTRY) return GK.toast(`Der Eintritt muss mindestens ${GK.formatNumber(MIN_ENTRY)} Dublonen betragen.`);
     const busy = busyElsewhere();
@@ -987,9 +977,10 @@ window.GK = window.GK || {};
         <div class="mp-form">
           <label class="bet-label">Raum eröffnen – Eintritt pro Spieler</label>
           <div class="bet-row">
-            <input type="number" class="bet-input mp-entry room-entry" min="${MIN_ENTRY}" step="100" inputmode="numeric" value="${me.lastEntry}">
+            <input class="bet-input mp-entry room-entry" ${GK.AMOUNT_INPUT} value="${GK.formatAmount(me.lastEntry)}">
             <button type="button" class="btn btn-primary room-create">Eröffnen</button>
           </div>
+          <div class="small amount-preview room-entry-preview"></div>
           <div class="bet-row mp-presets">
             ${ENTRY_PRESETS.map(v => `<button type="button" class="btn btn-small room-preset" data-entry="${v}">${GK.formatNumber(v)}</button>`).join('')}
           </div>
@@ -1052,8 +1043,10 @@ window.GK = window.GK || {};
       GK.save();
     });
     const entryInput = container.querySelector('.room-entry');
+    const updatePreview = GK.amountPreview(entryInput, container.querySelector('.room-entry-preview'));
     container.querySelectorAll('.room-preset').forEach(btn => btn.addEventListener('click', () => {
-      entryInput.value = btn.dataset.entry;
+      entryInput.value = GK.formatAmount(Number(btn.dataset.entry));
+      updatePreview();
       GK.sound.play('chip');
     }));
     container.querySelector('.room-create').addEventListener('click', () => {
@@ -1074,8 +1067,9 @@ window.GK = window.GK || {};
     const d = def();
     const isHost = s.role === 'host';
     const members = s.members;
-    // Preise hängen nur an den echten Spielern – Computer-Gegner zahlen und gewinnen nichts
-    const players = isHost || s.phase === 'lobby' ? Math.max(2, members.length) : 0;
+    // Plätze am Tisch (mit Computer-Gegnern) und echte Spieler, die Eintritt zahlen
+    const paying = Math.max(2, members.length);
+    const players = isHost || s.phase === 'lobby' ? (d.bots && s.fillBots ? Math.max(d.maxPlayers, paying) : paying) : 0;
     const hostId = isHost ? store().playerId : s.hostId;
     const readyCount = members.filter(m => m.ready).length;
     const mustConfirm = !isHost && !s.paid && s.entry && s.phase === 'lobby';
@@ -1091,7 +1085,7 @@ window.GK = window.GK || {};
             </div>` : ''}
         </div>
         ${s.entry ? `<p class="mp-tier-info">${d.icon} <b>${esc(d.name)}</b> · Eintritt ${GK.formatMoneyHTML(s.entry)}
-          ${d.settingsText && s.settings ? ` · ${d.settingsText(s.settings)}` : ''}<br>Preise: ${players ? prizeText(s.entry, players) + (d.bots && s.fillBots && players < d.maxPlayers ? ' <span class="muted">(unter euch)</span>' : '') : ''}</p>` : ''}
+          ${d.settingsText && s.settings ? ` · ${d.settingsText(s.settings)}` : ''}<br>Preise: ${players ? prizeText(s.entry, players, false, paying) : ''}</p>` : ''}
         ${s.phase === 'connecting' ? '<p class="muted">Suche den Raum …</p>' : `
           <h3>Spieler (${members.length}/${d.maxPlayers})</h3>
           <ul class="mp-members">
@@ -1110,7 +1104,7 @@ window.GK = window.GK || {};
             </div>` : ''}
           ${isHost ? `
             ${d.bots ? `<label class="mp-check"><input type="checkbox" class="room-fill" ${s.fillBots ? 'checked' : ''}> Freie Plätze mit Computer-Gegnern auffüllen
-              <span class="muted small">(sie zahlen keinen Eintritt und gewinnen nichts)</span></label>` : ''}
+              <span class="muted small">(sie zahlen keinen Eintritt – gewinnen sie einen Preis, behält ihn das Casino)</span></label>` : ''}
             <div class="game-actions">
               <button class="btn btn-primary btn-big room-start" ${readyCount < 2 ? 'disabled' : ''}>▶ Spiel starten</button>
             </div>
@@ -1176,7 +1170,7 @@ window.GK = window.GK || {};
       d.settingsText && s.settings ? d.settingsText(s.settings) : '',
       `Eintritt ${GK.formatMoneyHTML(s.entry)}`,
       s.solo ? prizeText(s.entry, players, true)
-        : prizeText(s.entry, humans(view.players)) + (humans(view.players) < players ? ' <span class="muted">(unter euch)</span>' : ''),
+        : prizeText(s.entry, players, false, humans(view.players)),
     ].filter(Boolean);
     setHtml(container.querySelector('.room-info'), info.map(i => `<span>${i}</span>`).join(''));
     const notices = [];

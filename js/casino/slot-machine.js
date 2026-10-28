@@ -127,5 +127,140 @@ window.GK = window.GK || {};
     return { show, spin, highlight };
   }
 
-  GK.slotMachine = { SYMBOLS, byId, randomSymbol, evaluate, rtp, createReels };
+  // ---------- Hebel zum Drehen (für alle Automaten) ----------
+
+  // Herunterziehen startet die Runde (Antippen zieht ihn auch). Gibt das Element zurück,
+  // lever.disabled sperrt ihn. options: { onPull(), small, className, label }
+  function createLever(options) {
+    // Kein echter <button>: gesperrte Buttons bekommen keine Zeiger-Ereignisse mehr, dann bliebe ein
+    // Hebel, der während des Ziehens gesperrt wird, unten hängen
+    const lever = document.createElement('div');
+    lever.setAttribute('role', 'button');
+    lever.className = 'lever' + (options.small ? ' lever-small' : '') + (options.className ? ' ' + options.className : '');
+    lever.title = 'Am Hebel ziehen';
+    lever.setAttribute('aria-label', options.label || 'Am Hebel ziehen – drehen');
+    lever.innerHTML = '<span class="lever-arm"></span><span class="lever-mount"></span><span class="lever-knob"></span>';
+    const arm = lever.querySelector('.lever-arm');
+    const knob = lever.querySelector('.lever-knob');
+    const PIVOT = 0.5;      // Drehpunkt (Anteil der Höhe)
+    const ARM = 0.39;       // Länge des Arms (Anteil der Höhe)
+    const MAX_ANGLE = 0.92 * Math.PI;
+    const PULL_AT = 0.8;    // ab hier rastet der Hebel ein und die Walzen laufen
+    let drag = null;        // { y0, travel, moved, fired }
+    let frame = 0;
+    let notch = 0;
+    let skipClick = false;
+
+    // pos: 0 = oben, 1 = ganz unten (leicht negativ beim Zurückfedern)
+    function setPos(pos) {
+      const a = pos * MAX_ANGLE;
+      const toward = Math.sin(a); // zeigt der Arm zu uns, wirkt er näher und größer
+      arm.style.transform = `scaleX(${1 + 0.35 * Math.max(0, toward)}) scaleY(${Math.cos(a)})`;
+      knob.style.top = ((PIVOT - ARM * Math.cos(a)) * 100) + '%';
+      knob.style.transform = `translate(-50%, -50%) scale(${1 + 0.3 * toward})`;
+      arm.style.zIndex = Math.cos(a) < 0 ? 3 : 1; // nach unten gezogen liegt der Arm vor der Halterung
+      lever.dataset.pos = pos.toFixed(2);
+    }
+
+    function stopAnimation() {
+      cancelAnimationFrame(frame);
+      frame = 0;
+    }
+
+    // Von „from“ nach „to“ in ms; ease = Verlauf (0..1 → 0..1)
+    function animate(from, to, ms, ease, onDone) {
+      stopAnimation();
+      const start = performance.now();
+      const step = now => {
+        const t = Math.min(1, (now - start) / ms);
+        setPos(from + (to - from) * ease(t));
+        if (t < 1) frame = requestAnimationFrame(step);
+        else { frame = 0; if (onDone) onDone(); }
+      };
+      frame = requestAnimationFrame(step);
+    }
+
+    const easeIn = t => t * t;
+    const springBack = t => 1 + 2.2 * Math.pow(t - 1, 3) + 1.2 * Math.pow(t - 1, 2); // federt etwas über
+
+    function release(from) {
+      animate(from, 0, 480, springBack);
+    }
+
+    function fire() {
+      GK.sound.play('lever');
+      if (navigator.vibrate) navigator.vibrate(15);
+      options.onPull();
+    }
+
+    // Antippen oder Tastatur: der Hebel wird ganz durchgezogen
+    function autoPull() {
+      if (lever.disabled || frame) return;
+      animate(0, 1, 200, easeIn, () => {
+        fire();
+        release(1);
+      });
+    }
+
+    lever.addEventListener('pointerdown', e => {
+      if (lever.disabled || (e.pointerType === 'mouse' && e.button !== 0)) return;
+      stopAnimation();
+      drag = { y0: e.clientY, travel: lever.clientHeight * ARM * 2 * 0.95, moved: false, fired: false, pos: 0 };
+      notch = 0;
+      try { lever.setPointerCapture(e.pointerId); } catch (err) { /* ältere Browser */ }
+    });
+    lever.addEventListener('pointermove', e => {
+      if (!drag) return;
+      const dy = e.clientY - drag.y0;
+      if (Math.abs(dy) > 6) drag.moved = true;
+      if (!drag.moved) return;
+      drag.pos = Math.max(0, Math.min(1, dy / drag.travel));
+      setPos(drag.pos);
+      // Ratschen-Klicks beim Herunterziehen
+      const n = Math.floor(drag.pos * 5);
+      if (n > notch) GK.sound.play('tick');
+      notch = Math.max(notch, n);
+      if (!drag.fired && drag.pos >= PULL_AT && !lever.disabled) {
+        drag.fired = true;
+        fire();
+      }
+    });
+    const end = () => {
+      if (!drag) return;
+      if (drag.moved) {
+        skipClick = true;
+        setTimeout(() => { skipClick = false; }, 400);
+        release(drag.pos);
+      }
+      drag = null;
+    };
+    lever.addEventListener('pointerup', end);
+    lever.addEventListener('pointercancel', end);
+    lever.addEventListener('lostpointercapture', end);
+    lever.addEventListener('click', () => {
+      if (skipClick) { skipClick = false; return; }
+      autoPull();
+    });
+    lever.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        autoPull();
+      }
+    });
+    let disabled = false;
+    Object.defineProperty(lever, 'disabled', {
+      get: () => disabled,
+      set: value => {
+        disabled = !!value;
+        lever.classList.toggle('disabled', disabled);
+        lever.setAttribute('aria-disabled', String(disabled));
+        lever.tabIndex = disabled ? -1 : 0;
+      },
+    });
+    lever.disabled = false;
+    setPos(0);
+    return lever;
+  }
+
+  GK.slotMachine = { SYMBOLS, byId, randomSymbol, evaluate, rtp, createReels, createLever };
 })();

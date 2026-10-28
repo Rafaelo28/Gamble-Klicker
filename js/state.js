@@ -17,6 +17,8 @@ window.GK = window.GK || {};
       history: [],     // letzte Runden: { game, bet, payout, text, time }
       openGame: null,  // zuletzt geöffnetes Spiel
       games: {},       // { spielId: Zustand des Spiels }
+      stats: {},       // Statistik je Spiel: { spielId: { rounds, wagered, won, wins, biggestWin, bestMult, streak, bestStreak, last } }
+      statsSince: 0,   // ab wann die Statistik je Spiel zählt (0 = von Anfang an)
     };
   }
 
@@ -114,6 +116,8 @@ window.GK = window.GK || {};
     GK.state = Object.assign(defaults, data, { version: SAVE_VERSION });
     // Verschachtelte Bereiche ebenfalls mit Standardwerten auffüllen
     GK.state.casino = Object.assign(createDefaultCasino(), data.casino);
+    // Ältere Spielstände haben noch keine Statistik je Spiel: sie zählt ab jetzt
+    if (data.casino && !data.casino.stats && data.casino.rounds > 0) GK.state.casino.statsSince = Date.now();
     GK.state.ui = Object.assign({ tab: 'clicker' }, data.ui);
     GK.state.settings = Object.assign(createDefaultSettings(), data.settings);
     GK.state.prestige = Object.assign({ points: 0, journeys: 0 }, data.prestige);

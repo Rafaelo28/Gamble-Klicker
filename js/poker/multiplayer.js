@@ -115,29 +115,18 @@ GK.poker = GK.poker || {};
     return T().modeLabel(session().mode, session().hands);
   }
 
-  // Preise des Raums als Text – players = echte Spieler (Computer-Gegner zahlen und gewinnen nichts)
-  function prizeText(entry, players, blitz, withBots) {
-    const among = withBots ? ' von euch' : '';
-    if (blitz) return `Die besten ${T().blitzPaidPlaces(players)}${among} teilen ${GK.formatMoneyHTML(entry * players)} nach Chips`;
-    return T().prizeShares(players).map((_, i) => `${['🥇', '🥈', '🥉'][i]} ${GK.formatMoneyHTML(T().prize(i + 1, entry, players))}`).join(' ') +
-      (withBots ? ' <span class="muted">(unter euch)</span>' : '');
+  // Preise des Raums als Text. players = Plätze am Tisch, paying = echte Spieler, die Eintritt zahlen
+  function prizeText(entry, players, blitz, paying = players) {
+    if (blitz) return `Die besten ${T().blitzPaidPlaces(players)} teilen ${GK.formatMoneyHTML(entry * paying)} nach Chips`;
+    return T().prizeShares(players).map((_, i) => `${['🥇', '🥈', '🥉'][i]} ${GK.formatMoneyHTML(T().prize(i + 1, entry, players, paying))}`).join(' ');
   }
 
   const humans = t => t.players.filter(p => !p.isBot).length;
 
-  // Auszahlung mit Freunden: Computer-Gegner spielen mit, zahlen aber keinen Eintritt und gewinnen nichts.
-  // Eure Eintritte werden nach eurer Reihenfolge verteilt (Blitz: die Besten von euch nach Chips).
+  // Auszahlung mit Freunden: Das Preisgeld sind nur die echten Eintritte, verteilt nach Platz bzw. Chips –
+  // Computer-Gegner zahlen nichts, können aber Preise gewinnen (die behält dann das Casino)
   function mpPayout(t, seat, entry) {
-    const count = humans(t);
-    const me = t.players[seat];
-    if (T().isBlitz(t)) {
-      if (me.out || t.phase !== 'finished') return 0;
-      return T().blitzPayouts(t.players.map(p => (p.isBot || p.out ? 0 : p.chips)), entry, count)[seat];
-    }
-    // Rang unter den echten Spielern: wer noch im Turnier ist, landet sicher vor einem Ausgeschiedenen
-    let rank = 1;
-    t.players.forEach((p, i) => { if (i !== seat && !p.isBot && (!p.place || p.place < me.place)) rank++; });
-    return T().prize(rank, entry, count);
+    return T().payout(t, seat, entry, humans(t));
   }
 
   // Eigenen Platz abrechnen (genau einmal pro Turnier). win: Auszahlung in Dublonen
@@ -237,7 +226,7 @@ GK.poker = GK.poker || {};
   // ========== Gastgeber ==========
 
   function createRoom(entry, modeId, hands) {
-    entry = Math.floor(Number(entry) || 0);
+    entry = Math.floor(GK.parseAmount(entry) || 0);
     if (entry < MIN_ENTRY) return GK.toast(`Der Eintritt muss mindestens ${GK.formatNumber(MIN_ENTRY)} Dublonen betragen.`);
     if (GK.poker.singleActive()) return GK.toast('Beende zuerst dein Turnier gegen die Computer-Gegner.');
     if (GK.room && GK.room.active()) return GK.toast('Verlasse zuerst deinen anderen Spielraum.');
@@ -749,10 +738,9 @@ GK.poker = GK.poker || {};
         return;
       }
       const place = s.view.players.filter(p => !p.out).length;
-      // Wer aufgibt, verliert seine Chips – im Blitz zählen nur die Chips am Ende. Rang unter den echten
-      // Spielern: alle anderen, die noch im Turnier sind, landen vor einem
-      const others = s.view.players.filter((p, i) => i !== s.mySeat && !p.isBot && !p.out).length;
-      const win = T().isBlitz(s.view) ? 0 : T().prize(others + 1, sessionTier().entry, humans(s.view));
+      // Wer aufgibt, verliert seine Chips und landet hinter allen, die noch im Turnier sind –
+      // im Blitz zählen nur die Chips am Ende
+      const win = T().isBlitz(s.view) ? 0 : T().prize(place, sessionTier().entry, s.view.players.length, humans(s.view));
       if (!confirm(`Turnier wirklich verlassen? Du belegst damit Platz ${place}` +
         (win ? ` und bekommst ${GK.formatNumber(win)} Dublonen.` : ' und gehst leer aus.'))) return;
       send(net.hostConn, { type: 'leave' });
@@ -926,7 +914,7 @@ GK.poker = GK.poker || {};
           <label class="bet-label" for="mp-entry">Raum eröffnen – Eintritt pro Spieler</label>
           <div class="mp-mode-slot">${GK.poker.ui.modePicker(T().mode(me.lastMode).id, T().blitzHands(me.lastHands), 'mp-modes')}</div>
           <div class="bet-row">
-            <input id="mp-entry" type="number" class="bet-input mp-entry" min="${MIN_ENTRY}" step="100" inputmode="numeric" value="${me.lastEntry}">
+            <input id="mp-entry" class="bet-input mp-entry" ${GK.AMOUNT_INPUT} value="${GK.formatAmount(me.lastEntry)}">
             <button type="button" class="btn btn-primary mp-create">Eröffnen</button>
           </div>
           <div class="bet-row mp-presets">
@@ -959,7 +947,7 @@ GK.poker = GK.poker || {};
     const entryInput = el.querySelector('.mp-entry');
     el.querySelectorAll('.mp-preset').forEach(btn => {
       btn.addEventListener('click', () => {
-        entryInput.value = btn.dataset.entry;
+        entryInput.value = GK.formatAmount(Number(btn.dataset.entry));
         GK.sound.play('chip');
         updateJoinPanel(el);
       });
@@ -1004,15 +992,20 @@ GK.poker = GK.poker || {};
   function updateJoinPanel(root) {
     const input = root.querySelector('.mp-entry');
     if (!input) return;
-    const entry = Math.floor(Number(input.value) || 0);
+    const parsed = GK.parseAmount(input.value);
+    const entry = Math.floor(parsed || 0);
     let reason = '';
     if (!peerAvailable()) reason = 'Keine Verbindung zum Internet';
+    else if (!isFinite(parsed)) reason = 'Zahl nicht erkannt – z. B. 500k, 2,5M oder 1B';
     else if (entry < MIN_ENTRY) reason = `Mindestens ${GK.formatNumber(MIN_ENTRY)} Dublonen`;
     else if (!GK.canAfford(entry)) reason = 'Nicht genug Dublonen';
-    else if (T().mode(store().lastMode).id === 'blitz') reason = `Bei 6 Freunden teilen die besten 4 ${GK.formatNumber(entry * 6)} Dublonen nach Chips`;
-    else reason = `Bei 6 Freunden gewinnt Platz 1: ${GK.formatNumber(T().prize(1, entry, 6))} Dublonen`;
-    root.querySelector('.mp-create-reason').classList.toggle('ok', !!reason.startsWith('Bei'));
-    root.querySelector('.mp-create').disabled = !reason.startsWith('Bei');
+    const ok = !reason;
+    // Eingegebenen Betrag ausgeschrieben zeigen (z. B. bei „5M“)
+    if (ok) reason = `Eintritt ${GK.formatNumber(entry)} Dublonen · ` + (T().mode(store().lastMode).id === 'blitz'
+      ? `bei 6 Freunden teilen die besten 4 ${GK.formatNumber(entry * 6)} nach Chips`
+      : `bei 6 Freunden gewinnt Platz 1: ${GK.formatNumber(T().prize(1, entry, 6))}`);
+    root.querySelector('.mp-create-reason').classList.toggle('ok', ok);
+    root.querySelector('.mp-create').disabled = !ok;
     root.querySelector('.mp-create-reason').textContent = reason;
     root.querySelector('.mp-join').disabled = !peerAvailable();
   }
@@ -1029,8 +1022,10 @@ GK.poker = GK.poker || {};
     const tr = s.entry ? sessionTier() : null;
     const members = s.members;
     // Preise hängen nur an den echten Spielern – Computer-Gegner zahlen und gewinnen nichts
-    const players = isHost || s.phase === 'lobby' ? Math.max(2, members.length) : 0;
-    const prizes = tr && players ? prizeText(tr.entry, players, sessionMode().id === 'blitz', s.fillBots && players < T().MAX_SEATS) : '';
+    // Plätze am Tisch (mit Computer-Gegnern) und echte Spieler, die Eintritt zahlen
+    const paying = Math.max(2, members.length);
+    const players = isHost || s.phase === 'lobby' ? (s.fillBots ? Math.max(T().MAX_SEATS, paying) : paying) : 0;
+    const prizes = tr && players ? prizeText(tr.entry, players, sessionMode().id === 'blitz', paying) : '';
     const hostId = isHost ? store().playerId : s.hostId;
     const readyCount = members.filter(m => m.ready).length;
     const mustConfirm = !isHost && !s.paid && s.entry && s.phase === 'lobby';
@@ -1065,7 +1060,7 @@ GK.poker = GK.poker || {};
             </div>` : ''}
           ${isHost ? `
             <label class="mp-check"><input type="checkbox" class="mp-fill" ${s.fillBots ? 'checked' : ''}> Freie Plätze mit Computer-Gegnern auffüllen
-              <span class="muted small">(sie zahlen keinen Eintritt und gewinnen nichts)</span></label>
+              <span class="muted small">(sie zahlen keinen Eintritt – gewinnen sie einen Preis, behält ihn das Casino)</span></label>
             <div class="game-actions">
               <button class="btn btn-primary btn-big mp-start" ${readyCount < 2 ? 'disabled' : ''}>▶ Spiel starten</button>
             </div>
@@ -1121,7 +1116,7 @@ GK.poker = GK.poker || {};
     }
     const blitz = T().isBlitz(t);
     if (s.phase === 'ended') {
-      const ranking = t.players.map((p, i) => ({ p, win: blitz && !p.isBot ? mpPayout(t, i, tr.entry) : 0 }))
+      const ranking = t.players.map((p, i) => ({ p, win: blitz ? mpPayout(t, i, tr.entry) : 0 }))
         .sort((a, b) => a.p.place - b.p.place)
         .map(({ p, win }) => `${p.place}. ${p.avatar || ''} ${esc(p.name)}${win ? ` +${GK.formatMoneyHTML(win)}` : ''}`).join(' · ');
       notices.push(`🏁 Turnier vorbei! ${ranking}` + (s.result && !s.result.refunded
@@ -1136,7 +1131,7 @@ GK.poker = GK.poker || {};
         `Blinds ${GK.formatNumber(sb)}/${GK.formatNumber(bb)}`,
         ...(blitz ? [t.handNo >= t.maxHands ? `🔥 Letzte Hand (${t.maxHands}/${t.maxHands})` : `Hand ${t.handNo}/${t.maxHands}`] : []),
         `Spieler: ${t.players.filter(p => !p.out).length}/${players}`,
-        prizeText(tr.entry, humans(t), blitz, humans(t) < t.players.length),
+        prizeText(tr.entry, players, blitz, humans(t)),
       ],
       onAction: myAction,
       onNext: isHost && s.phase === 'playing' ? hostNextHand : null,

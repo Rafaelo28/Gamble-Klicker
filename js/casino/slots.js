@@ -94,11 +94,12 @@ window.GK = window.GK || {};
         <div class="slot-machine">
           <div class="slot-lights"></div>
           <div class="slot-title">★ DUBLONEN-AUTOMAT ★</div>
-          <div class="slot-window"></div>
-          <div class="game-message">&nbsp;</div>
+          <div class="slot-front">
+            <div class="slot-window"></div>
+          </div>
+          <div class="game-message">Zieh am Hebel!</div>
           <div class="slot-bet"></div>
           <div class="game-actions">
-            <button class="btn btn-primary btn-big slot-spin">🎰 Drehen</button>
             <button class="btn slot-auto"></button>
           </div>
         </div>
@@ -119,16 +120,16 @@ window.GK = window.GK || {};
       machine: body.querySelector('.slot-machine'),
       window: body.querySelector('.slot-window'),
       message: body.querySelector('.game-message'),
-      spin: body.querySelector('.slot-spin'),
+      spin: SM().createLever({ onPull: spin, className: 'slot-spin' }),
       auto: body.querySelector('.slot-auto'),
     };
+    body.querySelector('.slot-front').appendChild(els.spin);
     reels = SM().createReels(els.window);
     betControl = GK.casino.createBetControl(body.querySelector('.slot-bet'), {
       min: MIN_BET,
       get: () => state().bet,
       set: v => { state().bet = v; },
     });
-    els.spin.addEventListener('click', spin);
     els.auto.addEventListener('click', () => {
       if (autoLeft > 0) {
         autoLeft = 0;

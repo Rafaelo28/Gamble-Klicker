@@ -778,8 +778,19 @@ main {
   to { box-shadow: 0 0 16px var(--gold); }
 }
 
-.side-spin.cant-afford {
+.side-spin.cant-afford .lever-knob {
   filter: grayscale(0.8);
+}
+
+.side-slot-front {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.side-slot-front > .side-slot-window {
+  flex: 1;
+  min-width: 0;
 }
 
 /* ---------- Shop: Upgrades & Gebäude ---------- */
@@ -946,17 +957,33 @@ main {
 .rarity-legend   { --rarity: #c27bff; --rarity-glow: rgba(194, 123, 255, 0.6); }
 .rarity-mythic   { --rarity: #ff5ad1; --rarity-glow: rgba(255, 90, 209, 0.65); }
 .rarity-synergy  { --rarity: #6fdc8c; --rarity-glow: rgba(111, 220, 140, 0.45); }
+.rarity-cosmic   { --rarity: #8c7bff; --rarity-glow: rgba(140, 123, 255, 0.65); }
+.rarity-divine   { --rarity: #fff1a8; --rarity-glow: rgba(255, 241, 168, 0.7); }
+.rarity-empire   { --rarity: #ffb347; --rarity-glow: rgba(255, 179, 71, 0.55); }
 
 .upgrade.rarity-crit,
 .upgrade.rarity-combo,
 .upgrade.rarity-diamond,
 .upgrade.rarity-legend,
-.upgrade.rarity-mythic {
+.upgrade.rarity-mythic,
+.upgrade.rarity-cosmic,
+.upgrade.rarity-divine,
+.upgrade.rarity-empire {
   background: linear-gradient(160deg, color-mix(in srgb, var(--rarity) 18%, transparent), rgba(0, 0, 0, 0.25) 60%);
 }
 
 .upgrade.rarity-mythic {
   border-image: linear-gradient(180deg, #ff5ad1, #ffd95e, #5ad8ff) 1;
+  border-left-width: 4px;
+}
+
+.upgrade.rarity-cosmic {
+  border-image: linear-gradient(180deg, #8c7bff, #5ad8ff, #c27bff) 1;
+  border-left-width: 4px;
+}
+
+.upgrade.rarity-divine {
+  border-image: linear-gradient(180deg, #fff1a8, #ffffff, #f5c542) 1;
   border-left-width: 4px;
 }
 
@@ -971,7 +998,9 @@ main {
 /* Glanzstreifen über seltenen, bezahlbaren Upgrades */
 .upgrade.rarity-diamond:not(:disabled)::after,
 .upgrade.rarity-legend:not(:disabled)::after,
-.upgrade.rarity-mythic:not(:disabled)::after {
+.upgrade.rarity-mythic:not(:disabled)::after,
+.upgrade.rarity-cosmic:not(:disabled)::after,
+.upgrade.rarity-divine:not(:disabled)::after {
   content: '';
   position: absolute;
   top: 0;
@@ -1300,6 +1329,52 @@ button.casino-card:active {
   margin: 0;
 }
 
+/* ---------- Statistik je Spiel ---------- */
+.game-stats-btn {
+  margin-left: auto;
+}
+
+.game-stats-btn.active {
+  background: var(--gold-grad);
+  color: #2a1d00;
+}
+
+.game-stats {
+  max-width: 560px;
+  margin: 0 auto 16px;
+}
+
+.game-stats h3,
+.game-stats-card h3 {
+  margin: 0 0 8px;
+  color: var(--gold);
+}
+
+.game-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.game-stats-card {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-panel);
+}
+
+.game-stats-list .win {
+  color: var(--win);
+}
+
+.game-stats-list .loss {
+  color: var(--loss);
+}
+
+.game-stats-note {
+  grid-column: 1 / -1;
+}
+
 .game-message {
   min-height: 1.6em;
   margin: 12px 0;
@@ -1361,6 +1436,13 @@ button.casino-card:active {
 }
 
 .bet-display {
+  font-weight: 700;
+  color: var(--gold);
+}
+
+/* Ausgeschriebener Betrag unter einem Eingabefeld („5M“ → 5,00 Mio.) */
+.amount-preview {
+  min-height: 1.3em;
   font-weight: 700;
   color: var(--gold);
 }
@@ -1555,6 +1637,133 @@ button.casino-card:active {
   font-weight: 900;
   color: #c0392b;
   text-shadow: 1px 1px 0 var(--gold);
+}
+
+/* ---------- Hebel an den Automaten ---------- */
+.slot-front,
+.vs-front {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.slot-front > .slot-window,
+.vs-front > .vs-window {
+  flex: 1;
+  min-width: 0;
+}
+
+.lever {
+  position: relative;
+  flex: 0 0 54px;
+  width: 54px;
+  min-height: 170px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.lever:active {
+  cursor: grabbing;
+}
+
+.lever:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-radius: 12px;
+}
+
+/* Halterung am Gehäuse (Drehpunkt) */
+.lever-mount {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  width: 72%;
+  height: 46px;
+  transform: translate(-50%, -50%);
+  border-radius: 12px;
+  background: linear-gradient(90deg, #5c5c5c, #e9e9e9 42%, #8a8a8a 70%, #4d4d4d);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.55), inset 0 0 0 2px rgba(0, 0, 0, 0.25);
+}
+
+.lever-mount::after {
+  content: '';
+  position: absolute;
+  inset: 40% 18%;
+  border-radius: 6px;
+  background: #1c1c1c;
+}
+
+/* Chromstange, dreht sich um den Drehpunkt (per JS gestaucht/gespiegelt) */
+.lever-arm {
+  position: absolute;
+  z-index: 1;
+  bottom: 50%;
+  left: 50%;
+  width: 10px;
+  height: 39%;
+  margin-left: -5px;
+  transform-origin: 50% 100%;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #7d7d7d, #fdfdfd 40%, #a4a4a4 75%, #6a6a6a);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.lever-knob {
+  position: absolute;
+  z-index: 4;
+  top: 11%;
+  left: 50%;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffb3a8 0, #f0443a 30%, #b3120c 70%, #6e0503 100%);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.55), inset 0 -4px 7px rgba(0, 0, 0, 0.35);
+  animation: lever-glow 1.6s ease-in-out infinite alternate;
+  transition: filter 0.3s;
+}
+
+@keyframes lever-glow {
+  to { box-shadow: 0 5px 12px rgba(0, 0, 0, 0.55), inset 0 -4px 7px rgba(0, 0, 0, 0.35), 0 0 16px rgba(255, 90, 70, 0.75); }
+}
+
+.lever.disabled {
+  cursor: default;
+}
+
+.lever.disabled .lever-knob {
+  animation: none;
+  filter: saturate(0.4) brightness(0.8);
+}
+
+@media (hover: hover) {
+  .lever:not(.disabled):hover .lever-knob {
+    filter: brightness(1.15);
+  }
+}
+
+.lever-small {
+  flex-basis: 38px;
+  width: 38px;
+  min-height: 110px;
+}
+
+.lever-small .lever-mount {
+  height: 30px;
+  border-radius: 8px;
+}
+
+.lever-small .lever-arm {
+  width: 7px;
+  margin-left: -3.5px;
+}
+
+.lever-small .lever-knob {
+  width: 26px;
+  height: 26px;
 }
 
 /* ---------- Slot-Maschine ---------- */

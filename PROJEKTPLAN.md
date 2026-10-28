@@ -307,6 +307,25 @@ Einsatz verloren geht.
   gleiche Gewinntabelle wie alle Lose.
 - „Texas Hold'em“ heißt im Spiel jetzt einfach **Poker** – darunter können sich mehr Leute etwas vorstellen.
 
+### Pflege: Computer-Gegner gewinnen mit ✅
+- **Mit Freunden und Computer-Gegnern** (alle Spiele, auch Poker): Das Preisgeld bleiben eure Eintritte, es
+  wird aber nach dem Platz unter allen am Tisch verteilt. Wer schlechter ist als ein Computer, rutscht nach
+  hinten; den Preis des Computers behält das Casino. Zwei Freunde mit zwei Computern bei Darts: 🥇 1.300 🥈 700.
+
+### Erweiterung: Bedienung, Statistik und Klicker ✅
+- **Beträge abgekürzt eingeben** in allen Einsatz- und Eintrittsfeldern: `500k`, `2,5M`, `1B`, `3 Mio.`,
+  `1.000.000`. B steht wie in vielen Spielen für eine Milliarde, „Bio.“ für eine Billion (wie in der Anzeige).
+  Darunter steht beim Tippen der ausgeschriebene Betrag, Unbekanntes wird angemerkt.
+- **Hebel statt Dreh-Knopf** an Slot-Maschine, Video-Slots und Side-Slot: herunterziehen (mit Ratsche und
+  Einrasten) startet die Walzen, halb gezogen federt er zurück. Antippen und Enter funktionieren auch.
+- **Statistik je Spiel**: Runden, davon gewonnen, eingesetzt, ausgezahlt, Bilanz, größter Gewinn, bester
+  Treffer, längste Glückssträhne – im Spiel über „📊 Statistik“ und gesammelt im Tab *Statistiken*.
+  Ältere Spielstände zählen ab dem Update.
+- **Klicker**: 8 neue Gebäude (Handelsschiff, Alchemistenlabor, Piratenflotte, Schatzinsel, Drachenhort,
+  Zeitmaschine, Glücksfabrik, Sternenportal), zwei neue Gebäude-Stufen (*Sternen* ab 250, *Götter* ab 300),
+  neue Klick-, Krit- und Combo-Upgrades, fünf Upgrades für alle Gebäude (ab 50/150/300/500/800 Gebäuden)
+  und 10 neue Erfolge.
+
 ## Entscheidungen
 
 ### Multiplayer: Wie spielen die Freunde zusammen? → **Variante A**

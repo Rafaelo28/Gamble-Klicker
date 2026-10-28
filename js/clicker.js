@@ -7,8 +7,8 @@ window.GK = window.GK || {};
   const COMBO_WINDOW = 700;      // ms: so schnell muss der nächste Klick kommen, damit die Combo weiterläuft
   const BASE_COMBO_CAP = 25;     // ohne Upgrades höchstens +25 % durch die Combo
   const BASE_CRIT_MULT = 10;     // kritischer Klick = ×10
-  const COMBO_MILESTONES = [25, 50, 100];
-  const BUILDING_MILESTONES = [10, 25, 50, 100, 150, 200];
+  const COMBO_MILESTONES = [25, 50, 100, 200];
+  const BUILDING_MILESTONES = [10, 25, 50, 100, 150, 200, 250, 300];
   const UPGRADES_SHOWN = 8;      // so viele Upgrades sind sichtbar, der Rest ist eingeklappt
 
   const BUILDINGS = [
@@ -20,6 +20,14 @@ window.GK = window.GK || {};
     { id: 'bank',      icon: '🏦', name: 'Bank',             baseCost: 1.4e6,  baseCps: 1400,  desc: 'Zinsen auf Spielgeld.' },
     { id: 'goldmine',  icon: '⛏️', name: 'Goldmine',         baseCost: 2e7,    baseCps: 7800,  desc: 'Tief unten glitzert es.' },
     { id: 'mint',      icon: '🏛️', name: 'Münzprägerei',     baseCost: 3.3e8,  baseCps: 44000, desc: 'Prägt Dublonen am laufenden Band.' },
+    { id: 'ship',      icon: '🚢', name: 'Handelsschiff',    baseCost: 5.1e9,  baseCps: 2.6e5, desc: 'Bringt Gold aus fernen Häfen.' },
+    { id: 'alchemy',   icon: '🧪', name: 'Alchemistenlabor', baseCost: 7.5e10, baseCps: 1.6e6, desc: 'Macht aus Blei pures Gold.' },
+    { id: 'fleet',     icon: '🏴‍☠️', name: 'Piratenflotte',   baseCost: 1e12,   baseCps: 1e7,   desc: 'Kapert Schatzschiffe auf allen Meeren.' },
+    { id: 'island',    icon: '🏝️', name: 'Schatzinsel',      baseCost: 1.4e13, baseCps: 6.5e7, desc: 'X markiert die Stelle – jeden Tag aufs Neue.' },
+    { id: 'dragon',    icon: '🐉', name: 'Drachenhort',      baseCost: 1.7e14, baseCps: 4.3e8, desc: 'Ein Drache brütet auf Bergen von Gold.' },
+    { id: 'timemachine', icon: '🔮', name: 'Zeitmaschine',   baseCost: 2.1e15, baseCps: 2.9e9, desc: 'Holt Dublonen aus der Zukunft.' },
+    { id: 'luck',      icon: '🍀', name: 'Glücksfabrik',     baseCost: 2.6e16, baseCps: 2.1e10, desc: 'Stellt Glück am Fließband her.' },
+    { id: 'portal',    icon: '🌌', name: 'Sternenportal',    baseCost: 3.1e17, baseCps: 1.5e11, desc: 'Dublonen aus anderen Welten.' },
   ];
 
   // Upgrades für Klicks. rarity bestimmt Farbe und Effekt der Kachel.
@@ -36,6 +44,10 @@ window.GK = window.GK || {};
       unlocked: s => has('click4') && s.totalClicks >= 3000 },
     { id: 'click6', icon: '🤴', name: 'Hand des Midas',  cost: 5e10, type: 'clickMult', value: 3, rarity: 'click', desc: 'Klickkraft ×3',
       unlocked: s => has('click5') && s.totalClicks >= 6000 },
+    { id: 'click7', icon: '🌟', name: 'Sternenhand',     cost: 5e12, type: 'clickMult', value: 3, rarity: 'click', desc: 'Klickkraft ×3',
+      unlocked: s => has('click6') && s.totalClicks >= 10000 },
+    { id: 'click8', icon: '🪐', name: 'Hand der Götter', cost: 5e14, type: 'clickMult', value: 4, rarity: 'click', desc: 'Klickkraft ×4',
+      unlocked: s => has('click7') && s.totalClicks >= 20000 },
     { id: 'cpsClick1', icon: '📈', name: 'Klick-Investment', cost: 25000, type: 'clickCps', value: 0.01, rarity: 'click',
       desc: 'Jeder Klick bringt zusätzlich 1 % deines Einkommens pro Sekunde',
       unlocked: () => getCps() >= 20 },
@@ -45,6 +57,12 @@ window.GK = window.GK || {};
     { id: 'cpsClick3', icon: '💹', name: 'Klick-Imperium', cost: 2.5e8, type: 'clickCps', value: 0.03, rarity: 'click',
       desc: 'Jeder Klick bringt zusätzlich 3 % deines Einkommens pro Sekunde',
       unlocked: () => has('cpsClick2') && getCps() >= 100000 },
+    { id: 'cpsClick4', icon: '🏦', name: 'Klick-Konzern', cost: 2.5e10, type: 'clickCps', value: 0.04, rarity: 'click',
+      desc: 'Jeder Klick bringt zusätzlich 4 % deines Einkommens pro Sekunde',
+      unlocked: () => has('cpsClick3') && getCps() >= 1e7 },
+    { id: 'cpsClick5', icon: '👑', name: 'Klick-Dynastie', cost: 2.5e12, type: 'clickCps', value: 0.05, rarity: 'click',
+      desc: 'Jeder Klick bringt zusätzlich 5 % deines Einkommens pro Sekunde',
+      unlocked: () => has('cpsClick4') && getCps() >= 1e9 },
     // Kritische Treffer
     { id: 'crit1', icon: '🎯', name: 'Glückstreffer', cost: 5000, type: 'critChance', value: 0.03, rarity: 'crit',
       desc: '3 % Chance auf einen kritischen Klick (×10)',
@@ -55,6 +73,12 @@ window.GK = window.GK || {};
     { id: 'crit3', icon: '💥', name: 'Volltreffer-Hand', cost: 5e7, type: 'critMult', value: 25, rarity: 'crit',
       desc: 'Kritische Klicks bringen ×25 statt ×10',
       unlocked: s => has('crit2') && s.totalClicks >= 2500 },
+    { id: 'crit4', icon: '🍀', name: 'Glückspilz', cost: 5e9, type: 'critChance', value: 0.05, rarity: 'crit',
+      desc: '+5 % Chance auf kritische Klicks',
+      unlocked: s => has('crit3') && s.totalClicks >= 5000 },
+    { id: 'crit5', icon: '⚡', name: 'Blitzschlag', cost: 5e11, type: 'critMult', value: 50, rarity: 'crit',
+      desc: 'Kritische Klicks bringen ×50',
+      unlocked: s => has('crit4') && s.totalClicks >= 8000 },
     // Combo
     { id: 'combo1', icon: '🔥', name: 'Combo-Meister', cost: 2000, type: 'comboCap', value: 50, rarity: 'combo',
       desc: 'Combo bis +50 % statt +25 %',
@@ -62,6 +86,20 @@ window.GK = window.GK || {};
     { id: 'combo2', icon: '☄️', name: 'Feuerhände', cost: 2e6, type: 'comboCap', value: 100, rarity: 'combo',
       desc: 'Combo bis +100 % (doppelte Klickkraft)',
       unlocked: s => has('combo1') && s.totalClicks >= 1200 },
+    { id: 'combo3', icon: '🌋', name: 'Vulkanhände', cost: 2e9, type: 'comboCap', value: 200, rarity: 'combo',
+      desc: 'Combo bis +200 % (dreifache Klickkraft)',
+      unlocked: s => has('combo2') && s.totalClicks >= 4000 },
+    // Für alle Gebäude zusammen, je nachdem, wie viele man insgesamt besitzt
+    { id: 'global1', icon: '📜', name: 'Handelsvertrag', cost: 2e5, type: 'globalMult', value: 1.1, rarity: 'empire',
+      desc: 'Alle Gebäude: Einkommen +10 %', unlocked: () => totalBuildings() >= 50 },
+    { id: 'global2', icon: '🧭', name: 'Goldener Kompass', cost: 1e8, type: 'globalMult', value: 1.15, rarity: 'empire',
+      desc: 'Alle Gebäude: Einkommen +15 %', unlocked: () => totalBuildings() >= 150 },
+    { id: 'global3', icon: '⚓', name: 'Kaiserliche Flotte', cost: 5e10, type: 'globalMult', value: 1.2, rarity: 'empire',
+      desc: 'Alle Gebäude: Einkommen +20 %', unlocked: () => totalBuildings() >= 300 },
+    { id: 'global4', icon: '🏛️', name: 'Goldenes Zeitalter', cost: 5e13, type: 'globalMult', value: 1.25, rarity: 'empire',
+      desc: 'Alle Gebäude: Einkommen +25 %', unlocked: () => totalBuildings() >= 500 },
+    { id: 'global5', icon: '🌠', name: 'Ewiger Reichtum', cost: 5e16, type: 'globalMult', value: 1.3, rarity: 'empire',
+      desc: 'Alle Gebäude: Einkommen +30 %', unlocked: () => totalBuildings() >= 800 },
   ];
 
   // Pro Gebäude: immer stärkere Upgrades, sobald man genug davon besitzt
@@ -73,6 +111,8 @@ window.GK = window.GK || {};
     { owned: 100, costFactor: 5e5,   name: 'Diamant', rarity: 'diamond',  value: 3 },
     { owned: 150, costFactor: 5e7,   name: 'Legenden', rarity: 'legend',  value: 3 },
     { owned: 200, costFactor: 5e9,   name: 'Mythos',  rarity: 'mythic',   value: 4 },
+    { owned: 250, costFactor: 5e11,  name: 'Sternen', rarity: 'cosmic',   value: 4 },
+    { owned: 300, costFactor: 5e13,  name: 'Götter',  rarity: 'divine',   value: 5 },
   ];
   BUILDINGS.forEach(b => {
     BUILDING_TIERS.forEach((tier, i) => {
@@ -128,6 +168,10 @@ window.GK = window.GK || {};
     return GK.state.buildings[buildingId] || 0;
   }
 
+  function totalBuildings() {
+    return BUILDINGS.reduce((sum, b) => sum + owned(b.id), 0);
+  }
+
   function ownedUpgrades(type) {
     return GK.state.upgrades.map(id => upgradeById[id]).filter(u => u && u.type === type);
   }
@@ -151,7 +195,17 @@ window.GK = window.GK || {};
 
   // Einkommen ohne Boni aus Schatzkarten, Erfolgen usw.
   function baseCps() {
-    return BUILDINGS.reduce((sum, b) => sum + owned(b.id) * b.baseCps * buildingMultiplier(b.id), 0);
+    return BUILDINGS.reduce((sum, b) => sum + owned(b.id) * buildingBaseCps(b), 0);
+  }
+
+  // Upgrades für alle Gebäude zusammen (Handelsvertrag …)
+  function globalMultiplier() {
+    return ownedUpgrades('globalMult').reduce((m, u) => m * u.value, 1);
+  }
+
+  // Einkommen eines Gebäudes mit allen Gebäude-Upgrades, ohne Schatzkarten, Erfolge usw.
+  function buildingBaseCps(building) {
+    return building.baseCps * buildingMultiplier(building.id) * globalMultiplier();
   }
 
   // Alle Boni zusammen (dauerhaft × zeitlich begrenzt, z. B. Goldrausch)
@@ -161,7 +215,7 @@ window.GK = window.GK || {};
 
   // Einkommen eines einzelnen Gebäudes inklusive aller Boni
   function buildingCps(building) {
-    return building.baseCps * buildingMultiplier(building.id) * incomeMult();
+    return buildingBaseCps(building) * incomeMult();
   }
 
   function getCps() {
@@ -215,6 +269,7 @@ window.GK = window.GK || {};
 
   // Wie viel Einkommen pro Sekunde brächte ein Gebäude-Upgrade zusätzlich?
   function upgradeGain(u) {
+    if (u.type === 'globalMult') return getCps() * (u.value - 1);
     const b = BUILDINGS.find(x => x.id === u.building);
     if (!b) return 0;
     const current = buildingCps(b) * owned(b.id);
@@ -293,7 +348,7 @@ window.GK = window.GK || {};
     if (has(upgrade.id) || !GK.spend(upgrade.cost)) return;
     GK.state.upgrades.push(upgrade.id);
     GK.save();
-    const rare = ['diamond', 'legend', 'mythic'].includes(upgrade.rarity);
+    const rare = ['diamond', 'legend', 'mythic', 'cosmic', 'divine', 'empire'].includes(upgrade.rarity);
     GK.sound.play(rare ? 'powerup' : 'upgrade');
     if (el) {
       const pos = GK.fx.center(el);
@@ -310,6 +365,10 @@ window.GK = window.GK || {};
     } else {
       const c = GK.fx.center(document.getElementById('big-coin'));
       GK.fx.floatText(c.x, c.y - 60, `${upgrade.icon} ${upgrade.name}!`, 'win big');
+      // Upgrades für alle Gebäude: alle leuchten auf
+      if (upgrade.type === 'globalMult') {
+        Object.values(buildingEls).forEach(b => { if (!b.root.hidden) GK.fx.pulse(b.root, 'powered'); });
+      }
     }
     lastUpgradeSignature = '';
     render();
@@ -545,7 +604,7 @@ window.GK = window.GK || {};
     getCps,
     getCpsPermanent,
     getClickPower,
-    totalBuildings: () => BUILDINGS.reduce((sum, b) => sum + owned(b.id), 0),
+    totalBuildings,
     ownsAllBuildings: () => BUILDINGS.every(b => owned(b.id) > 0),
     hasUpgradeOfRarity: rarity => GK.state.upgrades.some(id => upgradeById[id] && upgradeById[id].rarity === rarity),
   };

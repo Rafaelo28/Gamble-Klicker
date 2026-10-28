@@ -130,6 +130,12 @@ window.GK = window.GK || {};
       tone(160, t, 0.12, { type: 'sine', gain: 0.25, slideTo: 60 });
       noise(t, 0.05, { freq: 800, gain: 0.15 });
     },
+    lever(t) {
+      // Ratsche und dumpfes Einrasten
+      for (let i = 0; i < 3; i++) noise(t + i * 0.03, 0.02, { filter: 'highpass', freq: 2600 + i * 400, gain: 0.1 });
+      tone(120, t + 0.09, 0.2, { type: 'sine', gain: 0.32, slideTo: 50 });
+      noise(t + 0.09, 0.09, { freq: 500, gain: 0.2 });
+    },
     spinStart(t) {
       tone(200, t, 0.3, { type: 'sawtooth', gain: 0.04, slideTo: 600 });
     },
