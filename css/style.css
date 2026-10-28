@@ -5524,6 +5524,482 @@ body.reduced-effects .golden-coin {
   }
 }
 
+/* ---------- Höher oder tiefer ---------- */
+.casino-card[data-game="hilo"] { --accent: rgba(90, 200, 160, 0.45); }
+
+.hilo-table {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  min-height: 320px;
+  padding: 22px 16px;
+  border: 6px solid var(--rail);
+  border-radius: 28px;
+  background: var(--felt);
+  box-shadow: var(--rail-glow);
+}
+
+.hilo-trail {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  min-height: 76px;
+}
+
+.hilo-step {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hilo-step i {
+  font-size: 0.8rem;
+  font-style: normal;
+  color: var(--gold-light);
+}
+
+.hilo-step.skip {
+  opacity: 0.5;
+}
+
+.card.hilo-big,
+.card-back.hilo-big {
+  width: 120px;
+  height: 168px;
+  border-radius: 12px;
+}
+
+.card.hilo-big .card-corner {
+  top: 8px;
+  left: 10px;
+  font-size: 1.3rem;
+}
+
+.card.hilo-big .card-suit {
+  font-size: 4rem;
+}
+
+.card.hilo-big.wrong {
+  box-shadow: 0 0 0 4px #e53935, 0 6px 16px rgba(0, 0, 0, 0.5);
+}
+
+.hilo-info {
+  font-weight: 700;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.hilo-choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+  margin: 6px 0;
+}
+
+.hilo-choices .btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 66px;
+  font-size: 1rem;
+}
+
+.hilo-choices .btn small {
+  font-size: 0.9rem;
+  opacity: 0.85;
+}
+
+/* ---------- Mast-Kletterei ---------- */
+.casino-card[data-game="tower"] { --accent: rgba(170, 120, 70, 0.5); }
+
+.tw-mast {
+  position: relative;
+  flex: 1 1 340px;
+  max-width: 470px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, #7fc0ec 0%, #cfe9f8 75%, #2a7ab0 100%);
+  box-shadow: var(--shadow);
+}
+
+.tw-nest,
+.tw-deck {
+  position: relative;
+  z-index: 1;
+  padding: 8px;
+  border-radius: 14px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.tw-nest {
+  border: 3px solid #4d2c10;
+  background: #7a4a22;
+  color: #ffe58a;
+}
+
+.tw-nest.reached {
+  box-shadow: 0 0 22px rgba(255, 217, 94, 0.9);
+}
+
+.tw-deck {
+  background: #5a3a1a;
+  color: #fff;
+}
+
+.tw-level {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 70px 1fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.tw-mult {
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-align: right;
+  color: #12324a;
+}
+
+.tw-level.current .tw-mult {
+  color: #8a5a00;
+  font-size: 0.95rem;
+}
+
+.tw-ropes {
+  display: grid;
+  grid-template-columns: repeat(var(--ropes), 1fr);
+  gap: 8px;
+}
+
+.tw-rope {
+  min-height: 46px;
+  border: 2px solid rgba(90, 60, 30, 0.45);
+  border-radius: 12px;
+  background: rgba(255, 248, 230, 0.85);
+  font-size: 1.4rem;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.tw-rope:disabled {
+  cursor: default;
+}
+
+.tw-rope.active {
+  border-color: var(--gold);
+  background: #fff3c4;
+  box-shadow: 0 0 10px rgba(245, 197, 66, 0.6);
+  animation: tw-pulse 1.4s ease-in-out infinite;
+}
+
+.tw-rope.held {
+  border-color: #2fa866;
+  background: #c8f2c8;
+}
+
+.tw-rope.snapped {
+  border-color: #e53935;
+  background: #ffcdd2;
+  animation: tw-snap 0.4s ease;
+}
+
+.tw-rope.rotten {
+  background: rgba(120, 80, 40, 0.35);
+}
+
+.tw-rope.faded {
+  opacity: 0.45;
+}
+
+@keyframes tw-pulse {
+  50% { box-shadow: 0 0 18px rgba(245, 197, 66, 0.9); }
+}
+
+@keyframes tw-snap {
+  25% { transform: translateX(-6px) rotate(-3deg); }
+  75% { transform: translateX(6px) rotate(3deg); }
+}
+
+@media (hover: hover) {
+  .tw-rope.active:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* ---------- Schatzkarten-Keno ---------- */
+.casino-card[data-game="keno"] { --accent: rgba(210, 170, 90, 0.5); }
+
+.kn-board {
+  padding: 12px;
+  border: 4px solid #8a6a3a;
+  border-radius: 22px;
+  background: radial-gradient(ellipse at 30% 20%, #f6e7c1, #e2c98f 70%, #c9a866);
+  box-shadow: var(--shadow), inset 0 0 30px rgba(120, 80, 30, 0.4);
+}
+
+.kn-map {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 6px;
+}
+
+.kn-cell {
+  position: relative;
+  aspect-ratio: 1;
+  min-height: 44px;
+  padding: 0;
+  border: 2px solid rgba(110, 80, 40, 0.35);
+  border-radius: 50% 45% 50% 40%;
+  background: radial-gradient(circle at 40% 35%, #9ed36b, #5f9d3f 70%);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.kn-cell:disabled {
+  cursor: default;
+}
+
+.kn-num {
+  position: absolute;
+  top: 4px;
+  left: 0;
+  right: 0;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-align: center;
+  color: #fff;
+  text-shadow: 0 1px 2px #000;
+}
+
+.kn-mark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 12px;
+  font-size: 1.4rem;
+}
+
+.kn-cell.picked {
+  box-shadow: 0 0 0 3px #c62828;
+}
+
+.kn-cell.drawn {
+  background: radial-gradient(circle at 40% 35%, #ffe58a, #c9a227 70%);
+}
+
+.kn-cell.hit {
+  background: radial-gradient(circle at 40% 35%, #fff3b0, #f5c542 60%, #b8860b);
+  box-shadow: 0 0 0 3px #2fa866, 0 0 14px rgba(255, 217, 94, 0.9);
+}
+
+.kn-cell.fresh {
+  animation: kn-pop 0.35s ease;
+}
+
+@keyframes kn-pop {
+  50% { transform: scale(1.25); }
+}
+
+.kn-paytable {
+  width: 100%;
+  max-width: 320px;
+  margin: 8px auto;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-panel);
+}
+
+.kn-pay-title {
+  margin-bottom: 4px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--gold);
+}
+
+.kn-pay-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.kn-pay-row.hit {
+  background: rgba(47, 168, 102, 0.35);
+  font-weight: 800;
+}
+
+/* ---------- Baccarat ---------- */
+.casino-card[data-game="baccarat"] { --accent: rgba(200, 60, 80, 0.45); }
+
+.bac-table {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 6px solid var(--rail);
+  border-radius: 30px;
+  background: var(--felt);
+  box-shadow: var(--rail-glow);
+}
+
+.bac-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  transition: box-shadow 0.3s, border-color 0.3s;
+}
+
+.bac-player-side {
+  background: rgba(30, 90, 200, 0.15);
+}
+
+.bac-banker-side {
+  background: rgba(200, 40, 40, 0.15);
+}
+
+.bac-table.win-player .bac-player-side,
+.bac-table.win-banker .bac-banker-side {
+  border-color: var(--gold);
+  box-shadow: 0 0 20px rgba(245, 197, 66, 0.5);
+}
+
+.bac-table.win-tie .bac-side {
+  border-color: #2fa866;
+}
+
+.bac-label {
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.bac-total {
+  display: inline-block;
+  min-width: 34px;
+  padding: 0 8px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.45);
+  text-align: center;
+  color: var(--gold-light);
+}
+
+.bac-total:empty {
+  display: none;
+}
+
+.card.bac-third {
+  margin: 0 14px;
+  transform: rotate(90deg);
+}
+
+.bac-rules {
+  grid-column: 1 / -1;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--gold);
+  opacity: 0.8;
+}
+
+.bac-road {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  max-width: 760px;
+  margin: 10px auto;
+}
+
+.bac-bead {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.bac-bead.p { background: #1e66d0; }
+.bac-bead.b { background: #c62828; }
+.bac-bead.t { background: #2fa866; }
+
+.bac-choices {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  max-width: 760px;
+  margin: 10px auto;
+}
+
+.bac-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 70px;
+  border-width: 3px;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.bac-choice small {
+  font-size: 0.8rem;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.bac-choice.player.active {
+  border-color: #9cc3ff;
+  background: linear-gradient(180deg, #3b82f6, #1e4fa8);
+  color: #fff;
+}
+
+.bac-choice.banker.active {
+  border-color: #ffb3b3;
+  background: linear-gradient(180deg, #ef4444, #9b1c1c);
+  color: #fff;
+}
+
+.bac-choice.tie.active {
+  border-color: #b3ffd9;
+  background: linear-gradient(180deg, #34d399, #167a4f);
+  color: #fff;
+}
+
+.bac-help {
+  max-width: 760px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+@media (max-width: 560px) {
+  .bac-table {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ---------- Vier gewinnt ---------- */
 .casino-card[data-game="connect4"] { --accent: rgba(230, 60, 60, 0.45); }
 

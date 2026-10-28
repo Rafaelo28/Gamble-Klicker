@@ -18,6 +18,10 @@ Schatztruhe voll ist, wartet das Casino:
   Distanz und Multiplikator, vier Geschwindigkeiten von *Gemütlich* bis *Turbo*
 - 🐔 **Chicken Road** – das Huhn hüpft Spur für Spur über die Straße, nach jeweils fünf Spuren wartet eine
   sichere Insel; auszahlen nach jedem Schritt, vier Schwierigkeiten von *Leicht* bis *Wahnsinn*
+- 🧗 **Mast-Kletterei** – Stufe für Stufe bis ins Krähennest, aber welches Seil hält?
+- 🗺️ **Schatzkarten-Keno** – 1 bis 10 Inseln markieren, 10 Schatzinseln werden gezogen
+- 🔼 **Höher oder tiefer** – ist die nächste Karte höher oder tiefer? Jeder richtige Tipp lässt den Gewinn wachsen
+- 🎴 **Baccarat** – Spieler, Bank oder Unentschieden: wer näher an 9 kommt, gewinnt
 - 🎡 **Roulette** – Rot oder Schwarz? Oder alles auf die 17?
 - 🃏 **Blackjack** – schlag den Dealer, ohne über 21 zu kommen; nach dem Teilen so viele Karten, wie du willst
 - ♠️ **Poker** – Turnier gegen Käpt'n Blaubart, Long John und andere Piraten, jeder mit eigener
@@ -124,6 +128,7 @@ Den Fahrplan mit allen Phasen findest du in [PROJEKTPLAN.md](PROJEKTPLAN.md).
 - 👆 Klicker mit Gebäuden, Upgrades, Side-Slot, Statistiken und sicherem Speichern
 - 🎰 Slot-Maschine · 🎟️ Rubbellose · 🎡 Roulette · 🃏 Blackjack
 - 🍀 Glücksrad · 🪙 Münzfall · 🏝️ Schatzinsel · 💣 Kanonenkugel · ⛵ Schiffsrennen · ✈️ Flugkapitän · 🐔 Chicken Road
+  · 🧗 Mast-Kletterei · 🗺️ Schatzkarten-Keno · 🔼 Höher oder tiefer · 🎴 Baccarat
 - 🏴‍☠️ 🐙 🌋 Drei Video-Slots mit Freispielen und Bonusrunde
 - 🎲 Lügenwürfel, ⛳ Minigolf, 🎱 Billard, 🔴 Vier gewinnt, ⚓ Seeschlacht, 🎯 Darts und 💥 Kanonenduell gegen Computer und online mit Freunden
 - ♠️ Poker als Turnier gegen Computer-Gegner und online mit Freunden
