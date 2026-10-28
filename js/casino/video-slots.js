@@ -607,15 +607,16 @@ window.GK = window.GK || {};
               <div class="vs-title">${theme.emoji} ${theme.name}</div>
               <div class="vs-status"></div>
             </div>
-            <div class="vs-window">
-              <div class="vs-reels">${Array.from({ length: REELS }, () => '<div class="vs-reel"><div class="vs-strip"></div></div>').join('')}</div>
-              <svg class="vs-lines" preserveAspectRatio="none"></svg>
-              <div class="vs-overlay" hidden></div>
+            <div class="vs-front">
+              <div class="vs-window">
+                <div class="vs-reels">${Array.from({ length: REELS }, () => '<div class="vs-reel"><div class="vs-strip"></div></div>').join('')}</div>
+                <svg class="vs-lines" preserveAspectRatio="none"></svg>
+                <div class="vs-overlay" hidden></div>
+              </div>
             </div>
-            <div class="vs-win">&nbsp;</div>
+            <div class="vs-win">Zieh am Hebel!</div>
             <div class="vs-bet"></div>
             <div class="game-actions">
-              <button class="btn btn-primary btn-big vs-spin">🎰 Drehen</button>
               <button class="btn vs-auto"></button>
             </div>
           </div>
@@ -639,16 +640,16 @@ window.GK = window.GK || {};
         overlay: body.querySelector('.vs-overlay'),
         status: body.querySelector('.vs-status'),
         win: body.querySelector('.vs-win'),
-        spin: body.querySelector('.vs-spin'),
+        spin: GK.slotMachine.createLever({ onPull: spin, className: 'vs-spin' }),
         auto: body.querySelector('.vs-auto'),
         pays: body.querySelector('.vs-pays'),
       };
+      body.querySelector('.vs-front').appendChild(els.spin);
       betControl = GK.casino.createBetControl(body.querySelector('.vs-bet'), {
         min: MIN_BET,
         get: () => state().bet,
         set: v => { state().bet = v; },
       });
-      els.spin.addEventListener('click', spin);
       els.auto.addEventListener('click', () => {
         if (autoLeft > 0) {
           autoLeft = 0;

@@ -118,12 +118,13 @@ window.GK = window.GK || {};
         <span class="side-slot-title">🎰 Side-Slot</span>
         <span class="side-slot-msg">&nbsp;</span>
       </div>
-      <div class="side-slot-window"></div>
+      <div class="side-slot-front">
+        <div class="side-slot-window"></div>
+      </div>
       <div class="side-slot-controls">
         <button class="btn btn-small side-minus" aria-label="Einsatz verringern">−</button>
         <span class="side-bet"></span>
         <button class="btn btn-small side-plus" aria-label="Einsatz erhöhen">+</button>
-        <button class="btn btn-primary side-spin">Drehen</button>
         <button class="btn side-auto"></button>
       </div>`;
     els = {
@@ -132,13 +133,13 @@ window.GK = window.GK || {};
       bet: root.querySelector('.side-bet'),
       minus: root.querySelector('.side-minus'),
       plus: root.querySelector('.side-plus'),
-      spin: root.querySelector('.side-spin'),
+      spin: SM().createLever({ onPull: spin, small: true, className: 'side-spin' }),
       auto: root.querySelector('.side-auto'),
     };
+    root.querySelector('.side-slot-front').appendChild(els.spin);
     reels = SM().createReels(els.window, { spinTimes: [550, 750, 950] }); // schneller als die große Maschine
     els.minus.addEventListener('click', () => changeBet(-1));
     els.plus.addEventListener('click', () => changeBet(1));
-    els.spin.addEventListener('click', spin);
     els.auto.addEventListener('click', toggleAuto);
     GK.casino.registerName('sideSlot', '🎰 Side-Slot');
     refresh();

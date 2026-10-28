@@ -778,8 +778,19 @@ main {
   to { box-shadow: 0 0 16px var(--gold); }
 }
 
-.side-spin.cant-afford {
+.side-spin.cant-afford .lever-knob {
   filter: grayscale(0.8);
+}
+
+.side-slot-front {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.side-slot-front > .side-slot-window {
+  flex: 1;
+  min-width: 0;
 }
 
 /* ---------- Shop: Upgrades & Gebäude ---------- */
@@ -1562,6 +1573,133 @@ button.casino-card:active {
   font-weight: 900;
   color: #c0392b;
   text-shadow: 1px 1px 0 var(--gold);
+}
+
+/* ---------- Hebel an den Automaten ---------- */
+.slot-front,
+.vs-front {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.slot-front > .slot-window,
+.vs-front > .vs-window {
+  flex: 1;
+  min-width: 0;
+}
+
+.lever {
+  position: relative;
+  flex: 0 0 54px;
+  width: 54px;
+  min-height: 170px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.lever:active {
+  cursor: grabbing;
+}
+
+.lever:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-radius: 12px;
+}
+
+/* Halterung am Gehäuse (Drehpunkt) */
+.lever-mount {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  width: 72%;
+  height: 46px;
+  transform: translate(-50%, -50%);
+  border-radius: 12px;
+  background: linear-gradient(90deg, #5c5c5c, #e9e9e9 42%, #8a8a8a 70%, #4d4d4d);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.55), inset 0 0 0 2px rgba(0, 0, 0, 0.25);
+}
+
+.lever-mount::after {
+  content: '';
+  position: absolute;
+  inset: 40% 18%;
+  border-radius: 6px;
+  background: #1c1c1c;
+}
+
+/* Chromstange, dreht sich um den Drehpunkt (per JS gestaucht/gespiegelt) */
+.lever-arm {
+  position: absolute;
+  z-index: 1;
+  bottom: 50%;
+  left: 50%;
+  width: 10px;
+  height: 39%;
+  margin-left: -5px;
+  transform-origin: 50% 100%;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #7d7d7d, #fdfdfd 40%, #a4a4a4 75%, #6a6a6a);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.lever-knob {
+  position: absolute;
+  z-index: 4;
+  top: 11%;
+  left: 50%;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffb3a8 0, #f0443a 30%, #b3120c 70%, #6e0503 100%);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.55), inset 0 -4px 7px rgba(0, 0, 0, 0.35);
+  animation: lever-glow 1.6s ease-in-out infinite alternate;
+  transition: filter 0.3s;
+}
+
+@keyframes lever-glow {
+  to { box-shadow: 0 5px 12px rgba(0, 0, 0, 0.55), inset 0 -4px 7px rgba(0, 0, 0, 0.35), 0 0 16px rgba(255, 90, 70, 0.75); }
+}
+
+.lever.disabled {
+  cursor: default;
+}
+
+.lever.disabled .lever-knob {
+  animation: none;
+  filter: saturate(0.4) brightness(0.8);
+}
+
+@media (hover: hover) {
+  .lever:not(.disabled):hover .lever-knob {
+    filter: brightness(1.15);
+  }
+}
+
+.lever-small {
+  flex-basis: 38px;
+  width: 38px;
+  min-height: 110px;
+}
+
+.lever-small .lever-mount {
+  height: 30px;
+  border-radius: 8px;
+}
+
+.lever-small .lever-arm {
+  width: 7px;
+  margin-left: -3.5px;
+}
+
+.lever-small .lever-knob {
+  width: 26px;
+  height: 26px;
 }
 
 /* ---------- Slot-Maschine ---------- */
