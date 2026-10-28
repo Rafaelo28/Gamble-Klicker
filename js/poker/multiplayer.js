@@ -738,8 +738,8 @@ GK.poker = GK.poker || {};
         return;
       }
       const place = s.view.players.filter(p => !p.out).length;
-      // Wer aufgibt, verliert seine Chips – im Blitz zählen nur die Chips am Ende. Rang unter den echten
-      // Spielern: alle anderen, die noch im Turnier sind, landen vor einem
+      // Wer aufgibt, verliert seine Chips und landet hinter allen, die noch im Turnier sind –
+      // im Blitz zählen nur die Chips am Ende
       const win = T().isBlitz(s.view) ? 0 : T().prize(place, sessionTier().entry, s.view.players.length, humans(s.view));
       if (!confirm(`Turnier wirklich verlassen? Du belegst damit Platz ${place}` +
         (win ? ` und bekommst ${GK.formatNumber(win)} Dublonen.` : ' und gehst leer aus.'))) return;

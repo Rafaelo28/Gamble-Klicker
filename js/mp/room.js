@@ -1067,7 +1067,6 @@ window.GK = window.GK || {};
     const d = def();
     const isHost = s.role === 'host';
     const members = s.members;
-    // Preise hängen nur an den echten Spielern – Computer-Gegner zahlen und gewinnen nichts
     // Plätze am Tisch (mit Computer-Gegnern) und echte Spieler, die Eintritt zahlen
     const paying = Math.max(2, members.length);
     const players = isHost || s.phase === 'lobby' ? (d.bots && s.fillBots ? Math.max(d.maxPlayers, paying) : paying) : 0;
