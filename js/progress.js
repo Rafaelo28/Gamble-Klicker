@@ -103,7 +103,8 @@ window.GK = window.GK || {};
     const s = GK.state;
     const text = `Auf große Fahrt gehen?\n\nDu verlierst deine ${GK.formatNumber(s.money)} Dublonen, alle Gebäude und Upgrades.\n` +
       `Dafür bekommst du ${gain} Schatzkarte${gain === 1 ? '' : 'n'}: +${gain * PRESTIGE_BONUS * 100} % Einkommen für immer.\n\n` +
-      'Erfolge, VIP-Karte und Casino-Statistik bleiben erhalten.';
+      'Erfolge, VIP-Karte, Cosmetics und Casino-Statistik bleiben erhalten.' +
+      (GK.cosmetics.unownedCount() ? '\n\nDanach darfst du am Glücksrad der Schatzkammer drehen!' : '');
     if (!confirm(text)) return;
     s.prestige.points += gain;
     s.prestige.journeys++;
@@ -119,6 +120,7 @@ window.GK = window.GK || {};
     GK.fx.confetti(200);
     GK.fx.coinRain(2, 40);
     GK.notify(`<span class="notify-icon">⛵</span><span><b>Leinen los!</b><br>${gain} neue Schatzkarte${gain === 1 ? '' : 'n'} – dein Einkommen ist jetzt dauerhaft ×${formatMult(prestigeMult())}.</span>`);
+    GK.cosmetics.journeyReward();
   }
 
   function formatMult(m) {

@@ -334,6 +334,17 @@ Einsatz verloren geht.
 - **Passives Einkommen ausschalten**: Schalter unter den Gebäuden. Ausgeschaltet verdienen die Gebäude nichts,
   auch keine Offline-Einnahmen; die Kopfzeile zeigt „Passives Einkommen aus“.
 
+### Erweiterung: Schatzkammer (Cosmetics) ✅
+- **Qualität vor Menge**: 3 Kategorien mit je 5 Cosmetics (2 selten, 2 episch, 1 legendär), nur Aussehen, keine Vorteile.
+  - 🪙 Münz-Designs: Silbertaler, Rubin-Dublone, Piratenmünze, Kristallmünze, Sternenmünze (mit Schein).
+  - ✨ Klick-Effekte: Funkenregen, Meeresblasen, Glücksklee, Feuerschweif, Feuerwerk (Raketen zerplatzen bunt).
+  - 🎨 Farbthemen: Tiefsee, Vulkan, Mitternacht (funkelnde Sterne), Eispalast (Schnee), Kaiserpalast (Goldglanz).
+- **Glücksrad nach jeder großen Fahrt**: 8 Felder mit bis zu 5 Cosmetics, die man noch nicht hat (seltene kommen
+  öfter aufs Rad als legendäre), und 3× Flaute. Das Rad wird sofort gespeichert – Neuladen ändert nichts.
+- **Kaufen ist teuer**: selten 1 Mrd. + ¼ der Gebäude (ab 100 Gebäuden), episch 100 Mrd. + ½ (ab 250),
+  legendär 10 Bio. + ¾ (ab 500). Vorher zeigt das Spiel, wie viele Gebäude weggehen und wie das Einkommen sinkt.
+- 3 neue Erfolge: erstes Cosmetic, eine Kategorie komplett, alles gesammelt.
+
 ## Entscheidungen
 
 ### Multiplayer: Wie spielen die Freunde zusammen? → **Variante A**

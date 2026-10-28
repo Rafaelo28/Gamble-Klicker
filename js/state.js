@@ -22,6 +22,11 @@ window.GK = window.GK || {};
     };
   }
 
+  // Schatzkammer: gekaufte bzw. gewonnene Cosmetics, was angelegt ist, und ein noch nicht gedrehtes Glücksrad
+  function createDefaultCosmetics() {
+    return { owned: [], equipped: { coin: 'gold', effect: 'coins', theme: 'tavern' }, wheel: null };
+  }
+
   // Einstellungen: Ton und Animationen (bei „Bewegung reduzieren“ im System automatisch ruhiger)
   function createDefaultSettings() {
     const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -48,6 +53,7 @@ window.GK = window.GK || {};
       bestCombo: 0,    // längste Klick-Combo
       passiveOff: false, // passives Einkommen der Gebäude ausgeschaltet (Schalter unter den Gebäuden)
       casino: createDefaultCasino(),
+      cosmetics: createDefaultCosmetics(),
       ui: { tab: 'clicker' },
       settings: createDefaultSettings(),
       startedAt: now,
@@ -122,6 +128,9 @@ window.GK = window.GK || {};
     GK.state.ui = Object.assign({ tab: 'clicker' }, data.ui);
     GK.state.settings = Object.assign(createDefaultSettings(), data.settings);
     GK.state.prestige = Object.assign({ points: 0, journeys: 0 }, data.prestige);
+    GK.state.cosmetics = Object.assign(createDefaultCosmetics(), data.cosmetics);
+    GK.state.cosmetics.equipped = Object.assign(createDefaultCosmetics().equipped, data.cosmetics && data.cosmetics.equipped);
+    if (!Array.isArray(GK.state.cosmetics.owned)) GK.state.cosmetics.owned = [];
     // Ältere Spielstände kennen „insgesamt verdient über alle Fahrten“ noch nicht
     if (typeof data.allTimeEarned !== 'number') GK.state.allTimeEarned = GK.state.totalEarned;
     return true;

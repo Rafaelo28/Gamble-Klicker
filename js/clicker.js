@@ -299,15 +299,15 @@ window.GK = window.GK || {};
       GK.sound.play('crit');
       GK.fx.pulse(coin, 'coin-crit');
       showFloatingText(pos, `KRITISCH! +${GK.formatNumber(amount, true)}`, 'crit');
-      GK.fx.burst(pos.x, pos.y, { count: 14, speed: 700, upward: true, spread: 2.8 });
+      GK.cosmetics.clickBurst(pos.x, pos.y, { crit: true });
       GK.fx.burst(pos.x, pos.y, { count: 10, kind: 'sparkle', speed: 400 });
     } else {
       GK.sound.play('click');
       GK.fx.pulse(coin, 'coin-hit');
       showFloatingText(pos, '+' + GK.formatNumber(amount, true), combo.count >= 25 ? 'hot' : '');
-      // Ein paar Münzen fliegen von der Klick-Stelle weg (im Klickfieber und bei hoher Combo mehr)
+      // Klick-Effekt aus der Schatzkammer (im Klickfieber und bei hoher Combo mehr)
       const fever = GK.progress.buffMult('click') > 1;
-      GK.fx.burst(pos.x, pos.y, { count: fever || combo.count >= 50 ? 5 : 2, speed: 420, upward: true, spread: 2.4, size: 7 });
+      GK.cosmetics.clickBurst(pos.x, pos.y, { hot: fever || combo.count >= 50 });
     }
     if (COMBO_MILESTONES.includes(combo.count - 1) && combo.count - 1 <= comboCap()) {
       GK.sound.play('combo');
