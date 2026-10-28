@@ -112,7 +112,7 @@ window.GK = window.GK || {};
     return `${location.origin}${location.pathname}?raum=${s.code}&spiel=${s.game}`;
   }
 
-  // Anteil am Preisgeld je Platz (wie beim Poker)
+  // Anteil am Preisgeld je Platz (wie beim Poker) – mit Freunden teilen sich alle Eintritte
   function prizeShares(players) {
     if (players >= 6) return [0.5, 0.3, 0.2];
     if (players >= 4) return [0.65, 0.35];
@@ -120,13 +120,27 @@ window.GK = window.GK || {};
     return [1];
   }
 
-  function prize(place, entry, players) {
+  // Gegen Computer zahlen die Computer-Gegner keinen echten Eintritt, das Casino zahlt die Preise.
+  // Nur der Sieger macht Gewinn, Platz 2 bekommt ab 3 Spielern den halben Einsatz zurück. Bei gleich
+  // starken Gegnern fließen so im Schnitt 95 % zurück – wie bei den anderen Casino-Spielen.
+  const SOLO_RETURN = 0.95;
+  function soloMultipliers(players) {
+    const round = x => Math.round(x * 100) / 100; // 2,35 statt 2,3499999…
+    return players <= 2 ? [round(2 * SOLO_RETURN)] : [round(SOLO_RETURN * players - 0.5), 0.5];
+  }
+
+  function prize(place, entry, players, solo) {
+    if (solo) {
+      const mult = soloMultipliers(players);
+      return place >= 1 && place <= mult.length ? Math.floor(entry * mult[place - 1]) : 0;
+    }
     const shares = prizeShares(players);
     return place >= 1 && place <= shares.length ? Math.floor(entry * players * shares[place - 1]) : 0;
   }
 
-  function prizeText(entry, players) {
-    return prizeShares(players).map((_, i) => `${['🥇', '🥈', '🥉'][i]} ${GK.formatMoneyHTML(prize(i + 1, entry, players))}`).join(' ');
+  function prizeText(entry, players, solo) {
+    const places = solo ? soloMultipliers(players).length : prizeShares(players).length;
+    return Array.from({ length: places }, (_, i) => `${['🥇', '🥈', '🥉'][i]} ${GK.formatMoneyHTML(prize(i + 1, entry, players, solo))}`).join(' ');
   }
 
   // Läuft gerade woanders ein Spiel, das diesen Raum ausschließt?
@@ -143,7 +157,7 @@ window.GK = window.GK || {};
     const s = session();
     if (!s || s.settled || !s.paid) return;
     const d = def();
-    const win = prize(place, s.entry, players);
+    const win = prize(place, s.entry, players, s.solo);
     s.settled = true;
     s.result = { place, prize: win, players };
     GK.casino.payout(win);
@@ -539,7 +553,7 @@ window.GK = window.GK || {};
     if (s.solo) {
       if (s.phase === 'playing' && !d.placeOf(st, meSeat)) {
         const place = st.players.length - st.players.filter((p, i) => d.placeOf(st, i)).length;
-        const win = prize(place, s.entry, st.players.length);
+        const win = prize(place, s.entry, st.players.length, true);
         text = `Spiel wirklich verlassen? Du belegst damit Platz ${place}${win ? ` und bekommst ${GK.formatNumber(win)} Dublonen.` : ' und gehst leer aus.'}`;
       }
     } else if (s.phase === 'lobby') {
@@ -989,7 +1003,7 @@ window.GK = window.GK || {};
     container._betControl = betControl;
     const updateSoloPrize = () => {
       const n = (me.soloBots[gameId] || soloBots) + 1;
-      container.querySelector('.room-solo-prize').innerHTML = `Preise bei ${n} Spielern: ${prizeText(soloEntry, n)}`;
+      container.querySelector('.room-solo-prize').innerHTML = `Preise bei ${n} Spielern: ${prizeText(soloEntry, n, true)}`;
     };
     updateSoloPrize();
     container.querySelectorAll('.room-bot-count').forEach(btn => btn.addEventListener('click', () => {
@@ -1137,7 +1151,7 @@ window.GK = window.GK || {};
       s.solo ? `${d.icon} Gegen Computer` : `👥 Raum ${s.code}`,
       d.settingsText && s.settings ? d.settingsText(s.settings) : '',
       `Eintritt ${GK.formatMoneyHTML(s.entry)}`,
-      prizeText(s.entry, players),
+      prizeText(s.entry, players, s.solo),
     ].filter(Boolean);
     setHtml(container.querySelector('.room-info'), info.map(i => `<span>${i}</span>`).join(''));
     const notices = [];
@@ -1211,7 +1225,7 @@ window.GK = window.GK || {};
   }
 
   GK.room = {
-    registerGame, active, resume, readInviteLink, prize, prizeShares, BOTS,
+    registerGame, active, resume, readInviteLink, prize, prizeShares, soloMultipliers, BOTS,
     _net: net, // für Tests
   };
 })();

@@ -1,7 +1,7 @@
 // Darts in der Taverne: 2–4 Spieler, 3, 5 oder 8 Runden mit je 3 Pfeilen. Wer am Ende die meisten
 // Punkte hat, gewinnt (bei Gleichstand an der Spitze gibt es ein Stechen).
 // Zielen: aufs Brett tippen, das Fadenkreuz zittert wie eine echte Hand – im richtigen Moment werfen.
-// Der Gastgeber wertet jeden Pfeil (mit einer kleinen Streuung) und schickt das Ergebnis an alle.
+// Der Gastgeber wertet jeden Pfeil (mit Streuung) und schickt das Ergebnis an alle.
 window.GK = window.GK || {};
 
 (function () {
@@ -11,7 +11,9 @@ window.GK = window.GK || {};
   const RING = { bull: 6.35 / 170, outerBull: 15.9 / 170, tripleIn: 99 / 170, tripleOut: 107 / 170, doubleIn: 162 / 170 };
   const DARTS_PER_TURN = 3;
   const MAX_SHOOTOUTS = 3;
-  const SCATTER = 0.015;       // kleine Streuung beim Gastgeber
+  // Jeder Pfeil streut etwas – auch bei perfektem Timing. Sonst trifft man mit etwas Geduld fast immer
+  // Bull oder Dreifach-20 und schlägt die Computer-Gegner jedes Mal.
+  const SCATTER = 0.07;
   const WOBBLE = 0.14;         // wie stark die Hand zittert (gutes Timing lohnt sich)
   const T20 = { x: 0, y: -(RING.tripleIn + RING.tripleOut) / 2 };
 
@@ -148,10 +150,9 @@ window.GK = window.GK || {};
 
   function botAct(st, seat) {
     const skill = st.players[seat].skill;
-    // Gute Werfer zielen auf die Dreifach-20, die anderen auf die einfache 20
-    const aim = skill >= 0.55 ? T20 : { x: 0, y: -0.42 };
-    const sigma = 0.05 + (1 - skill) * 0.14;
-    return { type: 'throw', x: aim.x + gauss() * sigma, y: aim.y + gauss() * sigma };
+    // Alle zielen auf die Dreifach-20, schwächere ungenauer (dazu kommt die Streuung, die jeder hat)
+    const sigma = (1 - skill) * 0.13;
+    return { type: 'throw', x: T20.x + gauss() * sigma, y: T20.y + gauss() * sigma };
   }
 
   // Zeit abgelaufen: ein hastiger Wurf
@@ -450,7 +451,8 @@ window.GK = window.GK || {};
     icon: '🎯',
     desc: 'Drei Pfeile pro Runde – wer trifft am besten? Für 2 bis 4 Spieler.',
     intro: `<p class="muted"><b>So geht's:</b> Reihum wirft jeder drei Pfeile. Tippe aufs Brett, um zu zielen –
-      die Hand zittert, also wirf im richtigen Moment. Dreifach-Ring zählt dreifach, der äußere Ring doppelt,
+      die Hand zittert, also wirf im richtigen Moment. Ganz genau landet kein Pfeil, ein bisschen streut jeder Wurf.
+      Dreifach-Ring zählt dreifach, der äußere Ring doppelt,
       das Bull in der Mitte 50 Punkte. Nach der letzten Runde gewinnt, wer die meisten Punkte hat.</p>`,
     minPlayers: 2,
     maxPlayers: 4,

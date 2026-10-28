@@ -47,7 +47,7 @@ for (const n of [2, 3, 4]) {
   assert(!D.act(st, seat, { type: 'throw', x: NaN, y: 0 }), 'keine Zahl');
   for (let i = 0; i < 3; i++) D.act(st, seat, { type: 'throw', x: 0, y: -0.3 });
   assert(st.phase === 'show' && !D.act(st, seat, { type: 'throw', x: 0, y: 0 }), 'nach 3 Pfeilen ist Schluss');
-  assert(Math.abs(st.players[seat].darts[0].x) < 0.1, 'Streuung bleibt klein');
+  assert(Math.abs(st.players[seat].darts[0].x) < 0.4, 'Streuung bleibt im Rahmen');
 }
 
 // Stechen bei Gleichstand an der Spitze
@@ -83,5 +83,43 @@ for (let g = 0; g < 40; g++) {
   if (st.players[0].place === 1) strongWins++;
 }
 console.log('Starker Werfer gewann', strongWins, 'von 40');
-assert(strongWins >= 30, 'starker Werfer gewinnt meistens');
+assert(strongWins >= 28, 'starker Werfer gewinnt meistens');
+// Kein sicherer Gewinn: auch perfekt gezielt (ohne Zittern) bringt die Streuung nicht mehr als die
+// besten Computer-Gegner – egal ob auf die Dreifach-20 oder die Mitte
+{
+  const st = D.create(bots(2), { rounds: 8 });
+  const avg = (aim, n = 6000) => {
+    let sum = 0;
+    for (let i = 0; i < n; i++) {
+      st.phase = 'throw'; st.idx = 0; st.players[st.order[0]].darts = [];
+      D.act(st, st.order[0], { type: 'throw', x: aim.x, y: aim.y });
+      sum += st.lastDart.points;
+    }
+    return sum / n;
+  };
+  const t20 = avg(D.T20);
+  const bull = avg({ x: 0, y: 0 });
+  st.players[st.order[0]].skill = 0.8;
+  let best = 0;
+  for (let i = 0; i < 6000; i++) {
+    st.phase = 'throw'; st.idx = 0; st.players[st.order[0]].darts = [];
+    D.act(st, st.order[0], D.botAct(st, st.order[0]));
+    best += st.lastDart.points;
+  }
+  best /= 6000;
+  console.log('Punkte pro Pfeil – perfekt auf T20', t20.toFixed(1), 'perfekt auf die Mitte', bull.toFixed(1), 'bester Computer', best.toFixed(1));
+  assert(t20 < 28 && bull < 28, 'perfektes Zielen bringt keine Traumwerte');
+  assert(best > t20 - 3, 'die besten Computer-Gegner halten mit');
+}
+
+// Gegen Computer: nur der Sieger macht Gewinn, bei gleich starken Gegnern fließen 95 % zurück
+for (let n = 2; n <= 6; n++) {
+  const prizes = [1, 2, 3, 4, 5, 6].slice(0, n).map(place => GK.room.prize(place, 1000, n, true));
+  const total = prizes.reduce((a, b) => a + b, 0);
+  assert(Math.abs(total / n - 950) <= 1, `gegen Computer ${n} Spieler: Rückfluss ${total / n / 10} %`);
+  assert(prizes[0] > 1000 && prizes.slice(1).every(p => p < 1000), `gegen Computer ${n} Spieler: nur Platz 1 im Plus (${prizes})`);
+  // Mit Freunden bleibt alles beim Alten: alle Eintritte werden verteilt
+  const friends = [1, 2, 3, 4, 5, 6].slice(0, n).reduce((s, place) => s + GK.room.prize(place, 1000, n, false), 0);
+  assert(friends === 1000 * n, `mit Freunden ${n} Spieler: Preisgeld = Eintritte`);
+}
 console.log(process.exitCode ? 'Darts-Tests FEHLGESCHLAGEN' : 'Darts-Tests bestanden.');
