@@ -54,6 +54,7 @@ window.GK = window.GK || {};
       passiveOff: false, // passives Einkommen der Gebäude ausgeschaltet (Schalter unter den Gebäuden)
       casino: createDefaultCasino(),
       cosmetics: createDefaultCosmetics(),
+      player: { name: '', avatar: '' }, // spielweiter Name und Bild (leer = noch nicht festgelegt)
       ui: { tab: 'clicker' },
       settings: createDefaultSettings(),
       startedAt: now,
@@ -88,6 +89,43 @@ window.GK = window.GK || {};
       GK.state.allTimeEarned += amount;
     }
     if (source === 'click') GK.state.clickEarned += amount;
+  };
+
+  // ---------- Spielweiter Name und Bild (Spiele mit Freunden, Poker, Schatzkammer) ----------
+
+  const MAX_NAME = 16;
+  const AVATARS = ['😎', '🤠', '🧐', '😺', '🐸', '🦊', '🐼', '🐯', '🦄', '🐙', '🦈', '🐵'];
+
+  function cleanName(name) {
+    return String(name || '').replace(/\s+/g, ' ').trim().slice(0, MAX_NAME) || 'Gast';
+  }
+
+  // Wer noch keinen Namen festgelegt hat, bekommt einen zufälligen
+  function player() {
+    const p = GK.state.player;
+    if (!p.name) p.name = 'Spieler ' + (100 + Math.floor(Math.random() * 900));
+    if (!AVATARS.includes(p.avatar)) p.avatar = AVATARS[Math.floor(Math.random() * AVATARS.length)];
+    return p;
+  }
+
+  GK.player = {
+    MAX_NAME,
+    AVATARS,
+    cleanName,
+    name: () => player().name,
+    avatar: () => player().avatar,
+    setName(name) {
+      player().name = cleanName(name);
+      GK.save();
+      return GK.state.player.name;
+    },
+    // Nächstes Bild aus der Liste
+    nextAvatar() {
+      const p = player();
+      p.avatar = AVATARS[(AVATARS.indexOf(p.avatar) + 1) % AVATARS.length];
+      GK.save();
+      return p.avatar;
+    },
   };
 
   GK.canAfford = function (amount) {
@@ -131,6 +169,13 @@ window.GK = window.GK || {};
     GK.state.cosmetics = Object.assign(createDefaultCosmetics(), data.cosmetics);
     GK.state.cosmetics.equipped = Object.assign(createDefaultCosmetics().equipped, data.cosmetics && data.cosmetics.equipped);
     if (!Array.isArray(GK.state.cosmetics.owned)) GK.state.cosmetics.owned = [];
+    // Ältere Spielstände: Name und Bild aus den Spielen mit Freunden bzw. dem Poker übernehmen
+    GK.state.player = Object.assign({ name: '', avatar: '' }, data.player);
+    if (!data.player) {
+      const games = (data.casino && data.casino.games) || {};
+      const old = games.room || games.pokerMp;
+      if (old) Object.assign(GK.state.player, { name: old.name || '', avatar: old.avatar || '' });
+    }
     // Ältere Spielstände kennen „insgesamt verdient über alle Fahrten“ noch nicht
     if (typeof data.allTimeEarned !== 'number') GK.state.allTimeEarned = GK.state.totalEarned;
     return true;

@@ -25,10 +25,10 @@ GK.poker = GK.poker || {};
   const DROP_AFTER = 90000;        // so lange ohne Verbindung am Tisch → scheidet aus
   const HEARTBEAT = 2000;          // Lebenszeichen alle 2 Sekunden …
   const HEARTBEAT_TIMEOUT = 8000;  // … bleibt es so lange aus, gilt die Verbindung als getrennt
-  const MAX_NAME = 16;
+  const MAX_NAME = GK.player.MAX_NAME;
   const MIN_ENTRY = 100;
   const ENTRY_PRESETS = [1000, 10000, 100000, 1e6, 1e7];
-  const AVATARS = ['😎', '🤠', '🧐', '😺', '🐸', '🦊', '🐼', '🐯', '🦄', '🐙', '🦈', '🐵'];
+  const AVATARS = GK.player.AVATARS;
 
   const engine = () => GK.poker.engine;
   const T = () => GK.poker.tournament;
@@ -53,9 +53,8 @@ GK.poker = GK.poker || {};
   // ---------- Gespeicherte Daten ----------
 
   function store() {
+    // Name und Bild sind spielweit (GK.player), hier nur die Raum-Daten
     return GK.casino.data('pokerMp', () => ({
-      name: 'Spieler ' + (100 + GK.rng.int(900)),
-      avatar: AVATARS[GK.rng.int(AVATARS.length)],
       playerId: randomId(),
       lastEntry: 1000,
       lastMode: 'classic',
@@ -81,9 +80,7 @@ GK.poker = GK.poker || {};
     return Array.from({ length: CODE_LENGTH }, () => CODE_CHARS[GK.rng.int(CODE_CHARS.length)]).join('');
   }
 
-  function cleanName(name) {
-    return String(name || '').replace(/\s+/g, ' ').trim().slice(0, MAX_NAME) || 'Gast';
-  }
+  const cleanName = GK.player.cleanName;
 
   function inviteLink(code) {
     return location.origin + location.pathname + '?raum=' + code;
@@ -245,7 +242,7 @@ GK.poker = GK.poker || {};
       phase: 'lobby',
       paid: true,
       settled: false,
-      members: [{ playerId: me.playerId, name: me.name, avatar: me.avatar, badge: GK.cosmetics.myBadge(), ready: true }],
+      members: [{ playerId: me.playerId, name: GK.player.name(), avatar: GK.player.avatar(), badge: GK.cosmetics.myBadge(), ready: true }],
       fillBots: true,
       table: null,
       deadline: null,
@@ -464,7 +461,7 @@ GK.poker = GK.poker || {};
       if (T().handLimitReached(t)) T().finishByChips(t);
       const meSeat = t.players.findIndex(p => p.id === store().playerId);
       const me = t.players[meSeat];
-      if (t.result && t.result.hands && t.result.hands[meSeat] === 'Royal Flush') GK.unlockAchievement('pokerRoyal');
+      if (t.result && t.result.hands && GK.poker.quadsOrBetter(t.result.hands[meSeat])) GK.unlockAchievement('pokerRoyal');
       if (me.out || t.phase === 'finished') settle(me.place, t.players.length, mpPayout(t, meSeat, s.entry));
       if (t.phase === 'finished') s.phase = 'ended';
     }
@@ -634,7 +631,7 @@ GK.poker = GK.poker || {};
       net.status = 'online';
       net.lostSince = null;
       const me = store();
-      send(conn, { type: 'hello', v: PROTOCOL, playerId: me.playerId, name: me.name, avatar: me.avatar, badge: GK.cosmetics.myBadge(), paid: session().paid });
+      send(conn, { type: 'hello', v: PROTOCOL, playerId: me.playerId, name: GK.player.name(), avatar: GK.player.avatar(), badge: GK.cosmetics.myBadge(), paid: session().paid });
       GK.poker.redraw();
     });
     conn.on('data', msg => {
@@ -700,7 +697,7 @@ GK.poker = GK.poker || {};
 
     const me = s.view && s.view.players[s.mySeat];
     if (me) {
-      if (s.view.result && s.view.result.hands && s.view.result.hands[s.mySeat] === 'Royal Flush') GK.unlockAchievement('pokerRoyal');
+      if (s.view.result && s.view.result.hands && GK.poker.quadsOrBetter(s.view.result.hands[s.mySeat])) GK.unlockAchievement('pokerRoyal');
       if (me.out || s.view.phase === 'finished') settle(me.place, s.view.players.length, mpPayout(s.view, s.mySeat, s.entry));
     }
     GK.save();
@@ -907,8 +904,8 @@ GK.poker = GK.poker || {};
         <div class="mp-form">
           <label class="bet-label" for="mp-name">Dein Name am Tisch</label>
           <div class="bet-row">
-            <button type="button" class="btn mp-avatar" title="Anderes Bild">${me.avatar}</button>
-            <input id="mp-name" class="bet-input mp-name" maxlength="${MAX_NAME}" value="${esc(me.name)}">
+            <button type="button" class="btn mp-avatar" title="Anderes Bild">${GK.player.avatar()}</button>
+            <input id="mp-name" class="bet-input mp-name" maxlength="${MAX_NAME}" value="${esc(GK.player.name())}">
           </div>
         </div>
         <div class="mp-form">
@@ -934,17 +931,12 @@ GK.poker = GK.poker || {};
 
     const nameInput = el.querySelector('.mp-name');
     nameInput.addEventListener('change', () => {
-      store().name = cleanName(nameInput.value);
-      nameInput.value = store().name;
-      GK.save();
+      nameInput.value = GK.player.setName(nameInput.value);
     });
     el.querySelector('.mp-avatar').addEventListener('click', e => {
-      const next = AVATARS[(AVATARS.indexOf(store().avatar) + 1) % AVATARS.length];
-      store().avatar = next;
-      e.currentTarget.textContent = next;
-      GK.save();
+      e.currentTarget.textContent = GK.player.nextAvatar();
     });
-    const save = () => { store().name = cleanName(nameInput.value); };
+    const save = () => { nameInput.value = GK.player.setName(nameInput.value); };
     const entryInput = el.querySelector('.mp-entry');
     el.querySelectorAll('.mp-preset').forEach(btn => {
       btn.addEventListener('click', () => {

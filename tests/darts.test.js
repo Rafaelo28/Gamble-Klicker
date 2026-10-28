@@ -1,6 +1,7 @@
 // Tests für Darts in der Taverne: Wertung, Ablauf, Stechen, Aufgeben. Ausführen mit: node tests/darts.test.js
 global.window = global;
 const R = require('path').join(__dirname, '..', 'js') + '/';
+require(R + 'state.js');
 require(R + 'casino/casino.js');
 require(R + 'mp/room.js');
 require(R + 'mp/darts.js');

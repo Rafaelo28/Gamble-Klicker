@@ -1,6 +1,7 @@
 // Tests für Minigolf: Physik und komplette Runden zwischen Computer-Gegnern. Ausführen mit: node tests/minigolf.test.js
 global.window = global;
 const R = require('path').join(__dirname, '..', 'js') + '/';
+require(R + 'state.js');
 require(R + 'casino/casino.js');
 require(R + 'mp/room.js');
 require(R + 'mp/minigolf.js');
@@ -43,7 +44,9 @@ for (let g = 0; g < 12; g++) {
   assert(st.phase === 'finished', `Runde ${g} beendet`);
   const places = st.players.map(p => p.place).sort((a, b) => a - b).join(',');
   assert(places === Array.from({ length: n }, (_, i) => i + 1).join(','), `Plätze ${places}`);
-  st.players.forEach(p => p.strokes.forEach(s => assert(s >= 1 && s <= 8 || p.out, 'Schläge pro Bahn 1–8')));
+  // Gibt jemand auf und es bleibt nur einer übrig, ist die Runde sofort vorbei: restliche Bahnen bleiben bei 0
+  const someoneOut = st.players.some(p => p.out);
+  st.players.forEach(p => p.strokes.forEach(s => assert(s >= 1 && s <= 8 || p.out || (s === 0 && someoneOut), 'Schläge pro Bahn 1–8')));
 }
 // Ungültige Schläge
 {

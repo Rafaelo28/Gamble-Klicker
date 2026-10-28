@@ -112,7 +112,14 @@ window.GK = window.GK || {};
 
   // ---------- Einstellungen ----------
 
+  // Spielweiter Name und Bild (nicht überschreiben, während man tippt)
+  function renderPlayer() {
+    if (document.activeElement !== $('set-name')) $('set-name').value = GK.player.name();
+    $('set-avatar').textContent = GK.player.avatar();
+  }
+
   function renderSettings() {
+    renderPlayer();
     const st = GK.state.settings;
     $('set-sound').checked = st.sound;
     $('set-volume').value = st.volume;
@@ -124,6 +131,17 @@ window.GK = window.GK || {};
   }
 
   function setupSettings() {
+    $('set-name').addEventListener('change', e => {
+      e.target.value = GK.player.setName(e.target.value);
+      GK.sound.play('coin');
+      GK.toast(`👤 Dein Name: ${e.target.value}`);
+    });
+    $('set-name').addEventListener('keydown', e => { if (e.key === 'Enter') e.target.blur(); });
+    $('set-avatar').addEventListener('click', () => {
+      GK.player.nextAvatar();
+      renderPlayer();
+      GK.sound.play('chip');
+    });
     $('sound-toggle').addEventListener('click', () => {
       GK.sound.setEnabled(!GK.state.settings.sound);
       renderSettings();
@@ -180,7 +198,10 @@ window.GK = window.GK || {};
     $('stat-buildings').textContent = GK.formatNumber(GK.clicker.totalBuildings());
     $('stat-upgrades').textContent = GK.formatNumber(s.upgrades.length);
     $('stat-playtime').textContent = GK.formatDuration(s.playTime);
-    if (s.ui.tab === 'stats') GK.casino.renderAllStats($('game-stats-all'));
+    if (s.ui.tab === 'stats') {
+      GK.casino.renderAllStats($('game-stats-all'));
+      renderPlayer();
+    }
     $('last-saved').textContent = GK.storageAvailable
       ? 'vor ' + GK.formatDuration((Date.now() - s.lastSaved) / 1000)
       : 'nicht möglich';

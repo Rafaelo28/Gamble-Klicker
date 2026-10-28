@@ -94,7 +94,7 @@ window.GK = window.GK || {};
     s.last = { mines: r.mines, found: r.found, icons: r.icons, hit: null, bet: r.bet, payout };
     GK.casino.payout(payout);
     const all = r.found.length === FIELDS - r.skulls;
-    if (all && r.skulls >= 3) GK.unlockAchievement('minesAll');
+    if (all) GK.unlockAchievement('minesAll');
     GK.casino.record('mines', r.bet, payout, `${r.found.length} ${r.found.length === 1 ? 'Schatz' : 'Schätze'} · ×${formatMult(mult)}`);
     render();
     showMessage(`${all ? '🏝️ Alle Schätze gefunden! ' : ''}Abkassiert: ${GK.formatMoneyHTML(payout)} (×${formatMult(mult)})`, 'win');

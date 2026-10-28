@@ -3,6 +3,7 @@
 global.window = global;
 const fs = require('fs');
 const R = require('path').join(__dirname, '..', 'js') + '/';
+require(R + 'state.js');
 require(R + 'casino/casino.js');
 require(R + 'mp/room.js');
 require(R + 'mp/cannon.js');

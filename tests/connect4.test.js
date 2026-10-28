@@ -1,6 +1,7 @@
 // Tests für Vier gewinnt: Regeln, Gewinnerkennung, Computer-Gegner. Ausführen mit: node tests/connect4.test.js
 global.window = global;
 const R = require('path').join(__dirname, '..', 'js') + '/';
+require(R + 'state.js');
 require(R + 'casino/casino.js');
 require(R + 'mp/room.js');
 require(R + 'mp/connect4.js');

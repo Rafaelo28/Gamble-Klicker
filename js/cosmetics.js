@@ -167,11 +167,9 @@ window.GK = window.GK || {};
     return `<span class="nametag nt-${item.id}"><span class="nt-name">${base}</span><span class="nt-title">${item.title}</span></span>`;
   }
 
-  // Name und Bild aus den Spielen mit Freunden (für die Vorschau)
+  // Spielweiter Name und Bild (für die Vorschau)
   function myProfile() {
-    const games = GK.state.casino.games;
-    const room = games.room || games.pokerMp || {};
-    return { name: room.name || 'Du', avatar: room.avatar || '🦜' };
+    return { name: GK.player.name(), avatar: GK.player.avatar() };
   }
 
   function equip(id) {

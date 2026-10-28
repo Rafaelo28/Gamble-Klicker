@@ -51,7 +51,7 @@ window.GK = window.GK || {};
     s.pending = null;
     const ev = SM().evaluate(s.reels);
     GK.casino.payout(p.payout);
-    if (ev.jackpot) GK.unlockAchievement('slots777');
+    if (s.reels.filter(id => id === 'seven').length >= 2) GK.unlockAchievement('slots777');
     GK.casino.record('slots', p.bet, p.payout, p.text);
     reels.highlight(p.payout > 0 ? ev.win : []);
 

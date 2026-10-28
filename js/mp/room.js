@@ -31,10 +31,10 @@ window.GK = window.GK || {};
   const DROP_AFTER = 90000;        // so lange ohne Verbindung im laufenden Spiel → scheidet aus
   const HEARTBEAT = 2000;
   const HEARTBEAT_TIMEOUT = 8000;
-  const MAX_NAME = 16;
+  const MAX_NAME = GK.player.MAX_NAME;
   const MIN_ENTRY = 100;
   const ENTRY_PRESETS = [1000, 10000, 100000, 1e6, 1e7];
-  const AVATARS = ['😎', '🤠', '🧐', '😺', '🐸', '🦊', '🐼', '🐯', '🦄', '🐙', '🦈', '🐵'];
+  const AVATARS = GK.player.AVATARS;
   // Computer-Gegner (skill: 0 = vorsichtig/schwach … 1 = stark)
   const BOTS = [
     { name: "Käpt'n Blaubart", avatar: '🏴‍☠️', skill: 0.8 },
@@ -63,12 +63,9 @@ window.GK = window.GK || {};
   }
 
   function store() {
+    // Name und Bild sind spielweit (GK.player), hier nur die Raum-Daten
     return GK.casino.data('room', () => {
-      // Gleicher Name und gleiches Bild wie beim Poker mit Freunden
-      const poker = GK.state.casino.games.pokerMp;
       return {
-        name: poker ? poker.name : 'Spieler ' + (100 + GK.rng.int(900)),
-        avatar: poker ? poker.avatar : AVATARS[GK.rng.int(AVATARS.length)],
         playerId: randomId(),
         lastEntry: 1000,
         settings: {},
@@ -96,9 +93,7 @@ window.GK = window.GK || {};
     return Array.from({ length: CODE_LENGTH }, () => CODE_CHARS[GK.rng.int(CODE_CHARS.length)]).join('');
   }
 
-  function cleanName(name) {
-    return String(name || '').replace(/\s+/g, ' ').trim().slice(0, MAX_NAME) || 'Gast';
-  }
+  const cleanName = GK.player.cleanName;
 
   function peerAvailable() {
     return typeof window.Peer === 'function';
@@ -279,7 +274,7 @@ window.GK = window.GK || {};
       phase: 'lobby',
       paid: true,
       settled: false,
-      members: [{ playerId: me.playerId, name: me.name, avatar: me.avatar, badge: GK.cosmetics.myBadge(), ready: true }],
+      members: [{ playerId: me.playerId, name: GK.player.name(), avatar: GK.player.avatar(), badge: GK.cosmetics.myBadge(), ready: true }],
       fillBots: !!d.bots,
       state: null,
       deadline: null,
@@ -660,7 +655,7 @@ window.GK = window.GK || {};
       net.status = 'online';
       net.lostSince = null;
       const me = store();
-      send(conn, { type: 'hello', v: PROTOCOL, game: s.game, playerId: me.playerId, name: me.name, avatar: me.avatar, badge: GK.cosmetics.myBadge(), paid: session().paid });
+      send(conn, { type: 'hello', v: PROTOCOL, game: s.game, playerId: me.playerId, name: GK.player.name(), avatar: GK.player.avatar(), badge: GK.cosmetics.myBadge(), paid: session().paid });
       redraw();
     });
     conn.on('data', msg => {
@@ -976,8 +971,8 @@ window.GK = window.GK || {};
         <div class="mp-form">
           <label class="bet-label">Dein Name am Tisch</label>
           <div class="bet-row">
-            <button type="button" class="btn mp-avatar room-avatar" title="Anderes Bild">${me.avatar}</button>
-            <input class="bet-input mp-name room-name" maxlength="${MAX_NAME}" value="${esc(me.name)}">
+            <button type="button" class="btn mp-avatar room-avatar" title="Anderes Bild">${GK.player.avatar()}</button>
+            <input class="bet-input mp-name room-name" maxlength="${MAX_NAME}" value="${esc(GK.player.name())}">
           </div>
         </div>
         <div class="mp-form">
@@ -1038,15 +1033,11 @@ window.GK = window.GK || {};
     // Mit Freunden
     const nameInput = container.querySelector('.room-name');
     const saveName = () => {
-      me.name = cleanName(nameInput.value);
-      nameInput.value = me.name;
-      GK.save();
+      nameInput.value = GK.player.setName(nameInput.value);
     };
     nameInput.addEventListener('change', saveName);
     container.querySelector('.room-avatar').addEventListener('click', e => {
-      me.avatar = AVATARS[(AVATARS.indexOf(me.avatar) + 1) % AVATARS.length];
-      e.currentTarget.textContent = me.avatar;
-      GK.save();
+      e.currentTarget.textContent = GK.player.nextAvatar();
     });
     const entryInput = container.querySelector('.room-entry');
     const updatePreview = GK.amountPreview(entryInput, container.querySelector('.room-entry-preview'));

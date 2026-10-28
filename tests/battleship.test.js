@@ -1,6 +1,7 @@
 // Tests für die Seeschlacht: Flotte, Regeln, geheime Ansicht, Computer-Gegner. Ausführen mit: node tests/battleship.test.js
 global.window = global;
 const R = require('path').join(__dirname, '..', 'js') + '/';
+require(R + 'state.js');
 require(R + 'casino/casino.js');
 require(R + 'mp/room.js');
 require(R + 'mp/battleship.js');

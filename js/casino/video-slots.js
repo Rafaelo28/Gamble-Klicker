@@ -374,7 +374,7 @@ window.GK = window.GK || {};
       GK.casino.payout(ev.total);
       if (p.free) s.free.won += ev.total;
       else GK.casino.record(theme.id, p.bet, ev.total, winText(ev));
-      if (ev.total >= p.bet * 100) GK.unlockAchievement('vsBigWin');
+      if (ev.total >= p.bet * 25) GK.unlockAchievement('vsBigWin');
       // Freispiele (auch neu ausgelöst während der Freispiele)
       let newFree = false;
       if (ev.freeSpins) {
