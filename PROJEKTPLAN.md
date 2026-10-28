@@ -302,6 +302,11 @@ Einsatz verloren geht.
   Preisgeld – zwei Freunde mit zwei Computern bekamen z. B. bei Darts 2,6× und 1,4×. Jetzt spielen
   Computer-Gegner nur mit: Das Preisgeld sind eure Eintritte, verteilt nach eurer Reihenfolge.
 
+### Pflege: Neues Rubbellos, „Poker“ ✅
+- **⚓ Schatzflotte**: Rubbellos für 100 Mio (zwischen Diamanten-Los und Kaiserschatz, ab der Gold-Karte),
+  gleiche Gewinntabelle wie alle Lose.
+- „Texas Hold'em“ heißt im Spiel jetzt einfach **Poker** – darunter können sich mehr Leute etwas vorstellen.
+
 ## Entscheidungen
 
 ### Multiplayer: Wie spielen die Freunde zusammen? → **Variante A**

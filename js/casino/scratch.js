@@ -10,6 +10,7 @@ window.GK = window.GK || {};
     { id: 'pirate', icon: '🏴‍☠️', name: 'Piratenschatz',   price: 10000,  theme: 'red' },
     { id: 'crown',  icon: '👑', name: 'Kronjuwelen',     price: 100000, theme: 'purple' },
     { id: 'diamond', icon: '💎', name: 'Diamanten-Los',  price: 1e7,    theme: 'ice' },
+    { id: 'fleet',   icon: '⚓', name: 'Schatzflotte',   price: 1e8,    theme: 'sea' },
     { id: 'emperor', icon: '🏰', name: 'Kaiserschatz',   price: 1e9,    theme: 'black' },
   ];
 
@@ -162,11 +163,12 @@ window.GK = window.GK || {};
 
   function paintCoating(w, h) {
     const theme = ticket(state().current.ticketId).theme;
-    const colors = {
+    const palette = {
       green: ['#c9d6cf', '#8fa59a'], gold: ['#f7e7a1', '#c9a227'],
       red: ['#e6c1c1', '#a35b5b'], purple: ['#ddd0f2', '#8a6bbd'],
-      ice: ['#d2f3ff', '#5aa9c9'], black: ['#9a9aa6', '#2c2c36'],
-    }[theme];
+      ice: ['#d2f3ff', '#5aa9c9'], sea: ['#c8f5ea', '#2a9d8f'], black: ['#9a9aa6', '#2c2c36'],
+    };
+    const colors = palette[theme] || palette.gold;
     const grad = ctx.createLinearGradient(0, 0, w, h);
     grad.addColorStop(0, colors[0]);
     grad.addColorStop(0.5, '#ffffff');

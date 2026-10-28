@@ -1714,6 +1714,7 @@ button.casino-card:active {
 .theme-red    { background: linear-gradient(135deg, #ffc9c9, #c0392b); }
 .theme-purple { background: linear-gradient(135deg, #eadcff, #7b4fc9); }
 .theme-ice    { background: linear-gradient(135deg, #e6fbff, #5ad8ff 55%, #b48cff); }
+.theme-sea    { background: linear-gradient(135deg, #d9fff3, #34c3b0 55%, #f5c542); }
 .theme-black  { background: linear-gradient(135deg, #5c5c6a, #15151c 60%, #b8860b); color: #ffe58a; }
 
 .vip-card.vip-4 { background: linear-gradient(135deg, #3a3a46, #0d0d12 60%, #6a6a7a); color: #f1f1f8; border-color: #8a8a9a; }

@@ -17,7 +17,7 @@ Schatztruhe voll ist, wartet das Casino:
   am Ende auf dem Flaggschiff landen; vier Geschwindigkeiten von *Gemütlich* bis *Turbo*
 - 🎡 **Roulette** – Rot oder Schwarz? Oder alles auf die 17?
 - 🃏 **Blackjack** – schlag den Dealer, ohne über 21 zu kommen; nach dem Teilen so viele Karten, wie du willst
-- ♠️ **Texas Hold'em** – Turnier gegen Käpt'n Blaubart, Long John und andere Piraten, jeder mit eigener
+- ♠️ **Poker** – Turnier gegen Käpt'n Blaubart, Long John und andere Piraten, jeder mit eigener
   Spielweise, *klassisch*, als schnelles *Turbo*-Turnier oder als *Blitz* mit nur 3, 5 oder 10 Händen
   (danach teilen die besten 4 das Preisgeld nach Chips). Steigst du früher aus, bekommst du anteilig
   ausgezahlt, was deine Chips wert sind
@@ -72,7 +72,7 @@ ab iPadOS 15. Ton gibt es nach dem ersten Antippen (Vorgabe von Safari).
 
 ### Poker mit Freunden
 
-1. Casino → Texas Hold'em → **Mit Freunden spielen**: Namen eintragen, Modus (Klassisch/Turbo/Blitz) wählen,
+1. Casino → Poker → **Mit Freunden spielen**: Namen eintragen, Modus (Klassisch/Turbo/Blitz) wählen,
    **Eintritt festlegen**, **Eröffnen**.
 2. Den **Raum-Code** (oder den Einladungs-Link) an deine Freunde schicken.
 3. Freunde geben den Code bei **Raum beitreten** ein, sehen den Eintritt und bestätigen ihn.
@@ -112,7 +112,7 @@ Den Fahrplan mit allen Phasen findest du in [PROJEKTPLAN.md](PROJEKTPLAN.md).
 - 🍀 Glücksrad · 🪙 Münzfall · 🏝️ Schatzinsel · 💣 Kanonenkugel · ⛵ Schiffsrennen · ✈️ Flugkapitän
 - 🏴‍☠️ 🐙 🌋 Drei Video-Slots mit Freispielen und Bonusrunde
 - 🎲 Lügenwürfel, ⛳ Minigolf, 🎱 Billard, 🔴 Vier gewinnt, ⚓ Seeschlacht, 🎯 Darts und 💥 Kanonenduell gegen Computer und online mit Freunden
-- ♠️ Texas Hold'em als Turnier gegen Computer-Gegner und online mit Freunden
+- ♠️ Poker als Turnier gegen Computer-Gegner und online mit Freunden
 - 🏆 Erfolge, goldene Dublone, Offline-Einnahmen, große Fahrt (Prestige) und VIP-Karten
 - 🔊 Soundeffekte, ✨ Gewinn-Animationen, 📱 iPad-Optimierung
 - 🔥 Klick-Combos, kritische Klicks, Gebäude-Stufen bis Mythos, Synergien, Poker-Modi Turbo und Blitz
