@@ -131,6 +131,7 @@ Den Fahrplan mit allen Phasen findest du in [PROJEKTPLAN.md](PROJEKTPLAN.md).
 - 🔊 Soundeffekte, ✨ Gewinn-Animationen, 📱 iPad-Optimierung
 - 🔥 Klick-Combos, kritische Klicks, Gebäude-Stufen bis Götter, Synergien, Poker-Modi Turbo und Blitz
 - 🎰 Hebel an den Automaten, Beträge mit Abkürzungen (k, M, B …), Statistik für jedes Spiel
+- 🐙 Kraken-Angriffe im Klicker und 👥 Freundes-Rangliste (Rekorde werden beim gemeinsamen Spielen ausgetauscht)
 
 ## Tests
 
@@ -145,6 +146,7 @@ node tests/battleship.test.js
 node tests/darts.test.js
 node tests/cannon.test.js
 node tests/chicken.test.js
+node tests/kraken.test.js
 ```
 Prüft die Poker-Handbewertung, spielt komplette Turniere zwischen Computer-Gegnern durch
 (auch mit Spielern, die mittendrin aufgeben, im Turbo- und im Blitz-Modus) und kontrolliert die

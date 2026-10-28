@@ -45,6 +45,8 @@ window.GK = window.GK || {};
     { id: 'cosmeticAll', icon: '🗝️', name: 'Herr der Schatzkammer', desc: 'Alle Cosmetics der Schatzkammer gesammelt.', check: s => GK.cosmetics && s.cosmetics.owned.length >= GK.cosmetics.total },
     { id: 'golden1',     icon: '✨', name: 'Goldfund',              desc: 'Eine goldene Dublone gefangen.',           check: s => s.goldenClicks >= 1 },
     { id: 'golden25',    icon: '🌟', name: 'Goldgräber',            desc: '25 goldene Dublonen gefangen.',            check: s => s.goldenClicks >= 25 },
+    { id: 'krakenWin',   icon: '🐙', name: 'Krakenjäger',           desc: 'Einen Kraken-Angriff abgewehrt.',          check: s => s.kraken && s.kraken.defeated >= 1 },
+    { id: 'kraken10',    icon: '⚓', name: 'Schrecken der Tiefsee', desc: '10 Kraken-Angriffe abgewehrt.',            check: s => s.kraken && s.kraken.defeated >= 10 },
     // Casino
     { id: 'casino1',     icon: '🎲', name: 'Erste Wette',           desc: 'Eine Runde im Casino gespielt.',           check: s => s.casino.rounds >= 1 },
     { id: 'casino100',   icon: '🎟️', name: 'Stammgast',             desc: '100 Runden im Casino gespielt.',           check: s => s.casino.rounds >= 100 },
@@ -89,6 +91,7 @@ window.GK = window.GK || {};
     { id: 'duelWin',     icon: '💥', name: 'Breitseite!',           desc: 'Ein Kanonenduell gewonnen.' },
     { id: 'duelDirect',  icon: '🎯', name: 'Meisterschütze',        desc: 'Beim Kanonenduell das gegnerische Schiff direkt getroffen.' },
     { id: 'roomPlay',    icon: '🤝', name: 'Spielrunde',            desc: 'Ein Spiel mit Freunden online gespielt.' },
+    { id: 'friends3',    icon: '👥', name: 'Freundeskreis',         desc: 'Drei Freunde in deiner Freundes-Rangliste.', check: s => Object.keys(s.friends || {}).length >= 3 },
     { id: 'pokerRoyal',  icon: '4️⃣', name: 'Vierling!',             desc: 'Beim Poker einen Vierling oder besser aufgedeckt.' },
     { id: 'pokerMpPlay', icon: '👥', name: 'Unter Freunden',        desc: 'Ein Poker-Turnier mit Freunden gespielt.' },
     { id: 'pokerMpWin',  icon: '🏅', name: 'Champion der Runde',    desc: 'Ein Poker-Turnier mit Freunden gewonnen.' },

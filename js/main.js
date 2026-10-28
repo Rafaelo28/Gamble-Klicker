@@ -125,6 +125,7 @@ window.GK = window.GK || {};
     $('set-volume').value = st.volume;
     $('set-volume').disabled = !st.sound;
     $('set-effects').value = st.effects;
+    $('set-kraken').checked = st.kraken !== false;
     $('sound-toggle').textContent = st.sound ? '🔊' : '🔇';
     $('sound-toggle').classList.toggle('off', !st.sound);
     document.body.classList.toggle('reduced-effects', st.effects === 'reduced');
@@ -157,6 +158,10 @@ window.GK = window.GK || {};
     $('set-effects').addEventListener('change', e => {
       GK.state.settings.effects = e.target.value;
       GK.save();
+      renderSettings();
+    });
+    $('set-kraken').addEventListener('change', e => {
+      GK.kraken.setEnabled(e.target.checked);
       renderSettings();
     });
     renderSettings();
@@ -200,6 +205,7 @@ window.GK = window.GK || {};
     $('stat-playtime').textContent = GK.formatDuration(s.playTime);
     if (s.ui.tab === 'stats') {
       GK.casino.renderAllStats($('game-stats-all'));
+      GK.friends.render();
       renderPlayer();
     }
     $('last-saved').textContent = GK.storageAvailable
@@ -231,6 +237,7 @@ window.GK = window.GK || {};
     lastTick = now;
     GK.state.playTime += seconds;
     GK.clicker.tick(seconds);
+    GK.kraken.update(seconds);
 
     if (now - lastCheck >= CHECK_INTERVAL) {
       lastCheck = now;

@@ -381,6 +381,18 @@ Einsatz verloren geht.
   Multiplikator, Geschwindigkeit (🐢 🏃 🐇 ⚡), Guthaben und Gesamteinsatz; Landung auf dem Flugzeugträger.
 - **Größter Verlust** in der Statistik jedes Spiels und im Casino-Überblick.
 
+### Erweiterung: Freundes-Rangliste und Kraken-Angriff ✅
+- **👥 Freundes-Rangliste** (ohne eigenen Server): Wer zusammen in einem Raum ist (Spiele mit Freunden oder
+  Poker), schickt im Warteraum und am Spielende seine Rekorde mit. Jedes Gerät merkt sich die Freunde (höchstens
+  60) und zeigt unter *Statistiken* Ranglisten: Vermögen, insgesamt verdient, Casino-Bilanz, größter Gewinn und
+  Verlust, bester Treffer, Siege mit Freunden, Erfolge – und je Spiel größter Gewinn, Verlust und Treffer.
+  Empfangene Werte werden geprüft (nur Zahlen, bereinigte Namen). Nichts wird ins Internet hochgeladen.
+- **🐙 Kraken-Angriff** im Klicker: etwa alle 12–22 Minuten aktiver Spielzeit (ab 15 Gebäuden). Der Kraken
+  packt bis zu drei Gebäudesorten und taucht immer wieder ab – nur Treffer, solange er oben ist, zählen.
+  30 Treffer in 15 Sekunden vertreiben ihn (Beute: 5 Minuten Einkommen), jedes Drittel rettet ein Gebäude.
+  Sonst nimmt jeder Arm 10 % seiner Sorte mit. Der Angriff wird gespeichert und pausiert außerhalb des Klickers.
+  Abschaltbar in den Einstellungen. Neue Erfolge: Krakenjäger, Schrecken der Tiefsee, Freundeskreis.
+
 ## Entscheidungen
 
 ### Multiplayer: Wie spielen die Freunde zusammen? → **Variante A**
