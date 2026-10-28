@@ -13,11 +13,12 @@ window.GK = window.GK || {};
       won: 0,          // insgesamt ausgezahlt
       rounds: 0,
       biggestWin: 0,
+      biggestLoss: 0,  // größter Verlust in einer Runde
       vip: 0,          // VIP-Karte: 0 Standard, 1 Silber, 2 Gold, 3 Diamant, 4 Schwarze Perle, 5 Kaiserkrone
       history: [],     // letzte Runden: { game, bet, payout, text, time }
       openGame: null,  // zuletzt geöffnetes Spiel
       games: {},       // { spielId: Zustand des Spiels }
-      stats: {},       // Statistik je Spiel: { spielId: { rounds, wagered, won, wins, biggestWin, bestMult, streak, bestStreak, last } }
+      stats: {},       // Statistik je Spiel: { spielId: { rounds, wagered, won, wins, biggestWin, biggestLoss, bestMult, streak, bestStreak, last } }
       statsSince: 0,   // ab wann die Statistik je Spiel zählt (0 = von Anfang an)
     };
   }

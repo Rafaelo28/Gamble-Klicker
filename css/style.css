@@ -3825,7 +3825,8 @@ body.reduced-effects .golden-coin {
 }
 
 .plinko-risk.active,
-.mines-skull.active {
+.mines-skull.active,
+.chicken-diff.active {
   background: var(--gold-grad);
   color: #2a1d00;
   border-color: var(--gold);
@@ -4949,11 +4950,254 @@ body.reduced-effects .golden-coin {
   box-shadow: var(--shadow);
 }
 
+/* Cockpit-Anzeige unter dem Flugfeld: Werte oben, Guthaben – Geschwindigkeit – Einsatz unten */
+.flight-hud {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 8px 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, #172434, #0b131c);
+  border: 1px solid rgba(120, 190, 255, 0.25);
+  box-shadow: var(--shadow);
+}
+
+.fh-stats {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.fh-stat {
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  text-align: center;
+}
+
+.fh-label {
+  display: block;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.fh-stat b,
+.fh-money b {
+  font-size: 1.2rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.fh-mult {
+  color: var(--gold-light);
+}
+
+.fh-mult.low {
+  color: #ff8a70;
+}
+
+.fh-money {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fh-money.right {
+  text-align: right;
+}
+
+.fh-speeds {
+  display: flex;
+  gap: 6px;
+}
+
+.fh-speed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 58px;
+  min-height: 52px;
+  padding: 4px 6px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.fh-icon {
+  font-size: 1.4rem;
+  line-height: 1.1;
+}
+
+.fh-name {
+  font-size: 0.66rem;
+  color: var(--text-muted);
+}
+
+.fh-speed.active {
+  border-color: var(--gold);
+  background: rgba(245, 197, 66, 0.18);
+  box-shadow: 0 0 12px rgba(245, 197, 66, 0.35);
+}
+
+.fh-speed.active .fh-name {
+  color: var(--gold-light);
+}
+
+.fh-speed:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+@media (hover: hover) {
+  .fh-speed:not(:disabled):hover {
+    border-color: rgba(245, 197, 66, 0.6);
+  }
+}
+
 /* Hochkant (iPad): Flugfeld über die volle Breite, Bedienung darunter */
 @media (max-width: 900px) {
   .flight-scene {
     flex-basis: 100%;
     max-width: none;
+  }
+}
+
+/* Schmale Geräte: Geschwindigkeit in eine eigene Zeile */
+@media (max-width: 560px) {
+  .flight-hud {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .fh-speeds {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-content: center;
+  }
+}
+
+/* ---------- Chicken Road ---------- */
+.casino-card[data-game="chicken"] { --accent: rgba(255, 200, 60, 0.45); }
+
+.chicken-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  background: #3b4148;
+  border: 1px solid var(--border-soft);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.chicken-hud {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, #2b2519, #15110a);
+  border: 1px solid rgba(255, 217, 94, 0.25);
+  box-shadow: var(--shadow);
+}
+
+.chicken-hud .fh-stat {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+  padding: 6px 4px;
+}
+
+.chicken-hud .fh-label {
+  font-size: 0.64rem;
+  letter-spacing: 0.03em;
+}
+
+.chicken-hud .fh-stat b {
+  display: block;
+  overflow: hidden;
+  font-size: 1.05rem;
+  text-overflow: ellipsis;
+}
+
+.chicken-hud .fh-stat b.small-value {
+  font-size: 0.92rem;
+}
+
+.cr-progress-wrap {
+  grid-column: 1 / -1;
+}
+
+.cr-progress {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.cr-cell {
+  flex: 1;
+  height: 12px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.cr-cell.done {
+  background: linear-gradient(180deg, #7ddc6a, #2fa866);
+}
+
+.cr-cell.next {
+  background: rgba(245, 197, 66, 0.55);
+  box-shadow: 0 0 8px rgba(245, 197, 66, 0.6);
+}
+
+.cr-cell.hit {
+  background: #e53935;
+}
+
+.cr-safe {
+  font-size: 0.95rem;
+  font-style: normal;
+  opacity: 0.4;
+}
+
+.cr-safe.done {
+  opacity: 1;
+}
+
+.cr-progress-text {
+  margin-top: 4px;
+  font-size: 0.85rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* Auf Touch-Geräten gibt es keine Tastatur-Kürzel */
+@media (hover: none) {
+  .chicken-keys {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .chicken-scene {
+    flex-basis: 100%;
+    max-width: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .chicken-hud {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 

@@ -121,7 +121,7 @@ window.GK = window.GK || {};
   // Statistik eines Spiels (leer, wenn es noch nie gespielt wurde)
   function gameStats(gameId) {
     return casino().stats[gameId] ||
-      { rounds: 0, wagered: 0, won: 0, wins: 0, biggestWin: 0, bestMult: 0, streak: 0, bestStreak: 0, last: 0 };
+      { rounds: 0, wagered: 0, won: 0, wins: 0, biggestWin: 0, biggestLoss: 0, bestMult: 0, streak: 0, bestStreak: 0, last: 0 };
   }
 
   function countRound(gameId, betAmount, payoutAmount) {
@@ -137,6 +137,8 @@ window.GK = window.GK || {};
       st.biggestWin = Math.max(st.biggestWin, payoutAmount - betAmount);
     } else if (payoutAmount < betAmount) {
       st.streak = 0;
+      // Ältere Statistiken kennen den größten Verlust noch nicht
+      st.biggestLoss = Math.max(st.biggestLoss || 0, betAmount - payoutAmount);
     }
     if (betAmount > 0) st.bestMult = Math.max(st.bestMult, payoutAmount / betAmount);
   }
@@ -147,6 +149,7 @@ window.GK = window.GK || {};
     c.rounds++;
     countRound(gameId, betAmount, payoutAmount);
     c.biggestWin = Math.max(c.biggestWin, payoutAmount - betAmount);
+    c.biggestLoss = Math.max(c.biggestLoss || 0, betAmount - payoutAmount);
     c.history.unshift({ game: gameId, bet: betAmount, payout: payoutAmount, text, time: Date.now() });
     c.history.length = Math.min(c.history.length, HISTORY_LENGTH);
     if (GK.state.money < 1 && payoutAmount < betAmount) GK.unlockAchievement('broke');
@@ -171,6 +174,7 @@ window.GK = window.GK || {};
       <dt>Ausgezahlt</dt><dd>${GK.formatMoneyHTML(st.won)}</dd>
       <dt>Bilanz</dt><dd>${signed(st.won - st.wagered)}</dd>
       <dt>Größter Gewinn</dt><dd>${GK.formatMoneyHTML(st.biggestWin)}</dd>
+      ${st.biggestLoss ? `<dt>Größter Verlust</dt><dd>${GK.formatMoneyHTML(st.biggestLoss)}</dd>` : ''}
       ${st.bestMult > 1 ? `<dt>Bester Treffer</dt><dd>×${formatMult(st.bestMult)} Einsatz</dd>` : ''}
       ${st.bestStreak > 1 ? `<dt>Längste Glückssträhne</dt><dd>${GK.formatNumber(st.bestStreak)} in Folge</dd>` : ''}
       <dt>Zuletzt gespielt</dt><dd>vor ${GK.formatDuration((Date.now() - st.last) / 1000)}</dd>
@@ -381,7 +385,8 @@ window.GK = window.GK || {};
       <dt>Insgesamt gesetzt</dt><dd>${GK.formatMoneyHTML(c.wagered)}</dd>
       <dt>Insgesamt ausgezahlt</dt><dd>${GK.formatMoneyHTML(c.won)}</dd>
       <dt>Bilanz</dt><dd class="${net >= 0 ? 'win' : 'loss'}">${net >= 0 ? '+' : '−'}${GK.formatMoneyHTML(Math.abs(net))}</dd>
-      <dt>Größter Gewinn</dt><dd>${GK.formatMoneyHTML(c.biggestWin)}</dd>`;
+      <dt>Größter Gewinn</dt><dd>${GK.formatMoneyHTML(c.biggestWin)}</dd>
+      ${c.biggestLoss ? `<dt>Größter Verlust</dt><dd>${GK.formatMoneyHTML(c.biggestLoss)}</dd>` : ''}`;
 
     const level = VIP_LEVELS[vipLevel()];
     const next = VIP_LEVELS[vipLevel() + 1];

@@ -13,8 +13,11 @@ Schatztruhe voll ist, wartet das Casino:
 - 🏝️ **Schatzinsel** – nach Schätzen graben, Totenköpfen ausweichen, rechtzeitig abkassieren
 - 💣 **Kanonenkugel** – der Multiplikator steigt, bis die Kugel explodiert
 - ⛵ **Schiffsrennen** – fünf Piratenschiffe, neue Quoten vor jedem Rennen
-- ✈️ **Flugkapitän** – das Flugzeug sammelt Beträge und Multiplikatoren, weicht Raketen aus und muss
-  am Ende auf dem Flaggschiff landen; vier Geschwindigkeiten von *Gemütlich* bis *Turbo*
+- ✈️ **Flugkapitän** – jeder Flug hat eine andere Flugbahn: +1, +5, ×2 … geben Auftrieb, ÷2 und Raketen
+  lassen das Flugzeug absacken; am Ende muss es auf dem Flugzeugträger landen. Cockpit-Anzeige mit Höhe,
+  Distanz und Multiplikator, vier Geschwindigkeiten von *Gemütlich* bis *Turbo*
+- 🐔 **Chicken Road** – das Huhn hüpft Spur für Spur über die Straße, nach jeweils fünf Spuren wartet eine
+  sichere Insel; auszahlen nach jedem Schritt, vier Schwierigkeiten von *Leicht* bis *Wahnsinn*
 - 🎡 **Roulette** – Rot oder Schwarz? Oder alles auf die 17?
 - 🃏 **Blackjack** – schlag den Dealer, ohne über 21 zu kommen; nach dem Teilen so viele Karten, wie du willst
 - ♠️ **Poker** – Turnier gegen Käpt'n Blaubart, Long John und andere Piraten, jeder mit eigener
@@ -120,7 +123,7 @@ Den Fahrplan mit allen Phasen findest du in [PROJEKTPLAN.md](PROJEKTPLAN.md).
 **Aktueller Stand:** Alle 8 Phasen fertig:
 - 👆 Klicker mit Gebäuden, Upgrades, Side-Slot, Statistiken und sicherem Speichern
 - 🎰 Slot-Maschine · 🎟️ Rubbellose · 🎡 Roulette · 🃏 Blackjack
-- 🍀 Glücksrad · 🪙 Münzfall · 🏝️ Schatzinsel · 💣 Kanonenkugel · ⛵ Schiffsrennen · ✈️ Flugkapitän
+- 🍀 Glücksrad · 🪙 Münzfall · 🏝️ Schatzinsel · 💣 Kanonenkugel · ⛵ Schiffsrennen · ✈️ Flugkapitän · 🐔 Chicken Road
 - 🏴‍☠️ 🐙 🌋 Drei Video-Slots mit Freispielen und Bonusrunde
 - 🎲 Lügenwürfel, ⛳ Minigolf, 🎱 Billard, 🔴 Vier gewinnt, ⚓ Seeschlacht, 🎯 Darts und 💥 Kanonenduell gegen Computer und online mit Freunden
 - ♠️ Poker als Turnier gegen Computer-Gegner und online mit Freunden
@@ -141,6 +144,7 @@ node tests/connect4.test.js
 node tests/battleship.test.js
 node tests/darts.test.js
 node tests/cannon.test.js
+node tests/chicken.test.js
 ```
 Prüft die Poker-Handbewertung, spielt komplette Turniere zwischen Computer-Gegnern durch
 (auch mit Spielern, die mittendrin aufgeben, im Turbo- und im Blitz-Modus) und kontrolliert die

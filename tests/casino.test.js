@@ -120,7 +120,19 @@ for (let k = 0; k < 500; k++) {
     for (let i = 0; i < n; i++) {
       const f = F.makeFlight(mode);
       const [lo, hi] = F.MODES[mode].events;
-      if (i < 200) assert(f.events.length >= lo && f.events.length <= hi && f.events[f.events.length - 1].counter === f.counter, `Flugkapitän ${mode}: Flug stimmig`);
+      if (i < 200) {
+        assert(f.events.length >= lo && f.events.length <= hi && f.events[f.events.length - 1].counter === f.counter, `Flugkapitän ${mode}: Flug stimmig`);
+        assert(f.events.every((e, k) => k === 0 ? e.at >= 1.5 : e.at > f.events[k - 1].at + 0.7), `Flugkapitän ${mode}: Abstände der Symbole`);
+        assert(f.events.every(e => ['add', 'mult', 'div', 'rocket'].includes(e.type)), `Flugkapitän ${mode}: Symbolarten`);
+      }
+      if (i < 40) {
+        // Flugbahn bleibt im Bild, Symbole zum Vorbeifliegen liegen klar neben der Bahn
+        const path = F.buildPath(f.events);
+        assert(path.alt.every((a, k) => k * 0.02 <= 1 || (a >= F.LOW && a <= F.HIGH)), `Flugkapitän ${mode}: Flugbahn im Korridor`);
+        F.buildDecoys(f.events, path).forEach(d => {
+          for (let dt = -0.3; dt <= 0.3; dt += 0.05) assert(Math.abs(F.altAt(path, d.at + dt) - d.a) >= 85, `Flugkapitän ${mode}: Symbol neben der Bahn`);
+        });
+      }
       if (f.landed) total += f.counter;
     }
     between(total / n, 0.9, 1.04, `Flugkapitän ${mode}: Simulation`);
