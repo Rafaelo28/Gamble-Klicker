@@ -80,6 +80,9 @@ ab iPadOS 15. Ton gibt es nach dem ersten Antippen (Vorgabe von Safari).
 4. Der Gastgeber startet das Spiel. Freie Plätze können Computer-Gegner übernehmen.
 
 Lügenwürfel, Minigolf, Billard, Vier gewinnt, Seeschlacht, Darts und das Kanonenduell funktionieren genauso (Casino → Spiel → *Mit Freunden spielen*).
+Mit Freunden wird das ganze Preisgeld (alle Eintritte) nach Platz verteilt. **Gegen Computer** zahlen die
+Computer-Gegner keinen echten Eintritt: Dort gewinnt nur der Sieger, Platz 2 bekommt ab 3 Spielern den
+halben Einsatz zurück.
 
 Die Browser verbinden sich direkt miteinander (WebRTC über [PeerJS](https://peerjs.com/)).
 Der Gastgeber leitet den Tisch – er sollte das Spiel geöffnet lassen, bis das Turnier vorbei ist.

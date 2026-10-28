@@ -291,6 +291,14 @@ Einsatz verloren geht.
   Aktionen ohne Verbindung werden gemeldet statt still verloren.
 - Spielstand-Export funktioniert auch mit großen Spielständen (Safari-Grenze für Funktionsargumente).
 
+### Pflege: Fairness gegen Computer ✅
+- **Darts** war gegen Computer zu leicht: Mit etwas Geduld (Zielen auf die Mitte oder die Dreifach-20)
+  traf man fast immer und gewann 99 % der Partien. Jetzt streut jeder Pfeil etwas (auch bei perfektem
+  Timing), alle Computer-Gegner zielen auf die Dreifach-20 und halten mit geschickten Spielern mit.
+- **Preise gegen Computer** (alle Spiele mit Freunden außer Poker): Bisher zählten die Eintritte der
+  Computer-Gegner mit, sodass z. B. Platz 2 bei 4 Spielern das 1,4-fache bekam. Jetzt macht nur der Sieger
+  Gewinn, Platz 2 bekommt ab 3 Spielern den halben Einsatz zurück; bei gleich starken Gegnern 95 % Rückfluss.
+
 ## Entscheidungen
 
 ### Multiplayer: Wie spielen die Freunde zusammen? → **Variante A**
