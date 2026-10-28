@@ -615,6 +615,7 @@ window.GK = window.GK || {};
   }
 
   GK.clicker = {
+    BUILDINGS,
     init,
     tick,
     render,

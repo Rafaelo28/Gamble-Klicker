@@ -137,6 +137,9 @@ GK.poker = GK.poker || {};
     GK.unlockAchievement('pokerMpPlay');
     if (place === 1) GK.unlockAchievement('pokerMpWin');
     GK.casino.record('poker', tr.entry, win, `${place}. Platz · Freundesrunde`);
+    if (place === 1) GK.state.friendWins = (GK.state.friendWins || 0) + 1;
+    // Neue Rekorde an den Gastgeber (der Gastgeber schickt seine eigenen mit dem Turnierende)
+    if (s.role === 'client') send(net.hostConn, { type: 'records', records: GK.friends.myRecords() });
     setTimeout(() => GK.fx.celebrate(win, tr.entry, { level: place === 1 ? 'mega' : undefined, subtitle: `${place}. Platz – Freundesrunde` }), 600);
   }
 
@@ -349,6 +352,7 @@ GK.poker = GK.poker || {};
         member.avatar = avatar;
       }
       if (s.phase === 'lobby') member.badge = GK.cosmetics.validBadge(msg.badge); // Namensschild aus der Schatzkammer
+      takeRecords(member, msg.records);
       if (msg.paid) member.ready = true; // hat den Eintritt schon bezahlt (z. B. nach dem Neuladen)
       const old = net.conns.get(playerId);
       conn.playerId = playerId;
@@ -370,10 +374,26 @@ GK.poker = GK.poker || {};
     } else if (msg.type === 'action' && s.phase === 'playing') {
       const seat = s.table.players.findIndex(p => p.id === conn.playerId);
       playerAction(seat, msg.action);
+    } else if (msg.type === 'records') {
+      // Neue Rekorde nach dem Turnier (für die Freundes-Rangliste)
+      const member = s.members.find(m => m.playerId === conn.playerId);
+      if (member && takeRecords(member, msg.records)) {
+        GK.save();
+        if (s.phase !== 'playing') broadcast();
+      }
     } else if (msg.type === 'leave') {
       playerLeft(conn.playerId);
       setTimeout(() => conn.close(), 500);
     }
+  }
+
+  // Rekorde eines Mitspielers merken und mit dem Raum teilen
+  function takeRecords(member, records) {
+    const r = GK.friends.clean(records);
+    if (!r) return false;
+    member.records = r;
+    GK.friends.remember(r);
+    return true;
   }
 
   function cleanAction(action) {
@@ -509,7 +529,9 @@ GK.poker = GK.poker || {};
       phase: s.phase,
       hostId: store().playerId,
       fillBots: s.fillBots,
-      members: s.members.map(m => ({ ...m, online: m.playerId === store().playerId || net.conns.has(m.playerId) })),
+      // Rekorde für die Freundes-Rangliste nur im Warteraum und am Turnierende mitschicken
+      members: GK.friends.membersOut(s.members, s.phase !== 'playing', store().playerId,
+        m => m.playerId === store().playerId || net.conns.has(m.playerId)),
     };
     if (s.table) {
       const seat = s.table.players.findIndex(p => p.id === playerId);
@@ -631,7 +653,7 @@ GK.poker = GK.poker || {};
       net.status = 'online';
       net.lostSince = null;
       const me = store();
-      send(conn, { type: 'hello', v: PROTOCOL, playerId: me.playerId, name: GK.player.name(), avatar: GK.player.avatar(), badge: GK.cosmetics.myBadge(), paid: session().paid });
+      send(conn, { type: 'hello', v: PROTOCOL, playerId: me.playerId, name: GK.player.name(), avatar: GK.player.avatar(), badge: GK.cosmetics.myBadge(), paid: session().paid, records: GK.friends.myRecords() });
       GK.poker.redraw();
     });
     conn.on('data', msg => {
@@ -689,6 +711,7 @@ GK.poker = GK.poker || {};
     s.joined = true;
     s.phase = msg.phase;
     s.members = Array.isArray(msg.members) ? msg.members : [];
+    GK.friends.learnFrom(s.members);
     s.hostId = msg.hostId;
     s.fillBots = !!msg.fillBots;
     s.view = msg.view || null;

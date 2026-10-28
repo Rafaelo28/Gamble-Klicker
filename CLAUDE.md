@@ -49,6 +49,7 @@ Online über GitHub Pages aus `main`: https://rafaelo28.github.io/Gamble-Klicker
 - `node tests/format.test.js` – Beträge mit Abkürzungen eingeben (500k, 2,5M, 1B, 3 Mio.).
 - `node tests/cosmetics.test.js` – Schatzkammer: Katalog, Preise, Glücksrad nach der großen Fahrt.
 - `node tests/chicken.test.js` – Chicken Road: Multiplikatoren, Verkehr (Zusammenstöße, sichere Zonen), Ablauf einer Runde.
+- `node tests/kraken.test.js` – Kraken-Angriff (Treffer, Diebstahl, Pause, Zeitplan) und Freundes-Rangliste (Austausch, Prüfung).
 - `node tests/payouts.test.js` – Preise mit Freunden (auch mit Computer-Gegnern, auch Poker) und gegen Computer.
 - `node tests/casino.test.js` – Quoten und Zufall der Casino-Spiele (Roulette, Rubbellose, Glücksrad,
   Münzfall, Schatzinsel, Kanonenkugel, Schiffsrennen, Flugkapitän, Slot-Maschine, Video-Slots).

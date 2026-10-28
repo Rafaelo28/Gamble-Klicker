@@ -31,7 +31,19 @@ window.GK = window.GK || {};
   // Einstellungen: Ton und Animationen (bei „Bewegung reduzieren“ im System automatisch ruhiger)
   function createDefaultSettings() {
     const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    return { sound: true, volume: 0.7, effects: reduceMotion ? 'reduced' : 'full' };
+    return { sound: true, volume: 0.7, effects: reduceMotion ? 'reduced' : 'full', kraken: true };
+  }
+
+  // Kraken-Angriffe im Klicker
+  function createDefaultKraken() {
+    return {
+      clock: 0,        // Sekunden aktiver Spielzeit im Klicker seit dem letzten Angriff
+      next: 0,         // nach so vielen Sekunden kommt der nächste (0 = noch nicht ausgelost)
+      attack: null,    // laufender Angriff (wird gespeichert, Neuladen hilft nicht)
+      defeated: 0,
+      escaped: 0,
+      stolen: 0,       // insgesamt gestohlene Gebäude
+    };
   }
 
   function createDefaultState() {
@@ -56,6 +68,10 @@ window.GK = window.GK || {};
       casino: createDefaultCasino(),
       cosmetics: createDefaultCosmetics(),
       player: { name: '', avatar: '' }, // spielweiter Name und Bild (leer = noch nicht festgelegt)
+      friendId: '',    // eigene Kennung für die Freundes-Rangliste (wird beim ersten Raum erzeugt)
+      friends: {},     // Rekorde der Freunde vom letzten gemeinsamen Spiel: { kennung: { name, avatar, … } }
+      friendWins: 0,   // erste Plätze mit Freunden (Räume und Poker)
+      kraken: createDefaultKraken(),
       ui: { tab: 'clicker' },
       settings: createDefaultSettings(),
       startedAt: now,
@@ -168,6 +184,8 @@ window.GK = window.GK || {};
     GK.state.settings = Object.assign(createDefaultSettings(), data.settings);
     GK.state.prestige = Object.assign({ points: 0, journeys: 0 }, data.prestige);
     GK.state.cosmetics = Object.assign(createDefaultCosmetics(), data.cosmetics);
+    GK.state.kraken = Object.assign(createDefaultKraken(), data.kraken);
+    if (!data.friends || typeof data.friends !== 'object') GK.state.friends = {};
     GK.state.cosmetics.equipped = Object.assign(createDefaultCosmetics().equipped, data.cosmetics && data.cosmetics.equipped);
     if (!Array.isArray(GK.state.cosmetics.owned)) GK.state.cosmetics.owned = [];
     // Ältere Spielstände: Name und Bild aus den Spielen mit Freunden bzw. dem Poker übernehmen

@@ -450,6 +450,6 @@ window.GK = window.GK || {};
 
   GK.casino = {
     register, registerName, data, bet, payout, refund, record, createBetControl, init, render, refresh, openGame, show,
-    VIP_LEVELS, vipLevel, maxBet, buyVip, gameStats, statsHTML, renderAllStats,
+    VIP_LEVELS, vipLevel, maxBet, buyVip, gameStats, statsHTML, renderAllStats, gameName,
   };
 })();

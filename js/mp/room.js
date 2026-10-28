@@ -171,6 +171,11 @@ window.GK = window.GK || {};
     if (!s.solo) GK.unlockAchievement('roomPlay');
     if (d.onSettle) d.onSettle(place, s);
     GK.casino.record(s.game, s.entry, win, `${place}. Platz · ${s.solo ? 'gegen Computer' : 'mit Freunden'}`);
+    if (!s.solo) {
+      if (place === 1) GK.state.friendWins = (GK.state.friendWins || 0) + 1;
+      // Neue Rekorde an den Gastgeber (der Gastgeber schickt seine eigenen mit dem Spielende)
+      if (s.role === 'client') send(net.hostConn, { type: 'records', records: GK.friends.myRecords() });
+    }
     setTimeout(() => GK.fx.celebrate(win, s.entry, { level: place === 1 ? 'mega' : undefined, subtitle: `${place}. Platz – ${d.name}` }), 600);
   }
 
@@ -376,6 +381,7 @@ window.GK = window.GK || {};
         s.members.push(m);
       }
       if (s.phase === 'lobby') m.badge = GK.cosmetics.validBadge(msg.badge); // Namensschild aus der Schatzkammer
+      takeRecords(m, msg.records);
       if (msg.paid) m.ready = true;
       const old = net.conns.get(playerId);
       conn.playerId = playerId;
@@ -391,10 +397,26 @@ window.GK = window.GK || {};
       afterHostChange();
     } else if (msg.type === 'action' && s.phase === 'playing') {
       playerAction(seatOf(s.state, conn.playerId), msg.action);
+    } else if (msg.type === 'records') {
+      // Neue Rekorde nach dem Spiel (für die Freundes-Rangliste)
+      const m = member(conn.playerId);
+      if (m && takeRecords(m, msg.records)) {
+        GK.save();
+        if (s.phase !== 'playing') broadcast();
+      }
     } else if (msg.type === 'leave') {
       playerLeft(conn.playerId);
       setTimeout(() => conn.close(), 500);
     }
+  }
+
+  // Rekorde eines Mitspielers merken und mit dem Raum teilen
+  function takeRecords(m, records) {
+    const r = GK.friends.clean(records);
+    if (!r) return false;
+    m.records = r;
+    GK.friends.remember(r);
+    return true;
   }
 
   function seatOf(state, playerId) {
@@ -542,7 +564,9 @@ window.GK = window.GK || {};
     const msg = {
       type: 'state', v: PROTOCOL, game: s.game, code: s.code, entry: s.entry, settings: s.settings, phase: s.phase,
       hostId: store().playerId, fillBots: s.fillBots,
-      members: s.members.map(m => ({ ...m, online: m.playerId === store().playerId || net.conns.has(m.playerId) })),
+      // Rekorde für die Freundes-Rangliste nur im Warteraum und am Spielende mitschicken
+      members: GK.friends.membersOut(s.members, s.phase !== 'playing', store().playerId,
+        m => m.playerId === store().playerId || net.conns.has(m.playerId)),
     };
     if (s.state) {
       const seat = seatOf(s.state, playerId);
@@ -655,7 +679,7 @@ window.GK = window.GK || {};
       net.status = 'online';
       net.lostSince = null;
       const me = store();
-      send(conn, { type: 'hello', v: PROTOCOL, game: s.game, playerId: me.playerId, name: GK.player.name(), avatar: GK.player.avatar(), badge: GK.cosmetics.myBadge(), paid: session().paid });
+      send(conn, { type: 'hello', v: PROTOCOL, game: s.game, playerId: me.playerId, name: GK.player.name(), avatar: GK.player.avatar(), badge: GK.cosmetics.myBadge(), paid: session().paid, records: GK.friends.myRecords() });
       redraw();
     });
     conn.on('data', msg => {
@@ -709,6 +733,7 @@ window.GK = window.GK || {};
     s.joined = true;
     s.phase = msg.phase;
     s.members = Array.isArray(msg.members) ? msg.members : [];
+    GK.friends.learnFrom(s.members);
     s.hostId = msg.hostId;
     s.fillBots = !!msg.fillBots;
     s.view = msg.view || null;
