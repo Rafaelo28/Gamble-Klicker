@@ -68,6 +68,7 @@ window.GK = window.GK || {};
   function refreshAll() {
     const currentTab = document.querySelector('.tab.active').dataset.tab;
     GK.clicker.refresh();
+    GK.cosmetics.refresh();
     GK.casino.refresh();
     GK.sideSlot.refresh();
     GK.poker.mp.resume();
@@ -196,7 +197,10 @@ window.GK = window.GK || {};
     GK.sideSlot.render();
     GK.casino.render();
     GK.progress.update(GK.state.ui.tab === 'progress');
-    if (GK.state.ui.tab === 'progress') GK.achievements.render();
+    if (GK.state.ui.tab === 'progress') {
+      GK.achievements.render();
+      GK.cosmetics.render();
+    }
     renderStats();
   }
 
@@ -251,6 +255,7 @@ window.GK = window.GK || {};
     if (window.ResizeObserver) new ResizeObserver(updateHeaderHeight).observe(document.querySelector('.app-header'));
     else window.addEventListener('resize', updateHeaderHeight);
     GK.clicker.init();
+    GK.cosmetics.init();
     GK.progress.init();
     GK.progress.applyOfflineEarnings();
     GK.casino.init();

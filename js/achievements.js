@@ -40,6 +40,9 @@ window.GK = window.GK || {};
     { id: 'mythicUp',    icon: '🦄', name: 'Mythos',                desc: 'Ein Mythos-Upgrade für ein Gebäude gekauft.',  check: () => GK.clicker && GK.clicker.hasUpgradeOfRarity('mythic') },
     { id: 'cosmicUp',    icon: '🪐', name: 'Sternenstaub',          desc: 'Ein Sternen-Upgrade für ein Gebäude gekauft.', check: () => GK.clicker && GK.clicker.hasUpgradeOfRarity('cosmic') },
     { id: 'divineUp',    icon: '⚜️', name: 'Göttlich',              desc: 'Ein Götter-Upgrade für ein Gebäude gekauft.',  check: () => GK.clicker && GK.clicker.hasUpgradeOfRarity('divine') },
+    { id: 'cosmetic1',   icon: '🎨', name: 'Schick gemacht',        desc: 'Dein erstes Cosmetic aus der Schatzkammer.', check: s => s.cosmetics.owned.length >= 1 },
+    { id: 'cosmeticSet', icon: '🧥', name: 'Stilsicher',            desc: 'Eine Kategorie der Schatzkammer komplett gesammelt.', check: () => GK.cosmetics && GK.cosmetics.completeCategories() >= 1 },
+    { id: 'cosmeticAll', icon: '🗝️', name: 'Herr der Schatzkammer', desc: 'Alle Cosmetics der Schatzkammer gesammelt.', check: s => GK.cosmetics && s.cosmetics.owned.length >= GK.cosmetics.total },
     { id: 'golden1',     icon: '✨', name: 'Goldfund',              desc: 'Eine goldene Dublone gefangen.',           check: s => s.goldenClicks >= 1 },
     { id: 'golden25',    icon: '🌟', name: 'Goldgräber',            desc: '25 goldene Dublonen gefangen.',            check: s => s.goldenClicks >= 25 },
     // Casino

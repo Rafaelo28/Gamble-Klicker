@@ -35,6 +35,10 @@ Schnelle Klicks bauen eine **Combo** auf, mit etwas Glück landest du einen **kr
 Synergien zwischen den Gebäuden und Upgrades für alle Gebäude zusammen.
 Direkt unter der Klick-Münze wartet der **Side-Slot**: klicken und nebenbei zocken.
 Wer lieber nur klickt, kann das **passive Einkommen** der Gebäude unter der Gebäude-Liste ausschalten.
+
+In der **🎨 Schatzkammer** (Tab *Fortschritt*) gibt es Cosmetics: 5 Münz-Designs, 5 Klick-Effekte und 5 Farbthemen,
+von *selten* bis *legendär*. Sie ändern nur das Aussehen. Nach jeder großen Fahrt dreht man am Glücksrad der
+Schatzkammer, oder man kauft sie – sehr teuer: mit Dublonen **und** einem Teil der Gebäude.
 Alle Automaten startet man mit einem echten **Hebel** – herunterziehen oder antippen.
 Beträge lassen sich abgekürzt eingeben: `500k`, `2,5M`, `1B` (Milliarde), `3 Mio.` …
 Jedes Casino-Spiel hat seine eigene **📊 Statistik** (im Spiel und unter *Statistiken*).

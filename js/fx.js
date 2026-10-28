@@ -7,6 +7,10 @@ window.GK = window.GK || {};
   const MAX_PARTICLES = 450;
   const GRAVITY = 1400; // Pixel pro Sekunde²
   const CONFETTI_COLORS = ['#f5c542', '#ff5e7e', '#4fd1c5', '#7c83ff', '#6fdc8c', '#ffffff', '#ff9f43'];
+  const FIREWORK_COLORS = ['#ff5e7e', '#4fd1c5', '#ffd95e', '#7c83ff', '#6fdc8c', '#ff9f43', '#e48bff'];
+  // Münzfarben: Glanz, Mitte, Schatten, Rand (Gold; Cosmetics können andere Farben mitgeben)
+  const GOLD = ['#fff6c2', '#f5c542', '#a8740a', '#8a6508'];
+  const EMOJI_FONT = '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
 
   let canvas;
   let g;
@@ -16,6 +20,8 @@ window.GK = window.GK || {};
   let dpr = 1;
   let rainUntil = 0;
   let rainDensity = 0;
+  let looping = false;  // während der Schleife entstehen neue Partikel erst danach (z. B. Feuerwerk)
+  let queued = [];
 
   function reduced() {
     return GK.state.settings.effects === 'reduced';
@@ -40,6 +46,10 @@ window.GK = window.GK || {};
   // ---------- Partikel ----------
 
   function add(p) {
+    if (looping) {
+      queued.push(p);
+      return;
+    }
     if (particles.length >= MAX_PARTICLES) particles.shift();
     particles.push(p);
     if (!running) {
@@ -49,8 +59,8 @@ window.GK = window.GK || {};
     }
   }
 
-  function coinParticle(x, y, vx, vy, size) {
-    return { kind: 'coin', x, y, vx, vy, size, spin: Math.random() * Math.PI * 2, spinSpeed: 6 + Math.random() * 10, life: 0, maxLife: 2.6 };
+  function coinParticle(x, y, vx, vy, size, colors) {
+    return { kind: 'coin', x, y, vx, vy, size, colors: colors || GOLD, spin: Math.random() * Math.PI * 2, spinSpeed: 6 + Math.random() * 10, life: 0, maxLife: 2.6 };
   }
 
   function confettiParticle(x, y, vx, vy) {
@@ -67,6 +77,40 @@ window.GK = window.GK || {};
     return { kind: 'sparkle', x, y, vx, vy, size: 3 + Math.random() * 5, life: 0, maxLife: 0.6 + Math.random() * 0.5 };
   }
 
+  // Blasen steigen schaukelnd auf
+  function bubbleParticle(x, y, vx) {
+    return { kind: 'bubble', x, y, vx: vx * 0.25, vy: -70 - Math.random() * 140, size: 4 + Math.random() * 9, sway: Math.random() * 6.3, life: 0, maxLife: 1.1 + Math.random() * 0.9 };
+  }
+
+  // Ein Zeichen wie 🍀, das sich dreht und herunterfällt
+  function emojiParticle(x, y, vx, vy, char) {
+    return { kind: 'emoji', x, y, vx, vy, char, size: 18 + Math.random() * 14, rot: Math.random() * 6.3, rotSpeed: (Math.random() - 0.5) * 9, life: 0, maxLife: 1.7 };
+  }
+
+  // Flämmchen: steigt auf, wird kleiner und von Gelb über Orange zu Rot
+  function flameParticle(x, y, vx, vy) {
+    return { kind: 'flame', x: x + (Math.random() - 0.5) * 24, y, vx: vx * 0.35, vy: vy * 0.4 - 60, size: 10 + Math.random() * 14, life: 0, maxLife: 0.45 + Math.random() * 0.45 };
+  }
+
+  // Rakete: fliegt hoch und zerplatzt in bunte Funken
+  function rocketParticle(x, y) {
+    const color = FIREWORK_COLORS[Math.floor(Math.random() * FIREWORK_COLORS.length)];
+    return { kind: 'rocket', x, y, vx: (Math.random() - 0.5) * 160, vy: -640 - Math.random() * 220, color, life: 0, maxLife: 0.32 + Math.random() * 0.18 };
+  }
+
+  function sparkParticle(x, y, vx, vy, color, maxLife) {
+    return { kind: 'spark', x, y, vx, vy, color, size: 1.8 + Math.random() * 1.8, life: 0, maxLife: maxLife || 0.8 + Math.random() * 0.6 };
+  }
+
+  function explode(p) {
+    const n = 28;
+    for (let i = 0; i < n; i++) {
+      const angle = (i / n) * Math.PI * 2 + Math.random() * 0.1;
+      const v = 200 + Math.random() * 140;
+      add(sparkParticle(p.x, p.y, Math.cos(angle) * v, Math.sin(angle) * v, i % 4 === 0 ? '#ffffff' : p.color));
+    }
+  }
+
   // Münzen (oder Funken/Konfetti) fliegen von einem Punkt aus in alle Richtungen
   function burst(x, y, opts = {}) {
     if (reduced()) return;
@@ -80,8 +124,12 @@ window.GK = window.GK || {};
       const v = speed * (0.4 + Math.random() * 0.8);
       const vx = Math.cos(angle) * v;
       const vy = Math.sin(angle) * v;
-      if (kind === 'coin') add(coinParticle(x, y, vx, vy, opts.size || 10 + Math.random() * 8));
+      if (kind === 'coin') add(coinParticle(x, y, vx, vy, opts.size || 10 + Math.random() * 8, opts.colors));
       else if (kind === 'confetti') add(confettiParticle(x, y, vx, vy));
+      else if (kind === 'bubble') add(bubbleParticle(x, y, vx));
+      else if (kind === 'emoji') add(emojiParticle(x, y, vx, vy, opts.char || '✨'));
+      else if (kind === 'flame') add(flameParticle(x, y, vx, vy));
+      else if (kind === 'firework') add(rocketParticle(x, y));
       else add(sparkleParticle(x, y, vx * 0.5, vy * 0.5));
     }
   }
@@ -124,9 +172,14 @@ window.GK = window.GK || {};
 
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     g.clearRect(0, 0, w, h);
+    looping = true;
     particles = particles.filter(p => {
       p.life += dt;
-      if (p.life > p.maxLife || p.y > h + 60) return false;
+      if (p.kind === 'rocket' && p.life > p.maxLife) {
+        explode(p);
+        return false;
+      }
+      if (p.life > p.maxLife || p.y > h + 60 || p.y < -80) return false;
       if (p.kind === 'confetti') {
         p.vx *= 1 - 1.5 * dt;
         p.vy = Math.min(p.vy + GRAVITY * 0.35 * dt, 260);
@@ -141,6 +194,36 @@ window.GK = window.GK || {};
         p.y += p.vy * dt;
         p.spin += p.spinSpeed * dt;
         drawCoin(p);
+      } else if (p.kind === 'bubble') {
+        p.sway += dt * 4;
+        p.vy *= 1 - 0.4 * dt;
+        p.x += (p.vx + Math.sin(p.sway) * 34) * dt;
+        p.y += p.vy * dt;
+        drawBubble(p);
+      } else if (p.kind === 'emoji') {
+        p.vx *= 1 - 1.2 * dt;
+        p.vy += GRAVITY * 0.45 * dt;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.rot += p.rotSpeed * dt;
+        drawEmoji(p);
+      } else if (p.kind === 'flame') {
+        p.vy -= 320 * dt;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        drawFlame(p);
+      } else if (p.kind === 'rocket') {
+        p.vy += GRAVITY * 0.3 * dt;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        add(sparkParticle(p.x, p.y, (Math.random() - 0.5) * 40, 40 + Math.random() * 40, '#ffd27a', 0.25));
+        drawSpark({ x: p.x, y: p.y, size: 3, color: '#fff3c2', life: 0, maxLife: 1 });
+      } else if (p.kind === 'spark') {
+        p.vx *= 1 - 1.4 * dt;
+        p.vy = p.vy * (1 - 1.4 * dt) + GRAVITY * 0.3 * dt;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        drawSpark(p);
       } else {
         p.x += p.vx * dt;
         p.y += p.vy * dt;
@@ -148,6 +231,11 @@ window.GK = window.GK || {};
       }
       return true;
     });
+    looping = false;
+    if (queued.length) {
+      particles = particles.concat(queued).slice(-MAX_PARTICLES);
+      queued = [];
+    }
 
     if (particles.length || now < rainUntil) {
       requestAnimationFrame(loop);
@@ -168,15 +256,15 @@ window.GK = window.GK || {};
     g.translate(p.x, p.y);
     g.scale(Math.max(squash, 0.12), 1);
     const grad = g.createRadialGradient(-p.size * 0.3, -p.size * 0.3, 1, 0, 0, p.size);
-    grad.addColorStop(0, '#fff6c2');
-    grad.addColorStop(0.45, '#f5c542');
-    grad.addColorStop(1, '#a8740a');
+    grad.addColorStop(0, p.colors[0]);
+    grad.addColorStop(0.45, p.colors[1]);
+    grad.addColorStop(1, p.colors[2]);
     g.fillStyle = grad;
     g.beginPath();
     g.arc(0, 0, p.size, 0, Math.PI * 2);
     g.fill();
     g.lineWidth = p.size * 0.15;
-    g.strokeStyle = '#8a6508';
+    g.strokeStyle = p.colors[3];
     g.stroke();
     g.restore();
   }
@@ -206,6 +294,73 @@ window.GK = window.GK || {};
       g.lineTo(Math.cos(ang) * r, Math.sin(ang) * r);
     }
     g.closePath();
+    g.fill();
+    g.restore();
+  }
+
+  function drawBubble(p) {
+    const a = Math.min(1, (p.maxLife - p.life) / 0.4) * Math.min(1, p.life / 0.1);
+    g.save();
+    g.globalAlpha = Math.max(0, a);
+    g.translate(p.x, p.y);
+    g.fillStyle = 'rgba(150, 225, 255, 0.15)';
+    g.strokeStyle = 'rgba(210, 245, 255, 0.9)';
+    g.lineWidth = 1.5;
+    g.beginPath();
+    g.arc(0, 0, p.size, 0, Math.PI * 2);
+    g.fill();
+    g.stroke();
+    g.fillStyle = 'rgba(255, 255, 255, 0.85)';
+    g.beginPath();
+    g.arc(-p.size * 0.35, -p.size * 0.35, p.size * 0.22, 0, Math.PI * 2);
+    g.fill();
+    g.restore();
+  }
+
+  function drawEmoji(p) {
+    g.save();
+    g.globalAlpha = fade(p);
+    g.translate(p.x, p.y);
+    g.rotate(p.rot);
+    g.font = `${p.size}px ${EMOJI_FONT}`;
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText(p.char, 0, 0);
+    g.restore();
+  }
+
+  function drawFlame(p) {
+    const t = p.life / p.maxLife;
+    const s = p.size * (1 - t * 0.7);
+    const inner = t < 0.35 ? '255, 245, 190' : t < 0.65 ? '255, 170, 60' : '235, 80, 30';
+    const outer = t < 0.5 ? '255, 120, 20' : '190, 40, 20';
+    g.save();
+    g.globalCompositeOperation = 'lighter';
+    g.globalAlpha = Math.max(0, 1 - t);
+    const grad = g.createRadialGradient(p.x, p.y, 0, p.x, p.y, s);
+    grad.addColorStop(0, `rgba(${inner}, 0.95)`);
+    grad.addColorStop(0.5, `rgba(${outer}, 0.55)`);
+    grad.addColorStop(1, `rgba(${outer}, 0)`);
+    g.fillStyle = grad;
+    g.beginPath();
+    g.arc(p.x, p.y, s, 0, Math.PI * 2);
+    g.fill();
+    g.restore();
+  }
+
+  function drawSpark(p) {
+    const a = Math.max(0, 1 - p.life / p.maxLife);
+    g.save();
+    g.globalCompositeOperation = 'lighter';
+    g.fillStyle = p.color;
+    // Schein drumherum (ohne shadowBlur – das wäre auf dem iPad zu langsam)
+    g.globalAlpha = a * 0.25;
+    g.beginPath();
+    g.arc(p.x, p.y, p.size * 2.6, 0, Math.PI * 2);
+    g.fill();
+    g.globalAlpha = a;
+    g.beginPath();
+    g.arc(p.x, p.y, p.size, 0, Math.PI * 2);
     g.fill();
     g.restore();
   }
