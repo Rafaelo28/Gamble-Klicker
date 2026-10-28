@@ -60,6 +60,7 @@ window.GK = window.GK || {};
     { id: 'plinkoEdge',  icon: '🪙', name: 'Randlage',              desc: 'Beim Münzfall ein Fach mit mindestens ×24 getroffen.' },
     { id: 'minesAll',    icon: '🏝️', name: 'Schatzkönig',           desc: 'Auf der Schatzinsel alle Schätze gefunden.' },
     { id: 'crash10',     icon: '💣', name: 'Kanonier',              desc: 'Bei der Kanonenkugel ab ×10 abkassiert.' },
+    { id: 'chickenGoal', icon: '🐔', name: 'Über die Straße',       desc: 'Bei Chicken Road das Huhn über alle 20 Spuren ins Ziel gebracht.' },
     { id: 'raceOutsider', icon: '⛵', name: 'Außenseiter-Glück',    desc: 'Beim Schiffsrennen auf einen Außenseiter (ab ×6) gesetzt und gewonnen.' },
     { id: 'vsFree',      icon: '🎉', name: 'Freispiel-Fieber',      desc: 'An einem Video-Slot Freispiele ausgelöst.' },
     { id: 'vsBonus',     icon: '🧰', name: 'Kistenknacker',         desc: 'An einem Video-Slot die Bonusrunde erreicht.' },

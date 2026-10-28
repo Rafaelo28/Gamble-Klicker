@@ -366,6 +366,21 @@ Einsatz verloren geht.
   (auch gegen Computer) und das Namensschild. Ändert man ihn in einer Lobby, ändert er sich überall.
   Ältere Spielstände übernehmen den Namen aus den Spielen mit Freunden bzw. dem Poker.
 
+### Erweiterung: Chicken Road, neuer Flugkapitän, größter Verlust ✅
+- **🐔 Chicken Road** (schnelles Spiel, Idee eines Freundes): Straße von oben, das Huhn hüpft Spur für Spur.
+  20 Spuren in 4 Abschnitten, dazwischen sichere Inseln mit Schutzwand; danach fährt der Verkehr schneller.
+  Vier Schwierigkeiten (Leicht, Normal, Schwer, Wahnsinn) mit unterschiedlich schnellem und dichtem Verkehr –
+  der Multiplikator kommt aus einer zentralen Funktion (`multiplierAt`) und steigt bei höherer Schwierigkeit
+  schneller (Ziel ×10 bis ×200.000). Auto, Taxi, Sportwagen, Lieferwagen und Lkw fahren wirklich, halten Abstand
+  und bremsen vor der Schranke; die Kollision wird geometrisch geprüft. Ob ein Schritt gelingt, wird beim
+  Tippen ausgelost und sofort gespeichert, dann wird der Verkehr passend gelenkt. Bedienung per Knopf, Tippen
+  auf die Straße oder Tastatur (Leertaste/→, Enter, N). Neuer Erfolg „Über die Straße“.
+- **✈️ Flugkapitän neu** (nach Aviamasters): Start mit ×1, +1/+2/+5/+10 und ×2–×5 geben Auftrieb, ÷2 und Raketen
+  halbieren und lassen das Flugzeug absacken. Jede Flugbahn ist eine kleine Physik-Simulation mit Wind –
+  keine feste Route. Symbole abseits der Bahn fliegen vorbei. Cockpit-Anzeige unten mit Höhe, Distanz,
+  Multiplikator, Geschwindigkeit (🐢 🏃 🐇 ⚡), Guthaben und Gesamteinsatz; Landung auf dem Flugzeugträger.
+- **Größter Verlust** in der Statistik jedes Spiels und im Casino-Überblick.
+
 ## Entscheidungen
 
 ### Multiplayer: Wie spielen die Freunde zusammen? → **Variante A**
