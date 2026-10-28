@@ -79,9 +79,10 @@ GK.poker = GK.poker || {};
   }
 
   // Preis in Dublonen für einen Platz. Bei 6 Spielern: 3× / 1,8× / 1,2× Eintritt.
-  function prize(place, entry, players) {
+  // paying: wie viele echten Eintritt bezahlt haben (mit Freunden zahlen Computer-Gegner nichts)
+  function prize(place, entry, players, paying = players) {
     const shares = prizeShares(players);
-    return place >= 1 && place <= shares.length ? Math.floor(entry * players * shares[place - 1]) : 0;
+    return place >= 1 && place <= shares.length ? Math.floor(entry * paying * shares[place - 1]) : 0;
   }
 
   function tier(id) {
@@ -113,8 +114,8 @@ GK.poker = GK.poker || {};
 
   // Die Besten teilen das ganze Preisgeld im Verhältnis ihrer Chips.
   // stacks: Chips je Platz am Tisch (0 = ausgeschieden). Wer an der Grenze gleich viele Chips hat, zählt mit.
-  function blitzPayouts(stacks, entry, players) {
-    const pool = entry * players;
+  function blitzPayouts(stacks, entry, players, paying = players) {
+    const pool = entry * paying;
     const sorted = stacks.filter(c => c > 0).sort((a, b) => b - a);
     if (!sorted.length) return stacks.map(() => 0);
     const threshold = sorted[Math.min(blitzPaidPlaces(players), sorted.length) - 1];
@@ -139,11 +140,11 @@ GK.poker = GK.poker || {};
   }
 
   // Auszahlung in Dublonen für einen Platz am Tisch, wenn das Turnier für ihn vorbei ist
-  function payout(t, seat, entry) {
+  function payout(t, seat, entry, paying = t.players.length) {
     const p = t.players[seat];
-    if (!isBlitz(t)) return prize(p.place, entry, t.players.length);
+    if (!isBlitz(t)) return prize(p.place, entry, t.players.length, paying);
     if (p.out || t.phase !== 'finished') return 0;
-    return blitzPayouts(t.players.map(q => (q.out ? 0 : q.chips)), entry, t.players.length)[seat];
+    return blitzPayouts(t.players.map(q => (q.out ? 0 : q.chips)), entry, t.players.length, paying)[seat];
   }
 
   // ---------- Anteilige Auszahlung beim Aussteigen (ICM) ----------

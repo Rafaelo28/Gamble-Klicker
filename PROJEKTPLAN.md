@@ -307,6 +307,11 @@ Einsatz verloren geht.
   gleiche Gewinntabelle wie alle Lose.
 - „Texas Hold'em“ heißt im Spiel jetzt einfach **Poker** – darunter können sich mehr Leute etwas vorstellen.
 
+### Pflege: Computer-Gegner gewinnen mit ✅
+- **Mit Freunden und Computer-Gegnern** (alle Spiele, auch Poker): Das Preisgeld bleiben eure Eintritte, es
+  wird aber nach dem Platz unter allen am Tisch verteilt. Wer schlechter ist als ein Computer, rutscht nach
+  hinten; den Preis des Computers behält das Casino. Zwei Freunde mit zwei Computern bei Darts: 🥇 1.300 🥈 700.
+
 ## Entscheidungen
 
 ### Multiplayer: Wie spielen die Freunde zusammen? → **Variante A**
