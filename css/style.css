@@ -292,6 +292,7 @@ textarea {
 }
 
 .tab {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1188,6 +1189,136 @@ main {
 @keyframes powered-icon {
   30% { transform: scale(1.35) rotate(-10deg); }
   60% { transform: scale(0.95) rotate(6deg); }
+}
+
+/* ---------- Tägliche Aufgaben (Fortschritt) ---------- */
+.tab-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 11px;
+  background: #e53935;
+  box-shadow: 0 0 0 2px var(--bg);
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #fff;
+  animation: badge-pop 0.4s ease;
+}
+
+.tab-badge[hidden] {
+  display: none;
+}
+
+@keyframes badge-pop {
+  from { transform: scale(0.3); }
+}
+
+.daily-panel {
+  margin-bottom: 16px;
+}
+
+.daily-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.daily-head h2 {
+  margin: 0;
+}
+
+.daily-tasks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.daily-task {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 8px 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  transition: box-shadow 0.3s, border-color 0.3s;
+}
+
+.daily-task.done:not(.claimed) {
+  border-color: var(--gold);
+  box-shadow: 0 0 14px rgba(245, 197, 66, 0.35);
+}
+
+.daily-task.claimed {
+  opacity: 0.65;
+}
+
+.daily-icon {
+  font-size: 2rem;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.daily-text {
+  font-weight: 700;
+}
+
+.daily-bar {
+  height: 10px;
+  margin: 6px 0 4px;
+  overflow: hidden;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.daily-bar span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #2fa866, #7ddc6a);
+  transition: width 0.4s;
+}
+
+.daily-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 8px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.daily-claim {
+  grid-column: 1 / -1;
+  min-height: 44px;
+}
+
+.daily-bonus {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px;
+  border: 1px dashed rgba(245, 197, 66, 0.5);
+  border-radius: 14px;
+  background: rgba(245, 197, 66, 0.08);
+}
+
+.daily-bonus-text .small {
+  display: block;
+}
+
+.daily-bonus-btn {
+  min-height: 44px;
 }
 
 /* ---------- Kraken-Angriff (über der Klick-Münze) ---------- */

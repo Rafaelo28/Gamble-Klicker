@@ -290,6 +290,8 @@ window.GK = window.GK || {};
     const amount = getClickPower() * comboMult() * (crit ? critMult() : 1);
     GK.state.totalClicks++;
     GK.earn(amount, 'click');
+    GK.daily.track('click', 1);
+    GK.daily.track('combo', combo.count);
 
     const coin = document.getElementById('big-coin');
     const pos = event && event.clientX ? { x: event.clientX, y: event.clientY } : GK.fx.center(coin);
@@ -323,6 +325,7 @@ window.GK = window.GK || {};
     const cost = buildingCost(building, before, buyAmount);
     if (!GK.spend(cost)) return;
     GK.state.buildings[building.id] = before + buyAmount;
+    GK.daily.track('building', buyAmount);
     GK.save();
     GK.sound.play('buy');
     const el = buildingEls[building.id].root;
@@ -347,6 +350,7 @@ window.GK = window.GK || {};
   function buyUpgrade(upgrade, el) {
     if (has(upgrade.id) || !GK.spend(upgrade.cost)) return;
     GK.state.upgrades.push(upgrade.id);
+    GK.daily.track('upgrade', 1);
     GK.save();
     const rare = ['diamond', 'legend', 'mythic', 'cosmic', 'divine', 'empire'].includes(upgrade.rarity);
     GK.sound.play(rare ? 'powerup' : 'upgrade');
@@ -626,6 +630,7 @@ window.GK = window.GK || {};
     getClickPower,
     totalBuildings,
     ownsAllBuildings: () => BUILDINGS.every(b => owned(b.id) > 0),
+    remainingUpgrades: () => UPGRADES.filter(u => !has(u.id)).length,
     hasUpgradeOfRarity: rarity => GK.state.upgrades.some(id => upgradeById[id] && upgradeById[id].rarity === rarity),
   };
 })();

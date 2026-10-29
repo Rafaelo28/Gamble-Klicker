@@ -153,6 +153,7 @@ window.GK = window.GK || {};
     c.history.unshift({ game: gameId, bet: betAmount, payout: payoutAmount, text, time: Date.now() });
     c.history.length = Math.min(c.history.length, HISTORY_LENGTH);
     if (GK.state.money < 1 && payoutAmount < betAmount) GK.unlockAchievement('broke');
+    if (GK.daily) GK.daily.track('round', { game: gameId, bet: betAmount, payout: payoutAmount });
     GK.save();
     renderLobbyInfo();
     refreshGameStats(gameId);
@@ -451,5 +452,6 @@ window.GK = window.GK || {};
   GK.casino = {
     register, registerName, data, bet, payout, refund, record, createBetControl, init, render, refresh, openGame, show,
     VIP_LEVELS, vipLevel, maxBet, buyVip, gameStats, statsHTML, renderAllStats, gameName,
+    list: () => games.map(g => ({ id: g.id, name: g.name, emoji: g.emoji, category: g.category || 'quick' })),
   };
 })();

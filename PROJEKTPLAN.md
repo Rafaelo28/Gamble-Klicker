@@ -422,6 +422,16 @@ Einsatz verloren geht.
   2–4 Spieler, gegen Computer oder online; fremde Karten werden nie verschickt. Erfolge „Mau-Mau!“ und
   „Siebener-Kette“.
 
+### Erweiterung: Tägliche Aufgaben ✅
+- **📅 Jeden Tag drei Aufgaben** unter *Fortschritt*: eine im Klicker (Klicks, Combo, Gebäude, Upgrades, goldene
+  Dublonen, Verdienen), eine im Casino (Runden, verschiedene Spiele, ein bestimmtes Spiel, Gewinne, großer Treffer)
+  und eine weitere (auch: eine Partie mit Freunden oder gegen Computer). Ziele passen sich dem Spielstand an.
+- **Belohnung** je Aufgabe: 10 Minuten Einkommen (mindestens 50 Klicks bzw. 500 Dublonen), abholen per Knopf.
+  **Bonus** für alle drei: doppelte Belohnung, +25 % je Tag in Folge (höchstens +100 %).
+- Ein rotes Abzeichen am Tab „Fortschritt“ zeigt, wie viele Belohnungen warten. Nicht abgeholte Belohnungen werden
+  um Mitternacht gutgeschrieben (auch der Bonus, die Serie läuft dann weiter). Neue Erfolge „Fleißig“ und
+  „Eine Woche dabei“.
+
 ## Entscheidungen
 
 ### Multiplayer: Wie spielen die Freunde zusammen? → **Variante A**
