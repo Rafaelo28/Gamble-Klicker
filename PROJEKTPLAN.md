@@ -432,6 +432,17 @@ Einsatz verloren geht.
   um Mitternacht gutgeschrieben (auch der Bonus, die Serie läuft dann weiter). Neue Erfolge „Fleißig“ und
   „Eine Woche dabei“.
 
+### Erweiterung: Rangliste fürs Casino ✅
+- Die Freundes-Rangliste steht jetzt auch in der **Casino-Übersicht** (🏆 Rangliste mit Freunden), dieselbe Auswahl
+  wie unter *Statistiken*.
+- Neue Ranglisten (Wunsch eines Mitspielers): **💎 Vermögen mit Gebäuden** (Guthaben + Kaufpreis aller Gebäude),
+  **📉 Verlust in % vom Einkommen** (größter Verlust einer Runde geteilt durch das Einkommen pro Sekunde mit
+  dauerhaften Boni, ohne Goldrausch; 500 % = 5 Sekunden Einkommen), **👆 Klicks** und **🚀 Multiplikator**
+  (dauerhafter Einkommens-Bonus aus Schatzkarten und Erfolgen). Dazu wie bisher Casino-Bilanz, größter Gewinn,
+  Guthaben, insgesamt verdient, größter Verlust, bester Treffer, Siege mit Freunden und Erfolge.
+- Freunde mit einer älteren Version des Spiels haben die neuen Werte noch nicht: Bei ihnen steht „–“ (hinten in
+  der Liste), bis ihr wieder zusammen spielt. Der Verlust in % zählt ab diesem Update.
+
 ## Entscheidungen
 
 ### Multiplayer: Wie spielen die Freunde zusammen? → **Variante A**

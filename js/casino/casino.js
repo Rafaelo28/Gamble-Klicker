@@ -150,6 +150,9 @@ window.GK = window.GK || {};
     countRound(gameId, betAmount, payoutAmount);
     c.biggestWin = Math.max(c.biggestWin, payoutAmount - betAmount);
     c.biggestLoss = Math.max(c.biggestLoss || 0, betAmount - payoutAmount);
+    // Verlust im Vergleich zum Einkommen pro Sekunde (dauerhafte Boni, ohne Goldrausch) – für die Rangliste
+    const cps = payoutAmount < betAmount && GK.clicker ? GK.clicker.getCpsPermanent() : 0;
+    if (cps > 0) c.biggestLossPct = Math.max(c.biggestLossPct || 0, (betAmount - payoutAmount) / cps * 100);
     c.history.unshift({ game: gameId, bet: betAmount, payout: payoutAmount, text, time: Date.now() });
     c.history.length = Math.min(c.history.length, HISTORY_LENGTH);
     if (GK.state.money < 1 && payoutAmount < betAmount) GK.unlockAchievement('broke');
@@ -387,7 +390,8 @@ window.GK = window.GK || {};
       <dt>Insgesamt ausgezahlt</dt><dd>${GK.formatMoneyHTML(c.won)}</dd>
       <dt>Bilanz</dt><dd class="${net >= 0 ? 'win' : 'loss'}">${net >= 0 ? '+' : '−'}${GK.formatMoneyHTML(Math.abs(net))}</dd>
       <dt>Größter Gewinn</dt><dd>${GK.formatMoneyHTML(c.biggestWin)}</dd>
-      ${c.biggestLoss ? `<dt>Größter Verlust</dt><dd>${GK.formatMoneyHTML(c.biggestLoss)}</dd>` : ''}`;
+      ${c.biggestLoss ? `<dt>Größter Verlust</dt><dd>${GK.formatMoneyHTML(c.biggestLoss)}</dd>` : ''}
+      ${c.biggestLossPct ? `<dt>Verlust in % vom Einkommen</dt><dd>${GK.formatNumber(c.biggestLossPct < 100 ? c.biggestLossPct : Math.round(c.biggestLossPct), true)} %</dd>` : ''}`;
 
     const level = VIP_LEVELS[vipLevel()];
     const next = VIP_LEVELS[vipLevel() + 1];

@@ -207,6 +207,8 @@ window.GK = window.GK || {};
       GK.casino.renderAllStats($('game-stats-all'));
       GK.friends.render();
       renderPlayer();
+    } else if (s.ui.tab === 'casino') {
+      GK.friends.render();
     }
     $('last-saved').textContent = GK.storageAvailable
       ? 'vor ' + GK.formatDuration((Date.now() - s.lastSaved) / 1000)

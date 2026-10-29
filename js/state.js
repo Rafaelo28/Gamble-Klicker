@@ -14,6 +14,7 @@ window.GK = window.GK || {};
       rounds: 0,
       biggestWin: 0,
       biggestLoss: 0,  // größter Verlust in einer Runde
+      biggestLossPct: 0, // größter Verlust in Prozent des Einkommens pro Sekunde (Rangliste)
       vip: 0,          // VIP-Karte: 0 Standard, 1 Silber, 2 Gold, 3 Diamant, 4 Schwarze Perle, 5 Kaiserkrone
       history: [],     // letzte Runden: { game, bet, payout, text, time }
       openGame: null,  // zuletzt geöffnetes Spiel

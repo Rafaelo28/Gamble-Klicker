@@ -10,25 +10,37 @@ window.GK = window.GK || {};
 
   // Ranglisten: Gesamtwerte und je Spiel (games[id] = [größter Gewinn, größter Verlust, bester Treffer])
   const BOARDS = [
-    { id: 'money',  icon: '💰', name: 'Vermögen',             money: true },
-    { id: 'earned', icon: '📈', name: 'Insgesamt verdient',   money: true },
-    { id: 'net',    icon: '🎲', name: 'Casino-Bilanz',        money: true, signed: true },
-    { id: 'win',    icon: '🏆', name: 'Größter Gewinn',       money: true },
-    { id: 'loss',   icon: '💸', name: 'Größter Verlust',      money: true },
-    { id: 'mult',   icon: '🎯', name: 'Bester Treffer',       mult: true },
-    { id: 'wins',   icon: '🥇', name: 'Siege mit Freunden' },
-    { id: 'ach',    icon: '🏅', name: 'Erfolge' },
+    { id: 'worth',      icon: '💎', name: 'Vermögen mit Gebäuden', money: true },
+    { id: 'net',        icon: '🎲', name: 'Casino-Bilanz',         money: true, signed: true },
+    { id: 'win',        icon: '🏆', name: 'Größter Gewinn',        money: true },
+    { id: 'lossPct',    icon: '📉', name: 'Verlust in % vom Einkommen', pct: true },
+    { id: 'clicks',     icon: '👆', name: 'Klicks' },
+    { id: 'incomeMult', icon: '🚀', name: 'Multiplikator',         mult: true },
+    { id: 'money',      icon: '💰', name: 'Guthaben',              money: true },
+    { id: 'earned',     icon: '📈', name: 'Insgesamt verdient',    money: true },
+    { id: 'loss',       icon: '💸', name: 'Größter Verlust',       money: true },
+    { id: 'mult',       icon: '🎯', name: 'Bester Treffer',        mult: true },
+    { id: 'wins',       icon: '🥇', name: 'Siege mit Freunden' },
+    { id: 'ach',        icon: '🏅', name: 'Erfolge' },
   ];
   const GAME_BOARDS = [
     { id: 0, icon: '🏆', name: 'Größter Gewinn', money: true },
     { id: 1, icon: '💸', name: 'Größter Verlust', money: true },
     { id: 2, icon: '🎯', name: 'Bester Treffer', mult: true },
   ];
-
-  let board = 'money';
+  // Erklärung unter der Liste, wo der Name allein nicht reicht
+  const HINTS = {
+    worth: 'Guthaben plus das, was deine Gebäude gekostet haben.',
+    net: 'Alle Auszahlungen minus alle Einsätze im Casino.',
+    win: 'Größter Gewinn in einer einzigen Runde.',
+    lossPct: 'Größter Verlust in einer Runde im Vergleich zum Einkommen pro Sekunde (ohne Goldrausch): 500 % heißt, die Runde hat so viel gekostet wie 5 Sekunden Einkommen.',
+    incomeMult: 'Dauerhafter Einkommens-Bonus aus Schatzkarten und Erfolgen.',
+  };
+  let board = 'worth';
   let gameBoard = 0;
   let game = '';
-  let lastHtml = '';
+  // Steigt, wenn sich die gemerkten Freunde ändern – dann wird jede Rangliste neu gezeichnet
+  let version = 0;
 
   // Eigene Kennung für die Rangliste (gleich für Räume und Poker, damit niemand doppelt auftaucht)
   function myId() {
@@ -56,10 +68,14 @@ window.GK = window.GK || {};
       avatar: GK.player.avatar(),
       badge: GK.cosmetics.myBadge(),
       t: Date.now(),
-      money: Math.floor(num(s.money)),
-      earned: Math.floor(num(s.allTimeEarned)),
+      worth: Math.floor(num(s.money) + num(GK.clicker.buildingsWorth())),
       net: Math.floor(num(c.won) - num(c.wagered)),
       win: num(c.biggestWin),
+      lossPct: Math.round(num(c.biggestLossPct) * 10) / 10,
+      clicks: num(s.totalClicks),
+      incomeMult: Math.round(num(GK.progress.permanentMult()) * 100) / 100,
+      money: Math.floor(num(s.money)),
+      earned: Math.floor(num(s.allTimeEarned)),
       loss: num(c.biggestLoss),
       mult,
       wins: num(s.friendWins),
@@ -79,7 +95,11 @@ window.GK = window.GK || {};
       t: Math.min(Date.now(), num(r.t)) || Date.now(),
       games: {},
     };
-    BOARDS.forEach(b => { out[b.id] = num(r[b.id]); });
+    // Fehlt ein Wert (ältere Version des Spiels), steht in der Rangliste „–“ statt 0
+    BOARDS.forEach(b => {
+      const v = r[b.id];
+      out[b.id] = typeof v === 'number' && isFinite(v) ? (b.signed ? v : Math.max(0, v)) : null;
+    });
     if (r.games && typeof r.games === 'object') {
       Object.keys(r.games).slice(0, MAX_GAMES).forEach(id => {
         const g = r.games[id];
@@ -97,12 +117,12 @@ window.GK = window.GK || {};
     const old = all[r.id];
     if (old && old.t > r.t) return false;
     all[r.id] = Object.assign(r, { seen: Date.now() });
+    version++;
     // Nicht unbegrenzt sammeln: die am längsten nicht gesehenen fallen heraus
     const ids = Object.keys(all);
     if (ids.length > MAX_FRIENDS) {
       ids.sort((a, b) => all[a].seen - all[b].seen).slice(0, ids.length - MAX_FRIENDS).forEach(id => delete all[id]);
     }
-    lastHtml = '';
     return true;
   }
 
@@ -132,19 +152,22 @@ window.GK = window.GK || {};
     const f = GK.state.friends[id];
     if (!f || !confirm(`${f.name} aus der Freundes-Rangliste entfernen? Spielt ihr wieder zusammen, taucht er oder sie wieder auf.`)) return;
     delete GK.state.friends[id];
+    version++;
     GK.save();
     render(true);
   }
 
-  // ---------- Darstellung (Statistik-Tab) ----------
+  // ---------- Darstellung (Statistik-Tab und Casino) ----------
 
+  // Fehlende Werte (ältere Versionen) einheitlich als null
   function value(r, b) {
-    if (game) return r.games[game] ? r.games[game][b.id] : null;
-    return r[b.id];
+    const v = game ? (r.games[game] ? r.games[game][b.id] : null) : r[b.id];
+    return v == null ? null : v;
   }
 
   function formatValue(v, b) {
     if (v == null) return '–';
+    if (b.pct) return v > 0 ? `${GK.formatNumber(v < 100 ? v : Math.round(v), true)} %` : '–';
     if (b.mult) return v > 0 ? `×${v >= 100 ? GK.formatNumber(Math.floor(v)) : new Intl.NumberFormat('de-DE', { maximumFractionDigits: 2 }).format(v)}` : '–';
     if (b.money) return `${b.signed && v > 0 ? '+' : b.signed && v < 0 ? '−' : ''}${GK.formatMoneyHTML(Math.abs(v))}`;
     return GK.formatNumber(v);
@@ -168,7 +191,8 @@ window.GK = window.GK || {};
       </select>
       <div class="fb-boards" role="group" aria-label="Rangliste">
         ${boards.map(x => `<button type="button" class="btn btn-small fb-board ${x.id === current ? 'active' : ''}" data-board="${x.id}">${x.icon} ${x.name}</button>`).join('')}
-      </div>`;
+      </div>
+      ${!game && HINTS[current] ? `<p class="muted small fb-hint">${HINTS[current]}</p>` : ''}`;
   }
 
   // „Stand vor …“ auf Minuten gerundet, damit sich die Liste nicht jede Sekunde ändert
@@ -200,67 +224,75 @@ window.GK = window.GK || {};
     }).join('');
   }
 
-  let lastList = '';
-  let lastListAt = 0;
+  const EMPTY_HTML = `<p class="muted">Noch keine Freunde in der Rangliste. Spielt zusammen in einem Raum (<b>Spiele mit Freunden</b>
+    oder <b>Poker mit Freunden</b>) – dann tauschen eure Spiele die Rekorde automatisch aus.</p>`;
 
-  function render(force) {
-    const el = document.getElementById('friends-board');
-    if (!el) return;
-    const empty = !Object.keys(GK.state.friends).length;
-    if (empty) {
-      const html = `<p class="muted">Noch keine Freunde in der Rangliste. Spielt zusammen in einem Raum (<b>Spiele mit Freunden</b>
-        oder <b>Poker mit Freunden</b>) – dann tauschen eure Spiele die Rekorde automatisch aus.</p>`;
-      if (lastHtml !== html) {
-        el.innerHTML = html;
-        lastHtml = html;
-        lastList = '';
-      }
-      return;
-    }
-    if (game && !gameIds().includes(game)) game = '';
-    if (!el.querySelector('.fb-list')) {
-      el.innerHTML = `<div class="fb-controls"></div><ol class="fb-list"></ol>
-        <p class="muted small">Die Werte deiner Freunde stammen vom letzten gemeinsamen Spiel. Jeder sieht nur die Freunde,
-        mit denen er selbst zusammen gespielt hat.</p>`;
-      lastHtml = '';
-      lastList = '';
-    }
-    if (!el._fbBound) {
-      el._fbBound = true;
-      // Ein Klick-Empfänger für alles – überlebt das Neuzeichnen der Liste
-      el.addEventListener('click', e => {
-        const remove = e.target.closest('button.fb-remove');
-        const pick = e.target.closest('.fb-board');
-        if (remove) forget(remove.dataset.id);
-        else if (pick) {
-          if (game) gameBoard = Number(pick.dataset.board);
-          else board = pick.dataset.board;
-          GK.sound.play('chip');
-          render(true);
-        }
-      });
-      el.addEventListener('change', e => {
-        if (!e.target.classList.contains('fb-game')) return;
-        game = e.target.value;
+  // Ein Klick-Empfänger je Rangliste – überlebt das Neuzeichnen der Liste
+  function bind(el) {
+    el._fbBound = true;
+    el.addEventListener('click', e => {
+      const remove = e.target.closest('button.fb-remove');
+      const pick = e.target.closest('.fb-board');
+      if (remove) forget(remove.dataset.id);
+      else if (pick) {
+        if (game) gameBoard = Number(pick.dataset.board);
+        else board = pick.dataset.board;
         GK.sound.play('chip');
         render(true);
-      });
-    }
-    const controls = controlsHtml();
-    if (controls !== lastHtml) {
-      lastHtml = controls;
-      el.querySelector('.fb-controls').innerHTML = controls;
-      force = true;
-    }
-    // Die Liste höchstens alle 3 Sekunden neu zeichnen (das eigene Guthaben ändert sich ständig)
-    const now = Date.now();
-    if (!force && now - lastListAt < 3000) return;
-    const list = listHtml();
-    if (list !== lastList) {
-      lastList = list;
-      lastListAt = now;
-      el.querySelector('.fb-list').innerHTML = list;
-    }
+      }
+    });
+    el.addEventListener('change', e => {
+      if (!e.target.classList.contains('fb-game')) return;
+      game = e.target.value;
+      GK.sound.play('chip');
+      render(true);
+    });
+  }
+
+  // Zeichnet alle sichtbaren Ranglisten (Statistik-Tab und Casino-Übersicht)
+  function render(force) {
+    const empty = !Object.keys(GK.state.friends).length;
+    if (game && !empty && !gameIds().includes(game)) game = '';
+    let controls = null;
+    let list = null;
+    document.querySelectorAll('.friends-board').forEach(el => {
+      if (!el.offsetParent) return;
+      if (!el._fbBound) bind(el);
+      if (el._fbVersion !== version) {
+        el._fbVersion = version;
+        el._fbControls = el._fbList = null;
+      }
+      if (empty) {
+        if (el._fbControls !== EMPTY_HTML) {
+          el.innerHTML = EMPTY_HTML;
+          el._fbControls = EMPTY_HTML;
+          el._fbList = null;
+        }
+        return;
+      }
+      if (!el.querySelector('.fb-list')) {
+        el.innerHTML = `<div class="fb-controls"></div><ol class="fb-list"></ol>
+          <p class="muted small">Die Werte deiner Freunde stammen vom letzten gemeinsamen Spiel. Jeder sieht nur die Freunde,
+          mit denen er selbst zusammen gespielt hat.</p>`;
+        el._fbControls = el._fbList = null;
+      }
+      if (controls == null) controls = controlsHtml();
+      let redraw = force;
+      if (el._fbControls !== controls) {
+        el._fbControls = controls;
+        el.querySelector('.fb-controls').innerHTML = controls;
+        redraw = true;
+      }
+      // Die Liste höchstens alle 3 Sekunden neu zeichnen (das eigene Guthaben ändert sich ständig)
+      const now = Date.now();
+      if (!redraw && el._fbList != null && now - el._fbAt < 3000) return;
+      if (list == null) list = listHtml();
+      el._fbAt = now;
+      if (el._fbList !== list) {
+        el._fbList = list;
+        el.querySelector('.fb-list').innerHTML = list;
+      }
+    });
   }
 
   GK.friends = { BOARDS, myId, myRecords, clean, remember, learnFrom, membersOut, render };
