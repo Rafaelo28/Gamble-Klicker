@@ -5,6 +5,7 @@ global.document = { addEventListener() {}, querySelector() { return null; }, vis
 global.location = { search: '', pathname: '/', origin: '', hash: '' };
 global.history = { replaceState() {} };
 const R = require('path').join(__dirname, '..', 'js') + '/';
+require(R + 'format.js');
 require(R + 'state.js');
 require(R + 'casino/casino.js');
 require(R + 'progress.js');
@@ -141,7 +142,10 @@ function untilUp(up) {
   assert(stored.games.roulette[0] === 50000 && !stored.games['<script>'], 'Nur gültige Spiele');
   assert(!F.clean({ id: 'x' }) && !F.clean(null) && !F.clean({ id: '<b>BÖSE</b>' }), 'Ungültige Kennungen abgelehnt');
   const weird = F.clean({ id: 'BEN123456789', name: 'Ben', money: Infinity, win: 'viel', mult: NaN, avatar: '<img>', badge: 'gibtsnicht' });
-  assert(weird.money === 0 && weird.win === 0 && weird.mult === 0 && weird.avatar !== '<img>' && weird.badge === '', 'Kaputte Werte werden zu 0');
+  assert(weird.money === null && weird.win === null && weird.mult === null && weird.avatar !== '<img>' && weird.badge === '', 'Kaputte Werte werden zu „–“');
+  assert(weird.worth === null && weird.clicks === null && weird.lossPct === null && weird.incomeMult === null, 'Fehlende Werte (ältere Version) werden zu „–“ statt 0');
+  const neg = F.clean({ id: 'NEG123456789', name: 'Neg', net: -500, win: -3, clicks: -1 });
+  assert(neg.net === -500 && neg.win === 0 && neg.clicks === 0, 'Nur die Casino-Bilanz darf negativ sein');
   // Ältere Daten ersetzen keine neueren
   assert(F.remember(Object.assign({}, anna, { t: anna.t - 5000, money: 1 })) === false && GK.state.friends.ANNA12345678.money === 5e6, 'Ältere Rekorde ersetzen keine neueren');
   assert(F.remember(Object.assign({}, anna, { t: anna.t + 500, money: 7e6 })) && GK.state.friends.ANNA12345678.money === 7e6, 'Neuere Rekorde ersetzen ältere');
@@ -163,6 +167,64 @@ function untilUp(up) {
   const mine = F.myRecords();
   assert(mine.games.roulette[2] === 36 && !mine.games.mines && mine.mult === 36 && mine.win === 700, 'Eigene Rekorde aus der Statistik');
   assert(JSON.stringify(mine).length < 4000, 'Rekorde bleiben klein');
+}
+
+// ---------- Rangliste: Vermögen mit Gebäuden, Klicks, Multiplikator, Verlust in % ----------
+{
+  GK.state.money = 1000;
+  GK.state.buildings = {};
+  GK.state.upgrades = [];
+  GK.state.buffs = [];
+  GK.state.totalClicks = 4321;
+  assert(GK.clicker.buildingsWorth() === 0 && F.myRecords().worth === 1000, 'Ohne Gebäude: Vermögen = Guthaben');
+  const [b1, b2] = GK.clicker.BUILDINGS;
+  GK.state.buildings = { [b1.id]: 3, [b2.id]: 1 };
+  const cost1 = Math.ceil(b1.baseCost * (Math.pow(1.15, 3) - 1) / 0.15);
+  const worth = GK.clicker.buildingsWorth();
+  assert(worth === cost1 + Math.ceil(b2.baseCost), `Gebäudewert = Kaufpreis aller Gebäude (${worth})`);
+  // Kaufpreis einzeln nachgerechnet
+  const single = [0, 1, 2].reduce((sum, k) => sum + b1.baseCost * Math.pow(1.15, k), 0);
+  assert(Math.abs(cost1 - single) <= 1, 'Gebäudewert passt zu den einzelnen Preisen');
+  const rec = F.myRecords();
+  assert(rec.worth === 1000 + worth && rec.money === 1000, 'Vermögen = Guthaben + Gebäude');
+  assert(rec.clicks === 4321, 'Klicks');
+  assert(rec.incomeMult === Math.round(GK.progress.permanentMult() * 100) / 100 && rec.incomeMult >= 1, `Multiplikator (${rec.incomeMult})`);
+
+  // Verlust in Prozent vom Einkommen pro Sekunde
+  // Für die Casino-Übersicht, die record() nebenbei aktualisiert
+  document.getElementById = () => ({});
+  GK.poker = { tournament: { TIERS: [] } };
+  const c = GK.state.casino;
+  c.biggestLossPct = 0;
+  GK.state.money = 1e9;
+  const round = (bet, payout) => { GK.casino.bet(bet); GK.casino.payout(payout); GK.casino.record('mines', bet, payout, 'Test'); };
+  GK.unlockAchievement = () => {};
+  GK.state.buildings = {};
+  round(100, 0);
+  assert(c.biggestLossPct === 0, 'Ohne Einkommen zählt kein Verlust in Prozent');
+  GK.state.buildings = { [b1.id]: 10 };
+  const cps = GK.clicker.getCpsPermanent();
+  assert(cps > 0, 'Mit Gebäuden gibt es Einkommen');
+  round(cps * 5, 0);
+  assert(Math.abs(c.biggestLossPct - 500) < 1e-6, `5 Sekunden Einkommen verloren = 500 % (${c.biggestLossPct})`);
+  round(cps * 2, cps);
+  assert(Math.abs(c.biggestLossPct - 500) < 1e-6, 'Kleinerer Verlust ändert den Rekord nicht');
+  round(cps, cps * 3);
+  assert(Math.abs(c.biggestLossPct - 500) < 1e-6, 'Gewinne zählen nicht');
+  round(cps * 30, cps * 10);
+  assert(Math.abs(c.biggestLossPct - 2000) < 1e-6, `Netto-Verlust zählt (${c.biggestLossPct})`);
+  // Goldrausch (zeitlich begrenzt) verändert den Wert nicht
+  GK.state.buffs = [{ id: 'goldrush', type: 'income', mult: 7, until: Date.now() + 60000 }];
+  round(cps * 40, 0);
+  assert(Math.abs(c.biggestLossPct - 4000) < 1e-6, `Ohne Goldrausch gerechnet (${c.biggestLossPct})`);
+  GK.state.buffs = [];
+  assert(F.myRecords().lossPct === 4000, 'Verlust in Prozent wird mitgeschickt');
+
+  // Sortierung und Anzeige: fehlende Werte stehen hinten
+  GK.state.friends = {};
+  F.remember({ id: 'OLD123456789', name: 'Alt', t: Date.now(), money: 5 });
+  F.remember({ id: 'NEW123456789', name: 'Neu', t: Date.now(), worth: 1, lossPct: 12.5, clicks: 9, incomeMult: 3.5 });
+  assert(GK.state.friends.OLD123456789.worth === null && GK.state.friends.NEW123456789.lossPct === 12.5, 'Alte und neue Rekorde gemerkt');
 }
 
 console.log(process.exitCode ? 'Kraken-/Rangliste-Tests FEHLGESCHLAGEN' : 'Kraken-/Rangliste-Tests bestanden.');

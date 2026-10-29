@@ -182,6 +182,11 @@ window.GK = window.GK || {};
     return Math.ceil(first * (Math.pow(COST_GROWTH, count) - 1) / (COST_GROWTH - 1));
   }
 
+  // Was alle eigenen Gebäude zusammen gekostet haben (für die Rangliste „Vermögen mit Gebäuden“)
+  function buildingsWorth() {
+    return BUILDINGS.reduce((sum, b) => sum + (owned(b.id) ? buildingCost(b, 0, owned(b.id)) : 0), 0);
+  }
+
   function buildingMultiplier(buildingId) {
     let mult = 1;
     for (const id of GK.state.upgrades) {
@@ -629,6 +634,7 @@ window.GK = window.GK || {};
     passiveActive,
     getClickPower,
     totalBuildings,
+    buildingsWorth,
     ownsAllBuildings: () => BUILDINGS.every(b => owned(b.id) > 0),
     remainingUpgrades: () => UPGRADES.filter(u => !has(u.id)).length,
     hasUpgradeOfRarity: rarity => GK.state.upgrades.some(id => upgradeById[id] && upgradeById[id].rarity === rarity),

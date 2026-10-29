@@ -136,7 +136,7 @@ Den Fahrplan mit allen Phasen findest du in [PROJEKTPLAN.md](PROJEKTPLAN.md).
 - 🔊 Soundeffekte, ✨ Gewinn-Animationen, 📱 iPad-Optimierung
 - 🔥 Klick-Combos, kritische Klicks, Gebäude-Stufen bis Götter, Synergien, Poker-Modi Turbo und Blitz
 - 🎰 Hebel an den Automaten, Beträge mit Abkürzungen (k, M, B …), Statistik für jedes Spiel
-- 📅 Tägliche Aufgaben mit Serien-Bonus, 🐙 Kraken-Angriffe im Klicker und 👥 Freundes-Rangliste (Rekorde werden beim gemeinsamen Spielen ausgetauscht)
+- 📅 Tägliche Aufgaben mit Serien-Bonus, 🐙 Kraken-Angriffe im Klicker und 👥 Freundes-Rangliste im Casino und unter Statistiken (Vermögen mit Gebäuden, Casino-Bilanz, größter Gewinn, Verlust in % vom Einkommen, Klicks, Multiplikator u. v. m. – Rekorde werden beim gemeinsamen Spielen ausgetauscht)
 
 ## Tests
 

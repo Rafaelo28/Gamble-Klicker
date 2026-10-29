@@ -1579,6 +1579,11 @@ main {
   gap: 6px;
 }
 
+.fb-hint {
+  flex-basis: 100%;
+  margin: 0;
+}
+
 .fb-board.active {
   background: var(--gold-grad);
   color: #2a1d00;
@@ -1756,6 +1761,16 @@ button.casino-card:active {
   padding: 16px;
 }
 
+.casino-board-box {
+  grid-column: 1 / -1;
+}
+
+.casino-board-box .friends-board {
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
 .casino-info-box h3 {
   margin: 0 0 10px;
   color: var(--gold);
@@ -1767,6 +1782,15 @@ button.casino-card:active {
   border: none;
   box-shadow: none;
   padding: 0;
+}
+
+/* Casino-Statistik: lange Beschriftungen umbrechen statt die Werte aus dem Kasten zu schieben */
+#casino-stats {
+  grid-template-columns: minmax(min-content, max-content) auto;
+}
+
+#casino-stats dt {
+  overflow-wrap: anywhere;
 }
 
 .casino-history {
