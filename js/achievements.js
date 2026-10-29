@@ -45,6 +45,8 @@ window.GK = window.GK || {};
     { id: 'cosmeticAll', icon: '🗝️', name: 'Herr der Schatzkammer', desc: 'Alle Cosmetics der Schatzkammer gesammelt.', check: s => GK.cosmetics && s.cosmetics.owned.length >= GK.cosmetics.total },
     { id: 'golden1',     icon: '✨', name: 'Goldfund',              desc: 'Eine goldene Dublone gefangen.',           check: s => s.goldenClicks >= 1 },
     { id: 'golden25',    icon: '🌟', name: 'Goldgräber',            desc: '25 goldene Dublonen gefangen.',            check: s => s.goldenClicks >= 25 },
+    { id: 'daily1',      icon: '📅', name: 'Fleißig',               desc: 'Eine tägliche Aufgabe geschafft.',          check: s => s.daily && s.daily.completed >= 1 },
+    { id: 'daily7',      icon: '🗓️', name: 'Eine Woche dabei',      desc: '7 Tage in Folge alle täglichen Aufgaben geschafft.', check: s => s.daily && s.daily.streak >= 7 },
     { id: 'krakenWin',   icon: '🐙', name: 'Krakenjäger',           desc: 'Einen Kraken-Angriff abgewehrt.',          check: s => s.kraken && s.kraken.defeated >= 1 },
     { id: 'kraken10',    icon: '⚓', name: 'Schrecken der Tiefsee', desc: '10 Kraken-Angriffe abgewehrt.',            check: s => s.kraken && s.kraken.defeated >= 10 },
     // Casino

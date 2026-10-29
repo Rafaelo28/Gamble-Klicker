@@ -178,6 +178,7 @@ window.GK = window.GK || {};
     golden = null;
     nextGoldenAt = Date.now() + randomDelay() * 1000;
     GK.state.goldenClicks++;
+    GK.daily.track('golden', 1);
 
     const roll = GK.rng.float();
     let text;

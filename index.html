@@ -20,7 +20,7 @@
   <meta name="description" content="Klicke dich reich und verzocke deine Dublonen im Casino! Browser-Spiel aus Cookie Clicker und Casino – nur Spielgeld.">
   <meta name="author" content="Rafaelo28">
   <!-- ?v=… ist die Spielversion: bei jedem Update erhöhen, damit Browser keine alten Dateien mischen -->
-  <link rel="stylesheet" href="css/style.css?v=2026102814">
+  <link rel="stylesheet" href="css/style.css?v=2026102901">
 </head>
 <body>
   <div class="app-header">
@@ -36,7 +36,7 @@
   <nav class="tabs">
     <button class="tab active" data-tab="clicker"><span class="tab-icon">👆</span><span class="tab-label">Klicker</span></button>
     <button class="tab" data-tab="casino"><span class="tab-icon">🎲</span><span class="tab-label">Casino</span></button>
-    <button class="tab" data-tab="progress"><span class="tab-icon">🏆</span><span class="tab-label">Fortschritt</span></button>
+    <button class="tab" data-tab="progress"><span class="tab-icon">🏆</span><span class="tab-label">Fortschritt</span><span class="tab-badge" hidden></span></button>
     <button class="tab" data-tab="stats"><span class="tab-icon">📊</span><span class="tab-label">Statistiken</span></button>
   </nav>
   <div id="buff-bar" class="buff-bar" aria-live="polite"></div>
@@ -116,6 +116,11 @@
 
     <!-- Fortschritt -->
     <section id="tab-progress" class="tab-panel">
+      <div id="daily-panel" class="panel daily-panel">
+        <div class="daily-head"><h2>📅 Tägliche Aufgaben</h2><span id="daily-reset" class="muted small"></span></div>
+        <div id="daily-tasks" class="daily-tasks"></div>
+        <div id="daily-bonus" class="daily-bonus"></div>
+      </div>
       <div class="progress-grid">
         <div class="panel">
           <h2>🗺️ Große Fahrt</h2>
@@ -248,54 +253,55 @@
   <!-- PeerJS für den Poker-Multiplayer (Verbindung direkt zwischen den Browsern) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
 
-  <script src="js/analytics.js?v=2026102814"></script>
-  <script src="js/format.js?v=2026102814"></script>
-  <script src="js/state.js?v=2026102814"></script>
-  <script src="js/sound.js?v=2026102814"></script>
-  <script src="js/fx.js?v=2026102814"></script>
-  <script src="js/achievements.js?v=2026102814"></script>
-  <script src="js/progress.js?v=2026102814"></script>
-  <script src="js/clicker.js?v=2026102814"></script>
-  <script src="js/cosmetics.js?v=2026102814"></script>
-  <script src="js/kraken.js?v=2026102814"></script>
-  <script src="js/friends.js?v=2026102814"></script>
-  <script src="js/casino/casino.js?v=2026102814"></script>
-  <script src="js/casino/cards.js?v=2026102814"></script>
-  <script src="js/casino/slot-machine.js?v=2026102814"></script>
-  <script src="js/casino/slots.js?v=2026102814"></script>
-  <script src="js/casino/video-slots.js?v=2026102814"></script>
-  <script src="js/casino/scratch.js?v=2026102814"></script>
-  <script src="js/casino/roulette.js?v=2026102814"></script>
-  <script src="js/casino/blackjack.js?v=2026102814"></script>
-  <script src="js/casino/baccarat.js?v=2026102814"></script>
-  <script src="js/casino/hilo.js?v=2026102814"></script>
-  <script src="js/casino/wheel.js?v=2026102814"></script>
-  <script src="js/casino/plinko.js?v=2026102814"></script>
-  <script src="js/casino/mines.js?v=2026102814"></script>
-  <script src="js/casino/crash.js?v=2026102814"></script>
-  <script src="js/casino/race.js?v=2026102814"></script>
-  <script src="js/casino/flight.js?v=2026102814"></script>
-  <script src="js/casino/chicken.js?v=2026102814"></script>
-  <script src="js/casino/tower.js?v=2026102814"></script>
-  <script src="js/casino/keno.js?v=2026102814"></script>
-  <script src="js/poker/evaluator.js?v=2026102814"></script>
-  <script src="js/poker/engine.js?v=2026102814"></script>
-  <script src="js/poker/ai.js?v=2026102814"></script>
-  <script src="js/poker/tournament.js?v=2026102814"></script>
-  <script src="js/poker/table-ui.js?v=2026102814"></script>
-  <script src="js/poker/multiplayer.js?v=2026102814"></script>
-  <script src="js/poker/poker.js?v=2026102814"></script>
-  <script src="js/mp/room.js?v=2026102814"></script>
-  <script src="js/mp/dice.js?v=2026102814"></script>
-  <script src="js/mp/kniffel.js?v=2026102814"></script>
-  <script src="js/mp/maumau.js?v=2026102814"></script>
-  <script src="js/mp/minigolf.js?v=2026102814"></script>
-  <script src="js/mp/billiards.js?v=2026102814"></script>
-  <script src="js/mp/connect4.js?v=2026102814"></script>
-  <script src="js/mp/battleship.js?v=2026102814"></script>
-  <script src="js/mp/darts.js?v=2026102814"></script>
-  <script src="js/mp/cannon.js?v=2026102814"></script>
-  <script src="js/side-slot.js?v=2026102814"></script>
-  <script src="js/main.js?v=2026102814"></script>
+  <script src="js/analytics.js?v=2026102901"></script>
+  <script src="js/format.js?v=2026102901"></script>
+  <script src="js/state.js?v=2026102901"></script>
+  <script src="js/sound.js?v=2026102901"></script>
+  <script src="js/fx.js?v=2026102901"></script>
+  <script src="js/achievements.js?v=2026102901"></script>
+  <script src="js/daily.js?v=2026102901"></script>
+  <script src="js/progress.js?v=2026102901"></script>
+  <script src="js/clicker.js?v=2026102901"></script>
+  <script src="js/cosmetics.js?v=2026102901"></script>
+  <script src="js/kraken.js?v=2026102901"></script>
+  <script src="js/friends.js?v=2026102901"></script>
+  <script src="js/casino/casino.js?v=2026102901"></script>
+  <script src="js/casino/cards.js?v=2026102901"></script>
+  <script src="js/casino/slot-machine.js?v=2026102901"></script>
+  <script src="js/casino/slots.js?v=2026102901"></script>
+  <script src="js/casino/video-slots.js?v=2026102901"></script>
+  <script src="js/casino/scratch.js?v=2026102901"></script>
+  <script src="js/casino/roulette.js?v=2026102901"></script>
+  <script src="js/casino/blackjack.js?v=2026102901"></script>
+  <script src="js/casino/baccarat.js?v=2026102901"></script>
+  <script src="js/casino/hilo.js?v=2026102901"></script>
+  <script src="js/casino/wheel.js?v=2026102901"></script>
+  <script src="js/casino/plinko.js?v=2026102901"></script>
+  <script src="js/casino/mines.js?v=2026102901"></script>
+  <script src="js/casino/crash.js?v=2026102901"></script>
+  <script src="js/casino/race.js?v=2026102901"></script>
+  <script src="js/casino/flight.js?v=2026102901"></script>
+  <script src="js/casino/chicken.js?v=2026102901"></script>
+  <script src="js/casino/tower.js?v=2026102901"></script>
+  <script src="js/casino/keno.js?v=2026102901"></script>
+  <script src="js/poker/evaluator.js?v=2026102901"></script>
+  <script src="js/poker/engine.js?v=2026102901"></script>
+  <script src="js/poker/ai.js?v=2026102901"></script>
+  <script src="js/poker/tournament.js?v=2026102901"></script>
+  <script src="js/poker/table-ui.js?v=2026102901"></script>
+  <script src="js/poker/multiplayer.js?v=2026102901"></script>
+  <script src="js/poker/poker.js?v=2026102901"></script>
+  <script src="js/mp/room.js?v=2026102901"></script>
+  <script src="js/mp/dice.js?v=2026102901"></script>
+  <script src="js/mp/kniffel.js?v=2026102901"></script>
+  <script src="js/mp/maumau.js?v=2026102901"></script>
+  <script src="js/mp/minigolf.js?v=2026102901"></script>
+  <script src="js/mp/billiards.js?v=2026102901"></script>
+  <script src="js/mp/connect4.js?v=2026102901"></script>
+  <script src="js/mp/battleship.js?v=2026102901"></script>
+  <script src="js/mp/darts.js?v=2026102901"></script>
+  <script src="js/mp/cannon.js?v=2026102901"></script>
+  <script src="js/side-slot.js?v=2026102901"></script>
+  <script src="js/main.js?v=2026102901"></script>
 </body>
 </html>

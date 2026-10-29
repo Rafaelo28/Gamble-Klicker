@@ -34,6 +34,18 @@ window.GK = window.GK || {};
     return { sound: true, volume: 0.7, effects: reduceMotion ? 'reduced' : 'full', kraken: true };
   }
 
+  // Tägliche Aufgaben
+  function createDefaultDaily() {
+    return {
+      day: '',         // für welchen Tag die Aufgaben gelten (JJJJ-MM-TT, Ortszeit)
+      tasks: [],       // [{ id, target, progress, done, claimed, … }]
+      streak: 0,       // Tage in Folge mit allen drei Aufgaben
+      bonusDay: '',    // an welchem Tag zuletzt der Bonus abgeholt wurde
+      bonuses: 0,
+      completed: 0,    // insgesamt geschaffte Aufgaben
+    };
+  }
+
   // Kraken-Angriffe im Klicker
   function createDefaultKraken() {
     return {
@@ -72,6 +84,7 @@ window.GK = window.GK || {};
       friends: {},     // Rekorde der Freunde vom letzten gemeinsamen Spiel: { kennung: { name, avatar, … } }
       friendWins: 0,   // erste Plätze mit Freunden (Räume und Poker)
       kraken: createDefaultKraken(),
+      daily: createDefaultDaily(),
       ui: { tab: 'clicker' },
       settings: createDefaultSettings(),
       startedAt: now,
@@ -106,6 +119,8 @@ window.GK = window.GK || {};
       GK.state.allTimeEarned += amount;
     }
     if (source === 'click') GK.state.clickEarned += amount;
+    // Tägliche Aufgabe „Verdiene …“ (nur Klicks und Gebäude)
+    if ((source === 'click' || source === 'passive') && GK.daily) GK.daily.track('earn', amount);
   };
 
   // ---------- Spielweiter Name und Bild (Spiele mit Freunden, Poker, Schatzkammer) ----------
@@ -185,6 +200,8 @@ window.GK = window.GK || {};
     GK.state.prestige = Object.assign({ points: 0, journeys: 0 }, data.prestige);
     GK.state.cosmetics = Object.assign(createDefaultCosmetics(), data.cosmetics);
     GK.state.kraken = Object.assign(createDefaultKraken(), data.kraken);
+    GK.state.daily = Object.assign(createDefaultDaily(), data.daily);
+    if (!Array.isArray(GK.state.daily.tasks)) GK.state.daily.tasks = [];
     if (!data.friends || typeof data.friends !== 'object') GK.state.friends = {};
     GK.state.cosmetics.equipped = Object.assign(createDefaultCosmetics().equipped, data.cosmetics && data.cosmetics.equipped);
     if (!Array.isArray(GK.state.cosmetics.owned)) GK.state.cosmetics.owned = [];
