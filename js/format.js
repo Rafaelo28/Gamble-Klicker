@@ -25,7 +25,8 @@ window.GK = window.GK || {};
     if (!isFinite(n)) return '∞';
     const abs = Math.abs(n);
     for (const unit of BIG_UNITS) {
-      if (abs >= unit.value) return bigFormat.format(n / unit.value) + ' ' + unit.name;
+      // Geschütztes Leerzeichen: „1,23“ und „Mio.“ werden nie auf zwei Zeilen verteilt
+      if (abs >= unit.value) return bigFormat.format(n / unit.value) + '\u00a0' + unit.name;
     }
     if (allowDecimals && abs < 100 && n % 1 !== 0) return decFormat.format(n);
     return intFormat.format(Math.floor(n));
@@ -109,9 +110,35 @@ window.GK = window.GK || {};
   // Die Währung: goldene Dublone (wird per CSS gezeichnet)
   GK.COIN = '<i class="dublone" aria-hidden="true"></i>';
 
+  // Dezimalzahl auf Deutsch (z. B. Multiplikatoren „2,45“). Die Formate werden zwischengespeichert –
+  // toLocaleString mit Optionen legt sonst bei jedem Aufruf ein neues an, und die Spiele rufen das
+  // während einer Runde in jedem Bild auf.
+  const decimalFormats = {};
+  GK.formatDecimal = function (n, minDigits, maxDigits) {
+    const key = minDigits + '|' + maxDigits;
+    const f = decimalFormats[key] || (decimalFormats[key] = new Intl.NumberFormat('de-DE', { minimumFractionDigits: minDigits, maximumFractionDigits: maxDigits }));
+    return f.format(n);
+  };
+
+  // Inhalt nur schreiben, wenn er sich ändert. Die Anzeigen werden 10× pro Sekunde aktualisiert –
+  // jedes unnötige Schreiben baut Elemente neu, kostet Layout und Neuzeichnen und startet Animationen neu.
+  // Wichtig: Wer ein Element so pflegt, schreibt es immer über GK.setHTML (sonst stimmt der Vergleich nicht).
+  GK.setHTML = function (el, html) {
+    if (el && el._html !== html) {
+      el.innerHTML = html;
+      el._html = html;
+    }
+  };
+
+  GK.setText = function (el, text) {
+    text = String(text);
+    if (el && el.textContent !== text) el.textContent = text;
+  };
+
   // Betrag mit Dublonen-Symbol als HTML, z. B. für Statistiken
+  // Mit geschütztem Leerzeichen, damit die Münze nicht allein in die nächste Zeile rutscht
   GK.formatMoneyHTML = function (n, allowDecimals = false) {
-    return GK.formatNumber(n, allowDecimals) + ' ' + GK.COIN;
+    return GK.formatNumber(n, allowDecimals) + '&nbsp;' + GK.COIN;
   };
 
   // Formatiert Sekunden als „1 Std. 5 Min.“

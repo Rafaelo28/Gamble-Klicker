@@ -443,6 +443,27 @@ Einsatz verloren geht.
 - Freunde mit einer älteren Version des Spiels haben die neuen Werte noch nicht: Bei ihnen steht „–“ (hinten in
   der Liste), bis ihr wieder zusammen spielt. Der Verlust in % zählt ab diesem Update.
 
+### Pflege: Grafikfehler und Ruckeln (iPad) ✅
+- **Klick-Münze hing**: Nach einem kritischen Treffer blieb eine CSS-Klasse an der Münze und blockierte jede
+  weitere Klick-Animation. Das Federn läuft jetzt als Web Animation (nichts bleibt hängen), das Schweben über
+  die eigene `translate`-Eigenschaft und wird nicht mehr bei jedem Tipp neu gestartet.
+- **Weniger Arbeit pro Tipp**: einmal messen statt mehrmals (kein mehrfaches Layout), Partikel-Schleife ohne
+  `innerWidth` in jedem Bild, Münzen/Flammen/Emojis als vorgezeichnete Bilder, Combo-Zahlenformat zwischengespeichert.
+- **Weniger Arbeit im Leerlauf**: Gebäudepreise, Statistik, Einsatz-Anzeigen, Buff-Leiste und Fortschritt werden nur
+  noch bei echter Änderung geschrieben (`GK.setHTML` / `GK.setText`); die Statistik nur, wenn ihr Tab offen ist.
+- **Dauer-Animationen auf der Grafikkarte**: Leuchten (Upgrades, Hebel, Buffs, Auto, volle Combo) über Deckkraft,
+  Glanz auf Knöpfen und Upgrades über `transform`, Schnee und königlicher Glanz der Farbthemen über `transform`.
+  Die Kopfzeile ohne `backdrop-filter` (Unschärfe musste bei jedem Scrollen neu berechnet werden).
+- **Tagesaufgaben**: Die Karten werden nicht mehr bei jedem Fortschritt neu gebaut – ein Tipp auf „Abholen“ ging
+  sonst manchmal ins Leere.
+- **Sichtbare Fehler**: Hintergrund-Leuchten und Effekte der Farbthemen (Schnee, Sterne, Glanz) waren von
+  `body` verdeckt und nie zu sehen; „Klasse bleibt hängen“ auch bei Gebäuden (gekauft/verstärkt) und beim Wackeln;
+  Buff-Leiste flackerte (alle 100 ms neu gebaut); Dublonen-Symbol rutschte allein in die nächste Zeile (jetzt
+  geschütztes Leerzeichen); Lücke vor der Klammer in „Gratis-Dreh (Wert …)“ und „Los! (…)“; „Max“ rutschte in
+  schmalen Spalten allein in eine zweite Zeile.
+- Messung (Chromium, iPad hochkant, 60 schnelle Tipps): längster Frame 200 ms → 33 ms, Skriptzeit 449 ms → 175 ms,
+  Layoutzeit 224 ms → 86 ms; im Leerlauf 21 → 7 Layouts in 2 Sekunden.
+
 ## Entscheidungen
 
 ### Multiplayer: Wie spielen die Freunde zusammen? → **Variante A**

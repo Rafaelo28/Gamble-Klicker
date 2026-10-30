@@ -152,7 +152,7 @@ window.GK = window.GK || {};
   // ---------- Darstellung ----------
 
   function fmt(m) {
-    return m.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 2 });
+    return GK.formatDecimal(m, 1, 2);
   }
 
   // Fortschritt (0 bis 1) eines Schiffs nach `t` ms – mit Schwankungen, damit es spannend wird

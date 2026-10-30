@@ -30,6 +30,11 @@ Online über GitHub Pages aus `main`: https://rafaelo28.github.io/Gamble-Klicker
 - **Zielgerät**: iPad 8. Generation (810 × 1080 hochkant, 1080 × 810 quer, Touch). Große
   Tippflächen, kein Doppeltipp-Zoom, Hover-Effekte nur in `@media (hover: hover)`.
 
+- **Flüssig auf dem iPad**: Anzeigen, die im Takt (10× pro Sekunde) aktualisiert werden, über `GK.setHTML` /
+  `GK.setText` schreiben (nur bei Änderung). Dauer-Animationen nur mit `transform` oder `opacity` (kein
+  `box-shadow`, `left`, `background-position` im Dauerlauf, kein `backdrop-filter`). Kurze Effekte über `GK.fx.pulse`
+  (entfernt die Klasse danach wieder). Zahlenformate mit Optionen über `GK.formatDecimal`, nicht `toLocaleString`.
+
 - **Physik in Online-Spielen** (Minigolf, Billard, Kanonenduell) nur mit + − × ÷ und `Math.sqrt` rechnen, keine
   Winkelfunktionen in der Simulation – sonst kommen auf verschiedenen Geräten andere Ergebnisse heraus.
 

@@ -255,16 +255,16 @@ window.GK = window.GK || {};
         options.set(value);
       }
       if (document.activeElement !== input) input.value = GK.formatAmount(value);
-      display.innerHTML = GK.formatMoneyHTML(value) +
+      GK.setHTML(display, GK.formatMoneyHTML(value) +
         (GK.canAfford(value) ? '' : ' <span class="bet-warning">– nicht genug Dublonen</span>') +
-        (maxBet() < Infinity ? ` <span class="bet-limit">(Limit ${GK.formatNumber(maxBet())})</span>` : '');
+        (maxBet() < Infinity ? ` <span class="bet-limit">(Limit ${GK.formatNumber(maxBet())})</span>` : ''));
     }
 
     // Eingabe wie „5M“ oder „2,5 Mrd.“: beim Tippen gleich übernehmen, Unbekanntes anmerken
     input.addEventListener('input', () => {
       const value = GK.parseAmount(input.value);
       if (isFinite(value)) apply(value);
-      else if (input.value.trim()) display.innerHTML = '<span class="bet-warning">Zahl nicht erkannt – z. B. 500k, 2,5M oder 1B</span>';
+      else if (input.value.trim()) GK.setHTML(display, '<span class="bet-warning">Zahl nicht erkannt – z. B. 500k, 2,5M oder 1B</span>');
     });
     input.addEventListener('change', () => {
       if (isFinite(GK.parseAmount(input.value))) apply(input.value);
