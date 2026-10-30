@@ -574,7 +574,7 @@ window.GK = window.GK || {};
   // ---------- Zeichnen ----------
 
   function fmt(m) {
-    return m.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return GK.formatDecimal(m, 2, 2);
   }
 
   const SCALE = 1.5;
@@ -1069,7 +1069,7 @@ window.GK = window.GK || {};
     const v = chicken.shown;
     const b = busy();
     els.step.disabled = b;
-    els.step.innerHTML = v.active || b ? '🐾 Schritt' : `🐾 Los! (${GK.formatMoneyHTML(s.bet)})`;
+    els.step.innerHTML = v.active || b ? '🐾 Schritt' : `<span>🐾 Los! (${GK.formatMoneyHTML(s.bet)})</span>`;
     els.cash.disabled = b || !r || r.steps < 1;
     els.cash.innerHTML = v.active && v.steps >= 1
       ? `💰 Auszahlen: ${GK.formatMoneyHTML(Math.floor(v.bet * multiplierAt(v.diff, v.steps)))}`

@@ -190,38 +190,38 @@ window.GK = window.GK || {};
 
   function renderStats() {
     const s = GK.state;
-    $('stat-money').innerHTML = GK.formatMoneyHTML(s.money);
-    $('stat-total').innerHTML = GK.formatMoneyHTML(s.totalEarned);
-    $('stat-all-time').innerHTML = GK.formatMoneyHTML(s.allTimeEarned);
-    $('stat-golden').textContent = GK.formatNumber(s.goldenClicks);
-    $('stat-achievements').textContent = `${s.achievements.length} von ${GK.achievements.total}`;
-    $('stat-click-earned').innerHTML = GK.formatMoneyHTML(s.clickEarned);
-    $('stat-clicks').textContent = GK.formatNumber(s.totalClicks);
-    $('stat-crits').textContent = GK.formatNumber(s.crits);
-    $('stat-combo').textContent = GK.formatNumber(s.bestCombo);
-    $('stat-cps').innerHTML = GK.formatMoneyHTML(GK.clicker.getCps(), true) + (GK.clicker.passiveActive() ? '' : ' <span class="muted">(ausgeschaltet)</span>');
-    $('stat-buildings').textContent = GK.formatNumber(GK.clicker.totalBuildings());
-    $('stat-upgrades').textContent = GK.formatNumber(s.upgrades.length);
-    $('stat-playtime').textContent = GK.formatDuration(s.playTime);
-    if (s.ui.tab === 'stats') {
-      GK.casino.renderAllStats($('game-stats-all'));
-      GK.friends.render();
-      renderPlayer();
-    } else if (s.ui.tab === 'casino') {
-      GK.friends.render();
-    }
-    $('last-saved').textContent = GK.storageAvailable
+    if (s.ui.tab === 'casino') GK.friends.render();
+    // Alles Weitere steht im Statistik-Tab – nur schreiben, wenn er offen ist
+    if (s.ui.tab !== 'stats') return;
+    GK.setHTML($('stat-money'), GK.formatMoneyHTML(s.money));
+    GK.setHTML($('stat-total'), GK.formatMoneyHTML(s.totalEarned));
+    GK.setHTML($('stat-all-time'), GK.formatMoneyHTML(s.allTimeEarned));
+    GK.setText($('stat-golden'), GK.formatNumber(s.goldenClicks));
+    GK.setText($('stat-achievements'), `${s.achievements.length} von ${GK.achievements.total}`);
+    GK.setHTML($('stat-click-earned'), GK.formatMoneyHTML(s.clickEarned));
+    GK.setText($('stat-clicks'), GK.formatNumber(s.totalClicks));
+    GK.setText($('stat-crits'), GK.formatNumber(s.crits));
+    GK.setText($('stat-combo'), GK.formatNumber(s.bestCombo));
+    GK.setHTML($('stat-cps'), GK.formatMoneyHTML(GK.clicker.getCps(), true) + (GK.clicker.passiveActive() ? '' : ' <span class="muted">(ausgeschaltet)</span>'));
+    GK.setText($('stat-buildings'), GK.formatNumber(GK.clicker.totalBuildings()));
+    GK.setText($('stat-upgrades'), GK.formatNumber(s.upgrades.length));
+    GK.setText($('stat-playtime'), GK.formatDuration(s.playTime));
+    GK.casino.renderAllStats($('game-stats-all'));
+    GK.friends.render();
+    renderPlayer();
+    GK.setText($('last-saved'), GK.storageAvailable
       ? 'vor ' + GK.formatDuration((Date.now() - s.lastSaved) / 1000)
-      : 'nicht möglich';
+      : 'nicht möglich');
   }
 
   function render() {
     const money = GK.formatNumber(GK.state.money);
-    $('money').textContent = money;
-    $('cps').textContent = GK.formatNumber(GK.clicker.getCps(), true);
+    GK.setText($('money'), money);
+    GK.setText($('cps'), GK.formatNumber(GK.clicker.getCps(), true));
     $('cps-on').hidden = !GK.clicker.passiveActive();
     $('cps-off').hidden = GK.clicker.passiveActive();
-    document.title = `${money} Dublonen – Gamble Klicker`;
+    const title = `${money} Dublonen – Gamble Klicker`;
+    if (document.title !== title) document.title = title;
     GK.clicker.render();
     GK.sideSlot.render();
     GK.casino.render();

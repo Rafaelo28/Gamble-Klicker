@@ -313,7 +313,7 @@ window.GK = window.GK || {};
     betControl.setDisabled(busy);
     const free = freeAvailable();
     els.free.disabled = busy || !free;
-    const html = free ? `🎁 Gratis-Dreh (Wert ${GK.formatMoneyHTML(freeValue())})` : '🎁 Gratis-Dreh: morgen wieder';
+    const html = free ? `<span>🎁 Gratis-Dreh (Wert ${GK.formatMoneyHTML(freeValue())})</span>` : '🎁 Gratis-Dreh: morgen wieder';
     if (els.free._html !== html) {
       els.free._html = html;
       els.free.innerHTML = html;

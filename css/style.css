@@ -28,7 +28,7 @@
   --font-display: 'Cinzel', Georgia, 'Times New Roman', serif;
   --header-height: 120px; /* wird per JavaScript auf die echte Höhe gesetzt */
   /* Farbthema (Schatzkammer): Kopfzeile, Knöpfe und Hintergrund-Leuchten */
-  --header-bg: rgba(4, 14, 9, 0.86);
+  --header-bg: rgba(4, 14, 9, 0.95);
   --btn-bg: linear-gradient(180deg, rgba(42, 84, 63, 0.95), rgba(20, 48, 36, 0.95));
   --glow-1: rgba(52, 120, 84, 0.55);
   --glow-2: rgba(120, 80, 10, 0.25);
@@ -76,7 +76,8 @@ body {
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   color: var(--text);
   min-height: 100vh;
-  background: var(--bg);
+  /* Kein eigener Hintergrund: Die Seitenfarbe kommt von html. Sonst deckt body das Leuchten
+     (body::before) und die Effekte der Farbthemen (body::after: Schnee, Sterne, Glanz) zu */
   -webkit-tap-highlight-color: transparent;
   /* Wie eine App: schnelles Tippen markiert keinen Text (iPad) */
   -webkit-user-select: none;
@@ -181,9 +182,9 @@ textarea {
   position: sticky;
   top: 0;
   z-index: 30;
+  /* Bewusst ohne backdrop-filter: Die Unschärfe müsste bei jedem Scrollen und jeder Animation darunter
+     neu berechnet werden – auf dem iPad (vor allem hochkant) ruckelt es dann. Dafür fast deckend. */
   background: var(--header-bg);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border-soft);
   padding-top: env(safe-area-inset-top);
 }
@@ -389,7 +390,7 @@ main {
   width: 40%;
   height: 100%;
   background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.55), transparent);
-  transform: skewX(-20deg);
+  transform: translateX(0) skewX(-20deg);
   animation: shine 3.5s ease-in-out infinite;
   pointer-events: none;
 }
@@ -398,9 +399,11 @@ main {
   display: none;
 }
 
+/* Mit transform statt left: läuft auf der Grafikkarte, ohne in jedem Frame das Layout neu zu berechnen
+   (Strich ist 40 % breit, 200 % Weg = das Fünffache der eigenen Breite) */
 @keyframes shine {
-  0%, 60% { left: -60%; }
-  100% { left: 140%; }
+  0%, 60% { transform: translateX(0) skewX(-20deg); }
+  100% { transform: translateX(500%) skewX(-20deg); }
 }
 
 .btn-danger {
@@ -555,19 +558,11 @@ main {
   100% { background-position: -100% 0; }
 }
 
+/* Schweben über die eigene translate-Eigenschaft: Das Federn beim Tippen (transform, per JavaScript)
+   legt sich darüber, ohne das Schweben neu zu starten */
 @keyframes coin-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
-
-.big-coin.coin-hit {
-  animation: coin-hit 0.18s ease-out, coin-float 3s ease-in-out 0.18s infinite;
-}
-
-@keyframes coin-hit {
-  0% { transform: scale(1); }
-  40% { transform: scale(0.9) rotate(-3deg); }
-  100% { transform: scale(1); }
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -6px; }
 }
 
 @media (hover: hover) {
@@ -601,6 +596,8 @@ main {
   left: 0;
   pointer-events: none;
   z-index: 2;
+  /* Zahlen und Ringe beim Tippen: Der Browser muss nur diese Ebene neu anordnen, nicht die ganze Seite */
+  contain: size layout style;
 }
 
 .float-text {
@@ -658,17 +655,6 @@ main {
   to { transform: scale(4); opacity: 0; border-width: 1px; }
 }
 
-.big-coin.coin-crit {
-  animation: coin-crit 0.35s ease-out, coin-float 3s ease-in-out 0.35s infinite;
-}
-
-@keyframes coin-crit {
-  0%   { transform: scale(1); filter: brightness(1); }
-  30%  { transform: scale(0.84) rotate(-8deg); filter: brightness(1.6) saturate(1.4); }
-  60%  { transform: scale(1.08) rotate(5deg); }
-  100% { transform: scale(1); filter: brightness(1); }
-}
-
 /* Combo-Anzeige oben über der Münze (schwebt, damit nichts verrutscht) */
 .combo-meter {
   position: absolute;
@@ -721,8 +707,26 @@ main {
   transition: width 0.12s;
 }
 
+.combo-fill {
+  position: relative;
+}
+
+/* Volle Combo: heller Schein pulsiert (nur Deckkraft) */
 .combo-meter.maxed .combo-fill {
-  animation: combo-max 0.5s ease-in-out infinite alternate;
+  box-shadow: 0 0 10px #ff8a3c;
+}
+
+.combo-meter.maxed .combo-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.4);
+  opacity: 0;
+  animation: glow-pulse 0.5s ease-in-out infinite alternate;
 }
 
 .combo-meter.maxed .combo-mult {
@@ -730,9 +734,6 @@ main {
   text-shadow: 0 0 10px #ff3d2e, 0 0 20px #ff8a3c;
 }
 
-@keyframes combo-max {
-  to { filter: brightness(1.5); box-shadow: 0 0 12px #ff8a3c; }
-}
 
 /* ---------- Side-Slot (unter der Klick-Münze) ---------- */
 .side-slot {
@@ -799,13 +800,23 @@ main {
 }
 
 .side-auto.active {
+  position: relative;
   background: var(--gold-grad);
   color: #2a1d00;
-  animation: auto-glow 0.8s ease-in-out infinite alternate;
 }
 
-@keyframes auto-glow {
-  to { box-shadow: 0 0 16px var(--gold); }
+.side-auto.active::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 16px var(--gold);
+  opacity: 0;
+  animation: glow-pulse 0.8s ease-in-out infinite alternate;
+  pointer-events: none;
 }
 
 .side-spin.cant-afford .lever-knob {
@@ -898,13 +909,7 @@ main {
   border-color: rgba(245, 197, 66, 0.55);
 }
 
-.upgrade:not(:disabled) {
-  animation: upgrade-ready 1.6s ease-in-out infinite alternate;
-}
-
-@keyframes upgrade-ready {
-  to { box-shadow: 0 0 14px rgba(245, 197, 66, 0.35); }
-}
+/* Bezahlbare Upgrades leuchten (Schein und Pulsieren siehe Seltenheit weiter unten) */
 
 @media (hover: hover) {
   .upgrade:not(:disabled):hover,
@@ -1018,11 +1023,26 @@ main {
 }
 
 .upgrade:not(:disabled) {
-  animation: upgrade-ready-rarity 1.6s ease-in-out infinite alternate;
+  box-shadow: 0 0 8px var(--rarity-glow);
 }
 
-@keyframes upgrade-ready-rarity {
-  to { box-shadow: 0 0 16px var(--rarity-glow); }
+/* Pulsierender Schein innen: nur die Deckkraft ändert sich (läuft auf der Grafikkarte) –
+   ein pulsierender box-shadow müsste bei jedem Bild neu gezeichnet werden */
+.upgrade:not(:disabled)::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  box-shadow: inset 0 0 16px var(--rarity-glow);
+  opacity: 0;
+  animation: glow-pulse 1.6s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes glow-pulse {
+  to { opacity: 1; }
 }
 
 /* Glanzstreifen über seltenen, bezahlbaren Upgrades */
@@ -1042,9 +1062,10 @@ main {
   pointer-events: none;
 }
 
+/* 190 % Weg bei 40 % Breite = 475 % der eigenen Breite */
 @keyframes upgrade-shine {
-  0%, 40% { left: -60%; }
-  100% { left: 130%; }
+  0%, 40% { transform: translateX(0); }
+  100% { transform: translateX(475%); }
 }
 
 .building-list {
@@ -1954,6 +1975,14 @@ button.casino-card:active {
   color: var(--text);
 }
 
+/* Im Einsatz-Feld wird die Eingabe lieber etwas schmaler, statt „Max“ allein in eine zweite Zeile
+   zu schieben (schmale Spalten neben dem Spielfeld, iPad hochkant) */
+.bet-control .bet-input {
+  flex: 1 1 96px;
+  min-width: 80px;
+  max-width: 140px;
+}
+
 .bet-input:focus {
   outline: none;
   border-color: var(--gold);
@@ -2261,12 +2290,22 @@ button.casino-card:active {
   border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, #ffb3a8 0, #f0443a 30%, #b3120c 70%, #6e0503 100%);
   box-shadow: 0 5px 12px rgba(0, 0, 0, 0.55), inset 0 -4px 7px rgba(0, 0, 0, 0.35);
-  animation: lever-glow 1.6s ease-in-out infinite alternate;
   transition: filter 0.3s;
 }
 
-@keyframes lever-glow {
-  to { box-shadow: 0 5px 12px rgba(0, 0, 0, 0.55), inset 0 -4px 7px rgba(0, 0, 0, 0.35), 0 0 16px rgba(255, 90, 70, 0.75); }
+/* Roter Schein um den Knauf: nur die Deckkraft pulsiert */
+.lever-knob::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: 50%;
+  box-shadow: 0 0 16px rgba(255, 90, 70, 0.75);
+  opacity: 0;
+  animation: glow-pulse 1.6s ease-in-out infinite alternate;
+  pointer-events: none;
 }
 
 .lever.disabled {
@@ -3240,7 +3279,7 @@ button.casino-card:active {
 }
 
 @keyframes ball-hop {
-  to { margin-top: 3px; }
+  to { transform: translateY(3px); }
 }
 
 /* Die Kugel fällt in die Zahlen-Tasche */
@@ -3489,11 +3528,21 @@ button.casino-card:active {
   font-size: 0.85rem;
   border-radius: 999px;
   padding: 3px 12px;
-  animation: buff-glow 1.2s ease-in-out infinite alternate;
+  position: relative;
 }
 
-@keyframes buff-glow {
-  to { box-shadow: 0 0 14px var(--gold); }
+.buff::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 14px var(--gold);
+  opacity: 0;
+  animation: glow-pulse 1.2s ease-in-out infinite alternate;
+  pointer-events: none;
 }
 
 .golden-coin {
@@ -4099,7 +4148,12 @@ body.reduced-effects .vs-cell.win,
 body.reduced-effects .vs-reel.anticipation,
 body.reduced-effects .wheel-free.ready,
 body.reduced-effects .upgrade,
+body.reduced-effects .upgrade::before,
 body.reduced-effects .upgrade::after,
+body.reduced-effects .lever-knob::after,
+body.reduced-effects .buff::after,
+body.reduced-effects .side-auto.active::after,
+body.reduced-effects .combo-fill::after,
 body.reduced-effects .combo-fill,
 body.reduced-effects .win-rays,
 body.reduced-effects .win-title,
@@ -4274,7 +4328,6 @@ body.reduced-effects .golden-coin {
 .wheel-free.ready {
   border-color: var(--gold);
   box-shadow: 0 0 16px rgba(245, 197, 66, 0.45);
-  animation: upgrade-ready 1.6s ease-in-out infinite alternate;
 }
 
 /* ---------- Münzfall ---------- */
@@ -7481,7 +7534,7 @@ body.reduced-effects .golden-coin {
   --panel: linear-gradient(180deg, rgba(20, 64, 96, 0.85) 0%, rgba(6, 24, 40, 0.92) 100%);
   --border: #1f557a;
   --text-muted: #9dbbd0;
-  --header-bg: rgba(2, 12, 22, 0.86);
+  --header-bg: rgba(2, 12, 22, 0.95);
   --btn-bg: linear-gradient(180deg, rgba(28, 82, 120, 0.95), rgba(10, 40, 64, 0.95));
   --glow-1: rgba(30, 110, 170, 0.5);
   --glow-2: rgba(0, 170, 160, 0.22);
@@ -7495,7 +7548,7 @@ body.reduced-effects .golden-coin {
   --panel: linear-gradient(180deg, rgba(90, 30, 18, 0.85) 0%, rgba(34, 10, 6, 0.92) 100%);
   --border: #6e2a1a;
   --text-muted: #d1aa9c;
-  --header-bg: rgba(18, 6, 4, 0.86);
+  --header-bg: rgba(18, 6, 4, 0.95);
   --btn-bg: linear-gradient(180deg, rgba(110, 40, 24, 0.95), rgba(56, 16, 10, 0.95));
   --glow-1: rgba(150, 30, 10, 0.5);
   --glow-2: rgba(255, 110, 20, 0.35);
@@ -7509,7 +7562,7 @@ body.reduced-effects .golden-coin {
   --panel: linear-gradient(180deg, rgba(44, 38, 100, 0.85) 0%, rgba(14, 12, 40, 0.92) 100%);
   --border: #3a3478;
   --text-muted: #b1acd8;
-  --header-bg: rgba(8, 6, 24, 0.86);
+  --header-bg: rgba(8, 6, 24, 0.95);
   --btn-bg: linear-gradient(180deg, rgba(60, 52, 130, 0.95), rgba(26, 22, 70, 0.95));
   --glow-1: rgba(90, 60, 190, 0.5);
   --glow-2: rgba(200, 80, 200, 0.22);
@@ -7523,7 +7576,7 @@ body.reduced-effects .golden-coin {
   --panel: linear-gradient(180deg, rgba(60, 100, 140, 0.6) 0%, rgba(14, 30, 46, 0.92) 100%);
   --border: #4f7fa3;
   --text-muted: #b9d3e6;
-  --header-bg: rgba(8, 18, 28, 0.86);
+  --header-bg: rgba(8, 18, 28, 0.95);
   --btn-bg: linear-gradient(180deg, rgba(70, 120, 160, 0.9), rgba(26, 52, 76, 0.95));
   --glow-1: rgba(120, 200, 255, 0.35);
   --glow-2: rgba(180, 230, 255, 0.18);
@@ -7538,7 +7591,7 @@ body.reduced-effects .golden-coin {
   --border: #7a5f22;
   --border-soft: rgba(245, 197, 66, 0.35);
   --text-muted: #d4c49a;
-  --header-bg: rgba(10, 8, 4, 0.9);
+  --header-bg: rgba(10, 8, 4, 0.96);
   --btn-bg: linear-gradient(180deg, rgba(90, 68, 26, 0.95), rgba(40, 30, 12, 0.95));
   --glow-1: rgba(200, 150, 40, 0.35);
   --glow-2: rgba(245, 197, 66, 0.22);
@@ -7581,6 +7634,10 @@ body.reduced-effects .golden-coin {
 }
 
 :root[data-theme="ice"] body::after {
+  /* Eine Kachel größer als der Bildschirm; die ganze Fläche wandert (Grafikkarte), statt dass
+     der Hintergrund in jedem Bild neu gezeichnet wird */
+  top: -300px;
+  left: -60px;
   background:
     radial-gradient(circle at 10% 10%, rgba(255, 255, 255, 0.8) 0 1.5px, transparent 2.5px),
     radial-gradient(circle at 40% 30%, rgba(255, 255, 255, 0.6) 0 1px, transparent 2px),
@@ -7593,19 +7650,21 @@ body.reduced-effects .golden-coin {
 }
 
 @keyframes snow-fall {
-  from { background-position: 0 0; }
-  to { background-position: 60px 300px; }
+  from { transform: translate(0, 0); }
+  to { transform: translate(60px, 300px); }
 }
 
 :root[data-theme="royal"] body::after {
+  /* Dreifach breite Fläche mit dem Lichtstreifen, die per transform durchs Bild wandert */
+  right: auto;
+  width: 300%;
   background: linear-gradient(115deg, transparent 40%, rgba(255, 215, 106, 0.09) 50%, transparent 60%);
-  background-size: 300% 100%;
   animation: royal-shine 9s ease-in-out infinite;
 }
 
 @keyframes royal-shine {
-  0%, 30% { background-position: 150% 0; }
-  100% { background-position: -50% 0; }
+  0%, 30% { transform: translateX(-100%); }
+  100% { transform: translateX(33.333%); }
 }
 
 :root[data-theme="royal"] .panel,

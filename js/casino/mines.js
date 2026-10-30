@@ -104,7 +104,7 @@ window.GK = window.GK || {};
   // ---------- Darstellung ----------
 
   function formatMult(m) {
-    return m.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return GK.formatDecimal(m, 2, 2);
   }
 
   function render() {

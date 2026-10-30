@@ -269,7 +269,7 @@ window.GK = window.GK || {};
   // ---------- Darstellung ----------
 
   function fmt(m) {
-    return m.toLocaleString('de-DE', { minimumFractionDigits: m < 10 ? 2 : 0, maximumFractionDigits: 2 });
+    return GK.formatDecimal(m, m < 10 ? 2 : 0, 2);
   }
 
   // Landeanflug: so lange nach dem letzten Ereignis setzt das Flugzeug auf (oder stürzt ab),

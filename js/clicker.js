@@ -286,6 +286,10 @@ window.GK = window.GK || {};
   // ---------- Aktionen ----------
 
   function click(event) {
+    const coin = document.getElementById('big-coin');
+    const pos = event && event.clientX ? { x: event.clientX, y: event.clientY } : GK.fx.center(coin);
+    // Erst alles messen, dann schreiben – sonst muss der Browser pro Tipp mehrmals das Layout berechnen
+    const local = layerPos(pos);
     const now = performance.now();
     combo.count = now - combo.last <= COMBO_WINDOW ? combo.count + 1 : 1;
     combo.last = now;
@@ -298,20 +302,18 @@ window.GK = window.GK || {};
     GK.daily.track('click', 1);
     GK.daily.track('combo', combo.count);
 
-    const coin = document.getElementById('big-coin');
-    const pos = event && event.clientX ? { x: event.clientX, y: event.clientY } : GK.fx.center(coin);
-    showClickRing(pos);
+    showClickRing(local);
     if (crit) {
       GK.state.crits++;
       GK.sound.play('crit');
-      GK.fx.pulse(coin, 'coin-crit');
-      showFloatingText(pos, `KRITISCH! +${GK.formatNumber(amount, true)}`, 'crit');
+      bounceCoin(coin, true);
+      showFloatingText(local, `KRITISCH! +${GK.formatNumber(amount, true)}`, 'crit');
       GK.cosmetics.clickBurst(pos.x, pos.y, { crit: true });
       GK.fx.burst(pos.x, pos.y, { count: 10, kind: 'sparkle', speed: 400 });
     } else {
       GK.sound.play('click');
-      GK.fx.pulse(coin, 'coin-hit');
-      showFloatingText(pos, '+' + GK.formatNumber(amount, true), combo.count >= 25 ? 'hot' : '');
+      bounceCoin(coin, false);
+      showFloatingText(local, '+' + GK.formatNumber(amount, true), combo.count >= 25 ? 'hot' : '');
       // Klick-Effekt aus der Schatzkammer (im Klickfieber und bei hoher Combo mehr)
       const fever = GK.progress.buffMult('click') > 1;
       GK.cosmetics.clickBurst(pos.x, pos.y, { hot: fever || combo.count >= 50 });
@@ -323,6 +325,30 @@ window.GK = window.GK || {};
       GK.fx.burst(c.x, c.y, { count: 12, kind: 'sparkle', speed: 500 });
     }
     renderCombo();
+  }
+
+  // Die Münze federt beim Tippen. Mit Web Animations statt CSS-Klassen: Es bleibt keine Klasse hängen
+  // (früher blieb nach einem kritischen Treffer die Münze „stecken“), der Browser muss kein Layout
+  // erzwingen, und das Schweben (CSS, eigene translate-Eigenschaft) läuft ungestört weiter.
+  const COIN_HIT = [
+    { transform: 'scale(1)' },
+    { transform: 'scale(0.9) rotate(-3deg)', offset: 0.4 },
+    { transform: 'scale(1)' },
+  ];
+  const COIN_CRIT = [
+    { transform: 'scale(1)', filter: 'brightness(1)' },
+    { transform: 'scale(0.84) rotate(-8deg)', filter: 'brightness(1.6) saturate(1.4)', offset: 0.3 },
+    { transform: 'scale(1.08) rotate(5deg)', filter: 'brightness(1.2) saturate(1.1)', offset: 0.6 },
+    { transform: 'scale(1)', filter: 'brightness(1)' },
+  ];
+  const reducedMotion = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+  let coinAnimation = null;
+
+  function bounceCoin(coin, crit) {
+    if (!coin.animate || GK.state.settings.effects === 'reduced' || reducedMotion.matches) return;
+    // Ein laufendes Federn wird abgelöst, damit sich nichts aufstaut
+    if (coinAnimation) coinAnimation.cancel();
+    coinAnimation = coin.animate(crit ? COIN_CRIT : COIN_HIT, { duration: crit ? 350 : 180, easing: 'ease-out' });
   }
 
   function buyBuilding(building) {
@@ -404,8 +430,10 @@ window.GK = window.GK || {};
 
   // ---------- Darstellung ----------
 
+  // Einmal angelegt: toLocaleString mit Optionen baut sonst bei jedem Aufruf ein neues Format (langsam)
+  const factorFormat = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 2 });
   function formatFactor(f) {
-    return f.toLocaleString('de-DE', { maximumFractionDigits: 2 });
+    return factorFormat.format(f);
   }
 
   function layerPos(pos) {
@@ -413,9 +441,9 @@ window.GK = window.GK || {};
     return { x: pos.x - rect.left, y: pos.y - rect.top };
   }
 
-  function showFloatingText(pos, text, cls) {
+  // p: Position innerhalb der Ebene über der Münze (siehe layerPos)
+  function showFloatingText(p, text, cls) {
     const layer = document.getElementById('float-layer');
-    const p = layerPos(pos);
     const el = document.createElement('div');
     el.className = 'float-text ' + (cls || '');
     el.textContent = text;
@@ -426,10 +454,9 @@ window.GK = window.GK || {};
   }
 
   // Ring, der sich von der Tipp-Stelle ausbreitet
-  function showClickRing(pos) {
+  function showClickRing(p) {
     if (GK.state.settings.effects === 'reduced') return;
     const layer = document.getElementById('float-layer');
-    const p = layerPos(pos);
     const el = document.createElement('div');
     el.className = 'click-ring';
     el.style.left = p.x + 'px';
@@ -448,9 +475,11 @@ window.GK = window.GK || {};
       return;
     }
     const cap = comboCap();
-    el.querySelector('.combo-count').textContent = `🔥 Combo ${combo.count}`;
-    el.querySelector('.combo-mult').textContent = `×${formatFactor(comboMult())}`;
-    el.querySelector('.combo-fill').style.width = (comboBonus() / cap * 100) + '%';
+    GK.setText(el.querySelector('.combo-count'), `🔥 Combo ${combo.count}`);
+    GK.setText(el.querySelector('.combo-mult'), `×${formatFactor(comboMult())}`);
+    const width = (comboBonus() / cap * 100) + '%';
+    const fill = el.querySelector('.combo-fill');
+    if (fill.style.width !== width) fill.style.width = width;
     el.classList.toggle('maxed', comboBonus() >= cap);
   }
 
@@ -509,16 +538,17 @@ window.GK = window.GK || {};
       const cost = buildingCost(b, count, buyAmount);
       els.root.classList.toggle('mystery', mystery);
       els.root.disabled = !GK.canAfford(cost);
-      els.icon.textContent = mystery ? '❓' : b.icon;
-      els.name.firstChild.textContent = mystery ? '??? ' : b.name + ' ';
-      els.desc.textContent = mystery ? 'Noch unbekannt' : b.desc;
-      els.cost.innerHTML = GK.COIN + ' ' + GK.formatNumber(cost);
-      els.owned.textContent = count || '';
-      els.meta.textContent = mystery
+      GK.setText(els.icon, mystery ? '❓' : b.icon);
+      const name = mystery ? '??? ' : b.name + ' ';
+      if (els.name.firstChild.data !== name) els.name.firstChild.data = name;
+      GK.setText(els.desc, mystery ? 'Noch unbekannt' : b.desc);
+      GK.setHTML(els.cost, GK.COIN + ' ' + GK.formatNumber(cost));
+      GK.setText(els.owned, count || '');
+      GK.setText(els.meta, mystery
         ? ''
         : `+${GK.formatNumber(buildingCps(b), true)}/s pro Stück` +
           (count ? ` · gesamt ${GK.formatNumber(buildingCps(b) * count, true)}/s` : '') +
-          (passiveActive() ? '' : ' · pausiert');
+          (passiveActive() ? '' : ' · pausiert'));
 
       // Sterne für gekaufte Gebäude-Upgrades (Farbe je Stufe)
       const stars = BUILDING_TIERS.map((t, k) => (has(`${b.id}-${k + 1}`) ? `<i class="star rarity-${t.rarity}">★</i>` : '')).join('') +
@@ -533,11 +563,13 @@ window.GK = window.GK || {};
       if (!mystery && count) {
         if (nextTier) {
           const from = prevOwned ? prevOwned.owned : 0;
-          els.fill.style.width = ((count - from) / (nextTier.owned - from) * 100) + '%';
-          els.fill.className = `building-progress-fill rarity-${nextTier.rarity}`;
-          els.next.textContent = `Noch ${nextTier.owned - count} bis zum ${nextTier.name}-Upgrade (×${nextTier.value})`;
+          const width = ((count - from) / (nextTier.owned - from) * 100) + '%';
+          if (els.fill.style.width !== width) els.fill.style.width = width;
+          const cls = `building-progress-fill rarity-${nextTier.rarity}`;
+          if (els.fill.className !== cls) els.fill.className = cls;
+          GK.setText(els.next, `Noch ${nextTier.owned - count} bis zum ${nextTier.name}-Upgrade (×${nextTier.value})`);
         } else {
-          els.next.textContent = '✨ Alle Stufen freigeschaltet';
+          GK.setText(els.next, '✨ Alle Stufen freigeschaltet');
         }
       }
     });

@@ -6,6 +6,7 @@ global.document = { addEventListener() {}, querySelector() { return null; } };
 global.location = { search: '', pathname: '/', origin: '', hash: '' };
 global.history = { replaceState() {} };
 const R = require('path').join(__dirname, '..', 'js') + '/';
+require(R + 'format.js');
 require(R + 'state.js');
 require(R + 'casino/casino.js');
 require(R + 'casino/chicken.js');

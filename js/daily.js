@@ -281,6 +281,9 @@ window.GK = window.GK || {};
     badge.textContent = n;
   }
 
+  // Die Karten werden nur neu gebaut, wenn sich Aufgaben, Zustand oder Belohnung ändern. Der Fortschritt
+  // (Balken und Zahl) wird an Ort und Stelle aktualisiert – sonst würde z. B. „Verdiene …“ die Karten
+  // 10× pro Sekunde ersetzen, und ein Tipp auf „Abholen“ ginge ins Leere.
   function render() {
     const list = document.getElementById('daily-tasks');
     if (!list) return;
@@ -288,14 +291,12 @@ window.GK = window.GK || {};
     const rewardNow = reward();
     const html = d.tasks.map((t, i) => {
       const def = DEFS[t.id];
-      const pct = Math.min(100, (t.progress / t.target) * 100);
-      const count = `${GK.formatNumber(Math.floor(t.progress))} / ${GK.formatNumber(t.target)}`;
       return `<div class="daily-task ${t.done ? 'done' : ''} ${t.claimed ? 'claimed' : ''}">
         <div class="daily-icon">${def.icon}</div>
         <div class="daily-body">
           <div class="daily-text">${def.text(t)}</div>
-          <div class="daily-bar"><span style="width:${pct}%"></span></div>
-          <div class="daily-meta"><span>${count}</span><span>🎁 +${GK.formatMoneyHTML(rewardNow)}</span></div>
+          <div class="daily-bar"><span></span></div>
+          <div class="daily-meta"><span class="daily-count"></span><span>🎁 +${GK.formatMoneyHTML(rewardNow)}</span></div>
         </div>
         <button type="button" class="btn ${t.claimed ? '' : 'btn-primary'} daily-claim" data-i="${i}" ${t.done && !t.claimed ? '' : 'disabled'}>${t.claimed ? '✅ Abgeholt' : t.done ? '🎁 Abholen' : '⏳ Offen'}</button>
       </div>`;
@@ -308,13 +309,20 @@ window.GK = window.GK || {};
         <span class="muted small">${streak ? `Serie: ${streak} ${plural(streak, 'Tag', 'Tage')} in Folge` : 'Schaff alle drei an mehreren Tagen hintereinander – der Bonus wächst!'}${bonusMult() > 1 ? ` (Bonus +${Math.round((bonusMult() - 1) * 100)} %)` : ''}</span>
       </div>
       <button type="button" class="btn ${bonusDone ? '' : 'btn-primary'} daily-bonus-btn" ${allClaimed && !bonusDone ? '' : 'disabled'}>${bonusDone ? '✅ Abgeholt' : '🎁 Bonus abholen'}</button>`;
-    const reset = `Neue Aufgaben in ${GK.formatDuration(Math.max(60, Math.ceil(msUntilTomorrow() / 60000) * 60))}`;
-    const full = html + '|' + bonus + '|' + reset;
-    if (full === lastHtml) return;
-    lastHtml = full;
-    list.innerHTML = html;
-    document.getElementById('daily-bonus').innerHTML = bonus;
-    document.getElementById('daily-reset').textContent = reset;
+    if (html !== lastHtml) {
+      lastHtml = html;
+      list.innerHTML = html;
+    }
+    GK.setHTML(document.getElementById('daily-bonus'), bonus);
+    GK.setText(document.getElementById('daily-reset'), `Neue Aufgaben in ${GK.formatDuration(Math.max(60, Math.ceil(msUntilTomorrow() / 60000) * 60))}`);
+    d.tasks.forEach((t, i) => {
+      const card = list.children[i];
+      if (!card) return;
+      const width = Math.min(100, (t.progress / t.target) * 100) + '%';
+      const bar = card.querySelector('.daily-bar span');
+      if (bar.style.width !== width) bar.style.width = width;
+      GK.setText(card.querySelector('.daily-count'), `${GK.formatNumber(Math.floor(t.progress))} / ${GK.formatNumber(t.target)}`);
+    });
   }
 
   function onClick(e) {

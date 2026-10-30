@@ -121,7 +121,7 @@ window.GK = window.GK || {};
   // ---------- Darstellung ----------
 
   function fmt(m) {
-    return m >= 1000 ? GK.formatNumber(Math.floor(m)) : m.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return m >= 1000 ? GK.formatNumber(Math.floor(m)) : GK.formatDecimal(m, 2, 2);
   }
 
   function render() {

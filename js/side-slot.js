@@ -102,11 +102,11 @@ window.GK = window.GK || {};
     if (!root) return;
     const s = state();
     if (s.bet > GK.casino.maxBet()) s.bet = allowedSteps().pop();
-    els.bet.innerHTML = GK.formatMoneyHTML(s.bet);
+    GK.setHTML(els.bet, GK.formatMoneyHTML(s.bet));
     els.spin.disabled = spinning || auto;
     els.minus.disabled = auto || spinning;
     els.plus.disabled = auto || spinning;
-    els.auto.textContent = auto ? '⏹ Stopp' : '🔁 Auto';
+    GK.setText(els.auto, auto ? '⏹ Stopp' : '🔁 Auto');
     els.auto.classList.toggle('active', auto);
     els.spin.classList.toggle('cant-afford', !GK.canAfford(s.bet));
   }

@@ -124,7 +124,7 @@ window.GK = window.GK || {};
   }
 
   function formatMult(m) {
-    return m.toLocaleString('de-DE', { maximumFractionDigits: 2 });
+    return GK.formatDecimal(m, 0, 2);
   }
 
   // ---------- Offline-Einnahmen ----------
@@ -204,39 +204,47 @@ window.GK = window.GK || {};
 
   // ---------- Darstellung ----------
 
+  // Die Buff-Anzeigen bleiben bestehen, nur die Restzeit ändert sich – sonst begänne ihr Leuchten
+  // 10× pro Sekunde von vorn
   function renderBuffBar() {
     const bar = document.getElementById('buff-bar');
     const now = Date.now();
-    bar.innerHTML = activeBuffs().map(b => {
+    const buffs = activeBuffs();
+    const ids = buffs.map(b => b.id).join();
+    if (bar._ids !== ids) {
+      bar._ids = ids;
+      bar.innerHTML = buffs.map(() => '<span class="buff"></span>').join('');
+    }
+    buffs.forEach((b, i) => {
       const def = BUFFS[b.id];
-      return `<span class="buff">${def.icon} ${def.name} ×${def.mult} · ${Math.ceil((b.until - now) / 1000)} s</span>`;
-    }).join('');
+      GK.setText(bar.children[i], `${def.icon} ${def.name} ×${def.mult} · ${Math.ceil((b.until - now) / 1000)} s`);
+    });
   }
 
   function renderProgressTab() {
     const s = GK.state;
     const gain = pendingPoints();
     const blocker = prestigeBlocker();
-    document.getElementById('prestige-stats').innerHTML = `
+    GK.setHTML(document.getElementById('prestige-stats'), `
       <dt>Schatzkarten</dt><dd>🗺️ ${GK.formatNumber(s.prestige.points)}</dd>
       <dt>Bonus durch Schatzkarten</dt><dd>+${GK.formatNumber(s.prestige.points * PRESTIGE_BONUS * 100)} %</dd>
       <dt>Große Fahrten</dt><dd>${GK.formatNumber(s.prestige.journeys)}</dd>
       <dt>Insgesamt verdient</dt><dd>${GK.formatMoneyHTML(s.allTimeEarned)}</dd>
-      <dt>Nächste Schatzkarte ab</dt><dd>${GK.formatMoneyHTML(nextPointAt())}</dd>`;
+      <dt>Nächste Schatzkarte ab</dt><dd>${GK.formatMoneyHTML(nextPointAt())}</dd>`);
     const btn = document.getElementById('prestige-btn');
     btn.disabled = gain < 1 || !!blocker;
-    btn.textContent = gain >= 1 ? `⛵ Auf große Fahrt gehen (+${gain} Schatzkarte${gain === 1 ? '' : 'n'})` : '⛵ Auf große Fahrt gehen';
-    document.getElementById('prestige-hint').textContent = gain < 1
+    GK.setText(btn, gain >= 1 ? `⛵ Auf große Fahrt gehen (+${gain} Schatzkarte${gain === 1 ? '' : 'n'})` : '⛵ Auf große Fahrt gehen');
+    GK.setText(document.getElementById('prestige-hint'), gain < 1
       ? 'Verdiene insgesamt mehr Dublonen, um deine erste bzw. nächste Schatzkarte zu bekommen.'
-      : blocker;
+      : blocker);
 
     const buffs = activeBuffs();
-    document.getElementById('bonus-stats').innerHTML = `
+    GK.setHTML(document.getElementById('bonus-stats'), `
       <dt>🗺️ Schatzkarten</dt><dd>×${formatMult(prestigeMult())}</dd>
       <dt>🏆 Erfolge (${s.achievements.length})</dt><dd>×${formatMult(achievementMult())}</dd>
       ${buffs.map(b => `<dt>${BUFFS[b.id].icon} ${BUFFS[b.id].name}</dt><dd>×${b.mult} (${BUFFS[b.id].type === 'click' ? 'Klicks' : 'Einkommen'})</dd>`).join('')}
       <dt>Gesamt-Bonus Einkommen</dt><dd>×${formatMult(permanentMult() * buffMult('income'))}</dd>
-      <dt>Offline-Einnahmen</dt><dd>${OFFLINE_RATE * 100} %, max. 8 Std.</dd>`;
+      <dt>Offline-Einnahmen</dt><dd>${OFFLINE_RATE * 100} %, max. 8 Std.</dd>`);
   }
 
   function init() {

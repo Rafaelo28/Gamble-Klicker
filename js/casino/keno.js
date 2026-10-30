@@ -163,7 +163,7 @@ window.GK = window.GK || {};
 
   // ---------- Darstellung ----------
 
-  const fmtMult = m => (m >= 1000 ? GK.formatNumber(m) : m.toLocaleString('de-DE', { maximumFractionDigits: 1 }));
+  const fmtMult = m => (m >= 1000 ? GK.formatNumber(m) : GK.formatDecimal(m, 0, 1));
 
   function render() {
     const s = state();

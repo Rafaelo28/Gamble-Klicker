@@ -22,6 +22,13 @@ window.GK = window.GK || {};
   let rainDensity = 0;
   let looping = false;  // während der Schleife entstehen neue Partikel erst danach (z. B. Feuerwerk)
   let queued = [];
+  // Fenstergröße zwischengespeichert: innerWidth/innerHeight in jedem Frame zu lesen kann Layout erzwingen
+  let viewW = 0;
+  let viewH = 0;
+  // Vorgezeichnete Bilder (Münzen je Farbe, Flammen, Emojis): Farbverläufe und Emoji-Schrift
+  // in jedem Frame neu zu berechnen ist auf dem iPad teuer
+  const sprites = new Map();
+  const SPRITE_R = 48;
 
   function reduced() {
     return GK.state.settings.effects === 'reduced';
@@ -29,8 +36,24 @@ window.GK = window.GK || {};
 
   function resize() {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = window.innerWidth * dpr;
-    canvas.height = window.innerHeight * dpr;
+    viewW = window.innerWidth;
+    viewH = window.innerHeight;
+    canvas.width = viewW * dpr;
+    canvas.height = viewH * dpr;
+  }
+
+  // Bild einmal auf eine kleine Zeichenfläche malen und danach nur noch skaliert kopieren
+  function sprite(key, paint) {
+    let c = sprites.get(key);
+    if (!c) {
+      c = document.createElement('canvas');
+      c.width = c.height = SPRITE_R * 2;
+      const sg = c.getContext('2d');
+      sg.translate(SPRITE_R, SPRITE_R);
+      paint(sg, SPRITE_R);
+      sprites.set(key, c);
+    }
+    return c;
   }
 
   function init() {
@@ -158,8 +181,8 @@ window.GK = window.GK || {};
   function loop(now) {
     const dt = Math.min((now - lastTime) / 1000, 0.05);
     lastTime = now;
-    const w = window.innerWidth;
-    const h = window.innerHeight;
+    const w = viewW;
+    const h = viewH;
 
     if (now < rainUntil) {
       const n = rainDensity * dt * 3;
@@ -249,23 +272,31 @@ window.GK = window.GK || {};
     return Math.max(0, Math.min(1, (p.maxLife - p.life) / 0.5));
   }
 
+  function coinSprite(colors) {
+    return sprite('coin|' + colors.join(), (sg, r) => {
+      const size = r / 1.08; // Platz für den Rand
+      const grad = sg.createRadialGradient(-size * 0.3, -size * 0.3, 1, 0, 0, size);
+      grad.addColorStop(0, colors[0]);
+      grad.addColorStop(0.45, colors[1]);
+      grad.addColorStop(1, colors[2]);
+      sg.fillStyle = grad;
+      sg.beginPath();
+      sg.arc(0, 0, size, 0, Math.PI * 2);
+      sg.fill();
+      sg.lineWidth = size * 0.15;
+      sg.strokeStyle = colors[3];
+      sg.stroke();
+    });
+  }
+
   function drawCoin(p) {
     const squash = Math.abs(Math.cos(p.spin)); // dreht sich um die eigene Achse
+    const r = p.size * 1.08;
     g.save();
     g.globalAlpha = fade(p);
     g.translate(p.x, p.y);
     g.scale(Math.max(squash, 0.12), 1);
-    const grad = g.createRadialGradient(-p.size * 0.3, -p.size * 0.3, 1, 0, 0, p.size);
-    grad.addColorStop(0, p.colors[0]);
-    grad.addColorStop(0.45, p.colors[1]);
-    grad.addColorStop(1, p.colors[2]);
-    g.fillStyle = grad;
-    g.beginPath();
-    g.arc(0, 0, p.size, 0, Math.PI * 2);
-    g.fill();
-    g.lineWidth = p.size * 0.15;
-    g.strokeStyle = p.colors[3];
-    g.stroke();
+    g.drawImage(coinSprite(p.colors), -r, -r, r * 2, r * 2);
     g.restore();
   }
 
@@ -318,14 +349,18 @@ window.GK = window.GK || {};
   }
 
   function drawEmoji(p) {
+    const img = sprite('emoji|' + p.char, (sg, r) => {
+      sg.font = `${r * 1.5}px ${EMOJI_FONT}`;
+      sg.textAlign = 'center';
+      sg.textBaseline = 'middle';
+      sg.fillText(p.char, 0, 0);
+    });
+    const r = p.size / 1.5; // Schriftgröße p.size entspricht 1,5 × Radius des Bildes
     g.save();
     g.globalAlpha = fade(p);
     g.translate(p.x, p.y);
     g.rotate(p.rot);
-    g.font = `${p.size}px ${EMOJI_FONT}`;
-    g.textAlign = 'center';
-    g.textBaseline = 'middle';
-    g.fillText(p.char, 0, 0);
+    g.drawImage(img, -r, -r, r * 2, r * 2);
     g.restore();
   }
 
@@ -334,17 +369,21 @@ window.GK = window.GK || {};
     const s = p.size * (1 - t * 0.7);
     const inner = t < 0.35 ? '255, 245, 190' : t < 0.65 ? '255, 170, 60' : '235, 80, 30';
     const outer = t < 0.5 ? '255, 120, 20' : '190, 40, 20';
+    const img = sprite(`flame|${inner}|${outer}`, (sg, r) => {
+      const grad = sg.createRadialGradient(0, 0, 0, 0, 0, r);
+      grad.addColorStop(0, `rgba(${inner}, 0.95)`);
+      grad.addColorStop(0.5, `rgba(${outer}, 0.55)`);
+      grad.addColorStop(1, `rgba(${outer}, 0)`);
+      sg.fillStyle = grad;
+      sg.beginPath();
+      sg.arc(0, 0, r, 0, Math.PI * 2);
+      sg.fill();
+    });
+    if (s <= 0) return;
     g.save();
     g.globalCompositeOperation = 'lighter';
     g.globalAlpha = Math.max(0, 1 - t);
-    const grad = g.createRadialGradient(p.x, p.y, 0, p.x, p.y, s);
-    grad.addColorStop(0, `rgba(${inner}, 0.95)`);
-    grad.addColorStop(0.5, `rgba(${outer}, 0.55)`);
-    grad.addColorStop(1, `rgba(${outer}, 0)`);
-    g.fillStyle = grad;
-    g.beginPath();
-    g.arc(p.x, p.y, s, 0, Math.PI * 2);
-    g.fill();
+    g.drawImage(img, p.x - s, p.y - s, s * 2, s * 2);
     g.restore();
   }
 
@@ -374,11 +413,27 @@ window.GK = window.GK || {};
   }
 
   // Element kurz hüpfen/leuchten lassen (CSS-Klasse wird neu gestartet)
+  // Kurze CSS-Animation über eine Klasse abspielen. Die Klasse wird danach wieder entfernt – sonst
+  // sammeln sich Klassen an und blockieren sich gegenseitig (z. B. „gekauft“ nach „verstärkt“).
+  // Ein Layout wird nur erzwungen, wenn dieselbe Animation gerade noch läuft und neu starten soll.
   function pulse(el, cls = 'fx-pulse') {
     if (!el) return;
-    el.classList.remove(cls);
-    void el.offsetWidth;
+    if (el.classList.contains(cls)) {
+      el.classList.remove(cls);
+      void el.offsetWidth;
+    }
     el.classList.add(cls);
+    const done = el._pulseDone || (el._pulseDone = {});
+    if (done[cls]) return;
+    done[cls] = e => {
+      if (e.target !== el) return;
+      el.classList.remove(cls);
+      el.removeEventListener('animationend', done[cls]);
+      el.removeEventListener('animationcancel', done[cls]);
+      delete done[cls];
+    };
+    el.addEventListener('animationend', done[cls]);
+    el.addEventListener('animationcancel', done[cls]);
   }
 
   function shake(strength = 'small') {
