@@ -478,12 +478,18 @@ Einsatz verloren geht.
   Schatzkarten AG, Kraken-Versicherung …) mit Kursen, die sich jede Sekunde bewegen; Verlauf der letzten 12 Minuten
   als Kurve, Kauf- und Verkaufskurs, eigenes Depot mit Wert und Gewinn/Verlust, Hafen-Nachrichten.
 - Gekauft wird ein Betrag (Einsatz-Limit der VIP-Karte), verkauft die Hälfte oder alles; jeder Verkauf ist eine Runde.
-- **Man macht fast immer Verlust** (Wunsch): Die Kurse fallen im Schnitt (je nach Firma ruhig, mittel oder wild),
-  Nachrichten lassen sie springen – öfter nach unten als nach oben –, und Kaufkurs (×1,02) und Verkaufskurs (×0,99)
-  liegen auseinander. Simuliert: 1–20 Minuten halten bringt in 1,5–2,5 % der Fälle Gewinn, selbst wer jede kleine
-  Spitze (+1 %) sofort mitnimmt, gewinnt nur in etwa 10 % der Fälle. Im Spiel steht davon nichts.
-- Fällt ein Kurs unter 6 % des Ausgabekurses, geht die Firma **pleite**: Anteile wertlos (verlorene Runde, Meldung),
-  eine neue Firma kommt an die Börse. Die Kurse laufen weiter, auch wenn das Spiel zu ist (bis 8 Stunden nachgerechnet).
+- **Man macht fast immer Verlust** (Wunsch) – aber es soll nicht danach aussehen:
+  - *Ohne eigene Anteile* schwankt ein Kurs um einen langsam wandernden Mittelwert (mal hoch, mal runter,
+    Nachrichten eher gut). Über 12 Minuten steigt etwa jeder zweite Kurs, Ausschläge von −20 % bis +27 %.
+  - *Mit eigenen Anteilen* geht es bergab, Nachrichten sind eher schlecht – nur in der ersten Minute nach dem
+    (ersten) Kauf noch ohne Trend, damit das Depot auch mal grün wird. Nach dem Verkauf erholt sich der Kurs meist.
+  - Dazu liegen Kaufkurs (×1,02) und Verkaufskurs (×0,99) auseinander.
+  - Simuliert: Das Depot steht in 25–40 % der Käufe zwischendurch im Plus; 1–20 Minuten halten bringt nur in
+    etwa 1 % der Fälle Gewinn; wer jede Spitze ab +1 % sofort mitnimmt und bei −5 % aussteigt, gewinnt in
+    12–24 % der Fälle, liegt im Schnitt aber trotzdem im Minus. Im Spiel steht davon nichts.
+- Fällt ein Kurs unter 6 % des Ausgabekurses (nur mit eigenen Anteilen möglich), geht die Firma **pleite**:
+  Anteile wertlos (verlorene Runde, Meldung), eine neue Firma kommt an die Börse. Die Kurse laufen weiter, auch
+  wenn das Spiel zu ist (bis 8 Stunden nachgerechnet).
 - Große Fahrt erst, wenn das Depot leer ist. Neue Erfolge: „Wolf vom Hafen“ (mit Gewinn verkauft), „Totalverlust“.
 
 ## Entscheidungen

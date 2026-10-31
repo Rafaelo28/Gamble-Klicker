@@ -1,6 +1,8 @@
 // Hafenbörse: Anteile an Hafen-Firmen kaufen und (hoffentlich teurer) wieder verkaufen.
-// Die Kurse bewegen sich jede Sekunde – mit Ausschlägen nach oben und unten und Nachrichten, die einen
-// Kurs springen lassen. Auf Dauer geht es aber bergab, und Kauf- und Verkaufskurs liegen auseinander:
+// Die Kurse bewegen sich jede Sekunde, Nachrichten lassen sie springen. Solange man an einer Firma keine
+// Anteile hat, schwankt ihr Kurs um einen langsam wandernden Mittelwert – mal geht es hoch, mal runter,
+// Nachrichten sind eher gut. Sobald man Anteile hat, geht es im Schnitt bergab und Nachrichten sind eher
+// schlecht; nach dem Verkauf erholt sich der Kurs wieder. Dazu liegen Kauf- und Verkaufskurs auseinander:
 // Wer kauft, liegt fast immer im Minus. Fällt ein Kurs zu tief, geht die Firma pleite (Anteile wertlos)
 // und eine neue kommt an die Börse.
 // Die Kurse laufen weiter, auch wenn das Spiel geschlossen ist (beim Öffnen wird nachgerechnet, bis 8 Std.).
@@ -16,14 +18,25 @@ window.GK = window.GK || {};
   const HISTORY_EVERY = 5;   // Sekunden
   const MAX_CATCH_UP = 8 * 3600;
   const LISTED = 6;          // so viele Firmen gleichzeitig an der Börse
-  const UP_SHARE = 0.35;     // Anteil der Nachrichten, die einen Kurs steigen lassen
 
-  // Kursverhalten je Sekunde: Schwankung, Trend und Chance auf eine Nachricht (Kurssprung)
+  // Kursverhalten je Sekunde.
+  // Ohne eigene Anteile: Der Kurs schwankt (sigma) um einen Mittelwert und findet zu ihm zurück (theta).
+  // Mit eigenen Anteilen: Abwärtstrend (drift) mit etwas Schwankung (heldSigma) – nur in der ersten Minute
+  // nach dem Kauf noch ohne Trend (honey), damit es auch mal nach Gewinn aussieht.
+  // jump: Chance auf eine Nachricht (Kurssprung) pro Sekunde.
   const PROFILES = {
-    calm:  { name: 'ruhig',  sigma: 0.0016, drift: -0.00022, jump: 0.0006 },
-    mid:   { name: 'mittel', sigma: 0.0026, drift: -0.00036, jump: 0.0010 },
-    wild:  { name: 'wild',   sigma: 0.0038, drift: -0.00060, jump: 0.0016 },
+    calm: { name: 'ruhig',  theta: 1 / 1500, sigma: 0.0030, heldSigma: 0.0025, drift: -0.00030, honey: 0, jump: 0.0010 },
+    mid:  { name: 'mittel', theta: 1 / 1500, sigma: 0.0045, heldSigma: 0.0032, drift: -0.00045, honey: 0, jump: 0.0012 },
+    wild: { name: 'wild',   theta: 1 / 1500, sigma: 0.0065, heldSigma: 0.0040, drift: -0.00090, honey: 0, jump: 0.0015 },
   };
+  const HONEYMOON = 60; // Sekunden nach dem ersten Kauf
+  // Der Mittelwert wandert langsam (je √Sekunde), bleibt aber zwischen 50 % und 250 % des Ausgabekurses
+  const ANCHOR_SIGMA = 0.0006;
+  const ANCHOR_MIN = 0.5;
+  const ANCHOR_MAX = 2.5;
+  // Nachrichten: Anteil der guten und Größe der Sprünge – ohne und mit eigenen Anteilen
+  const NEWS_FREE = { up: 0.6, upSize: [0.05, 0.15], downSize: [0.05, 0.13] };
+  const NEWS_HELD = { up: 0.3, upSize: [0.03, 0.08], downSize: [0.08, 0.22] };
 
   const COMPANIES = [
     { id: 'rum',      emoji: '🥃', name: 'Rum-Brennerei Tortuga', profile: 'calm' },
@@ -81,19 +94,37 @@ window.GK = window.GK || {};
     return k;
   }
 
-  // Kurs um n Sekunden weiterrechnen. Gibt die letzte Nachricht zurück (oder null)
-  function step(stock, n) {
+  // Wie weit der Kurs ohne Anteile typischerweise vom Mittelwert abweicht (als Logarithmus)
+  const spread = pr => pr.sigma / Math.sqrt(2 * pr.theta);
+
+  // Kurs um n Sekunden weiterrechnen. mode: 'free' (keine Anteile), 'new' (gerade gekauft) oder 'held'.
+  // Gibt die letzte Nachricht zurück (oder null)
+  function step(stock, n, mode) {
     const pr = PROFILES[stock.profile];
-    let lr = pr.drift * n + pr.sigma * Math.sqrt(n) * gauss();
+    if (!stock.anchor) stock.anchor = stock.ipo; // ältere Spielstände
+    let x = Math.log(stock.price / stock.anchor);
+    const held = mode === 'held';
+    if (mode === 'new' || held) {
+      x += (held ? pr.drift : pr.honey) * n + pr.heldSigma * Math.sqrt(n) * gauss();
+    } else {
+      // Der Mittelwert wandert ein wenig, der Kurs findet zu ihm zurück (genau gerechnet für n Sekunden)
+      const a = Math.min(stock.ipo * ANCHOR_MAX, Math.max(stock.ipo * ANCHOR_MIN, stock.anchor * Math.exp(ANCHOR_SIGMA * Math.sqrt(n) * gauss())));
+      x += Math.log(stock.anchor / a);
+      stock.anchor = a;
+      const k = Math.exp(-pr.theta * n);
+      x = x * k + pr.sigma * Math.sqrt((1 - k * k) / (2 * pr.theta)) * gauss();
+    }
+    const kind = held ? NEWS_HELD : NEWS_FREE;
     const jumps = n === 1 ? (GK.rng.float() < pr.jump ? 1 : 0) : poisson(pr.jump * n);
     let news = null;
     for (let j = 0; j < jumps; j++) {
-      const up = GK.rng.float() < UP_SHARE;
-      const size = up ? 0.06 + 0.16 * GK.rng.float() : -(0.08 + 0.22 * GK.rng.float());
-      lr += Math.log(1 + size);
+      const up = GK.rng.float() < kind.up;
+      const [lo, hi] = up ? kind.upSize : kind.downSize;
+      const size = (up ? 1 : -1) * (lo + (hi - lo) * GK.rng.float());
+      x += Math.log(1 + size);
       news = { up, size };
     }
-    stock.price *= Math.exp(lr);
+    stock.price = stock.anchor * Math.exp(x);
     return news;
   }
 
@@ -103,17 +134,19 @@ window.GK = window.GK || {};
     const free = COMPANIES.filter(c => !listedIds.includes(c.id));
     const c = free[GK.rng.int(free.length)];
     const ipo = 40 + GK.rng.int(461);
-    return { uid: `${c.id}-${now.toString(36)}-${GK.rng.int(1296).toString(36)}`, id: c.id, emoji: c.emoji, name: c.name, profile: c.profile, price: ipo, ipo, hist: [ipo] };
+    return { uid: `${c.id}-${now.toString(36)}-${GK.rng.int(1296).toString(36)}`, id: c.id, emoji: c.emoji, name: c.name, profile: c.profile, price: ipo, ipo, anchor: ipo, hist: [ipo] };
   }
 
-  // Ein Kauf, eine Zeit lang halten, verkaufen – für Tests: Rendite (−1 = alles verloren)
-  function simulateTrade(profile, seconds, takeProfit) {
-    const stock = { profile, price: 100, ipo: 100 };
-    const cost = 100 * BUY;
+  // Ein Kauf, eine Zeit lang halten, verkaufen – für Tests: Rendite (−1 = alles verloren).
+  // takeProfit: verkaufen, sobald so viel Gewinn erreicht ist; stopLoss: verkaufen, sobald so viel Verlust erreicht ist
+  function simulateTrade(profile, seconds, takeProfit, stopLoss) {
+    const stock = { profile, ipo: 100, anchor: 100, price: 100 * Math.exp(spread(PROFILES[profile]) * gauss()) };
+    const cost = stock.price * BUY;
     for (let t = 0; t < seconds; t++) {
-      step(stock, 1);
+      step(stock, 1, t < HONEYMOON ? 'new' : 'held');
       if (bankrupt(stock)) return -1;
-      if (takeProfit && stock.price * SELL >= cost * (1 + takeProfit)) break;
+      const r = stock.price * SELL / cost - 1;
+      if ((takeProfit && r >= takeProfit) || (stopLoss && r <= -stopLoss)) break;
     }
     return stock.price * SELL / cost - 1;
   }
@@ -161,8 +194,10 @@ window.GK = window.GK || {};
     for (let i = 0; i < LISTED; i++) {
       // Die ersten sechs Firmen der Liste, mit 12 Minuten Vorgeschichte
       const c = newCompany(s.stocks.map(x => x.id).concat(COMPANIES.slice(LISTED).map(x => x.id)), now);
+      c.price = c.anchor * Math.exp(spread(PROFILES[c.profile]) * gauss());
+      c.hist = [c.price];
       for (let k = 1; k < HISTORY; k++) {
-        step(c, HISTORY_EVERY);
+        step(c, HISTORY_EVERY, 'free');
         c.hist.push(c.price);
       }
       if (bankrupt(c)) {
@@ -191,7 +226,8 @@ window.GK = window.GK || {};
       seconds -= chunk;
       const second = Math.floor(s.lastTick / 1000);
       s.stocks.slice().forEach(stock => {
-        const news = step(stock, chunk);
+        const h = s.holdings[stock.uid];
+        const news = step(stock, chunk, !h ? 'free' : s.lastTick - (h.since || 0) < HONEYMOON * 1000 ? 'new' : 'held');
         if (news && chunk === 1) addNews(s, stock, news, s.lastTick);
         if (bankrupt(stock)) {
           goBankrupt(s, stock, s.lastTick);
@@ -220,7 +256,8 @@ window.GK = window.GK || {};
       showMessage('Nicht genug Dublonen für diesen Betrag.', 'loss');
       return;
     }
-    const h = s.holdings[stock.uid] || (s.holdings[stock.uid] = { shares: 0, cost: 0 });
+    // since: erster Kauf (weitere Käufe verlängern die Anfangsphase nicht)
+    const h = s.holdings[stock.uid] || (s.holdings[stock.uid] = { shares: 0, cost: 0, since: s.lastTick });
     h.shares += amount / (stock.price * BUY);
     h.cost += amount;
     GK.save();
