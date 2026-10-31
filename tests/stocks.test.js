@@ -28,38 +28,72 @@ const fast = () => {
 const realRng = GK.rng;
 GK.rng = { float: fast, int: max => Math.floor(fast() * max), weighted: realRng.weighted };
 
-// ---------- Kursmodell: fast immer Verlust ----------
+// ---------- Kursmodell: sieht nach Gewinn aus, bringt aber fast immer Verlust ----------
 {
   const N = 1500;
-  Object.keys(M.PROFILES).forEach(profile => {
-    const run = (f) => {
-      let wins = 0;
-      let sum = 0;
-      for (let i = 0; i < N; i++) {
-        const r = f();
-        if (r > 0) wins++;
-        sum += r;
-      }
-      return { wins: wins / N, mean: sum / N };
-    };
-    const hold = run(() => M.simulateTrade(profile, 60 + Math.floor(fast() * 1140), 0));
-    const quick = run(() => M.simulateTrade(profile, 10, 0));
-    const take = run(() => M.simulateTrade(profile, 1800, 0.01));
-    console.log(`Börse ${profile}: halten 1–20 Min. ${(hold.wins * 100).toFixed(1)} % Gewinn (Schnitt ${(hold.mean * 100).toFixed(0)} %), ` +
-      `Gewinnmitnahme ab +1 % ${(take.wins * 100).toFixed(1)} % Gewinn (Schnitt ${(take.mean * 100).toFixed(0)} %)`);
-    assert(hold.wins < 0.08 && hold.mean < -0.1, `${profile}: Halten bringt fast immer Verlust (${(hold.wins * 100).toFixed(1)} %)`);
-    assert(take.wins < 0.18 && take.mean < -0.2, `${profile}: Auch schnelle Gewinnmitnahme verliert meistens (${(take.wins * 100).toFixed(1)} %)`);
-    assert(quick.wins < 0.03 && quick.mean < -0.02, `${profile}: Sofort wieder verkaufen kostet die Spanne`);
-  });
-  // Firmen gehen irgendwann pleite (wilde schneller)
-  ['calm', 'wild'].forEach(profile => {
-    let bust = 0;
-    for (let i = 0; i < 200; i++) {
-      const st = { profile, price: 100, ipo: 100 };
-      for (let t = 0; t < 6 * 60; t++) M.step(st, 60);
-      if (st.price < st.ipo * M.BANKRUPT) bust++;
+  const run = f => {
+    let wins = 0;
+    let sum = 0;
+    for (let i = 0; i < N; i++) {
+      const r = f();
+      if (r > 0) wins++;
+      sum += r;
     }
-    assert(bust > 160, `${profile}: nach 6 Stunden fast alle pleite (${bust}/200)`);
+    return { wins: wins / N, mean: sum / N };
+  };
+  const pct = x => `${(x * 100).toFixed(1)} %`;
+  Object.keys(M.PROFILES).forEach(profile => {
+    const hold = run(() => M.simulateTrade(profile, 60 + Math.floor(fast() * 1140), 0, 0));
+    const quick = run(() => M.simulateTrade(profile, 10, 0, 0));
+    const take = run(() => M.simulateTrade(profile, 1800, 0.01, 0));
+    const careful = run(() => M.simulateTrade(profile, 1800, 0.01, 0.05));
+    const glimpse = run(() => M.simulateTrade(profile, 1800, 0.0001, 0));
+    console.log(`Börse ${profile}: halten 1–20 Min. ${pct(hold.wins)} Gewinn (Schnitt ${pct(hold.mean)}), ` +
+      `ab +1 % verkaufen ${pct(take.wins)} (Schnitt ${pct(take.mean)}), mit −5 %-Grenze ${pct(careful.wins)} (Schnitt ${pct(careful.mean)}), ` +
+      `zwischendurch im Plus ${pct(glimpse.wins)}`);
+    assert(hold.wins < 0.05 && hold.mean < -0.1, `${profile}: Halten bringt fast immer Verlust (${pct(hold.wins)})`);
+    assert(take.wins < 0.3 && take.mean < -0.2, `${profile}: Auch schnelle Gewinnmitnahme verliert meistens (${pct(take.wins)})`);
+    assert(careful.wins < 0.3 && careful.mean < -0.02, `${profile}: Mit Verlustgrenze im Schnitt trotzdem Minus (${pct(careful.mean)})`);
+    assert(quick.wins < 0.05 && quick.mean < -0.02, `${profile}: Sofort wieder verkaufen kostet die Spanne`);
+    assert(glimpse.wins > 0.15 && glimpse.wins < 0.5, `${profile}: Das Depot steht aber öfter mal im Plus (${pct(glimpse.wins)})`);
+  });
+  // Ohne Anteile: gemischtes Bild – mal hoch, mal runter (nicht alle Kurse im Minus)
+  Object.keys(M.PROFILES).forEach(profile => {
+    let up = 0;
+    let big = 0;
+    for (let i = 0; i < 600; i++) {
+      const st = { profile, ipo: 100, anchor: 100, price: 100 };
+      for (let k = 0; k < 300; k++) M.step(st, 5, 'free');
+      const p0 = st.price;
+      for (let k = 0; k < 144; k++) M.step(st, 5, 'free');
+      if (st.price > p0) up++;
+      if (Math.abs(st.price / p0 - 1) > 0.08) big++;
+    }
+    assert(up > 600 * 0.38 && up < 600 * 0.62, `${profile}: ohne Anteile steigt etwa jeder zweite Kurs in 12 Minuten (${up}/600)`);
+    assert(big > 600 * 0.15, `${profile}: deutliche Ausschläge (${big}/600 über 8 %)`);
+  });
+  // Nach dem Verkauf erholt sich der Kurs meistens; ohne Anteile geht keine Firma pleite, mit Anteilen schon
+  ['calm', 'wild'].forEach(profile => {
+    let recovered = 0;
+    let bustHeld = 0;
+    let bustFree = 0;
+    for (let i = 0; i < 200; i++) {
+      const st = { profile, ipo: 100, anchor: 100, price: 100 };
+      for (let k = 0; k < 600; k++) M.step(st, 1, 'held');
+      const p0 = st.price;
+      for (let k = 0; k < 600; k++) M.step(st, 1, 'free');
+      if (st.price > p0) recovered++;
+      const held = { profile, ipo: 100, anchor: 100, price: 100 };
+      const free = { profile, ipo: 100, anchor: 100, price: 100 };
+      for (let t = 0; t < 6 * 60; t++) {
+        M.step(held, 60, 'held');
+        M.step(free, 60, 'free');
+      }
+      if (held.price < held.ipo * M.BANKRUPT) bustHeld++;
+      if (free.price < free.ipo * M.BANKRUPT) bustFree++;
+    }
+    assert(recovered > 140, `${profile}: nach dem Verkauf erholt sich der Kurs (${recovered}/200)`);
+    assert(bustHeld > 160 && bustFree === 0, `${profile}: pleite nur mit Anteilen (${bustHeld}/200 mit, ${bustFree}/200 ohne)`);
   });
 }
 
@@ -101,8 +135,13 @@ const s = M.state();
   const h = s.holdings[stock.uid];
   assert(GK.state.money === 99000 && c.wagered === wagered0 + 1000, 'Kauf zieht den Betrag ab');
   assert(h && Math.abs(h.shares - 1000 / (stock.price * M.BUY)) < 1e-9 && h.cost === 1000, 'Anteile zum Kaufkurs');
+  const since = s.holdings[stock.uid].since;
+  assert(since === s.lastTick, 'Zeitpunkt des ersten Kaufs gemerkt');
+  s.lastTick += 30000;
+  Date.now = () => s.lastTick;
   M.buy();
   assert(Math.abs(s.holdings[stock.uid].cost - 2000) < 1e-9, 'Zweiter Kauf: Anteile kommen dazu');
+  assert(s.holdings[stock.uid].since === since, 'Weitere Käufe verlängern die Anfangsphase nicht');
   const shares = s.holdings[stock.uid].shares;
   const rounds = c.rounds;
   M.sell(0.5);
