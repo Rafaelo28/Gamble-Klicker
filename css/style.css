@@ -4385,6 +4385,190 @@ body.reduced-effects .golden-coin {
   text-align: center;
 }
 
+/* ---------- Hafenbörse ---------- */
+.stocks-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.stocks-list {
+  display: grid;
+  gap: 8px;
+}
+
+.stock-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "emoji name price"
+    "spark spark change";
+  align-items: center;
+  gap: 2px 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.22);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.stock-card.active {
+  border-color: var(--gold);
+  background: rgba(245, 197, 66, 0.1);
+}
+
+.stock-emoji {
+  grid-area: emoji;
+  font-size: 1.6rem;
+}
+
+.stock-name {
+  grid-area: name;
+  min-width: 0;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.stock-own {
+  display: block;
+  color: var(--gold-light);
+  font-weight: 600;
+}
+
+.stock-own:empty {
+  display: none;
+}
+
+.stock-price {
+  grid-area: price;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.stock-change {
+  grid-area: change;
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.stock-spark {
+  grid-area: spark;
+  display: block;
+  width: 100%;
+  height: 30px;
+}
+
+.stock-change.up,
+.stock-big-change.up,
+.stock-news li.up b {
+  color: #6fdc8c;
+}
+
+.stock-change.down,
+.stock-big-change.down,
+.stock-news li.down b {
+  color: #ff6b5e;
+}
+
+.stocks-detail {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.stock-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+
+.stock-title {
+  margin: 0;
+  color: var(--gold);
+  font-size: 1.15rem;
+}
+
+.stock-big-price {
+  font-size: 1.7rem;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.stock-big-change {
+  font-weight: 700;
+}
+
+.stock-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 10px 0 6px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.stock-quotes,
+.stock-holding,
+.stock-depot {
+  margin: 6px 0;
+  text-align: center;
+}
+
+.stock-news-title {
+  margin: 16px 0 4px;
+  color: var(--gold);
+}
+
+.stock-news {
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.stock-news li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 0.9rem;
+}
+
+.stock-news li b {
+  white-space: nowrap;
+}
+
+/* iPad hochkant und schmaler: Liste oben (zwei Spalten), darunter die Firma */
+@media (max-width: 900px) {
+  .stocks-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .stocks-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .stocks-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* ---------- Schatzinsel ---------- */
 .mines-island {
   flex: 1 1 340px;

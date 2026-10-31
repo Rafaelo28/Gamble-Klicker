@@ -20,6 +20,7 @@ Schatztruhe voll ist, wartet das Casino:
   sichere Insel; auszahlen nach jedem Schritt, vier Schwierigkeiten von *Leicht* bis *Wahnsinn*
 - 🧗 **Mast-Kletterei** – Stufe für Stufe bis ins Krähennest, aber welches Seil hält?
 - 🗺️ **Schatzkarten-Keno** – 1 bis 10 Inseln markieren, 10 Schatzinseln werden gezogen
+- 📈 **Hafenbörse** – Anteile an Hafen-Firmen kaufen und verkaufen: Kurse in Echtzeit, Nachrichten, Pleiten
 - 🔼 **Höher oder tiefer** – ist die nächste Karte höher oder tiefer? Jeder richtige Tipp lässt den Gewinn wachsen
 - 🎴 **Baccarat** – Spieler, Bank oder Unentschieden: wer näher an 9 kommt, gewinnt
 - 🎡 **Roulette** – Rot oder Schwarz? Oder alles auf die 17?

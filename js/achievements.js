@@ -67,6 +67,8 @@ window.GK = window.GK || {};
     { id: 'chickenGoal', icon: '🐔', name: 'Über die Straße',       desc: 'Bei Chicken Road das Huhn über alle 20 Spuren ins Ziel gebracht.' },
     { id: 'hilo10',      icon: '🔮', name: 'Hellseher',             desc: 'Bei Höher oder tiefer 10-mal hintereinander richtig getippt.' },
     { id: 'towerTop',    icon: '🔭', name: 'Ausguck',               desc: 'Bei der Mast-Kletterei bis ins Krähennest geklettert.' },
+    { id: 'stockWin',    icon: '📈', name: 'Wolf vom Hafen',        desc: 'An der Hafenbörse Aktien mit Gewinn verkauft.' },
+    { id: 'stockCrash',  icon: '💥', name: 'Totalverlust',          desc: 'Eine Firma ging pleite, während du Anteile hattest.' },
     { id: 'keno6',       icon: '🗺️', name: 'Kartenleser',           desc: 'Beim Schatzkarten-Keno 6 oder mehr Inseln getroffen.' },
     { id: 'baccaratTie', icon: '🤝', name: 'Gleichstand',           desc: 'Beim Baccarat auf Unentschieden gesetzt und gewonnen.' },
     { id: 'raceOutsider', icon: '⛵', name: 'Außenseiter-Glück',    desc: 'Beim Schiffsrennen auf einen Außenseiter (ab ×6) gesetzt und gewonnen.' },
