@@ -212,7 +212,7 @@ Einsatz verloren geht.
 - **Lobby nach Bereichen**: Automaten, Schnelle Spiele, Tischspiele, Mit Freunden
 - **🍀 Glücksrad**: unterschiedlich große Felder, ⭐ startet das Bonusrad (3× bis 25×),
   einmal am Tag ein Gratis-Dreh im Wert von 10 Minuten Einkommen
-- **🪙 Münzfall**: 12 Nagelreihen, drei Risikostufen, mehrere Münzen gleichzeitig, Automatik
+- **🪙 Münzfall**: 12 Nagelreihen, drei Risikostufen, mehrere Münzen gleichzeitig; Massenwurf mit 10 bis 5.000 Münzen (siehe unten)
 - **🏝️ Schatzinsel**: 5×5 Felder, 1–20 Totenköpfe, Multiplikator steigt mit jedem Fund
 - **💣 Kanonenkugel**: steigender Multiplikator bis zur Explosion, Auto-Abkassieren; wer das Spiel
   verlässt oder neu lädt, kassiert automatisch ab
@@ -463,6 +463,15 @@ Einsatz verloren geht.
   schmalen Spalten allein in eine zweite Zeile.
 - Messung (Chromium, iPad hochkant, 60 schnelle Tipps): längster Frame 200 ms → 33 ms, Skriptzeit 449 ms → 175 ms,
   Layoutzeit 224 ms → 86 ms; im Leerlauf 21 → 7 Layouts in 2 Sekunden.
+
+### Erweiterung: Münzfall-Massenwurf ✅
+- **Münzen pro Wurf**: 1 · 10 · 100 · 1.000 · 5.000 (statt „Auto ×10“). Der Einsatz gilt pro Münze (wie das
+  Einsatz-Limit), der Gesamteinsatz steht darunter. Ein Massenwurf ist eine Runde in Verlauf und Statistik.
+- Alle Ergebnisse stehen beim Werfen fest: je Münze 12 Zufallsbits (ein Bit je Nagel), das Fach ist die Zahl der
+  Sprünge nach rechts – dieselbe Verteilung wie bei einzelnen Münzen. Gespeichert werden nur Treffer je Fach und
+  Auszahlung (gut 100 Zeichen); Neuladen mitten im Wurf zahlt alles aus. „⏩ Sofort auszahlen“ überspringt die Animation.
+- Animation: Die Münzen fallen über einige Sekunden nacheinander als goldener Strom durch die Nägel und werden als
+  vorgezeichnetes Bild kopiert (auch 1.500 Münzen gleichzeitig bleiben flüssig). Unter den Fächern stehen die Treffer.
 
 ## Entscheidungen
 

@@ -9,7 +9,7 @@ Schatztruhe voll ist, wartet das Casino:
   WILDs, Freispiele mit Multiplikator und eine Bonusrunde zum Kistenknacken
 - 🎟️ **Rubbellose** – mit dem Finger freirubbeln, drei gleiche Beträge gewinnen
 - 🍀 **Glücksrad** – mit Bonusrad und täglichem Gratis-Dreh
-- 🪙 **Münzfall** – die Münze hüpft durch die Nägel, außen warten bis zu ×170
+- 🪙 **Münzfall** – die Münze hüpft durch die Nägel, außen warten bis zu ×170; bis zu 5.000 Münzen auf einmal
 - 🏝️ **Schatzinsel** – nach Schätzen graben, Totenköpfen ausweichen, rechtzeitig abkassieren
 - 💣 **Kanonenkugel** – der Multiplikator steigt, bis die Kugel explodiert
 - ⛵ **Schiffsrennen** – fünf Piratenschiffe, neue Quoten vor jedem Rennen

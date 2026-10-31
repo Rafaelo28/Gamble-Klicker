@@ -45,6 +45,33 @@ Object.keys(C.plinkoMath.RISKS).forEach(r => {
   assert(m.length === C.plinkoMath.ROWS + 1 && m.every((x, i) => x === m[m.length - 1 - i]), `Münzfall ${r}: symmetrisch`);
 });
 
+// Münzfall – Massenwurf (bis 5.000 Münzen): Fächer, Auszahlung und Verteilung wie bei einzelnen Münzen
+{
+  const P = C.plinkoMath;
+  let ok = true;
+  for (let mask = 0; mask < 1 << P.ROWS; mask++) {
+    const naive = mask.toString(2).split('').filter(b => b === '1').length;
+    if (P.popcount(mask) !== naive) ok = false;
+  }
+  assert(ok, 'Münzfall: Bits richtig gezählt');
+  assert(P.COUNTS.includes(5000) && P.COUNTS[0] === 1, 'Münzfall: 1 bis 5.000 Münzen');
+  const w = P.rollMany(5000, 100, 'high');
+  const mults = P.RISKS.high.mults;
+  assert(w.coins.length === 5000 && w.hits.reduce((a, b) => a + b, 0) === 5000, 'Massenwurf: 5.000 Münzen, alle in einem Fach');
+  assert(w.coins.every(c => c.bin === P.popcount(c.mask) && c.mask >= 0 && c.mask < 4096 && c.win === Math.floor(100 * mults[c.bin])), 'Massenwurf: Fach = Sprünge nach rechts, Gewinn je Münze');
+  assert(w.payout === w.coins.reduce((sum, c) => sum + c.win, 0), 'Massenwurf: Auszahlung = Summe der Münzen');
+  assert(w.best === Math.max(...w.coins.map(c => mults[c.bin])), 'Massenwurf: bestes Fach');
+  assert(w.hits.every((n, bin) => n === w.coins.filter(c => c.bin === bin).length), 'Massenwurf: Treffer je Fach');
+  // Verteilung über viele Würfe: wie bei einzelnen Münzen (Binomialverteilung), gleiche Quote
+  const N = 200000;
+  const big = P.rollMany(N, 1000, 'medium');
+  const binom = k => { let r = 1; for (let i = 1; i <= k; i++) r = r * (P.ROWS - k + i) / i; return r / 2 ** P.ROWS; };
+  let chi = 0;
+  big.hits.forEach((n, k) => { const e = N * binom(k); chi += (n - e) ** 2 / e; });
+  assert(chi < 40, `Massenwurf: Verteilung wie erwartet (Chi² ${chi.toFixed(1)}, 12 Freiheitsgrade)`);
+  between(big.payout / (N * 1000), P.rtp('medium') - 0.03, P.rtp('medium') + 0.03, 'Massenwurf: Quote wie einzelne Münzen');
+}
+
 // Schatzinsel: egal wann man abkassiert, die Quote bleibt gleich
 C.minesMath.SKULL_OPTIONS.forEach(k => {
   for (let f = 1; f <= C.minesMath.FIELDS - k; f++) between(C.minesMath.rtp(k, f), 0.95, 0.971, `Schatzinsel ${k}☠️ nach ${f}`);
