@@ -301,6 +301,7 @@ window.GK = window.GK || {};
   const CATEGORIES = [
     { id: 'slots',   title: '🎰 Automaten' },
     { id: 'quick',   title: '⚡ Schnelle Spiele' },
+    { id: 'market',  title: '📈 Börse' },
     { id: 'table',   title: '🃏 Tischspiele' },
     { id: 'friends', title: '👥 Mit Freunden' },
   ];
