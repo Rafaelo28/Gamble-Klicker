@@ -161,6 +161,11 @@ textarea {
   box-shadow: inset 0 0 0 0.1em rgba(255, 243, 176, 0.45), 0 0 0.25em rgba(245, 197, 66, 0.35);
 }
 
+/* Betrag mit Münze: nie zwischen Zahl und Münze umbrechen */
+.money {
+  white-space: nowrap;
+}
+
 /* Gemeinsamer Look für alle Kästen */
 .panel,
 .click-area,
@@ -4348,6 +4353,7 @@ body.reduced-effects .golden-coin {
 }
 
 .plinko-risks,
+.plinko-counts,
 .mines-skulls {
   display: flex;
   flex-wrap: wrap;
@@ -4356,11 +4362,27 @@ body.reduced-effects .golden-coin {
 }
 
 .plinko-risk.active,
+.plinko-count.active,
 .mines-skull.active,
 .chicken-diff.active {
   background: var(--gold-grad);
   color: #2a1d00;
   border-color: var(--gold);
+}
+
+.plinko-count-label {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.plinko-count {
+  min-width: 56px;
+}
+
+.plinko-total {
+  min-height: 1.4em;
+  margin-top: 6px;
+  text-align: center;
 }
 
 /* ---------- Schatzinsel ---------- */

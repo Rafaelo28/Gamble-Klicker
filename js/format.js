@@ -136,9 +136,10 @@ window.GK = window.GK || {};
   };
 
   // Betrag mit Dublonen-Symbol als HTML, z. B. für Statistiken
-  // Mit geschütztem Leerzeichen, damit die Münze nicht allein in die nächste Zeile rutscht
+  // Betrag und Münze bleiben zusammen (Chrome bricht vor dem Münz-Symbol sonst trotz geschütztem
+  // Leerzeichen um, dann steht die Münze allein in der nächsten Zeile)
   GK.formatMoneyHTML = function (n, allowDecimals = false) {
-    return GK.formatNumber(n, allowDecimals) + '&nbsp;' + GK.COIN;
+    return '<span class="money">' + GK.formatNumber(n, allowDecimals) + '&nbsp;' + GK.COIN + '</span>';
   };
 
   // Formatiert Sekunden als „1 Std. 5 Min.“
