@@ -232,6 +232,7 @@ window.GK = window.GK || {};
     GK.sideSlot.render();
     GK.casino.render();
     GK.progress.update(GK.state.ui.tab === 'progress');
+    GK.fleet.update(GK.state.ui.tab === 'adventure');
     GK.daily.update(GK.state.ui.tab === 'progress');
     if (GK.state.ui.tab === 'progress') {
       GK.achievements.render();
@@ -296,6 +297,7 @@ window.GK = window.GK || {};
     GK.cosmetics.init();
     GK.progress.init();
     GK.progress.applyOfflineEarnings();
+    GK.fleet.init();
     GK.casino.init();
     GK.daily.init();
     GK.sideSlot.init();

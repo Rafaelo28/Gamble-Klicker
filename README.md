@@ -44,6 +44,11 @@ Synergien zwischen den Gebäuden und Upgrades für alle Gebäude zusammen.
 Je 1.000-mal mehr insgesamt verdient steigt dein **⚓ Rang** – von der Landratte über Kapitän und Admiral bis zum
 Herrscher der Meere und danach endlos „Legende I, II, III …“. Der Rang steht bei Spielen mit Freunden neben deinem
 Namen und schaltet Teile für deine Figur frei (Tab *Fortschritt*).
+
+Im Tab **⚓ Abenteuer** baust du dir eine **Flotte** auf – von der Schaluppe bis zum Geisterschiff. Schick die
+Schiffe auf Fahrt (2 Minuten bis 8 Stunden, auch wenn das Spiel geschlossen ist): Sie bringen Beute, manchmal einen
+reichen Fang, einen Sturm oder einen Goldschatz – und **18 Schätze** mit Boni für immer. Schiffe lassen sich ausbauen,
+weiter entfernte Ziele schaltet dein Rang frei.
 Direkt unter der Klick-Münze wartet der **Side-Slot**: klicken und nebenbei zocken.
 Wer lieber nur klickt, kann das **passive Einkommen** der Gebäude unter der Gebäude-Liste ausschalten.
 Deinen **Namen** und dein Bild für Spiele mit Freunden und Poker legst du unter *Statistiken → Einstellungen* fest.
@@ -139,6 +144,7 @@ Den Fahrplan mit allen Phasen findest du in [PROJEKTPLAN.md](PROJEKTPLAN.md).
 - 🏆 Erfolge, goldene Dublone, Offline-Einnahmen, große Fahrt (Prestige) und VIP-Karten
 - 🎨 Eigene Figur aus Kopf, Hut, Augen, Mund, Kleidung und Extras (z. B. John Pork) – die anderen sehen sie bei Spielen mit Freunden, beim Poker und in der Rangliste
 - ⚓ Endlose Ränge (je 1.000-mal mehr verdient einer höher) mit Figur-Teilen als Belohnung und 8 neue Gebäude nach dem Sternenportal
+- ⛵ Flotte & Expeditionen im Tab *Abenteuer*: 5 Schiffe, 6 Ziele, Fahrten laufen auch offline, 18 Schätze mit Boni
 - 🔊 Soundeffekte, ✨ Gewinn-Animationen, 📱 iPad-Optimierung
 - 🔥 Klick-Combos, kritische Klicks, Gebäude-Stufen bis Götter, Synergien, Poker-Modi Turbo und Blitz
 - 🎰 Hebel an den Automaten, Beträge mit Abkürzungen (k, M, B …), Statistik für jedes Spiel

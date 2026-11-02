@@ -8585,3 +8585,287 @@ body.reduced-effects .nt-admiral {
 .rank-reward.done {
   border-color: var(--gold-dark);
 }
+
+/* ---------- Flotte & Expeditionen (js/fleet.js, Tab „Abenteuer“) ---------- */
+
+.fleet-head {
+  margin-bottom: 16px;
+}
+
+.fleet-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.fleet-ships {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 14px;
+}
+
+.fleet-ship {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+
+.fleet-ship.locked {
+  opacity: 0.8;
+}
+
+.fleet-ship.is-back {
+  border-color: var(--gold);
+}
+
+.fleet-pic {
+  position: relative;
+  height: 96px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #17496f 0%, #0f3554 60%, #0a2740 100%);
+}
+
+/* Wasser vor dem Rumpf */
+.fleet-pic::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 16px;
+  background: rgba(36, 112, 170, 0.6);
+  border-top: 2px solid rgba(160, 215, 255, 0.35);
+}
+
+.fleet-pic .ship-svg {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 124px;
+  height: 95px;
+  margin-left: -62px;
+}
+
+.fleet-ship.locked .ship-svg {
+  filter: grayscale(0.85) brightness(0.7);
+}
+
+.fleet-ship.at-sea .ship-svg {
+  animation: ship-bob 3.2s ease-in-out infinite;
+}
+
+@keyframes ship-bob {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50%      { transform: translateY(-4px) rotate(2deg); }
+}
+
+.fleet-name {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.fleet-level {
+  margin-left: 6px;
+  font-size: 0.8rem;
+  color: var(--gold-light);
+}
+
+.fleet-dests {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.fleet-dest {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 8px;
+  min-height: 58px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border-soft);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.fleet-dest:active {
+  transform: scale(0.97);
+}
+
+.fleet-dest.last {
+  border-color: var(--gold-dark);
+}
+
+.fleet-dest.locked {
+  opacity: 0.55;
+}
+
+@media (hover: hover) {
+  .fleet-dest:not(.locked):hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.fd-icon {
+  grid-row: span 2;
+  font-size: 1.4rem;
+}
+
+.fd-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.fd-meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.fleet-sea,
+.fleet-back {
+  font-weight: 700;
+}
+
+.fleet-back {
+  color: var(--win);
+}
+
+.fleet-bar {
+  height: 10px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+.fleet-bar > div {
+  height: 100%;
+  background: linear-gradient(90deg, #2e8bff, #6fd3ff);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+.fleet-btn {
+  width: 100%;
+}
+
+.fleet-up {
+  margin-top: auto;
+}
+
+.fleet-collect {
+  animation: fleet-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes fleet-pulse {
+  50% { transform: scale(1.03); }
+}
+
+.fleet-hint {
+  margin: 0;
+}
+
+.fleet-treasures {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 12px;
+}
+
+.fleet-tset {
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+
+.fleet-tset-name {
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+.fleet-tlist {
+  display: grid;
+  gap: 6px;
+}
+
+.fleet-treasure {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 8px;
+}
+
+.ft-icon {
+  grid-row: span 2;
+  font-size: 1.5rem;
+}
+
+.ft-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.ft-eff {
+  font-size: 0.75rem;
+  color: var(--win);
+}
+
+.fleet-treasure.unknown {
+  opacity: 0.55;
+}
+
+.fleet-treasure.unknown .ft-eff {
+  color: var(--text-muted);
+}
+
+.fleet-log {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fleet-log li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 10px;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.fleet-log li > .small {
+  grid-column: 1 / -1;
+}
+
+.fleet-log-loot {
+  font-weight: 700;
+  color: var(--win);
+  white-space: nowrap;
+}
+
+.notify-icon .ship-svg {
+  display: block;
+  width: 56px;
+  height: 43px;
+}
+
+/* Fünf Tabs passen auch hochkant aufs iPad */
+@media (max-width: 900px) {
+  .tab {
+    padding: 8px 12px;
+  }
+}

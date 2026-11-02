@@ -536,6 +536,25 @@ Wunsch: Ein Freund hat 7 Mio. Schatzkarten und das Spiel „durchgespielt“ –
   jetzt als Text raus.
 - Spielstand: `rankSeen` (höchster gemeldeter Rang).
 
+### Erweiterung: Spätes Spiel, Teil 2 – Flotte & Expeditionen ✅
+- Neuer Tab **⚓ Abenteuer** (`js/fleet.js`) mit Zähler am Tab, wenn Schiffe mit Beute warten.
+- **5 Schiffe** (nacheinander zu kaufen): Schaluppe, Brigg, Fregatte, Galeone, Geisterschiff – mit Laderaum (Beute)
+  und Tempo (kürzere Fahrt, gleiche Beute). Ausbauen bis Stufe 30: +10 % Laderaum je Stufe, ×1,75 Preis je Stufe.
+- **6 Ziele**: Nahe Bucht (2 Min.), Korallenriff (15 Min.), Schmugglerinsel (1 Std.), Vulkaninsel (2 Std.),
+  Eismeer (4 Std.), Drachenküste (8 Std.); die weiteren ab Rang Schiffsjunge, Matrose, Bootsmann, Steuermann.
+- Die Fahrt läuft mit echter Uhrzeit weiter, auch wenn das Spiel zu ist. **Ausgang, Beute und Schatz werden beim
+  Ablegen ausgelost und gespeichert** (Sturm ½, normal, reicher Fang ×2, Goldschatz ×5) – Neuladen ändert nichts.
+- **Beute und Preise** richten sich nach dem besten Einkommen pro Sekunde, das man je hatte (dauerhafte Boni, ohne
+  Goldrausch) – so wird die Flotte nach einer großen Fahrt nicht billig. Die ganze Flotte bringt auf Stufe 1 etwa
+  +1,4× Einkommen (immer wieder in die Bucht) bzw. über Nacht zur Drachenküste ebenso viel.
+- **💨 Rückenwind**: einmal je Fahrt die restliche Zeit halbieren, kostet das Einkommen eines Viertels der Restzeit.
+- **18 Schätze** (3 je Ziel), dauerhaft: zusammen +47 % Einkommen, +55 % Beute, −15 % Fahrzeit. Doppelte werden
+  verkauft. Komplette Sätze schalten Figur-Teile frei: Korallenkrone, Schatztruhe, Drachenschuppen; nach 100 Fahrten
+  der Goldene Kompass. 5 neue Erfolge, neue Tagesaufgabe „Schicke …-mal ein Schiff auf Fahrt“.
+- „Alle abholen“, „Alle Schiffe losschicken“ (zum letzten Ziel), Logbuch der letzten 12 Fahrten.
+- Spielstand: `fleet` (`ships`, `voyages`, `last`, `treasures`, `peak`, `done`, `earned`, `log`). Die Flotte bleibt
+  bei einer großen Fahrt erhalten.
+
 ## Entscheidungen
 
 ### Multiplayer: Wie spielen die Freunde zusammen? → **Variante A**
