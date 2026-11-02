@@ -504,6 +504,19 @@ Einsatz verloren geht.
   oder Einsatz zurück), groß angezeigt und mit der Runde verbucht. Verteilung der goldenen Dublone: Schatzfund 50 %,
   Goldrausch 25 %, Klickfieber 12 %, Glückssträhne 13 %.
 
+### Erweiterung: Eigene Figur ✅
+- **🎨 Deine Figur** (Statistik-Tab, über den Einstellungen): eine Figur aus Teilen zusammenbauen – 11 Köpfe (auch
+  Schwein, Skelett, Frosch, Katze, Affe, Roboter, Alien, Zombie), 11 Hüte/Frisuren, 8 Augen, 7 Münder, 7 Kleidungen,
+  10 Farben, 8 Extras (Papagei, Säbel, Handy …). Vorlagen: **John Pork** (Wunsch), Käpt’n, Skelett-Pirat,
+  Frosch-Gentleman und Zufall. Schalter „Figur statt Emoji zeigen“.
+- Die anderen sehen die Figur überall, wo sonst das Emoji steht: Räume und Spiele mit Freunden, Poker (auch gegen
+  Computer), Freundes-Rangliste. Übertragen wird nur ein kurzer Code (z. B. „3.0.0.0.1.4.4“), Empfangenes wird
+  geprüft (nur bekannte Teile) und als SVG gezeichnet – frei malen gibt es bewusst nicht (nichts Unpassendes).
+- **Belohnungen**: einige Teile werden im Spiel freigeschaltet – Krone (VIP-Karte Gold), Wikingerhelm (10 große
+  Fahrten), Sternaugen (Erfolg „Eine Woche dabei“), Rüstung (10 Kraken abgewehrt), Königsmantel (1.000 Schatzkarten),
+  Goldkette (1 Mio. Schatzkarten), Mini-Krake (Kraken abgewehrt), Roboter (100.000 Klicks), Alien (50 Erfolge).
+- Spielstand: `player.fig` (Code) und `player.figOn`, alte Spielstände zeigen weiter ihr Emoji.
+
 ## Entscheidungen
 
 ### Multiplayer: Wie spielen die Freunde zusammen? → **Variante A**

@@ -159,9 +159,12 @@ window.GK = window.GK || {};
     return byId[id] && byId[id].category === 'profile' && byId[id].rarity !== 'common' ? id : '';
   }
 
-  // Bild + Name eines Spielers, mit Namensschild und Titel, wenn er eins trägt (p: { name, avatar, badge })
+  // Bild + Name eines Spielers, mit Namensschild und Titel, wenn er eins trägt (p: { name, avatar, fig, badge })
   function nameTag(p) {
-    const base = `${p.avatar || ''} ${escapeHtml(p.name)}`.trim();
+    // Eigene Figur (geprüfter Code) statt des Emoji-Bildes
+    const fig = p.fig && GK.figure ? GK.figure.valid(p.fig) : '';
+    const pic = fig ? `<span class="fig-mini">${GK.figure.svg(fig)}</span>` : (p.avatar || '');
+    const base = `${pic} ${escapeHtml(p.name)}`.trim();
     const item = byId[validBadge(p.badge)];
     if (!item) return base;
     return `<span class="nametag nt-${item.id}"><span class="nt-name">${base}</span><span class="nt-title">${item.title}</span></span>`;

@@ -245,7 +245,7 @@ GK.poker = GK.poker || {};
       phase: 'lobby',
       paid: true,
       settled: false,
-      members: [{ playerId: me.playerId, name: GK.player.name(), avatar: GK.player.avatar(), badge: GK.cosmetics.myBadge(), ready: true }],
+      members: [{ playerId: me.playerId, name: GK.player.name(), avatar: GK.player.avatar(), fig: GK.figure.mine(), badge: GK.cosmetics.myBadge(), ready: true }],
       fillBots: true,
       table: null,
       deadline: null,
@@ -351,7 +351,10 @@ GK.poker = GK.poker || {};
         member.name = name;
         member.avatar = avatar;
       }
-      if (s.phase === 'lobby') member.badge = GK.cosmetics.validBadge(msg.badge); // Namensschild aus der Schatzkammer
+      if (s.phase === 'lobby') {
+        member.badge = GK.cosmetics.validBadge(msg.badge); // Namensschild aus der Schatzkammer
+        member.fig = GK.figure.valid(msg.fig);             // eigene Figur
+      }
       takeRecords(member, msg.records);
       if (msg.paid) member.ready = true; // hat den Eintritt schon bezahlt (z. B. nach dem Neuladen)
       const old = net.conns.get(playerId);
@@ -431,7 +434,7 @@ GK.poker = GK.poker || {};
       if (conn) setTimeout(() => conn.close(), 500);
     });
     s.members = s.members.filter(m => m.ready);
-    let seats = s.members.map(m => ({ id: m.playerId, name: m.name, avatar: m.avatar, badge: m.badge || '', isBot: false }));
+    let seats = s.members.map(m => ({ id: m.playerId, name: m.name, avatar: m.avatar, fig: m.fig || '', badge: m.badge || '', isBot: false }));
     if (s.fillBots) seats = seats.concat(T().botSeats(T().MAX_SEATS - seats.length));
     s.table = T().createTable(seats, s.mode, s.hands);
     s.phase = 'playing';
@@ -653,7 +656,7 @@ GK.poker = GK.poker || {};
       net.status = 'online';
       net.lostSince = null;
       const me = store();
-      send(conn, { type: 'hello', v: PROTOCOL, playerId: me.playerId, name: GK.player.name(), avatar: GK.player.avatar(), badge: GK.cosmetics.myBadge(), paid: session().paid, records: GK.friends.myRecords() });
+      send(conn, { type: 'hello', v: PROTOCOL, playerId: me.playerId, name: GK.player.name(), avatar: GK.player.avatar(), fig: GK.figure.mine(), badge: GK.cosmetics.myBadge(), paid: session().paid, records: GK.friends.myRecords() });
       GK.poker.redraw();
     });
     conn.on('data', msg => {
@@ -927,7 +930,7 @@ GK.poker = GK.poker || {};
         <div class="mp-form">
           <label class="bet-label" for="mp-name">Dein Name am Tisch</label>
           <div class="bet-row">
-            <button type="button" class="btn mp-avatar" title="Anderes Bild">${GK.player.avatar()}</button>
+            <button type="button" class="btn mp-avatar" title="Anderes Bild">${GK.figure.avatarHTML()}</button>
             <input id="mp-name" class="bet-input mp-name" maxlength="${MAX_NAME}" value="${esc(GK.player.name())}">
           </div>
         </div>
@@ -957,7 +960,8 @@ GK.poker = GK.poker || {};
       nameInput.value = GK.player.setName(nameInput.value);
     });
     el.querySelector('.mp-avatar').addEventListener('click', e => {
-      e.currentTarget.textContent = GK.player.nextAvatar();
+      if (GK.figure.mine()) GK.toast('Deine Figur änderst du unter 📊 Statistiken → 🎨 Deine Figur.');
+      else e.currentTarget.textContent = GK.player.nextAvatar();
     });
     const save = () => { nameInput.value = GK.player.setName(nameInput.value); };
     const entryInput = el.querySelector('.mp-entry');
