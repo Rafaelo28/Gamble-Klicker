@@ -31,7 +31,8 @@ const s = GK.state;
   s.upgrades = ['click1'];
   assert(close(C.getClickPower(), base * 2), 'Starker Finger: ×2');
   // Spätes Spiel: viel Einkommen, Anteil vom Einkommen pro Klick (Klick-Investment … Klick-Dynastie)
-  C.BUILDINGS.forEach((b, i) => { s.buildings[b.id] = 80 - i * 3; });
+  // (nur die ersten 16 Gebäude – mit den riesigen späten Gebäuden ginge der Grundwert in der Rundung unter)
+  C.BUILDINGS.forEach((b, i) => { s.buildings[b.id] = i < 16 ? 80 - i * 3 : 0; });
   s.upgrades = ['click1', 'click2', 'click3', 'click4', 'click5', 'click6', 'cpsClick1', 'cpsClick2', 'cpsClick3', 'cpsClick4', 'cpsClick5'];
   const cps = C.getCps();
   const before = C.getClickPower();

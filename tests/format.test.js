@@ -14,4 +14,13 @@ for (const text of ['', 'abc', '5x', '5M5', 'M', '-5', '5..5', '1,2,3,4.5', '12.
 for (const n of [1, 999, 1000, 12345, 1234567, 2.5e6, 2.3e6, 5e6, 1e9, 1.25e9, 1e12, 7.77e15, 123456789]) {
   assert(GK.parseAmount(GK.formatAmount(n)) === n, `${n} → ${GK.formatAmount(n)} → ${GK.parseAmount(GK.formatAmount(n))}`);
 }
+// Große Zahlen fürs späte Spiel: Namen bis 10^63, ohne „e+“ in der Anzeige
+const big = { 33: 'Quintd.', 36: 'Sext.', 39: 'Sextd.', 42: 'Sept.', 45: 'Septd.', 48: 'Okt.', 51: 'Oktd.', 54: 'Non.', 57: 'Nond.', 60: 'Dez.', 63: 'Dezd.' };
+for (const [exp, unit] of Object.entries(big)) {
+  const n = Number(`2.5e${exp}`); // so geschrieben, damit keine Rundung beim Malnehmen dazwischenkommt
+  const text = GK.formatNumber(n);
+  assert(text.endsWith(unit) && !/e\+/.test(text), `2,5e${exp} → ${text}`);
+  assert(GK.parseAmount(GK.formatAmount(n)) === n, `${unit} lässt sich wieder einlesen`);
+  assert(GK.parseAmount(`3 ${unit}`) === Number(`3e${exp}`), `„3 ${unit}“ wird erkannt`);
+}
 console.log(process.exitCode ? 'Format-Tests FEHLGESCHLAGEN' : 'Format-Tests bestanden.');

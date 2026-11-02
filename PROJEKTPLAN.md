@@ -517,6 +517,25 @@ Einsatz verloren geht.
   Goldkette (1 Mio. Schatzkarten), Mini-Krake (Kraken abgewehrt), Roboter (100.000 Klicks), Alien (50 Erfolge).
 - Spielstand: `player.fig` (Code) und `player.figOn`, alte Spielstände zeigen weiter ihr Emoji.
 
+### Erweiterung: Spätes Spiel, Teil 1 – Ränge und neue Gebäude ✅
+Wunsch: Ein Freund hat 7 Mio. Schatzkarten und das Spiel „durchgespielt“ – länger spielbar machen, ohne Fortschritt wegzunehmen.
+- **8 neue Gebäude** nach dem Sternenportal: Poseidons Tempel, Geisterwerft, Atlantis, Lava-Schmiede, Schwarzes Loch,
+  Paralleluniversum, Galaxienbank, Dublonen-Urknall (3,7 Trill. bis 130 Quadr.). Stufen-Upgrades und Synergien entstehen
+  automatisch, dazu „Herrschaft der Meere“ (+35 %, ab 1.200 Gebäuden) und „Unendlicher Reichtum“ (+40 %, ab 1.600).
+- **Zahlennamen** bis 10^63 (Sext., Sextd., Sept. … Dezd.), auch beim Eingeben von Beträgen.
+- **⚓ Ränge** (`js/rank.js`): je 1.000-mal mehr *insgesamt verdient* ein Rang höher – Landratte, Schiffsjunge, Matrose,
+  Bootsmann, Steuermann, Quartiermeister, Erster Offizier, Kapitän, Kommodore, Admiral, Großadmiral, Piratenkönig,
+  Herrscher der Meere, danach endlos „Legende I, II, …“. Der Rang sinkt nie (auch nicht nach einer großen Fahrt).
+  Anzeige im Fortschritt-Tab mit Balken zum nächsten Rang, Meldung beim Aufstieg, 3 neue Erfolge.
+- Der Rang steht als kleines Zeichen neben dem Namen (Räume, Poker, Freundes-Rangliste) und hat eine eigene
+  Rangliste „⚓ Rang“. Übertragen wird nur die Zahl, Empfangenes wird geprüft.
+- **Rang-Belohnungen** für die Figur: Steuerrad (Steuermann), Kapitänsuniform (Kapitän), Admiralshut (Admiral),
+  Geist-Kopf (Großadmiral), Dreizack (Piratenkönig), Laseraugen (Herrscher der Meere), Heiligenschein (Legende I).
+- **Fehler behoben**: Bei Spielern mit über 18 Trillionen verdient (z. B. der Freund mit 7 Mio. Schatzkarten) konnte
+  die Verbindung die Rekorde nicht verpacken – sie kamen nie in einen Raum. Nachrichten mit so großen Zahlen gehen
+  jetzt als Text raus.
+- Spielstand: `rankSeen` (höchster gemeldeter Rang).
+
 ## Entscheidungen
 
 ### Multiplayer: Wie spielen die Freunde zusammen? → **Variante A**

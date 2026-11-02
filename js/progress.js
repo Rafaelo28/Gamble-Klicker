@@ -257,6 +257,7 @@ window.GK = window.GK || {};
       ${buffs.map(b => `<dt>${BUFFS[b.id].icon} ${BUFFS[b.id].name}</dt><dd>${buffEffect(b)} (${{ click: 'Klicks', income: 'Einkommen', luck: 'Casino-Gewinne' }[b.type]})</dd>`).join('')}
       <dt>Gesamt-Bonus Einkommen</dt><dd>×${formatMult(permanentMult() * buffMult('income'))}</dd>
       <dt>Offline-Einnahmen</dt><dd>${OFFLINE_RATE * 100} %, max. 8 Std.</dd>`);
+    if (GK.rank) GK.rank.render();
   }
 
   function init() {

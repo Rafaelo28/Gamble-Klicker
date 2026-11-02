@@ -10,6 +10,7 @@ require(R + 'state.js');
 require(R + 'casino/casino.js');
 require(R + 'progress.js');
 require(R + 'clicker.js');
+require(R + 'rank.js');
 require(R + 'figure.js');
 require(R + 'cosmetics.js');
 require(R + 'friends.js');

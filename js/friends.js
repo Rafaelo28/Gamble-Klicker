@@ -11,6 +11,7 @@ window.GK = window.GK || {};
   // Ranglisten: Gesamtwerte und je Spiel (games[id] = [größter Gewinn, größter Verlust, bester Treffer])
   const BOARDS = [
     { id: 'worth',      icon: '💎', name: 'Vermögen mit Gebäuden', money: true },
+    { id: 'rank',       icon: '⚓', name: 'Rang',                  rank: true },
     { id: 'net',        icon: '🎲', name: 'Casino-Bilanz',         money: true, signed: true },
     { id: 'win',        icon: '🏆', name: 'Größter Gewinn',        money: true },
     { id: 'lossPct',    icon: '📉', name: 'Verlust in % vom Einkommen', pct: true },
@@ -35,6 +36,7 @@ window.GK = window.GK || {};
     win: 'Größter Gewinn in einer einzigen Runde.',
     lossPct: 'Größter Verlust in einer Runde im Vergleich zum Einkommen pro Sekunde (ohne Goldrausch): 500 % heißt, die Runde hat so viel gekostet wie 5 Sekunden Einkommen.',
     incomeMult: 'Dauerhafter Einkommens-Bonus aus Schatzkarten und Erfolgen.',
+    rank: 'Je 1.000-mal mehr insgesamt verdient, ein Rang höher.',
   };
   let board = 'worth';
   let gameBoard = 0;
@@ -67,6 +69,7 @@ window.GK = window.GK || {};
       name: GK.player.name(),
       avatar: GK.player.avatar(),
       fig: GK.figure ? GK.figure.mine() : '',
+      rank: GK.rank ? GK.rank.mine() : 0,
       badge: GK.cosmetics.myBadge(),
       t: Date.now(),
       worth: Math.floor(num(s.money) + num(GK.clicker.buildingsWorth())),
@@ -102,6 +105,8 @@ window.GK = window.GK || {};
       const v = r[b.id];
       out[b.id] = typeof v === 'number' && isFinite(v) ? (b.signed ? v : Math.max(0, v)) : null;
     });
+    // Rang: ganze Zahl; ältere Versionen schicken keinen – dann aus „insgesamt verdient“ berechnen
+    if (GK.rank) out.rank = out.rank != null ? GK.rank.valid(Math.floor(out.rank)) : (out.earned != null ? GK.rank.of(out.earned) : null);
     if (r.games && typeof r.games === 'object') {
       Object.keys(r.games).slice(0, MAX_GAMES).forEach(id => {
         const g = r.games[id];
@@ -169,6 +174,7 @@ window.GK = window.GK || {};
 
   function formatValue(v, b) {
     if (v == null) return '–';
+    if (b.rank) return `${GK.rank.icon(v)} ${GK.rank.name(v)}`;
     if (b.pct) return v > 0 ? `${GK.formatNumber(v < 100 ? v : Math.round(v), true)} %` : '–';
     if (b.mult) return v > 0 ? `×${v >= 100 ? GK.formatNumber(Math.floor(v)) : new Intl.NumberFormat('de-DE', { maximumFractionDigits: 2 }).format(v)}` : '–';
     if (b.money) return `${b.signed && v > 0 ? '+' : b.signed && v < 0 ? '−' : ''}${GK.formatMoneyHTML(Math.abs(v))}`;

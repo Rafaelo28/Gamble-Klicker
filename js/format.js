@@ -4,6 +4,16 @@ window.GK = window.GK || {};
 (function () {
   // Deutsche Zahlwörter (lange Skala), vom größten zum kleinsten
   const BIG_UNITS = [
+    { value: 1e63, name: 'Dezd.' },
+    { value: 1e60, name: 'Dez.' },
+    { value: 1e57, name: 'Nond.' },
+    { value: 1e54, name: 'Non.' },
+    { value: 1e51, name: 'Oktd.' },
+    { value: 1e48, name: 'Okt.' },
+    { value: 1e45, name: 'Septd.' },
+    { value: 1e42, name: 'Sept.' },
+    { value: 1e39, name: 'Sextd.' },
+    { value: 1e36, name: 'Sext.' },
     { value: 1e33, name: 'Quintd.' },
     { value: 1e30, name: 'Quint.' },
     { value: 1e27, name: 'Quadrd.' },
@@ -45,6 +55,7 @@ window.GK = window.GK || {};
     trio: 18, trillion: 18, trillionen: 18,
     trd: 21, trilliarde: 21, trilliarden: 21,
     quadr: 24, quadrd: 27, quint: 30, quintd: 33,
+    sext: 36, sextd: 39, sept: 42, septd: 45, okt: 48, oktd: 51, non: 54, nond: 57, dez: 60, dezd: 63,
   };
 
   // Zahl vor der Abkürzung: Komma oder Punkt als Dezimalzeichen, das andere (bzw. mehrere gleiche)

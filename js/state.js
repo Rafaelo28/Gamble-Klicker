@@ -71,6 +71,7 @@ window.GK = window.GK || {};
       upgrades: [],    // gekaufte Upgrade-IDs
       playTime: 0,     // Sekunden
       allTimeEarned: 0,                        // verdient über alle großen Fahrten hinweg
+      rankSeen: 0,                             // höchster Rang, der schon gemeldet wurde (GK.rank)
       prestige: { points: 0, journeys: 0 },    // Schatzkarten und Anzahl großer Fahrten
       achievements: [],                        // freigeschaltete Erfolge
       buffs: [],                               // zeitlich begrenzte Boni (Goldrausch …)
