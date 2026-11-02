@@ -9005,3 +9005,120 @@ body.reduced-effects .nt-admiral {
 .fx-float.boss-dmg.cannon {
   color: var(--gold-light);
 }
+
+/* ---------- Stoppuhr (js/casino/stopwatch.js) ---------- */
+
+.sw-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.sw-face {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: min(100%, 330px);
+  aspect-ratio: 1;
+  margin: 26px auto 0;
+  border-radius: 50%;
+  border: 8px solid #c9ced6;
+  background: radial-gradient(circle at 50% 40%, #1f2a33 0%, #11181e 70%);
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Krone oben an der Stoppuhr */
+.sw-crown {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  width: 34px;
+  height: 22px;
+  margin-left: -17px;
+  border-radius: 6px 6px 2px 2px;
+  background: #c9ced6;
+}
+
+.sw-face.running {
+  border-color: var(--gold);
+}
+
+.sw-face.running .sw-crown {
+  background: var(--gold);
+}
+
+.sw-face.exact {
+  border-color: var(--win);
+}
+
+.sw-face.sw-exact {
+  animation: sw-exact 0.6s ease-out;
+}
+
+@keyframes sw-exact {
+  30% { transform: scale(1.06); }
+}
+
+.sw-target {
+  font-size: 1.05rem;
+  color: var(--gold-light);
+}
+
+.sw-time {
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: clamp(3rem, 9vw, 4.6rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.05;
+}
+
+.sw-status {
+  font-size: 0.9rem;
+}
+
+.sw-diff {
+  min-height: 1.4em;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--gold-light);
+}
+
+.sw-table {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.sw-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 0.9rem;
+}
+
+.sw-best {
+  min-height: 1.2em;
+}
+
+@media (max-width: 900px) {
+  .sw-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sw-face {
+    width: min(100%, 300px);
+  }
+}

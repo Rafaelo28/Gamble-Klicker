@@ -93,6 +93,7 @@ window.GK = window.GK || {};
     if (g.pokerMp && g.pokerMp.session) return 'Verlasse zuerst deinen Poker-Raum.';
     if (g.room && g.room.session) return 'Beende zuerst dein Spiel mit Freunden bzw. gegen Computer.';
     if (g.mines && g.mines.round) return 'Beende zuerst deine Schatzsuche.';
+    if (g.stopwatch && g.stopwatch.round) return 'Halte zuerst deine Stoppuhr an.';
     if (g.crash && g.crash.round && !g.crash.round.cashed) return 'Warte, bis die Kanonenkugel gelandet ist.';
     if ((g.wheel && g.wheel.pending) || (g.race && (g.race.pending || Object.keys(g.race.bets || {}).length))) return 'Warte, bis deine Runde vorbei ist.';
     if (g.flight && g.flight.pending) return 'Warte, bis dein Flugzeug gelandet ist.';
