@@ -148,7 +148,8 @@ Einsatz verloren geht.
 - **36 Erfolge** (Klicker, Casino, Poker, große Fahrt) – jeder gibt dauerhaft +1 % Einkommen,
   eigene Seite „🏆 Fortschritt“
 - **Goldene Dublone**: erscheint alle 1–2,5 Minuten irgendwo für 13 Sekunden. Anklicken bringt
-  Schatzfund (Dublonen), Goldrausch (Einkommen ×7 für 60 s) oder Klickfieber (Klicks ×25 für 20 s)
+  Schatzfund (Dublonen), Goldrausch (Einkommen ×7 für 60 s), Klickfieber (Klicks ×25 für 20 s) oder
+  Glückssträhne (Casino-Gewinne +30–50 % für 30 s)
 - **Offline-Einnahmen**: 50 % des Einkommens für bis zu 8 Stunden, während das Spiel zu ist.
   Zeit in einem Hintergrund-Tab wird voll nachgeholt.
 - **Große Fahrt (Prestige)**: Neu anfangen gegen Schatzkarten. Anzahl = Kubikwurzel aus
@@ -491,6 +492,17 @@ Einsatz verloren geht.
   Anteile wertlos (verlorene Runde, Meldung), eine neue Firma kommt an die Börse. Die Kurse laufen weiter, auch
   wenn das Spiel zu ist (bis 8 Stunden nachgerechnet).
 - Große Fahrt erst, wenn das Depot leer ist. Neue Erfolge: „Wolf vom Hafen“ (mit Gewinn verkauft), „Totalverlust“.
+
+### Pflege: Sternenhand & Glückssträhne ✅
+- **Sternenhand wirkte nicht spürbar**: Die Klickkraft ist Grundwert + Anteil vom Einkommen (Klick-Investment …).
+  „Klickkraft ×N“ vervielfachte nur den Grundwert – im späten Spiel ein winziger Teil, deshalb änderte sich
+  „pro Klick“ kaum. Jetzt vervielfachen die späten Upgrades (Goldene Faust, Hand des Midas, Sternenhand, Hand der
+  Götter) die ganze Klickkraft (auch den Anteil vom Einkommen); die frühen ×2 weiterhin nur den Grundwert.
+  Klick-Upgrades zeigen auf der Kachel, wie viel sie pro Klick bringen.
+- **🍀 Glückssträhne** (neu aus der goldenen Dublone, Wunsch): Casino-Gewinne +30–50 % für 30 Sekunden. Der Bonus
+  wird in `GK.casino.record` für alle Spiele gemeinsam auf den Gewinn einer Runde ausgezahlt (nicht bei Verlust
+  oder Einsatz zurück), groß angezeigt und mit der Runde verbucht. Verteilung der goldenen Dublone: Schatzfund 50 %,
+  Goldrausch 25 %, Klickfieber 12 %, Glückssträhne 13 %.
 
 ## Entscheidungen
 

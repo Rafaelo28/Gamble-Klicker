@@ -59,6 +59,7 @@ Online über GitHub Pages aus `main`: https://rafaelo28.github.io/Gamble-Klicker
 - `node tests/daily.test.js` – Tägliche Aufgaben: Auslosen, Fortschritt, Abholen, Bonus und Serie, Tageswechsel.
 - `node tests/kraken.test.js` – Kraken-Angriff (Treffer, Diebstahl, Pause, Zeitplan) und Freundes-Rangliste (Austausch, Prüfung, Vermögen mit Gebäuden, Verlust in % vom Einkommen).
 - `node tests/stocks.test.js` – Hafenbörse: Kursmodell (fast immer Verlust), Kurse weiterrechnen, Kaufen/Verkaufen, Pleiten.
+- `node tests/bonus.test.js` – Klickkraft-Upgrades (Sternenhand verdreifacht wirklich) und Glückssträhne (Casino-Gewinne +30–50 %).
 - `node tests/payouts.test.js` – Preise mit Freunden (auch mit Computer-Gegnern, auch Poker) und gegen Computer.
 - `node tests/casino.test.js` – Quoten und Zufall der Casino-Spiele (Roulette, Rubbellose, Glücksrad,
   Münzfall mit Massenwurf, Schatzinsel, Kanonenkugel, Schiffsrennen, Flugkapitän, Höher oder tiefer, Mast-Kletterei,

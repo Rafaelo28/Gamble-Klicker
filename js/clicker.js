@@ -40,13 +40,13 @@ window.GK = window.GK || {};
       unlocked: s => has('click2') && s.totalClicks >= 500 },
     { id: 'click4', icon: '✨', name: 'Magische Hand',   cost: 5e6,  type: 'clickMult', value: 2, rarity: 'click', desc: 'Klickkraft ×2',
       unlocked: s => has('click3') && s.totalClicks >= 1500 },
-    { id: 'click5', icon: '👊', name: 'Goldene Faust',   cost: 5e8,  type: 'clickMult', value: 3, rarity: 'click', desc: 'Klickkraft ×3',
+    { id: 'click5', icon: '👊', name: 'Goldene Faust',   cost: 5e8,  type: 'clickMult', value: 3, all: true, rarity: 'click', desc: 'Klickkraft ×3 – auch der Anteil vom Einkommen',
       unlocked: s => has('click4') && s.totalClicks >= 3000 },
-    { id: 'click6', icon: '🤴', name: 'Hand des Midas',  cost: 5e10, type: 'clickMult', value: 3, rarity: 'click', desc: 'Klickkraft ×3',
+    { id: 'click6', icon: '🤴', name: 'Hand des Midas',  cost: 5e10, type: 'clickMult', value: 3, all: true, rarity: 'click', desc: 'Klickkraft ×3 – auch der Anteil vom Einkommen',
       unlocked: s => has('click5') && s.totalClicks >= 6000 },
-    { id: 'click7', icon: '🌟', name: 'Sternenhand',     cost: 5e12, type: 'clickMult', value: 3, rarity: 'click', desc: 'Klickkraft ×3',
+    { id: 'click7', icon: '🌟', name: 'Sternenhand',     cost: 5e12, type: 'clickMult', value: 3, all: true, rarity: 'click', desc: 'Klickkraft ×3 – auch der Anteil vom Einkommen',
       unlocked: s => has('click6') && s.totalClicks >= 10000 },
-    { id: 'click8', icon: '🪐', name: 'Hand der Götter', cost: 5e14, type: 'clickMult', value: 4, rarity: 'click', desc: 'Klickkraft ×4',
+    { id: 'click8', icon: '🪐', name: 'Hand der Götter', cost: 5e14, type: 'clickMult', value: 4, all: true, rarity: 'click', desc: 'Klickkraft ×4 – auch der Anteil vom Einkommen',
       unlocked: s => has('click7') && s.totalClicks >= 20000 },
     { id: 'cpsClick1', icon: '📈', name: 'Klick-Investment', cost: 25000, type: 'clickCps', value: 0.01, rarity: 'click',
       desc: 'Jeder Klick bringt zusätzlich 1 % deines Einkommens pro Sekunde',
@@ -232,17 +232,34 @@ window.GK = window.GK || {};
     return baseCps() * GK.progress.permanentMult();
   }
 
-  // Klickkraft ohne Combo und kritische Treffer
+  // Klickkraft ohne Combo und kritische Treffer: Grundwert plus Anteil vom Einkommen (Klick-Investment …).
+  // Die frühen „Klickkraft ×2“ vervielfachen nur den Grundwert. Die späten (Goldene Faust, Hand des Midas,
+  // Sternenhand, Hand der Götter – „all“) vervielfachen auch den Anteil vom Einkommen: Wenn man sie kaufen
+  // kann, macht der Grundwert kaum noch etwas aus, sonst wäre ihr ×3 nicht zu spüren.
   function getClickPower() {
     let mult = 1;
+    let allMult = 1;
     let cpsShare = 0;
     for (const id of GK.state.upgrades) {
       const u = upgradeById[id];
       if (!u) continue;
-      if (u.type === 'clickMult') mult *= u.value;
+      if (u.type === 'clickMult') {
+        mult *= u.value;
+        if (u.all) allMult *= u.value;
+      }
       if (u.type === 'clickCps') cpsShare += u.value;
     }
-    return (mult * GK.progress.permanentMult() + getCps() * cpsShare) * GK.progress.buffMult('click');
+    return (mult * GK.progress.permanentMult() + getCps() * cpsShare * allMult) * GK.progress.buffMult('click');
+  }
+
+  // Wie viel mehr pro Klick brächte ein Klick-Upgrade? (Anzeige auf der Kachel)
+  function upgradeClickGain(u) {
+    if (u.type !== 'clickMult' && u.type !== 'clickCps') return 0;
+    const before = getClickPower();
+    GK.state.upgrades.push(u.id);
+    const after = getClickPower();
+    GK.state.upgrades.pop();
+    return after - before;
   }
 
   function critChance() {
@@ -610,12 +627,14 @@ window.GK = window.GK || {};
       const u = upgradeById[el.dataset.id];
       el.disabled = !GK.canAfford(u.cost);
       const gain = upgradeGain(u);
-      el.querySelector('.upgrade-gain').textContent = gain > 0 ? `+${GK.formatNumber(gain, true)}/s` : '';
+      const clickGain = gain > 0 ? 0 : upgradeClickGain(u);
+      GK.setText(el.querySelector('.upgrade-gain'), gain > 0 ? `+${GK.formatNumber(gain, true)}/s`
+        : clickGain > 0 ? `+${GK.formatNumber(clickGain, true)} pro Klick` : '');
     });
   }
 
   function render() {
-    document.getElementById('click-power').textContent = GK.formatNumber(getClickPower(), true);
+    GK.setText(document.getElementById('click-power'), GK.formatNumber(getClickPower(), true));
     document.getElementById('passive-toggle').checked = passiveActive();
     document.getElementById('building-list').classList.toggle('paused', !passiveActive());
     renderBuildings();
