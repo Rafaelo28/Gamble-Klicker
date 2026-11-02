@@ -33,6 +33,12 @@ window.GK = window.GK || {};
     { id: 'rankCaptain', icon: '🏴‍☠️', name: 'Käpt’n an Bord',       desc: 'Den Rang Kapitän erreicht.',               check: s => GK.rank && GK.rank.of(s.allTimeEarned) >= 7 },
     { id: 'rankAdmiral', icon: '🌟', name: 'Herr der Flotte',       desc: 'Den Rang Admiral erreicht.',               check: s => GK.rank && GK.rank.of(s.allTimeEarned) >= 9 },
     { id: 'rankLegend',  icon: '🐉', name: 'Legende der Meere',     desc: 'Den Rang Legende I erreicht.',             check: s => GK.rank && GK.rank.of(s.allTimeEarned) >= GK.rank.LEGEND },
+    // Flotte
+    { id: 'voyage1',     icon: '⛵', name: 'Leinen los',            desc: 'Die erste Fahrt mit deiner Flotte beendet.', check: s => s.fleet && s.fleet.done >= 1 },
+    { id: 'voyage100',   icon: '🧭', name: 'Alter Seebär',          desc: '100 Fahrten mit deiner Flotte beendet.',   check: s => s.fleet && s.fleet.done >= 100 },
+    { id: 'fleetAll',    icon: '🚢', name: 'Armada',                desc: 'Alle fünf Schiffe besitzen.',              check: () => GK.fleet && GK.fleet.shipCount() >= GK.fleet.SHIPS.length },
+    { id: 'treasure1',   icon: '💎', name: 'Schatzsucher',          desc: 'Den ersten Schatz gefunden.',              check: () => GK.fleet && GK.fleet.foundCount() >= 1 },
+    { id: 'treasureAll', icon: '👑', name: 'Herr aller Schätze',    desc: 'Alle Schätze der Flotte gefunden.',        check: () => GK.fleet && GK.fleet.foundCount() >= GK.fleet.TREASURES.length },
     { id: 'empireUp',    icon: '📜', name: 'Handelsherr',           desc: 'Ein Upgrade für alle Gebäude gekauft.',    check: () => GK.clicker && GK.clicker.hasUpgradeOfRarity('empire') },
     { id: 'upgrades10',  icon: '⬆️', name: 'Aufgerüstet',           desc: '10 Upgrades gekauft.',                     check: s => s.upgrades.length >= 10 },
     { id: 'crit1',       icon: '🎯', name: 'Volltreffer!',          desc: 'Einen kritischen Klick gelandet.',         check: s => s.crits >= 1 },

@@ -62,6 +62,13 @@ window.GK = window.GK || {};
       text: t => `Kaufe ${t.target} ${plural(t.target, 'Upgrade', 'Upgrades')}`,
       on: (type, v, t) => (type === 'upgrade' ? t.progress + v : null),
     },
+    voyages: {
+      group: 'clicker', icon: '⛵',
+      possible: () => GK.fleet && GK.fleet.shipCount() >= 1,
+      make: () => ({ target: pick([2, 3, 4]) }),
+      text: t => `Schicke ${t.target}-mal ein Schiff auf Fahrt`,
+      on: (type, v, t) => (type === 'voyage' ? t.progress + v : null),
+    },
     golden: {
       group: 'clicker', icon: '✨',
       make: () => ({ target: pick([1, 2, 3]) }),

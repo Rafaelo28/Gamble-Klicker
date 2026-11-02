@@ -39,6 +39,7 @@ window.GK = window.GK || {};
     { name: 'Lange Haare' },
     { name: 'Admiralshut', rank: 9 },
     { name: 'Heiligenschein', rank: 13 },
+    { name: 'Korallenkrone', unlock: () => !!GK.fleet && GK.fleet.setsComplete('reef'), hint: 'Alle Schätze vom Korallenriff (⚓ Abenteuer)' },
   ];
 
   const EYES = [
@@ -72,6 +73,7 @@ window.GK = window.GK || {};
     { name: 'Rüstung', unlock: s => s.kraken && s.kraken.defeated >= 10, hint: '10 Kraken-Angriffe abgewehrt' },
     { name: 'Königsmantel', unlock: s => s.prestige.points >= 1000, hint: 'Ab 1.000 Schatzkarten' },
     { name: 'Kapitänsuniform', rank: 7 },
+    { name: 'Drachenschuppen', unlock: () => !!GK.fleet && GK.fleet.setsComplete('dragon'), hint: 'Alle Schätze der Drachenküste (⚓ Abenteuer)' },
   ];
 
   const COLORS = [
@@ -92,6 +94,8 @@ window.GK = window.GK || {};
     { name: 'Rose' },
     { name: 'Steuerrad', rank: 4 },
     { name: 'Dreizack', rank: 11 },
+    { name: 'Schatztruhe', unlock: () => !!GK.fleet && GK.fleet.setsComplete('smuggler'), hint: 'Alle Schätze der Schmugglerinsel (⚓ Abenteuer)' },
+    { name: 'Goldener Kompass', unlock: s => !!s.fleet && s.fleet.done >= 100, hint: '100 Fahrten mit der Flotte (⚓ Abenteuer)' },
   ];
 
   const SLOTS = [
@@ -266,6 +270,8 @@ window.GK = window.GK || {};
         path('M9.5 17.6 C19 14.6 45 14.6 54.5 17.6', 'none', stroke(1.3, '#f5c542')) + path('M32 3 C29 -1 34 -3 38 -1 C35.5 0 34 1.2 32 3 Z', '#f4f4f4', stroke(0.6)) +
         circle(32, 10, 2.4, '#f5c542', stroke(0.6, '#9a6b00')) };
       case 12: return { front: ellipse(32, 5, 11.5, 3.2, 'none', stroke(2.4, '#ffd23f')) + ellipse(32, 5, 11.5, 3.2, 'none', stroke(0.8, '#fff6c2')) };
+      case 13: return { front: path('M21 16 L19 6 M19.6 9.5 L16 6.5 M26 15 L26.5 3.5 M26.3 8 L29.5 4.5 M32 14.5 L32 1 M32 6 L35.5 3 M38 15 L37.5 3.5 M37.7 8 L34.5 4.5 M43 16 L45 6 M44.4 9.5 L48 6.5', 'none', stroke(2.4, '#ff6f61')) +
+        rect(19, 14.5, 26, 4.5, '#e8576b', Object.assign({ rx: 2 }, stroke(1, '#8f2235'))) + circle(32, 16.7, 1.4, '#fff3f3') + circle(25.5, 16.7, 1, '#fff3f3') + circle(38.5, 16.7, 1, '#fff3f3') };
       default: return {};
     }
   }
@@ -286,6 +292,8 @@ window.GK = window.GK || {};
         circle(20, 52, 1, '#7d8794') + circle(44, 52, 1, '#7d8794');
       case 6: return torso(color) + path('M14 51 C20 46 44 46 50 51 L48 55 C42 51 22 51 16 55 Z', '#f6f2e8', stroke(0.8)) +
         circle(22, 51.5, 0.8, '#111') + circle(32, 49.5, 0.8, '#111') + circle(42, 51.5, 0.8, '#111') + circle(32, 58, 1.4, '#f5c542');
+      case 8: return torso(color) + [51, 56, 61].map((y, row) => [14, 20, 26, 32, 38, 44, 50].map(x => path(`M${x - 3 + (row % 2) * 3} ${y} Q${x + (row % 2) * 3} ${y + 3.4} ${x + 3 + (row % 2) * 3} ${y}`, 'none', stroke(1, 'rgba(0,0,0,.35)'))).join('')).join('') +
+        path('M24 46.5 C28 50 36 50 40 46.5', 'none', stroke(2, '#f5c542'));
       case 7: return torso(color) + path('M27.5 46 L32 55 L36.5 46 Z', '#f4f4f4', stroke(0.8)) +
         ellipse(15.5, 51.5, 6, 2.6, '#f5c542', stroke(0.7, '#9a6b00')) + ellipse(48.5, 51.5, 6, 2.6, '#f5c542', stroke(0.7, '#9a6b00')) +
         path('M11 53.5 L10 57 M14 54 L13.5 57.5 M17.5 54 L17.5 57.5 M53 53.5 L54 57 M50 54 L50.5 57.5 M46.5 54 L46.5 57.5', 'none', stroke(0.9, '#d4a017')) +
@@ -312,6 +320,11 @@ window.GK = window.GK || {};
         circle(46, 49.5, 3.4, '#d6183a', line) + path('M44.5 49 C45.5 47.5 47 48 47 49.5', 'none', stroke(0.7, '#8a0f24'));
       case 8: return path('M50 44.5 L50 63.5 M40.5 54 L59.5 54 M43.3 47.3 L56.7 60.7 M56.7 47.3 L43.3 60.7', 'none', stroke(1.6, '#7a4e2d')) +
         circle(50, 54, 6.6, 'none', stroke(2.2, '#7a4e2d')) + circle(50, 54, 2, '#d4a017', stroke(0.6, '#9a6b00'));
+      case 10: return rect(42, 53, 19, 10, '#8a5a2b', Object.assign({ rx: 1.5 }, stroke(1))) + path('M42 53 C42 46 61 46 61 53 Z', '#9c6a35', stroke(1)) +
+        path('M42 53 L61 53 M51.5 47.5 L51.5 63', 'none', stroke(1.4, '#d4a017')) + rect(49.8, 52, 3.4, 3.4, '#f5c542', stroke(0.5, '#9a6b00')) +
+        circle(46, 48.8, 1.6, '#f5c542', stroke(0.4, '#9a6b00')) + circle(57, 48.4, 1.6, '#f5c542', stroke(0.4, '#9a6b00'));
+      case 11: return circle(50, 54, 7.4, '#f5c542', stroke(1, '#9a6b00')) + circle(50, 54, 5.4, '#fdf6e3', stroke(0.6, '#9a6b00')) +
+        path('M50 49.2 L51.6 54 L48.4 54 Z', '#d6183a') + path('M50 58.8 L51.6 54 L48.4 54 Z', '#2c3e75') + circle(50, 54, 0.9, '#9a6b00') + circle(50, 45.8, 1.4, 'none', stroke(0.9, '#9a6b00'));
       case 9: return path('M50 64 L50 41', 'none', stroke(1.9, '#d4a017')) + path('M44 45.5 C44 49 56 49 56 45.5', 'none', stroke(1.6, '#d4a017')) +
         path('M44 46 L44 40 M56 46 L56 40', 'none', stroke(1.6, '#d4a017')) +
         path('M42.5 40.5 L44 35.5 L45.5 40.5 Z M48.5 41.5 L50 35 L51.5 41.5 Z M54.5 40.5 L56 35.5 L57.5 40.5 Z', '#f5c542', stroke(0.5, '#9a6b00'));

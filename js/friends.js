@@ -35,7 +35,7 @@ window.GK = window.GK || {};
     net: 'Alle Auszahlungen minus alle Einsätze im Casino.',
     win: 'Größter Gewinn in einer einzigen Runde.',
     lossPct: 'Größter Verlust in einer Runde im Vergleich zum Einkommen pro Sekunde (ohne Goldrausch): 500 % heißt, die Runde hat so viel gekostet wie 5 Sekunden Einkommen.',
-    incomeMult: 'Dauerhafter Einkommens-Bonus aus Schatzkarten und Erfolgen.',
+    incomeMult: 'Dauerhafter Einkommens-Bonus aus Schatzkarten, Erfolgen und Schätzen der Flotte.',
     rank: 'Je 1.000-mal mehr insgesamt verdient, ein Rang höher.',
   };
   let board = 'worth';

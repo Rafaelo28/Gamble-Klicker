@@ -40,8 +40,11 @@ window.GK = window.GK || {};
   }
 
   // Dauerhafte Boni (ohne zeitlich begrenzte)
+  // Schätze der Flotte (js/fleet.js) zählen wie Erfolge und Schatzkarten dauerhaft
+  const fleetMult = () => (GK.fleet ? GK.fleet.incomeMult() : 1);
+
   function permanentMult() {
-    return prestigeMult() * achievementMult();
+    return prestigeMult() * achievementMult() * fleetMult();
   }
 
   function activeBuffs() {
@@ -111,7 +114,7 @@ window.GK = window.GK || {};
     const s = GK.state;
     const text = `Auf große Fahrt gehen?\n\nDu verlierst deine ${GK.formatNumber(s.money)} Dublonen, alle Gebäude und Upgrades.\n` +
       `Dafür bekommst du ${gain} Schatzkarte${gain === 1 ? '' : 'n'}: +${gain * PRESTIGE_BONUS * 100} % Einkommen für immer.\n\n` +
-      'Erfolge, VIP-Karte, Cosmetics und Casino-Statistik bleiben erhalten.' +
+      'Erfolge, VIP-Karte, Cosmetics, Flotte und Casino-Statistik bleiben erhalten.' +
       (GK.cosmetics.unownedCount() ? '\n\nDanach darfst du am Glücksrad der Schatzkammer drehen!' : '');
     if (!confirm(text)) return;
     s.prestige.points += gain;
@@ -254,6 +257,7 @@ window.GK = window.GK || {};
     GK.setHTML(document.getElementById('bonus-stats'), `
       <dt>🗺️ Schatzkarten</dt><dd>×${formatMult(prestigeMult())}</dd>
       <dt>🏆 Erfolge (${s.achievements.length})</dt><dd>×${formatMult(achievementMult())}</dd>
+      ${fleetMult() > 1 ? `<dt>💎 Schätze der Flotte</dt><dd>×${formatMult(fleetMult())}</dd>` : ''}
       ${buffs.map(b => `<dt>${BUFFS[b.id].icon} ${BUFFS[b.id].name}</dt><dd>${buffEffect(b)} (${{ click: 'Klicks', income: 'Einkommen', luck: 'Casino-Gewinne' }[b.type]})</dd>`).join('')}
       <dt>Gesamt-Bonus Einkommen</dt><dd>×${formatMult(permanentMult() * buffMult('income'))}</dd>
       <dt>Offline-Einnahmen</dt><dd>${OFFLINE_RATE * 100} %, max. 8 Std.</dd>`);

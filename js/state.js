@@ -59,6 +59,12 @@ window.GK = window.GK || {};
     };
   }
 
+  // Flotte: ships = Stufe je Schiff, voyages = laufende Fahrten je Schiff, last = letztes Ziel,
+  // treasures = gefundene Schätze (Anzahl), peak = bestes Einkommen pro Sekunde (für Preise und Beute)
+  function createDefaultFleet() {
+    return { ships: {}, voyages: {}, last: {}, treasures: {}, peak: 0, done: 0, earned: 0, log: [] };
+  }
+
   function createDefaultState() {
     const now = Date.now();
     return {
@@ -72,6 +78,7 @@ window.GK = window.GK || {};
       playTime: 0,     // Sekunden
       allTimeEarned: 0,                        // verdient über alle großen Fahrten hinweg
       rankSeen: 0,                             // höchster Rang, der schon gemeldet wurde (GK.rank)
+      fleet: createDefaultFleet(),             // Flotte & Expeditionen (js/fleet.js)
       prestige: { points: 0, journeys: 0 },    // Schatzkarten und Anzahl großer Fahrten
       achievements: [],                        // freigeschaltete Erfolge
       buffs: [],                               // zeitlich begrenzte Boni (Goldrausch …)
@@ -203,6 +210,11 @@ window.GK = window.GK || {};
     GK.state.cosmetics = Object.assign(createDefaultCosmetics(), data.cosmetics);
     GK.state.kraken = Object.assign(createDefaultKraken(), data.kraken);
     GK.state.daily = Object.assign(createDefaultDaily(), data.daily);
+    GK.state.fleet = Object.assign(createDefaultFleet(), data.fleet);
+    ['ships', 'voyages', 'last', 'treasures'].forEach(k => {
+      if (!GK.state.fleet[k] || typeof GK.state.fleet[k] !== 'object' || Array.isArray(GK.state.fleet[k])) GK.state.fleet[k] = {};
+    });
+    if (!Array.isArray(GK.state.fleet.log)) GK.state.fleet.log = [];
     if (!Array.isArray(GK.state.daily.tasks)) GK.state.daily.tasks = [];
     if (!data.friends || typeof data.friends !== 'object') GK.state.friends = {};
     GK.state.cosmetics.equipped = Object.assign(createDefaultCosmetics().equipped, data.cosmetics && data.cosmetics.equipped);
