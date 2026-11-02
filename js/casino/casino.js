@@ -144,7 +144,28 @@ window.GK = window.GK || {};
   }
 
   // Runde im Verlauf festhalten und speichern
+  // Glückssträhne (aus der goldenen Dublone): Der Gewinn einer Runde zählt 30–50 % mehr.
+  // Der Bonus wird hier für alle Spiele gemeinsam ausgezahlt und mit der Runde verbucht.
+  function luckBonus(betAmount, payoutAmount) {
+    const luck = GK.progress && GK.progress.buffMult ? GK.progress.buffMult('luck') : 1;
+    if (luck <= 1 || payoutAmount <= betAmount) return 0;
+    // in ganzen Prozent rechnen (1,4 − 1 ergibt sonst 0,3999…)
+    const bonus = Math.floor((payoutAmount - betAmount) * Math.round((luck - 1) * 100) / 100);
+    if (bonus <= 0) return 0;
+    payout(bonus);
+    if (GK.fx && GK.fx.floatText && typeof window.innerWidth === 'number') {
+      GK.fx.floatText(window.innerWidth / 2, window.innerHeight * 0.4, `🍀 Glückssträhne +${GK.formatMoneyHTML(bonus)}`, 'win big');
+    }
+    if (GK.sound) GK.sound.play('bonus');
+    return bonus;
+  }
+
   function record(gameId, betAmount, payoutAmount, text) {
+    const bonus = luckBonus(betAmount, payoutAmount);
+    if (bonus) {
+      payoutAmount += bonus;
+      text = `${text} · 🍀 +${GK.formatNumber(bonus)}`;
+    }
     const c = casino();
     c.rounds++;
     countRound(gameId, betAmount, payoutAmount);

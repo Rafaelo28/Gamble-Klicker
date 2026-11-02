@@ -16,8 +16,10 @@ window.GK = window.GK || {};
   const GOLDEN_LIFETIME = 13;       // so lange bleibt sie sichtbar
 
   const BUFFS = {
-    goldrush:   { name: 'Goldrausch',  icon: '⚡', type: 'income', mult: 7,  seconds: 60, desc: 'Einkommen ×7' },
-    clickfever: { name: 'Klickfieber', icon: '🔥', type: 'click',  mult: 25, seconds: 20, desc: 'Klickkraft ×25' },
+    goldrush:   { name: 'Goldrausch',    icon: '⚡', type: 'income', mult: 7,  seconds: 60, desc: 'Einkommen ×7' },
+    clickfever: { name: 'Klickfieber',   icon: '🔥', type: 'click',  mult: 25, seconds: 20, desc: 'Klickkraft ×25' },
+    // Glückssträhne: Gewinne im Casino zählen 30–50 % mehr (wird beim Auslösen zufällig festgelegt)
+    luck:       { name: 'Glückssträhne', icon: '🍀', type: 'luck',   mult: 1.4, seconds: 30, desc: 'Casino-Gewinne' },
   };
 
   let golden = null;        // { el, expires }
@@ -51,10 +53,15 @@ window.GK = window.GK || {};
     return activeBuffs().filter(b => b.type === type).reduce((m, b) => m * b.mult, 1);
   }
 
-  function addBuff(id) {
+  function addBuff(id, mult) {
     const def = BUFFS[id];
     GK.state.buffs = GK.state.buffs.filter(b => b.id !== id && b.until > Date.now());
-    GK.state.buffs.push({ id, type: def.type, mult: def.mult, until: Date.now() + def.seconds * 1000 });
+    GK.state.buffs.push({ id, type: def.type, mult: mult || def.mult, until: Date.now() + def.seconds * 1000 });
+  }
+
+  // Wirkung eines Buffs als Text: „×7“ bzw. bei der Glückssträhne „+40 %“
+  function buffEffect(b) {
+    return b.type === 'luck' ? `+${Math.round((b.mult - 1) * 100)} %` : `×${b.mult}`;
   }
 
   // ---------- Große Fahrt (Prestige) ----------
@@ -192,12 +199,16 @@ window.GK = window.GK || {};
       GK.fx.floatText(pos.x, pos.y, '+' + GK.formatMoneyHTML(amount), 'win big');
       text = `<b>Schatzfund!</b><br>+${GK.formatMoneyHTML(amount)}`;
     } else {
-      const id = roll < 0.85 ? 'goldrush' : 'clickfever';
-      addBuff(id);
+      const id = roll < 0.75 ? 'goldrush' : roll < 0.87 ? 'clickfever' : 'luck';
+      // Glückssträhne: 30 bis 50 % (in 5er-Schritten)
+      const mult = id === 'luck' ? 1.3 + 0.05 * GK.rng.int(5) : 0;
+      addBuff(id, mult);
       const b = BUFFS[id];
       if (id === 'goldrush') GK.fx.coinRain(1.5, 25);
       GK.fx.floatText(pos.x, pos.y, `${b.icon} ${b.name}!`, 'win big');
-      text = `<b>${b.icon} ${b.name}!</b><br>${b.desc} für ${b.seconds} Sekunden`;
+      text = id === 'luck'
+        ? `<b>${b.icon} ${b.name}!</b><br>Casino-Gewinne +${Math.round((mult - 1) * 100)} % für ${b.seconds} Sekunden`
+        : `<b>${b.icon} ${b.name}!</b><br>${b.desc} für ${b.seconds} Sekunden`;
     }
     GK.notify(`<span class="notify-icon">✨</span><span>${text}</span>`);
     GK.save();
@@ -218,7 +229,7 @@ window.GK = window.GK || {};
     }
     buffs.forEach((b, i) => {
       const def = BUFFS[b.id];
-      GK.setText(bar.children[i], `${def.icon} ${def.name} ×${def.mult} · ${Math.ceil((b.until - now) / 1000)} s`);
+      GK.setText(bar.children[i], `${def.icon} ${def.name} ${buffEffect(b)} · ${Math.ceil((b.until - now) / 1000)} s`);
     });
   }
 
@@ -243,7 +254,7 @@ window.GK = window.GK || {};
     GK.setHTML(document.getElementById('bonus-stats'), `
       <dt>🗺️ Schatzkarten</dt><dd>×${formatMult(prestigeMult())}</dd>
       <dt>🏆 Erfolge (${s.achievements.length})</dt><dd>×${formatMult(achievementMult())}</dd>
-      ${buffs.map(b => `<dt>${BUFFS[b.id].icon} ${BUFFS[b.id].name}</dt><dd>×${b.mult} (${BUFFS[b.id].type === 'click' ? 'Klicks' : 'Einkommen'})</dd>`).join('')}
+      ${buffs.map(b => `<dt>${BUFFS[b.id].icon} ${BUFFS[b.id].name}</dt><dd>${buffEffect(b)} (${{ click: 'Klicks', income: 'Einkommen', luck: 'Casino-Gewinne' }[b.type]})</dd>`).join('')}
       <dt>Gesamt-Bonus Einkommen</dt><dd>×${formatMult(permanentMult() * buffMult('income'))}</dd>
       <dt>Offline-Einnahmen</dt><dd>${OFFLINE_RATE * 100} %, max. 8 Std.</dd>`);
   }
@@ -265,6 +276,7 @@ window.GK = window.GK || {};
     update,
     permanentMult,
     buffMult,
+    addBuff,
     applyOfflineEarnings,
     pendingPoints,
     // für Tests
