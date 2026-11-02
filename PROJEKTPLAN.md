@@ -567,6 +567,17 @@ Wunsch: Ein Freund hat 7 Mio. Schatzkarten und das Spiel „durchgespielt“ –
 - Freundes-Rangliste „⚔️ Boss-Stufe“. Der Kampf liegt nur im Speicher (kein Einsatz) – Neuladen beendet ihn ohne Verlust.
 - Spielstand: `boss` (`level` = höchste besiegte Stufe, `kills`, `fights`).
 
+### Erweiterung: Stoppuhr ✅
+- Neues schnelles Casino-Spiel **⏱️ Stoppuhr** (`js/casino/stopwatch.js`): Nach dem Start erscheint eine zufällige
+  Zielzeit von 2,00 bis 10,00 s, nach 1,5 s „Achtung“ läuft die Uhr. Stoppen per Tipp auf die Uhr, STOPP-Knopf oder
+  Leertaste (gemessen beim Berühren, nicht beim Loslassen). Gewertet wird die angezeigte Zeit in Hundertsteln:
+  genau ×2,2 · 1 daneben ×1,1 · bis 3 ×0,6 · bis 6 ×0,2, sonst nichts. Ohne Stopp hält die Uhr 2,5 s nach der Zielzeit an.
+- Ausgewogen nach der Streuung des Spielers: ±0,02 s ≈ 1,06 (Profi), ±0,03 s ≈ 0,83, ±0,05 s ≈ 0,57, ±0,1 s ≈ 0,31.
+- Neuladen während der Runde: vor bzw. knapp um die Zielzeit gibt es den Einsatz zurück, deutlich danach zählt die
+  Runde als verloren (sie war nicht mehr zu gewinnen). Nach dem Stopp ist „Start“ kurz gesperrt, damit der Klick des
+  Stopp-Tipps auf dem iPad nicht gleich die nächste Runde startet.
+- Bester Stopp und Zahl der Volltreffer werden angezeigt, Erfolg „Auf die Hundertstel“.
+
 ## Entscheidungen
 
 ### Multiplayer: Wie spielen die Freunde zusammen? → **Variante A**
