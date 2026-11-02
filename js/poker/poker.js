@@ -49,7 +49,7 @@ window.GK = window.GK || {};
       return;
     }
     GK.casino.bet(tr.entry);
-    const seats = [{ id: 'you', name: GK.player.name(), avatar: GK.player.avatar(), fig: GK.figure.mine(), badge: GK.cosmetics.myBadge(), isBot: false }].concat(T().botSeats(SEATS - 1));
+    const seats = [{ id: 'you', name: GK.player.name(), avatar: GK.player.avatar(), fig: GK.figure.mine(), rank: GK.rank.mine(), badge: GK.cosmetics.myBadge(), isBot: false }].concat(T().botSeats(SEATS - 1));
     const s = state();
     const table = T().createTable(seats, s.mode, s.hands);
     s.table = table;

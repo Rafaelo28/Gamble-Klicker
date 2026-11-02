@@ -250,6 +250,7 @@ window.GK = window.GK || {};
 
     if (now - lastCheck >= CHECK_INTERVAL) {
       lastCheck = now;
+      GK.rank.check();
       GK.achievements.check();
     }
     if (now - lastRender >= RENDER_INTERVAL) {

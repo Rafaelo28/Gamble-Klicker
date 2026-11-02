@@ -101,6 +101,7 @@ GK.poker = GK.poker || {};
       p.avatar = seats[i].avatar || '';
       if (seats[i].badge) p.badge = seats[i].badge; // Namensschild aus der Schatzkammer
       if (seats[i].fig) p.fig = seats[i].fig;       // eigene Figur
+      if (seats[i].rank) p.rank = seats[i].rank;    // Rang
     });
     return table;
   }

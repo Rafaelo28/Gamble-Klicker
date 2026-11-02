@@ -22,6 +22,7 @@ window.GK = window.GK || {};
     { name: 'Roboter', skin: '#a7b4c2', kind: 'robot', unlock: s => s.totalClicks >= 100000, hint: 'Ab 100.000 Klicks' },
     { name: 'Alien', skin: '#8be08b', kind: 'alien', unlock: s => s.achievements.length >= 50, hint: 'Ab 50 Erfolgen' },
     { name: 'Zombie', skin: '#9fbf8f', kind: 'zombie' },
+    { name: 'Geist', skin: '#e9eef8', kind: 'ghost', rank: 10 },
   ];
 
   const HATS = [
@@ -36,6 +37,8 @@ window.GK = window.GK || {};
     { name: 'Partyhut' },
     { name: 'Strubbelhaare' },
     { name: 'Lange Haare' },
+    { name: 'Admiralshut', rank: 9 },
+    { name: 'Heiligenschein', rank: 13 },
   ];
 
   const EYES = [
@@ -47,6 +50,7 @@ window.GK = window.GK || {};
     { name: 'Sternaugen', unlock: s => s.achievements.includes('daily7'), hint: 'Erfolg „Eine Woche dabei“' },
     { name: 'Große Augen' },
     { name: 'Brille' },
+    { name: 'Laseraugen', rank: 12 },
   ];
 
   const MOUTHS = [
@@ -67,6 +71,7 @@ window.GK = window.GK || {};
     { name: 'T-Shirt' },
     { name: 'Rüstung', unlock: s => s.kraken && s.kraken.defeated >= 10, hint: '10 Kraken-Angriffe abgewehrt' },
     { name: 'Königsmantel', unlock: s => s.prestige.points >= 1000, hint: 'Ab 1.000 Schatzkarten' },
+    { name: 'Kapitänsuniform', rank: 7 },
   ];
 
   const COLORS = [
@@ -85,6 +90,8 @@ window.GK = window.GK || {};
     { name: 'Fernrohr' },
     { name: 'Mini-Krake', unlock: s => s.kraken && s.kraken.defeated >= 1, hint: 'Einen Kraken-Angriff abgewehrt' },
     { name: 'Rose' },
+    { name: 'Steuerrad', rank: 4 },
+    { name: 'Dreizack', rank: 11 },
   ];
 
   const SLOTS = [
@@ -119,9 +126,26 @@ window.GK = window.GK || {};
     return p ? p.join('.') : '';
   }
 
+  // Neue Teile immer hinten anhängen, sonst ändern sich die Codes gespeicherter Figuren.
+  // Teile mit rank: … gibt es ab diesem Rang (GK.rank, je 1.000-mal mehr insgesamt verdient).
+  SLOTS.forEach(slot => slot.parts.forEach(part => {
+    if (part.rank == null) return;
+    part.unlock = s => GK.rank.of(s.allTimeEarned) >= part.rank;
+    Object.defineProperty(part, 'hint', { get: () => `Ab Rang ${GK.rank.name(part.rank)}` });
+  }));
+
   function unlocked(slot, part, s = GK.state) {
     const def = SLOTS[slot].parts[part];
     return !def.unlock || !!def.unlock(s);
+  }
+
+  // Belohnungen der Ränge (für die Anzeige im Fortschritt-Tab), nach Rang sortiert
+  function rankParts() {
+    const out = [];
+    SLOTS.forEach(slot => slot.parts.forEach(part => {
+      if (part.rank != null) out.push({ rank: part.rank, name: part.name, slot: slot.name });
+    }));
+    return out.sort((a, b) => a.rank - b.rank);
   }
 
   // ---------- Zeichnen (SVG 64 × 64, ohne IDs – darf beliebig oft auf einer Seite stehen) ----------
@@ -171,6 +195,9 @@ window.GK = window.GK || {};
         return ellipse(32, 26, 13, 16, s, line);
       case 'zombie':
         return circle(32, 27, 14, s, line) + path('M22 18 L28 16 M23 16 L23.6 19.5 M25.5 15.4 L26 19 M40 33 L44 30', 'none', stroke(0.9, '#4b5d45'));
+      case 'ghost':
+        return path('M17 43 L17 27 C17 9 47 9 47 27 L47 43 L42 39.5 L37 43 L32 39.5 L27 43 L22 39.5 Z', s, line) +
+          ellipse(23.5, 32, 2.6, 1.4, 'rgba(120,150,220,.35)') + ellipse(40.5, 32, 2.6, 1.4, 'rgba(120,150,220,.35)');
       default:
         return circle(17.5, 28, 3, s, line) + circle(46.5, 28, 3, s, line) + circle(32, 27, 14, s, line);
     }
@@ -195,6 +222,8 @@ window.GK = window.GK || {};
       case 6: return circle(L, y, 4, '#fff', stroke(0.8)) + circle(R, y, 4, '#fff', stroke(0.8)) + circle(L + 0.6, y + 0.6, 2.1, '#1d1d1d') + circle(R + 0.6, y + 0.6, 2.1, '#1d1d1d');
       case 7: return dot(L) + dot(R) + circle(L, y, 4.3, 'rgba(255,255,255,.15)', stroke(1.1, '#2b2b2b')) + circle(R, y, 4.3, 'rgba(255,255,255,.15)', stroke(1.1, '#2b2b2b')) +
         path(`M${L + 4.3} ${y} L${R - 4.3} ${y}`, 'none', stroke(1.1, '#2b2b2b'));
+      case 8: return path(`M${L} ${y} L${L - 13} ${y + 34} M${R} ${y} L${R + 13} ${y + 34}`, 'none', stroke(2.2, 'rgba(255,40,40,.55)')) +
+        circle(L, y, 2.6, '#ff2b2b') + circle(R, y, 2.6, '#ff2b2b') + circle(L, y, 1.1, '#fff') + circle(R, y, 1.1, '#fff');
       default: return dot(L) + dot(R);
     }
   }
@@ -233,6 +262,10 @@ window.GK = window.GK || {};
         back: path('M16 26 C14 10 50 10 48 26 L50 46 C44 47 42 40 42 34 L22 34 C22 40 20 47 14 46 Z', '#e8c35a', line),
         front: path('M18 22 C19 11 45 11 46 22 C40 15 30 14 25 20 C23 17 20 19 18 22 Z', '#e8c35a', line),
       };
+      case 11: return { front: path('M7 19 C11 11 20 3 32 3 C44 3 53 11 57 19 C48 16 40 15 32 15 C24 15 16 16 7 19 Z', '#1d2747', line) +
+        path('M9.5 17.6 C19 14.6 45 14.6 54.5 17.6', 'none', stroke(1.3, '#f5c542')) + path('M32 3 C29 -1 34 -3 38 -1 C35.5 0 34 1.2 32 3 Z', '#f4f4f4', stroke(0.6)) +
+        circle(32, 10, 2.4, '#f5c542', stroke(0.6, '#9a6b00')) };
+      case 12: return { front: ellipse(32, 5, 11.5, 3.2, 'none', stroke(2.4, '#ffd23f')) + ellipse(32, 5, 11.5, 3.2, 'none', stroke(0.8, '#fff6c2')) };
       default: return {};
     }
   }
@@ -253,6 +286,10 @@ window.GK = window.GK || {};
         circle(20, 52, 1, '#7d8794') + circle(44, 52, 1, '#7d8794');
       case 6: return torso(color) + path('M14 51 C20 46 44 46 50 51 L48 55 C42 51 22 51 16 55 Z', '#f6f2e8', stroke(0.8)) +
         circle(22, 51.5, 0.8, '#111') + circle(32, 49.5, 0.8, '#111') + circle(42, 51.5, 0.8, '#111') + circle(32, 58, 1.4, '#f5c542');
+      case 7: return torso(color) + path('M27.5 46 L32 55 L36.5 46 Z', '#f4f4f4', stroke(0.8)) +
+        ellipse(15.5, 51.5, 6, 2.6, '#f5c542', stroke(0.7, '#9a6b00')) + ellipse(48.5, 51.5, 6, 2.6, '#f5c542', stroke(0.7, '#9a6b00')) +
+        path('M11 53.5 L10 57 M14 54 L13.5 57.5 M17.5 54 L17.5 57.5 M53 53.5 L54 57 M50 54 L50.5 57.5 M46.5 54 L46.5 57.5', 'none', stroke(0.9, '#d4a017')) +
+        circle(28, 58, 1.2, '#f5c542') + circle(28, 62, 1.2, '#f5c542') + circle(36, 58, 1.2, '#f5c542') + circle(36, 62, 1.2, '#f5c542');
       default: return torso('#f4f4f4') + path('M11 53 L53 53 M9.5 58.5 L54.5 58.5', 'none', stroke(2.6, color)) +
         path('M25 46 L32 54 L39 46', color, stroke(0.8));
     }
@@ -273,6 +310,11 @@ window.GK = window.GK || {};
         circle(48, 50.5, 1, '#fff') + circle(52, 50.5, 1, '#fff') + circle(48, 50.8, 0.5, '#111') + circle(52, 50.8, 0.5, '#111');
       case 7: return path('M46 63 L46 51', 'none', stroke(1.6, '#2e8b57')) + path('M46 57 C48 55 50 56 50 58 C48 58 47 58 46 57 Z', '#2e8b57') +
         circle(46, 49.5, 3.4, '#d6183a', line) + path('M44.5 49 C45.5 47.5 47 48 47 49.5', 'none', stroke(0.7, '#8a0f24'));
+      case 8: return path('M50 44.5 L50 63.5 M40.5 54 L59.5 54 M43.3 47.3 L56.7 60.7 M56.7 47.3 L43.3 60.7', 'none', stroke(1.6, '#7a4e2d')) +
+        circle(50, 54, 6.6, 'none', stroke(2.2, '#7a4e2d')) + circle(50, 54, 2, '#d4a017', stroke(0.6, '#9a6b00'));
+      case 9: return path('M50 64 L50 41', 'none', stroke(1.9, '#d4a017')) + path('M44 45.5 C44 49 56 49 56 45.5', 'none', stroke(1.6, '#d4a017')) +
+        path('M44 46 L44 40 M56 46 L56 40', 'none', stroke(1.6, '#d4a017')) +
+        path('M42.5 40.5 L44 35.5 L45.5 40.5 Z M48.5 41.5 L50 35 L51.5 41.5 Z M54.5 40.5 L56 35.5 L57.5 40.5 Z', '#f5c542', stroke(0.5, '#9a6b00'));
       default: return '';
     }
   }
@@ -346,7 +388,7 @@ window.GK = window.GK || {};
     if (!box) return;
     const code = current();
     const unlocks = SLOTS.map((slot, i) => slot.parts.map((_, j) => (unlocked(i, j) ? 1 : 0)).join('')).join('|');
-    const sig = `${code}|${me().figOn}|${unlocks}|${GK.player.name()}`;
+    const sig = `${code}|${me().figOn}|${unlocks}|${GK.player.name()}|${GK.rank.mine()}`;
     if (!force && sig === lastSig) return;
     lastSig = sig;
     const parts = parse(code);
@@ -366,7 +408,7 @@ window.GK = window.GK || {};
       <div class="fig-top">
         <div class="fig-big">${svg(code)}</div>
         <div class="fig-side">
-          <div class="fig-tag">${GK.cosmetics.nameTag({ name: GK.player.name(), avatar: GK.player.avatar(), fig: code, badge: GK.cosmetics.myBadge() })}</div>
+          <div class="fig-tag">${GK.cosmetics.nameTag({ name: GK.player.name(), avatar: GK.player.avatar(), fig: code, rank: GK.rank.mine(), badge: GK.cosmetics.myBadge() })}</div>
           <label class="fig-on"><input type="checkbox" class="switch fig-toggle" ${me().figOn ? 'checked' : ''}> Figur statt Emoji zeigen</label>
           <div class="fig-presets">
             ${PRESETS.map((p, k) => `<button type="button" class="btn btn-small fig-preset" data-preset="${k}">${p.name}</button>`).join('')}
@@ -414,5 +456,5 @@ window.GK = window.GK || {};
     }
   }
 
-  GK.figure = { SLOTS, PRESETS, DEFAULT, parse, valid, svg, mine, current, set, unlocked, allowed, randomCode, avatarHTML, render };
+  GK.figure = { SLOTS, PRESETS, DEFAULT, parse, valid, svg, mine, current, set, unlocked, allowed, randomCode, avatarHTML, render, rankParts };
 })();

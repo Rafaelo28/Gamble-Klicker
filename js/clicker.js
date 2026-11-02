@@ -28,6 +28,15 @@ window.GK = window.GK || {};
     { id: 'timemachine', icon: '🔮', name: 'Zeitmaschine',   baseCost: 2.1e15, baseCps: 2.9e9, desc: 'Holt Dublonen aus der Zukunft.' },
     { id: 'luck',      icon: '🍀', name: 'Glücksfabrik',     baseCost: 2.6e16, baseCps: 2.1e10, desc: 'Stellt Glück am Fließband her.' },
     { id: 'portal',    icon: '🌌', name: 'Sternenportal',    baseCost: 3.1e17, baseCps: 1.5e11, desc: 'Dublonen aus anderen Welten.' },
+    // Nach dem Sternenportal: für alle, die das Spiel schon „durchgespielt“ haben
+    { id: 'poseidon',  icon: '🔱', name: 'Poseidons Tempel', baseCost: 3.7e18, baseCps: 1.05e12, desc: 'Der Meeresgott zahlt Tribut.' },
+    { id: 'ghostyard', icon: '👻', name: 'Geisterwerft',     baseCost: 4.4e19, baseCps: 7.4e12, desc: 'Untote Seeleute arbeiten ohne Pause.' },
+    { id: 'atlantis',  icon: '🏛️', name: 'Atlantis',         baseCost: 5.3e20, baseCps: 5.2e13, desc: 'Die versunkene Stadt voller Gold.' },
+    { id: 'lavaforge', icon: '🌋', name: 'Lava-Schmiede',    baseCost: 6.4e21, baseCps: 3.6e14, desc: 'Gießt Dublonen aus flüssiger Lava.' },
+    { id: 'blackhole', icon: '🕳️', name: 'Schwarzes Loch',   baseCost: 7.7e22, baseCps: 2.5e15, desc: 'Saugt Gold aus dem ganzen Universum.' },
+    { id: 'parallel',  icon: '🪞', name: 'Paralleluniversum', baseCost: 9.2e23, baseCps: 1.8e16, desc: 'Ein zweites Du verdient mit.' },
+    { id: 'galaxy',    icon: '💫', name: 'Galaxienbank',     baseCost: 1.1e25, baseCps: 1.25e17, desc: 'Verwaltet die Schätze ganzer Galaxien.' },
+    { id: 'bigbang',   icon: '💥', name: 'Dublonen-Urknall', baseCost: 1.3e26, baseCps: 8.8e17, desc: 'Erschafft ein Universum nur aus Dublonen.' },
   ];
 
   // Upgrades für Klicks. rarity bestimmt Farbe und Effekt der Kachel.
@@ -100,6 +109,10 @@ window.GK = window.GK || {};
       desc: 'Alle Gebäude: Einkommen +25 %', unlocked: () => totalBuildings() >= 500 },
     { id: 'global5', icon: '🌠', name: 'Ewiger Reichtum', cost: 5e16, type: 'globalMult', value: 1.3, rarity: 'empire',
       desc: 'Alle Gebäude: Einkommen +30 %', unlocked: () => totalBuildings() >= 800 },
+    { id: 'global6', icon: '🔱', name: 'Herrschaft der Meere', cost: 5e22, type: 'globalMult', value: 1.35, rarity: 'empire',
+      desc: 'Alle Gebäude: Einkommen +35 %', unlocked: () => totalBuildings() >= 1200 },
+    { id: 'global7', icon: '💥', name: 'Unendlicher Reichtum', cost: 5e27, type: 'globalMult', value: 1.4, rarity: 'empire',
+      desc: 'Alle Gebäude: Einkommen +40 %', unlocked: () => totalBuildings() >= 1600 },
   ];
 
   // Pro Gebäude: immer stärkere Upgrades, sobald man genug davon besitzt

@@ -213,13 +213,28 @@ GK.poker = GK.poker || {};
     }, 0);
   }
 
+  // PeerJS verpackt ganze Zahlen über 2^64 nicht (z. B. „insgesamt verdient“ im späten Spiel) –
+  // dann geht die Nachricht als Text (JSON) raus und wird beim Empfang wieder ausgepackt
   function send(conn, msg) {
     if (conn && conn.open) {
       try {
         conn.send(msg);
       } catch (e) {
-        console.warn('Senden fehlgeschlagen:', e);
+        try {
+          conn.send({ type: 'json', data: JSON.stringify(msg) });
+        } catch (e2) {
+          console.warn('Senden fehlgeschlagen:', e2);
+        }
       }
+    }
+  }
+
+  function unpack(msg) {
+    if (!msg || msg.type !== 'json' || typeof msg.data !== 'string') return msg;
+    try {
+      return JSON.parse(msg.data);
+    } catch (e) {
+      return null;
     }
   }
 
@@ -245,7 +260,7 @@ GK.poker = GK.poker || {};
       phase: 'lobby',
       paid: true,
       settled: false,
-      members: [{ playerId: me.playerId, name: GK.player.name(), avatar: GK.player.avatar(), fig: GK.figure.mine(), badge: GK.cosmetics.myBadge(), ready: true }],
+      members: [{ playerId: me.playerId, name: GK.player.name(), avatar: GK.player.avatar(), fig: GK.figure.mine(), rank: GK.rank.mine(), badge: GK.cosmetics.myBadge(), ready: true }],
       fillBots: true,
       table: null,
       deadline: null,
@@ -300,7 +315,7 @@ GK.poker = GK.poker || {};
     conn.lastSeen = Date.now();
     conn.on('data', msg => {
       conn.lastSeen = Date.now();
-      onHostMessage(conn, msg);
+      onHostMessage(conn, unpack(msg));
     });
     const closed = () => onHostConnClosed(conn);
     conn.on('close', closed);
@@ -354,6 +369,7 @@ GK.poker = GK.poker || {};
       if (s.phase === 'lobby') {
         member.badge = GK.cosmetics.validBadge(msg.badge); // Namensschild aus der Schatzkammer
         member.fig = GK.figure.valid(msg.fig);             // eigene Figur
+        member.rank = GK.rank.valid(msg.rank);             // Rang (je 1.000-mal mehr verdient)
       }
       takeRecords(member, msg.records);
       if (msg.paid) member.ready = true; // hat den Eintritt schon bezahlt (z. B. nach dem Neuladen)
@@ -434,7 +450,7 @@ GK.poker = GK.poker || {};
       if (conn) setTimeout(() => conn.close(), 500);
     });
     s.members = s.members.filter(m => m.ready);
-    let seats = s.members.map(m => ({ id: m.playerId, name: m.name, avatar: m.avatar, fig: m.fig || '', badge: m.badge || '', isBot: false }));
+    let seats = s.members.map(m => ({ id: m.playerId, name: m.name, avatar: m.avatar, fig: m.fig || '', rank: m.rank || 0, badge: m.badge || '', isBot: false }));
     if (s.fillBots) seats = seats.concat(T().botSeats(T().MAX_SEATS - seats.length));
     s.table = T().createTable(seats, s.mode, s.hands);
     s.phase = 'playing';
@@ -656,12 +672,12 @@ GK.poker = GK.poker || {};
       net.status = 'online';
       net.lostSince = null;
       const me = store();
-      send(conn, { type: 'hello', v: PROTOCOL, playerId: me.playerId, name: GK.player.name(), avatar: GK.player.avatar(), fig: GK.figure.mine(), badge: GK.cosmetics.myBadge(), paid: session().paid, records: GK.friends.myRecords() });
+      send(conn, { type: 'hello', v: PROTOCOL, playerId: me.playerId, name: GK.player.name(), avatar: GK.player.avatar(), fig: GK.figure.mine(), rank: GK.rank.mine(), badge: GK.cosmetics.myBadge(), paid: session().paid, records: GK.friends.myRecords() });
       GK.poker.redraw();
     });
     conn.on('data', msg => {
       conn.lastSeen = Date.now();
-      onClientMessage(msg);
+      onClientMessage(unpack(msg));
     });
     // Nur die aktuelle Verbindung (oder der laufende Versuch) zählt – alte, ersetzte nicht
     const lost = () => {
