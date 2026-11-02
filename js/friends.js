@@ -12,6 +12,7 @@ window.GK = window.GK || {};
   const BOARDS = [
     { id: 'worth',      icon: '💎', name: 'Vermögen mit Gebäuden', money: true },
     { id: 'rank',       icon: '⚓', name: 'Rang',                  rank: true },
+    { id: 'boss',       icon: '⚔️', name: 'Boss-Stufe' },
     { id: 'net',        icon: '🎲', name: 'Casino-Bilanz',         money: true, signed: true },
     { id: 'win',        icon: '🏆', name: 'Größter Gewinn',        money: true },
     { id: 'lossPct',    icon: '📉', name: 'Verlust in % vom Einkommen', pct: true },
@@ -37,6 +38,7 @@ window.GK = window.GK || {};
     lossPct: 'Größter Verlust in einer Runde im Vergleich zum Einkommen pro Sekunde (ohne Goldrausch): 500 % heißt, die Runde hat so viel gekostet wie 5 Sekunden Einkommen.',
     incomeMult: 'Dauerhafter Einkommens-Bonus aus Schatzkarten, Erfolgen und Schätzen der Flotte.',
     rank: 'Je 1.000-mal mehr insgesamt verdient, ein Rang höher.',
+    boss: 'Höchste besiegte Stufe im Bosskampf (⚓ Abenteuer).',
   };
   let board = 'worth';
   let gameBoard = 0;
@@ -70,6 +72,7 @@ window.GK = window.GK || {};
       avatar: GK.player.avatar(),
       fig: GK.figure ? GK.figure.mine() : '',
       rank: GK.rank ? GK.rank.mine() : 0,
+      boss: s.boss ? num(s.boss.level) : 0,
       badge: GK.cosmetics.myBadge(),
       t: Date.now(),
       worth: Math.floor(num(s.money) + num(GK.clicker.buildingsWorth())),

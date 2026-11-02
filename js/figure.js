@@ -23,6 +23,7 @@ window.GK = window.GK || {};
     { name: 'Alien', skin: '#8be08b', kind: 'alien', unlock: s => s.achievements.length >= 50, hint: 'Ab 50 Erfolgen' },
     { name: 'Zombie', skin: '#9fbf8f', kind: 'zombie' },
     { name: 'Geist', skin: '#e9eef8', kind: 'ghost', rank: 10 },
+    { name: 'Krake', skin: '#a05cc8', kind: 'kraken', boss: 100 },
   ];
 
   const HATS = [
@@ -40,6 +41,7 @@ window.GK = window.GK || {};
     { name: 'Admiralshut', rank: 9 },
     { name: 'Heiligenschein', rank: 13 },
     { name: 'Korallenkrone', unlock: () => !!GK.fleet && GK.fleet.setsComplete('reef'), hint: 'Alle Schätze vom Korallenriff (⚓ Abenteuer)' },
+    { name: 'Krakenhut', boss: 25 },
   ];
 
   const EYES = [
@@ -74,6 +76,7 @@ window.GK = window.GK || {};
     { name: 'Königsmantel', unlock: s => s.prestige.points >= 1000, hint: 'Ab 1.000 Schatzkarten' },
     { name: 'Kapitänsuniform', rank: 7 },
     { name: 'Drachenschuppen', unlock: () => !!GK.fleet && GK.fleet.setsComplete('dragon'), hint: 'Alle Schätze der Drachenküste (⚓ Abenteuer)' },
+    { name: 'Goldrüstung', boss: 50 },
   ];
 
   const COLORS = [
@@ -96,6 +99,7 @@ window.GK = window.GK || {};
     { name: 'Dreizack', rank: 11 },
     { name: 'Schatztruhe', unlock: () => !!GK.fleet && GK.fleet.setsComplete('smuggler'), hint: 'Alle Schätze der Schmugglerinsel (⚓ Abenteuer)' },
     { name: 'Goldener Kompass', unlock: s => !!s.fleet && s.fleet.done >= 100, hint: '100 Fahrten mit der Flotte (⚓ Abenteuer)' },
+    { name: 'Kanone', boss: 10 },
   ];
 
   const SLOTS = [
@@ -132,7 +136,12 @@ window.GK = window.GK || {};
 
   // Neue Teile immer hinten anhängen, sonst ändern sich die Codes gespeicherter Figuren.
   // Teile mit rank: … gibt es ab diesem Rang (GK.rank, je 1.000-mal mehr insgesamt verdient).
+  // Teile mit boss: … gibt es, sobald diese Boss-Stufe besiegt ist (GK.boss).
   SLOTS.forEach(slot => slot.parts.forEach(part => {
+    if (part.boss != null) {
+      part.unlock = s => !!s.boss && s.boss.level >= part.boss;
+      part.hint = `Boss-Stufe ${part.boss} besiegen (⚓ Abenteuer)`;
+    }
     if (part.rank == null) return;
     part.unlock = s => GK.rank.of(s.allTimeEarned) >= part.rank;
     Object.defineProperty(part, 'hint', { get: () => `Ab Rang ${GK.rank.name(part.rank)}` });
@@ -141,6 +150,15 @@ window.GK = window.GK || {};
   function unlocked(slot, part, s = GK.state) {
     const def = SLOTS[slot].parts[part];
     return !def.unlock || !!def.unlock(s);
+  }
+
+  // Belohnungen der Bosskämpfe, nach Stufe sortiert
+  function bossParts() {
+    const out = [];
+    SLOTS.forEach(slot => slot.parts.forEach(part => {
+      if (part.boss != null) out.push({ level: part.boss, name: part.name, slot: slot.name });
+    }));
+    return out.sort((a, b) => a.level - b.level);
   }
 
   // Belohnungen der Ränge (für die Anzeige im Fortschritt-Tab), nach Rang sortiert
@@ -199,6 +217,9 @@ window.GK = window.GK || {};
         return ellipse(32, 26, 13, 16, s, line);
       case 'zombie':
         return circle(32, 27, 14, s, line) + path('M22 18 L28 16 M23 16 L23.6 19.5 M25.5 15.4 L26 19 M40 33 L44 30', 'none', stroke(0.9, '#4b5d45'));
+      case 'kraken':
+        return [[-1, 0], [1, 0], [-1, 1], [1, 1]].map(([dir, k]) => path(`M${32 + dir * (6 + k * 5)} 36 C${32 + dir * (10 + k * 7)} 42 ${32 + dir * (6 + k * 9)} 46 ${32 + dir * (12 + k * 8)} 47`, 'none', stroke(3.4, s))).join('') +
+          ellipse(32, 24, 15, 15, s, line) + circle(26, 33, 1.2, '#7d3fa3') + circle(38, 33, 1.2, '#7d3fa3') + circle(32, 13, 1.4, '#7d3fa3') + circle(22, 20, 1, '#7d3fa3') + circle(42, 20, 1, '#7d3fa3');
       case 'ghost':
         return path('M17 43 L17 27 C17 9 47 9 47 27 L47 43 L42 39.5 L37 43 L32 39.5 L27 43 L22 39.5 Z', s, line) +
           ellipse(23.5, 32, 2.6, 1.4, 'rgba(120,150,220,.35)') + ellipse(40.5, 32, 2.6, 1.4, 'rgba(120,150,220,.35)');
@@ -270,6 +291,11 @@ window.GK = window.GK || {};
         path('M9.5 17.6 C19 14.6 45 14.6 54.5 17.6', 'none', stroke(1.3, '#f5c542')) + path('M32 3 C29 -1 34 -3 38 -1 C35.5 0 34 1.2 32 3 Z', '#f4f4f4', stroke(0.6)) +
         circle(32, 10, 2.4, '#f5c542', stroke(0.6, '#9a6b00')) };
       case 12: return { front: ellipse(32, 5, 11.5, 3.2, 'none', stroke(2.4, '#ffd23f')) + ellipse(32, 5, 11.5, 3.2, 'none', stroke(0.8, '#fff6c2')) };
+      case 14: return {
+        back: [[-1, 0], [1, 0], [-1, 1], [1, 1]].map(([dir, k]) => path(`M${32 + dir * (11 + k * 2)} 16 C${32 + dir * (19 + k * 2)} ${22 + k * 6} ${32 + dir * (13 + k * 5)} ${30 + k * 6} ${32 + dir * (19 + k * 3)} ${34 + k * 7}`, 'none', stroke(3, '#a05cc8'))).join(''),
+        front: path('M18 19 C17 5 47 5 46 19 C40 15 24 15 18 19 Z', '#a05cc8', stroke()) + circle(27, 11, 2.2, '#fff') + circle(37, 11, 2.2, '#fff') + circle(27.4, 11.4, 1.1, '#111') + circle(37.4, 11.4, 1.1, '#111') +
+          circle(23, 16, 0.9, '#7d3fa3') + circle(32, 15, 0.9, '#7d3fa3') + circle(41, 16, 0.9, '#7d3fa3'),
+      };
       case 13: return { front: path('M21 16 L19 6 M19.6 9.5 L16 6.5 M26 15 L26.5 3.5 M26.3 8 L29.5 4.5 M32 14.5 L32 1 M32 6 L35.5 3 M38 15 L37.5 3.5 M37.7 8 L34.5 4.5 M43 16 L45 6 M44.4 9.5 L48 6.5', 'none', stroke(2.4, '#ff6f61')) +
         rect(19, 14.5, 26, 4.5, '#e8576b', Object.assign({ rx: 2 }, stroke(1, '#8f2235'))) + circle(32, 16.7, 1.4, '#fff3f3') + circle(25.5, 16.7, 1, '#fff3f3') + circle(38.5, 16.7, 1, '#fff3f3') };
       default: return {};
@@ -292,6 +318,8 @@ window.GK = window.GK || {};
         circle(20, 52, 1, '#7d8794') + circle(44, 52, 1, '#7d8794');
       case 6: return torso(color) + path('M14 51 C20 46 44 46 50 51 L48 55 C42 51 22 51 16 55 Z', '#f6f2e8', stroke(0.8)) +
         circle(22, 51.5, 0.8, '#111') + circle(32, 49.5, 0.8, '#111') + circle(42, 51.5, 0.8, '#111') + circle(32, 58, 1.4, '#f5c542');
+      case 9: return torso('#e8b923') + path('M14 56 L50 56 M12 60.5 L52 60.5 M32 47 L32 64', 'none', stroke(1, '#9a6b00')) +
+        path('M20 49 C24 46 40 46 44 49', 'none', stroke(2, '#fff1a8')) + circle(20, 52, 1, '#9a6b00') + circle(44, 52, 1, '#9a6b00') + circle(32, 52, 2.2, '#d6183a', stroke(0.6, '#9a6b00'));
       case 8: return torso(color) + [51, 56, 61].map((y, row) => [14, 20, 26, 32, 38, 44, 50].map(x => path(`M${x - 3 + (row % 2) * 3} ${y} Q${x + (row % 2) * 3} ${y + 3.4} ${x + 3 + (row % 2) * 3} ${y}`, 'none', stroke(1, 'rgba(0,0,0,.35)'))).join('')).join('') +
         path('M24 46.5 C28 50 36 50 40 46.5', 'none', stroke(2, '#f5c542'));
       case 7: return torso(color) + path('M27.5 46 L32 55 L36.5 46 Z', '#f4f4f4', stroke(0.8)) +
@@ -320,6 +348,8 @@ window.GK = window.GK || {};
         circle(46, 49.5, 3.4, '#d6183a', line) + path('M44.5 49 C45.5 47.5 47 48 47 49.5', 'none', stroke(0.7, '#8a0f24'));
       case 8: return path('M50 44.5 L50 63.5 M40.5 54 L59.5 54 M43.3 47.3 L56.7 60.7 M56.7 47.3 L43.3 60.7', 'none', stroke(1.6, '#7a4e2d')) +
         circle(50, 54, 6.6, 'none', stroke(2.2, '#7a4e2d')) + circle(50, 54, 2, '#d4a017', stroke(0.6, '#9a6b00'));
+      case 12: return path('M38 56 L56 49 L58 54 L40 61 Z', '#2b2f36', stroke(1)) + ellipse(57, 51.5, 2, 2.8, '#15171c', Object.assign({ transform: 'rotate(-22 57 51.5)' }, stroke(0.8))) +
+        circle(44, 60, 4, '#7a4e2d', stroke(1)) + circle(44, 60, 1.2, '#d4a017') + circle(61, 46, 1.6, '#555') + circle(63.5, 44, 1.1, '#777');
       case 10: return rect(42, 53, 19, 10, '#8a5a2b', Object.assign({ rx: 1.5 }, stroke(1))) + path('M42 53 C42 46 61 46 61 53 Z', '#9c6a35', stroke(1)) +
         path('M42 53 L61 53 M51.5 47.5 L51.5 63', 'none', stroke(1.4, '#d4a017')) + rect(49.8, 52, 3.4, 3.4, '#f5c542', stroke(0.5, '#9a6b00')) +
         circle(46, 48.8, 1.6, '#f5c542', stroke(0.4, '#9a6b00')) + circle(57, 48.4, 1.6, '#f5c542', stroke(0.4, '#9a6b00'));
@@ -469,5 +499,5 @@ window.GK = window.GK || {};
     }
   }
 
-  GK.figure = { SLOTS, PRESETS, DEFAULT, parse, valid, svg, mine, current, set, unlocked, allowed, randomCode, avatarHTML, render, rankParts };
+  GK.figure = { SLOTS, PRESETS, DEFAULT, parse, valid, svg, mine, current, set, unlocked, allowed, randomCode, avatarHTML, render, rankParts, bossParts };
 })();
