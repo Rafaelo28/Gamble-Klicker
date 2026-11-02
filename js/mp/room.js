@@ -279,7 +279,7 @@ window.GK = window.GK || {};
       phase: 'lobby',
       paid: true,
       settled: false,
-      members: [{ playerId: me.playerId, name: GK.player.name(), avatar: GK.player.avatar(), badge: GK.cosmetics.myBadge(), ready: true }],
+      members: [{ playerId: me.playerId, name: GK.player.name(), avatar: GK.player.avatar(), fig: GK.figure.mine(), badge: GK.cosmetics.myBadge(), ready: true }],
       fillBots: !!d.bots,
       state: null,
       deadline: null,
@@ -380,7 +380,10 @@ window.GK = window.GK || {};
         m = { playerId, name: cleanName(msg.name), avatar: AVATARS.includes(msg.avatar) ? msg.avatar : AVATARS[0], ready: false };
         s.members.push(m);
       }
-      if (s.phase === 'lobby') m.badge = GK.cosmetics.validBadge(msg.badge); // Namensschild aus der Schatzkammer
+      if (s.phase === 'lobby') {
+        m.badge = GK.cosmetics.validBadge(msg.badge); // Namensschild aus der Schatzkammer
+        m.fig = GK.figure.valid(msg.fig);             // eigene Figur
+      }
       takeRecords(m, msg.records);
       if (msg.paid) m.ready = true;
       const old = net.conns.get(playerId);
@@ -467,14 +470,15 @@ window.GK = window.GK || {};
       if (conn) setTimeout(() => conn.close(), 500);
     });
     s.members = ready;
-    let seats = ready.map(m => ({ id: m.playerId, name: m.name, avatar: m.avatar, badge: m.badge || '', isBot: false }));
+    let seats = ready.map(m => ({ id: m.playerId, name: m.name, avatar: m.avatar, fig: m.fig || '', badge: m.badge || '', isBot: false }));
     const bots = s.solo ? botCount : (s.fillBots ? d.maxPlayers - seats.length : 0);
     seats = seats.concat(botSeats(Math.max(0, Math.min(bots, d.maxPlayers - seats.length))));
     s.state = d.create(seats, s.settings || d.settings.defaults);
-    // Namensschilder (Schatzkammer) an die Spieler hängen – die Spiele kennen sie nicht
+    // Namensschilder (Schatzkammer) und Figuren an die Spieler hängen – die Spiele kennen sie nicht
     s.state.players.forEach(p => {
       const seat = seats.find(x => x.id === p.id);
       if (seat && seat.badge) p.badge = seat.badge;
+      if (seat && seat.fig) p.fig = seat.fig;
     });
     s.state.step = 0;
     s.phase = 'playing';
@@ -679,7 +683,7 @@ window.GK = window.GK || {};
       net.status = 'online';
       net.lostSince = null;
       const me = store();
-      send(conn, { type: 'hello', v: PROTOCOL, game: s.game, playerId: me.playerId, name: GK.player.name(), avatar: GK.player.avatar(), badge: GK.cosmetics.myBadge(), paid: session().paid, records: GK.friends.myRecords() });
+      send(conn, { type: 'hello', v: PROTOCOL, game: s.game, playerId: me.playerId, name: GK.player.name(), avatar: GK.player.avatar(), fig: GK.figure.mine(), badge: GK.cosmetics.myBadge(), paid: session().paid, records: GK.friends.myRecords() });
       redraw();
     });
     conn.on('data', msg => {
@@ -996,7 +1000,7 @@ window.GK = window.GK || {};
         <div class="mp-form">
           <label class="bet-label">Dein Name am Tisch</label>
           <div class="bet-row">
-            <button type="button" class="btn mp-avatar room-avatar" title="Anderes Bild">${GK.player.avatar()}</button>
+            <button type="button" class="btn mp-avatar room-avatar" title="Anderes Bild">${GK.figure.avatarHTML()}</button>
             <input class="bet-input mp-name room-name" maxlength="${MAX_NAME}" value="${esc(GK.player.name())}">
           </div>
         </div>
@@ -1062,7 +1066,8 @@ window.GK = window.GK || {};
     };
     nameInput.addEventListener('change', saveName);
     container.querySelector('.room-avatar').addEventListener('click', e => {
-      e.currentTarget.textContent = GK.player.nextAvatar();
+      if (GK.figure.mine()) GK.toast('Deine Figur änderst du unter 📊 Statistiken → 🎨 Deine Figur.');
+      else e.currentTarget.textContent = GK.player.nextAvatar();
     });
     const entryInput = container.querySelector('.room-entry');
     const updatePreview = GK.amountPreview(entryInput, container.querySelector('.room-entry-preview'));

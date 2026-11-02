@@ -80,7 +80,7 @@ window.GK = window.GK || {};
       passiveOff: false, // passives Einkommen der Gebäude ausgeschaltet (Schalter unter den Gebäuden)
       casino: createDefaultCasino(),
       cosmetics: createDefaultCosmetics(),
-      player: { name: '', avatar: '' }, // spielweiter Name und Bild (leer = noch nicht festgelegt)
+      player: { name: '', avatar: '', fig: '', figOn: false }, // spielweiter Name, Bild und eigene Figur (fig = Code, figOn = statt Emoji zeigen)
       friendId: '',    // eigene Kennung für die Freundes-Rangliste (wird beim ersten Raum erzeugt)
       friends: {},     // Rekorde der Freunde vom letzten gemeinsamen Spiel: { kennung: { name, avatar, … } }
       friendWins: 0,   // erste Plätze mit Freunden (Räume und Poker)
@@ -207,7 +207,7 @@ window.GK = window.GK || {};
     GK.state.cosmetics.equipped = Object.assign(createDefaultCosmetics().equipped, data.cosmetics && data.cosmetics.equipped);
     if (!Array.isArray(GK.state.cosmetics.owned)) GK.state.cosmetics.owned = [];
     // Ältere Spielstände: Name und Bild aus den Spielen mit Freunden bzw. dem Poker übernehmen
-    GK.state.player = Object.assign({ name: '', avatar: '' }, data.player);
+    GK.state.player = Object.assign({ name: '', avatar: '', fig: '', figOn: false }, data.player);
     if (!data.player) {
       const games = (data.casino && data.casino.games) || {};
       const old = games.room || games.pokerMp;

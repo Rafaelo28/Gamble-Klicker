@@ -134,6 +134,7 @@ Den Fahrplan mit allen Phasen findest du in [PROJEKTPLAN.md](PROJEKTPLAN.md).
 - 🎲 Lügenwürfel, 📝 Kniffel, 🃏 Mau-Mau, ⛳ Minigolf, 🎱 Billard, 🔴 Vier gewinnt, ⚓ Seeschlacht, 🎯 Darts und 💥 Kanonenduell gegen Computer und online mit Freunden
 - ♠️ Poker als Turnier gegen Computer-Gegner und online mit Freunden
 - 🏆 Erfolge, goldene Dublone, Offline-Einnahmen, große Fahrt (Prestige) und VIP-Karten
+- 🎨 Eigene Figur aus Kopf, Hut, Augen, Mund, Kleidung und Extras (z. B. John Pork) – die anderen sehen sie bei Spielen mit Freunden, beim Poker und in der Rangliste
 - 🔊 Soundeffekte, ✨ Gewinn-Animationen, 📱 iPad-Optimierung
 - 🔥 Klick-Combos, kritische Klicks, Gebäude-Stufen bis Götter, Synergien, Poker-Modi Turbo und Blitz
 - 🎰 Hebel an den Automaten, Beträge mit Abkürzungen (k, M, B …), Statistik für jedes Spiel

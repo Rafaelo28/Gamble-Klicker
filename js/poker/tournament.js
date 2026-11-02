@@ -100,6 +100,7 @@ GK.poker = GK.poker || {};
     table.players.forEach((p, i) => {
       p.avatar = seats[i].avatar || '';
       if (seats[i].badge) p.badge = seats[i].badge; // Namensschild aus der Schatzkammer
+      if (seats[i].fig) p.fig = seats[i].fig;       // eigene Figur
     });
     return table;
   }

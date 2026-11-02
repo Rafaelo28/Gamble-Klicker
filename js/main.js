@@ -115,7 +115,8 @@ window.GK = window.GK || {};
   // Spielweiter Name und Bild (nicht überschreiben, während man tippt)
   function renderPlayer() {
     if (document.activeElement !== $('set-name')) $('set-name').value = GK.player.name();
-    $('set-avatar').textContent = GK.player.avatar();
+    GK.setHTML($('set-avatar'), GK.figure.avatarHTML());
+    GK.figure.render();
   }
 
   function renderSettings() {
@@ -139,6 +140,11 @@ window.GK = window.GK || {};
     });
     $('set-name').addEventListener('keydown', e => { if (e.key === 'Enter') e.target.blur(); });
     $('set-avatar').addEventListener('click', () => {
+      // Mit eigener Figur: zum Baukasten (gleich darunter), sonst nächstes Emoji
+      if (GK.figure.mine()) {
+        document.getElementById('figure-editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
       GK.player.nextAvatar();
       renderPlayer();
       GK.sound.play('chip');
