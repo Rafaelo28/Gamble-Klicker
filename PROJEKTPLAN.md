@@ -555,6 +555,18 @@ Wunsch: Ein Freund hat 7 Mio. Schatzkarten und das Spiel „durchgespielt“ –
 - Spielstand: `fleet` (`ships`, `voyages`, `last`, `treasures`, `peak`, `done`, `earned`, `log`). Die Flotte bleibt
   bei einer großen Fahrt erhalten.
 
+### Erweiterung: Spätes Spiel, Teil 3 – Bosskämpfe ✅
+- Im Tab **⚓ Abenteuer** oben (`js/boss.js`): Seeungeheuer Stufe für Stufe, ohne Ende – Riesenkrabbe, Hai-Kapitän,
+  Geisterpirat, Seeschlange, Riesenkalmar, Skelett-Admiral, Weißer Wal, Sturmgeist, Meerhexe; jede zehnte Stufe ein
+  großer Boss (Kraken-König bzw. Seedrache) mit dreifachen Lebenspunkten.
+- Lebenspunkte 20 × 1,55^(Stufe − 1). **30 Sekunden je Boss**; jeder Tipp trifft mit der Klickkraft (Klickfieber hilft),
+  die **Kanonen der Flotte** feuern jede Sekunde (halber Tipp je Laderaum-Einheit aller Schiffe). Besiegt → sofort der
+  nächste Boss mit neuer Zeit; wer stark ist, tippt sich so durch viele Stufen. Höchstens 20 Tipps pro Sekunde zählen.
+- **Belohnung** nur für neue Stufen: 1 Minute bestes Einkommen, großer Boss 10 Minuten plus **Trophäe** (+5 % Klickkraft
+  für immer). Figur-Teile: Kanone (10), Krakenhut (25), Goldrüstung (50), Krake als Kopf (100). 4 neue Erfolge.
+- Freundes-Rangliste „⚔️ Boss-Stufe“. Der Kampf liegt nur im Speicher (kein Einsatz) – Neuladen beendet ihn ohne Verlust.
+- Spielstand: `boss` (`level` = höchste besiegte Stufe, `kills`, `fights`).
+
 ## Entscheidungen
 
 ### Multiplayer: Wie spielen die Freunde zusammen? → **Variante A**

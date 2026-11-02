@@ -39,6 +39,11 @@ window.GK = window.GK || {};
     { id: 'fleetAll',    icon: '🚢', name: 'Armada',                desc: 'Alle fünf Schiffe besitzen.',              check: () => GK.fleet && GK.fleet.shipCount() >= GK.fleet.SHIPS.length },
     { id: 'treasure1',   icon: '💎', name: 'Schatzsucher',          desc: 'Den ersten Schatz gefunden.',              check: () => GK.fleet && GK.fleet.foundCount() >= 1 },
     { id: 'treasureAll', icon: '👑', name: 'Herr aller Schätze',    desc: 'Alle Schätze der Flotte gefunden.',        check: () => GK.fleet && GK.fleet.foundCount() >= GK.fleet.TREASURES.length },
+    // Bosskämpfe
+    { id: 'boss1',       icon: '⚔️', name: 'Erster Sieg',           desc: 'Den ersten Boss besiegt.',                 check: s => s.boss && s.boss.level >= 1 },
+    { id: 'boss10',      icon: '🐙', name: 'Kraken-Bezwinger',      desc: 'Den Kraken-König besiegt (Stufe 10).',     check: s => s.boss && s.boss.level >= 10 },
+    { id: 'boss50',      icon: '🐉', name: 'Drachentöter',          desc: 'Boss-Stufe 50 besiegt.',                   check: s => s.boss && s.boss.level >= 50 },
+    { id: 'boss100',     icon: '🔱', name: 'Schrecken der Ungeheuer', desc: 'Boss-Stufe 100 besiegt.',               check: s => s.boss && s.boss.level >= 100 },
     { id: 'empireUp',    icon: '📜', name: 'Handelsherr',           desc: 'Ein Upgrade für alle Gebäude gekauft.',    check: () => GK.clicker && GK.clicker.hasUpgradeOfRarity('empire') },
     { id: 'upgrades10',  icon: '⬆️', name: 'Aufgerüstet',           desc: '10 Upgrades gekauft.',                     check: s => s.upgrades.length >= 10 },
     { id: 'crit1',       icon: '🎯', name: 'Volltreffer!',          desc: 'Einen kritischen Klick gelandet.',         check: s => s.crits >= 1 },

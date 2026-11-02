@@ -262,7 +262,9 @@ window.GK = window.GK || {};
       }
       if (u.type === 'clickCps') cpsShare += u.value;
     }
-    return (mult * GK.progress.permanentMult() + getCps() * cpsShare * allMult) * GK.progress.buffMult('click');
+    // Trophäen aus Bosskämpfen (js/boss.js) gelten dauerhaft für alles
+    const trophies = GK.boss ? GK.boss.clickMult() : 1;
+    return (mult * GK.progress.permanentMult() + getCps() * cpsShare * allMult) * GK.progress.buffMult('click') * trophies;
   }
 
   // Wie viel mehr pro Klick brächte ein Klick-Upgrade? (Anzeige auf der Kachel)

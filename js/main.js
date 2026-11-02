@@ -233,6 +233,7 @@ window.GK = window.GK || {};
     GK.casino.render();
     GK.progress.update(GK.state.ui.tab === 'progress');
     GK.fleet.update(GK.state.ui.tab === 'adventure');
+    GK.boss.update(GK.state.ui.tab === 'adventure');
     GK.daily.update(GK.state.ui.tab === 'progress');
     if (GK.state.ui.tab === 'progress') {
       GK.achievements.render();

@@ -79,6 +79,7 @@ window.GK = window.GK || {};
       allTimeEarned: 0,                        // verdient über alle großen Fahrten hinweg
       rankSeen: 0,                             // höchster Rang, der schon gemeldet wurde (GK.rank)
       fleet: createDefaultFleet(),             // Flotte & Expeditionen (js/fleet.js)
+      boss: { level: 0, kills: 0, fights: 0 }, // Bosskämpfe: höchste besiegte Stufe (js/boss.js)
       prestige: { points: 0, journeys: 0 },    // Schatzkarten und Anzahl großer Fahrten
       achievements: [],                        // freigeschaltete Erfolge
       buffs: [],                               // zeitlich begrenzte Boni (Goldrausch …)
@@ -215,6 +216,8 @@ window.GK = window.GK || {};
       if (!GK.state.fleet[k] || typeof GK.state.fleet[k] !== 'object' || Array.isArray(GK.state.fleet[k])) GK.state.fleet[k] = {};
     });
     if (!Array.isArray(GK.state.fleet.log)) GK.state.fleet.log = [];
+    GK.state.boss = Object.assign({ level: 0, kills: 0, fights: 0 }, data.boss);
+    if (!Number.isInteger(GK.state.boss.level) || GK.state.boss.level < 0) GK.state.boss.level = 0;
     if (!Array.isArray(GK.state.daily.tasks)) GK.state.daily.tasks = [];
     if (!data.friends || typeof data.friends !== 'object') GK.state.friends = {};
     GK.state.cosmetics.equipped = Object.assign(createDefaultCosmetics().equipped, data.cosmetics && data.cosmetics.equipped);
