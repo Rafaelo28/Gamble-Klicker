@@ -4,6 +4,8 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
+  const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
   const TICKETS = [
     { id: 'clover', icon: '🍀', name: 'Glückskleeblatt', price: 100,    theme: 'green' },
     { id: 'chest',  icon: '🧰', name: 'Goldene Truhe',   price: 1000,   theme: 'gold' },
@@ -236,7 +238,7 @@ window.GK = window.GK || {};
     const wins = results.filter(c => c.winMult > 0).length;
     els.batch.hidden = false;
     els.batch.innerHTML = `
-      <div class="sb-head">⚡ ${results.length} × ${t.icon} ${t.name}: <b>${wins}</b> ${wins === 1 ? 'Gewinn' : 'Gewinne'} ·
+      <div class="sb-head">${ic('bolt')} ${results.length} × ${t.icon} ${t.name}: <b>${wins}</b> ${wins === 1 ? 'Gewinn' : 'Gewinne'} ·
         ausgezahlt ${GK.formatMoneyHTML(paid)}</div>
       <div class="sb-grid">${results.map((c, i) => `
         <div class="sb-ticket ${c.winMult > 1 ? 'win' : c.winMult === 1 ? 'even' : 'lose'}" style="animation-delay: ${i * 0.12}s">
@@ -428,6 +430,7 @@ window.GK = window.GK || {};
   function showMessage(html, cls) {
     els.message.className = 'game-message ' + (cls || '');
     els.message.innerHTML = html;
+    if (GK.iconifyLead) GK.iconifyLead(els.message); // Emoji vorn → eigenes Symbol
   }
 
   function updateButtons() {
@@ -439,18 +442,18 @@ window.GK = window.GK || {};
     els.buy.hidden = open || auto;
     els.revealBtn.hidden = !open || auto;
     els.buy.disabled = locked || !GK.canAfford(t.price);
-    els.buy.textContent = s.current ? `🎟️ Neues Los kaufen (${GK.formatNumber(t.price)})` : `🎟️ Los kaufen (${GK.formatNumber(t.price)})`;
-    els.auto.textContent = auto ? `⏹ Stopp (${autoLeft})` : `🪄 Auto-Rubbeln ×${AUTO_COUNT}`;
+    GK.setHTML(els.buy, `${ic('ticket')}${s.current ? 'Neues Los kaufen' : 'Los kaufen'} (${GK.formatNumber(t.price)})`);
+    GK.setHTML(els.auto, auto ? `${ic('stop')}Stopp (${autoLeft})` : `${ic('repeat')}Auto-Rubbeln ×${AUTO_COUNT}`);
     els.auto.classList.toggle('active', auto);
     els.auto.disabled = !auto && (locked || (!open && !GK.canAfford(t.price)));
     els.batchBtn.hidden = open || auto;
     els.batchBtn.disabled = locked || !GK.canAfford(t.price * BATCH_COUNT);
-    els.batchBtn.textContent = `⚡ ${BATCH_COUNT} Lose sofort (${GK.formatNumber(t.price * BATCH_COUNT)})`;
+    GK.setHTML(els.batchBtn, `${ic('bolt')}${BATCH_COUNT} Lose sofort (${GK.formatNumber(t.price * BATCH_COUNT)})`);
     els.picker.querySelectorAll('.ticket-choice').forEach(btn => {
       const tt = ticket(btn.dataset.ticket);
       btn.classList.toggle('active', tt.id === s.ticketId);
       btn.disabled = open || auto;
-      btn.querySelector('.ticket-lock').textContent = tt.price > GK.casino.maxBet() ? '🔒 VIP' : '';
+      GK.setHTML(btn.querySelector('.ticket-lock'), tt.price > GK.casino.maxBet() ? `${ic('lock')} VIP` : '');
     });
   }
 
@@ -510,14 +513,14 @@ window.GK = window.GK || {};
           <div class="game-message">&nbsp;</div>
           <div class="game-actions">
             <button class="btn btn-primary btn-big scratch-buy"></button>
-            <button class="btn scratch-reveal">✨ Alles aufdecken</button>
+            <button class="btn scratch-reveal">${ic('sparkle')}Alles aufdecken</button>
           </div>
           <div class="game-actions scratch-auto-actions">
             <button class="btn scratch-auto"></button>
             <button class="btn scratch-batch-btn"></button>
           </div>
           <div class="scratch-batch" hidden></div>
-          <p class="muted small">Hauptgewinn: 1.000× Lospreis 👑</p>
+          <p class="muted small">Hauptgewinn: 1.000× Lospreis ${ic('crown')}</p>
         </div>
       </div>`;
     els = {

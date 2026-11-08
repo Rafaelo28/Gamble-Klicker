@@ -6,6 +6,8 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
+  const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
   const FACES = [2, 3, 4, 5, 6];
   // Namen kommen im Online-Spiel von anderen Spielern – immer als Text ausgeben
   const esc = text => String(text).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -242,7 +244,7 @@ window.GK = window.GK || {};
         : p.out ? '' : `<span class="dice-cup">🥤</span><span class="dice-count">${p.count}</span>`;
       return `<div class="${cls.join(' ')}">
         <div class="dice-name">${GK.cosmetics.nameTag(p)}</div>
-        <div class="dice-row">${p.out ? `☠️ ${p.place}. Platz` : dice}</div>
+        <div class="dice-row">${p.out ? `${ic('skull')} ${p.place}. Platz` : dice}</div>
         <div class="dice-status">${p.lastBid ? `bietet <b>${p.lastBid.replace(/(\d+)× (\d)/, '$1 × $2')}</b>` : '&nbsp;'}</div>
       </div>`;
     }).join(''));
@@ -256,7 +258,7 @@ window.GK = window.GK || {};
           ${ok ? 'das Gebot stimmt!' : 'gelogen!'} <b>${esc(v.players[reveal.loser].name)}</b> verliert einen Würfel.</div>`;
     } else if (v.phase === 'finished') {
       const winner = v.players.find(p => p.place === 1);
-      center = `<div class="dice-bid">🏆 ${winner ? `${GK.cosmetics.nameTag(winner)} gewinnt!` : 'Spiel vorbei'}</div>`;
+      center = `<div class="dice-bid">${ic('trophy')} ${winner ? `${GK.cosmetics.nameTag(winner)} gewinnt!` : 'Spiel vorbei'}</div>`;
     } else if (v.bid) {
       center = `<div class="dice-bid">Gebot von ${esc(v.players[v.bid.seat].name)}: <b>${v.bid.q} ×</b> ${dieHtml(v.bid.f)}</div>
         <div class="muted small">Insgesamt liegen ${totalDice(v)} Würfel auf dem Tisch.</div>`;
@@ -268,7 +270,7 @@ window.GK = window.GK || {};
 
     // Eigene Würfel
     setHtml(container.querySelector('.dice-mine'), me
-      ? `<div class="dice-name">${me.avatar} Deine Würfel ${me.out ? `– ☠️ ${me.place}. Platz` : ''}</div>
+      ? `<div class="dice-name">${me.avatar} Deine Würfel ${me.out ? `– ${ic('skull')} ${me.place}. Platz` : ''}</div>
          <div class="dice-row big">${me.dice.map(d => dieHtml(d, reveal && (d === matchFace || d === 1) ? 'match' : '')).join('')}</div>`
       : '<div class="muted">Du schaust zu.</div>');
 
@@ -299,8 +301,8 @@ window.GK = window.GK || {};
           <div class="dice-faces">${FACES.map(f => `<button class="dice-face ${f === choice.f ? 'active' : ''}" data-f="${f}">${dieHtml(f)}</button>`).join('')}</div>
         </div>
         <div class="game-actions">
-          <button class="btn btn-primary btn-big dice-bid-btn" ${valid ? '' : 'disabled'}>🎲 Bieten: ${choice.q} × ${choice.f}</button>
-          ${v.bid ? '<button class="btn btn-danger btn-big dice-lie">🤥 Lüge!</button>' : ''}
+          <button class="btn btn-primary btn-big dice-bid-btn" ${valid ? '' : 'disabled'}>${ic('dice')}Bieten: ${choice.q} × ${choice.f}</button>
+          ${v.bid ? `<button class="btn btn-danger btn-big dice-lie">${ic('shout')}Lüge!</button>` : ''}
         </div>
         ${valid ? '' : '<div class="small loss">Du musst höher bieten: mehr Würfel oder gleich viele mit höherer Augenzahl.</div>'}`;
       if (setHtml(controls, html)) {

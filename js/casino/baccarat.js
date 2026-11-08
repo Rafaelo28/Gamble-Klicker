@@ -5,6 +5,8 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
+  const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
   const MIN_BET = 10;
   const DECKS = 8;
   // Rückzahlung (inklusive Einsatz) je Wette
@@ -186,25 +188,25 @@ window.GK = window.GK || {};
     body.innerHTML = `
       <div class="bac-table">
         <div class="bac-side bac-player-side">
-          <div class="bac-label">🔵 Spieler <span class="bac-total bac-player-total"></span></div>
+          <div class="bac-label">${ic('dot', 'ic-blue')} Spieler <span class="bac-total bac-player-total"></span></div>
           <div class="bj-cards bac-player"></div>
         </div>
         <div class="bac-side bac-banker-side">
-          <div class="bac-label">🔴 Bank <span class="bac-total bac-banker-total"></span></div>
+          <div class="bac-label">${ic('dot', 'ic-red')} Bank <span class="bac-total bac-banker-total"></span></div>
           <div class="bj-cards bac-banker"></div>
         </div>
         <div class="bac-rules">Spieler zahlt 1:1 · Bank zahlt 0,95:1 · Unentschieden zahlt 8:1</div>
       </div>
       <div class="bac-road" aria-label="Letzte Hände"></div>
       <div class="bac-choices" role="group" aria-label="Wette">
-        <button type="button" class="btn bac-choice player" data-choice="player">🔵 Spieler<small>zahlt 1:1</small></button>
-        <button type="button" class="btn bac-choice tie" data-choice="tie">🤝 Unentschieden<small>zahlt 8:1</small></button>
-        <button type="button" class="btn bac-choice banker" data-choice="banker">🔴 Bank<small>zahlt 0,95:1</small></button>
+        <button type="button" class="btn bac-choice player" data-choice="player">${ic('dot', 'ic-blue')}Spieler<small>zahlt 1:1</small></button>
+        <button type="button" class="btn bac-choice tie" data-choice="tie">${ic('handshake')}Unentschieden<small>zahlt 8:1</small></button>
+        <button type="button" class="btn bac-choice banker" data-choice="banker">${ic('dot', 'ic-red')}Bank<small>zahlt 0,95:1</small></button>
       </div>
       <div class="game-message">&nbsp;</div>
       <div class="bac-bet"></div>
       <div class="game-actions">
-        <button class="btn btn-primary btn-big bac-deal">🃏 Austeilen</button>
+        <button class="btn btn-primary btn-big bac-deal">${ic('cards')}Austeilen</button>
       </div>
       <p class="muted small bac-help">Wer näher an 9 liegt, gewinnt – es zählt nur die Einerstelle (Bilder und Zehnen zählen 0,
         Ass zählt 1). Ob eine dritte Karte kommt, bestimmen feste Regeln. Bei Unentschieden bekommst du Einsätze

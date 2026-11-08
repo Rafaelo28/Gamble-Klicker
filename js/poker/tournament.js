@@ -18,17 +18,17 @@ GK.poker = GK.poker || {};
   // Zeiten in Millisekunden (bot = Computer-Gegner denkt nach, next = Pause nach einer Hand).
   const MODES = {
     classic: {
-      id: 'classic', icon: '🃏', name: 'Klassisch', startChips: START_CHIPS, handsPerLevel: HANDS_PER_LEVEL,
+      id: 'classic', icon: '🃏', sym: 'cards', name: 'Klassisch', startChips: START_CHIPS, handsPerLevel: HANDS_PER_LEVEL,
       botDelay: 900, botDelayWatching: 350, nextDelay: 2500, nextDelayShowdown: 4500, turnTime: 30000,
       desc: `${START_CHIPS.toLocaleString('de-DE')} Chips, Blinds steigen alle ${HANDS_PER_LEVEL} Hände`,
     },
     turbo: {
-      id: 'turbo', icon: '⚡', name: 'Turbo', startChips: 1000, handsPerLevel: 3,
+      id: 'turbo', icon: '⚡', sym: 'bolt', name: 'Turbo', startChips: 1000, handsPerLevel: 3,
       botDelay: 380, botDelayWatching: 120, nextDelay: 1200, nextDelayShowdown: 2200, turnTime: 15000,
       desc: '1.000 Chips, Blinds steigen alle 3 Hände, flotte Gegner',
     },
     blitz: {
-      id: 'blitz', icon: '⏱️', name: 'Blitz', startChips: 1000, handsPerLevel: 1,
+      id: 'blitz', icon: '⏱️', sym: 'hourglass', name: 'Blitz', startChips: 1000, handsPerLevel: 1,
       botDelay: 380, botDelayWatching: 120, nextDelay: 1200, nextDelayShowdown: 2200, turnTime: 15000,
       desc: 'Nur 3, 5 oder 10 Hände – danach zählen die Chips',
     },
@@ -44,9 +44,13 @@ GK.poker = GK.poker || {};
   }
 
   // Name des Modus für Anzeigen, z. B. „⏱️ Blitz · 5 Hände“
-  function modeLabel(modeId, hands) {
+  // plain = ohne Symbol (für den Verlauf, der als Text gespeichert wird)
+  function modeLabel(modeId, hands, plain) {
     const m = mode(modeId);
-    return m.id === 'blitz' ? `${m.icon} ${m.name} · ${blitzHands(hands)} Hände` : `${m.icon} ${m.name}`;
+    // Im Browser eigenes Symbol, in Node (Tests) das Emoji
+    const icon = typeof GK !== 'undefined' && GK.icon ? GK.icon(m.sym) : m.icon;
+    const text = m.id === 'blitz' ? `${m.name} · ${blitzHands(hands)} Hände` : m.name;
+    return plain ? text : `${icon} ${text}`;
   }
 
   // Einstellungen für einen neuen Tisch. Blitz: Die Blinds steigen jede Hand und erreichen

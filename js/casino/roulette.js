@@ -2,6 +2,8 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
+  const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
   const MIN_CHIP = 10;
   const SPIN_TIME = 4000; // ms
   const WHEEL_ORDER = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10,
@@ -290,9 +292,9 @@ window.GK = window.GK || {};
           <div class="game-message">&nbsp;</div>
           <div class="roulette-chip"></div>
           <div class="game-actions">
-            <button class="btn btn-primary roulette-spin">🎡 Drehen</button>
-            <button class="btn roulette-repeat">↺ Wiederholen</button>
-            <button class="btn roulette-clear">✖ Wetten entfernen</button>
+            <button class="btn btn-primary roulette-spin">${ic('roulette')}Drehen</button>
+            <button class="btn roulette-repeat">${ic('repeat')}Wiederholen</button>
+            <button class="btn roulette-clear">${ic('close')}Wetten entfernen</button>
           </div>
           <p class="muted small">Klicke auf ein Feld, um einen Chip zu setzen. Zahl: ×36 · Dutzend/Kolonne: ×3 · Rot/Schwarz, Gerade/Ungerade, 1–18/19–36: ×2 (jeweils inklusive Einsatz).</p>
         </div>

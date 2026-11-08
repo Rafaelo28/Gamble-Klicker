@@ -4,6 +4,8 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
+  const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
   const MIN_BET = 10;
   const ISLANDS = 40;
   const DRAWS = 10;
@@ -200,7 +202,7 @@ window.GK = window.GK || {};
     els.clear.disabled = busy || !count;
     betControl.setDisabled(busy);
     els.history.innerHTML = s.history.length
-      ? s.history.map(t => `<span class="crash-chip ${Number(t.split('/')[0]) > 0 ? 'high' : 'low'}">🗺️ ${t}</span>`).join('')
+      ? s.history.map(t => `<span class="crash-chip ${Number(t.split('/')[0]) > 0 ? 'high' : 'low'}">${t}</span>`).join('')
       : '<span class="muted small">Noch keine Ziehungen.</span>';
   }
 
@@ -208,6 +210,7 @@ window.GK = window.GK || {};
     if (!els.message) return;
     els.message.className = 'game-message ' + (cls || '');
     els.message.innerHTML = html;
+    if (GK.iconifyLead) GK.iconifyLead(els.message); // Emoji vorn → eigenes Symbol
   }
 
   function init(body) {
@@ -222,14 +225,14 @@ window.GK = window.GK || {};
         <div class="crash-controls">
           <div class="keno-count mines-info"></div>
           <div class="keno-picks-actions game-actions">
-            <button type="button" class="btn keno-quick">🎲 Zufällig</button>
-            <button type="button" class="btn keno-clear">🧹 Löschen</button>
+            <button type="button" class="btn keno-quick">${ic('shuffle')}Zufällig</button>
+            <button type="button" class="btn keno-clear">${ic('trash')}Löschen</button>
           </div>
           <div class="kn-paytable"></div>
           <div class="game-message">&nbsp;</div>
           <div class="keno-bet"></div>
           <div class="game-actions">
-            <button class="btn btn-primary btn-big keno-start">🗺️ Schätze ziehen</button>
+            <button class="btn btn-primary btn-big keno-start">${ic('map')}Schätze ziehen</button>
           </div>
           <p class="muted small">Markiere 1 bis 10 Inseln auf der Schatzkarte. Dann werden 10 Schatzinseln gezogen –
             je mehr deiner Inseln dabei sind, desto mehr gewinnst du. Die Gewinne für deine Anzahl stehen in der Tabelle.</p>

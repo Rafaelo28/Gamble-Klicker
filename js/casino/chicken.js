@@ -9,6 +9,8 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
+  const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
   const MIN_BET = 10;
   const RTP = 0.97;
   const SECTIONS = 4;
@@ -18,10 +20,10 @@ window.GK = window.GK || {};
   // Schwierigkeitsgrade: Chance, eine Spur zu schaffen (je Abschnitt), Tempo (Pixel/s) und
   // Abstand der Autos (Sekunden). In späteren Abschnitten fahren die Autos zusätzlich schneller.
   const DIFFICULTIES = {
-    easy:   { name: 'Leicht',   icon: '🐣', survive: [0.92, 0.90, 0.88, 0.86], speed: [170, 250], gap: [1.2, 2.3] },
-    normal: { name: 'Normal',   icon: '🐔', survive: [0.85, 0.82, 0.79, 0.76], speed: [210, 320], gap: [0.95, 1.8] },
-    hard:   { name: 'Schwer',   icon: '🔥', survive: [0.75, 0.71, 0.67, 0.63], speed: [270, 410], gap: [0.75, 1.45] },
-    insane: { name: 'Wahnsinn', icon: '💀', survive: [0.62, 0.57, 0.52, 0.47], speed: [350, 540], gap: [0.55, 1.15] },
+    easy:   { name: 'Leicht',   icon: '🐣', sym: 'shield', survive: [0.92, 0.90, 0.88, 0.86], speed: [170, 250], gap: [1.2, 2.3] },
+    normal: { name: 'Normal',   icon: '🐔', sym: 'step', survive: [0.85, 0.82, 0.79, 0.76], speed: [210, 320], gap: [0.95, 1.8] },
+    hard:   { name: 'Schwer',   icon: '🔥', sym: 'flame', survive: [0.75, 0.71, 0.67, 0.63], speed: [270, 410], gap: [0.75, 1.45] },
+    insane: { name: 'Wahnsinn', icon: '💀', sym: 'skull', survive: [0.62, 0.57, 0.52, 0.47], speed: [350, 540], gap: [0.55, 1.15] },
   };
 
   // ---------- Mathematik (auch für Tests) ----------
@@ -1044,7 +1046,7 @@ window.GK = window.GK || {};
     setText('hudMult', `×${fmt(mult)}`);
     setText('hudWin', lost ? '<span class="loss">0</span>' : GK.formatMoneyHTML(steps ? Math.floor(bet * mult) : 0));
     setText('hudSteps', `${steps} / ${LANES}`);
-    setText('hudDiff', `${DIFFICULTIES[diff].icon} ${DIFFICULTIES[diff].name}`);
+    setText('hudDiff', `${ic(DIFFICULTIES[diff].sym)} ${DIFFICULTIES[diff].name}`);
     // Fortschritt: Spuren als Kästchen, Inseln als Schild
     const sec = Math.min(SECTIONS - 1, Math.floor(steps / LANES_PER_SECTION));
     const left = steps >= LANES ? 0 : LANES_PER_SECTION - (steps % LANES_PER_SECTION);
@@ -1054,11 +1056,11 @@ window.GK = window.GK || {};
         const cls = lane <= steps ? 'done' : lane === steps + 1 && !lost ? 'next' : lost && lane === steps + 1 ? 'hit' : '';
         return `<i class="cr-cell ${cls}"></i>`;
       }).join('');
-      const end = si < SECTIONS - 1 ? `<i class="cr-safe ${steps >= (si + 1) * LANES_PER_SECTION ? 'done' : ''}">🛡️</i>` : `<i class="cr-safe ${steps >= LANES ? 'done' : ''}">🏁</i>`;
+      const end = si < SECTIONS - 1 ? `<i class="cr-safe ${steps >= (si + 1) * LANES_PER_SECTION ? 'done' : ''}">${ic('shield')}</i>` : `<i class="cr-safe ${steps >= LANES ? 'done' : ''}">${ic('flag')}</i>`;
       return cells + end;
     }).join('');
     setText('progress', progress);
-    setText('progressText', steps >= LANES ? '🏁 Ziel erreicht!'
+    setText('progressText', steps >= LANES ? `${ic('flag')} Ziel erreicht!`
       : `Abschnitt ${sec + 1} von ${SECTIONS} · noch ${left} ${left === 1 ? 'Spur' : 'Spuren'} bis ${sec === SECTIONS - 1 ? 'zum Ziel' : 'zur sicheren Zone'}`);
   }
 
@@ -1069,11 +1071,11 @@ window.GK = window.GK || {};
     const v = chicken.shown;
     const b = busy();
     els.step.disabled = b;
-    els.step.innerHTML = v.active || b ? '🐾 Schritt' : `<span>🐾 Los! (${GK.formatMoneyHTML(s.bet)})</span>`;
+    GK.setHTML(els.step, v.active || b ? `${ic('step')}Schritt` : `${ic('step')}<span>Los! (${GK.formatMoneyHTML(s.bet)})</span>`);
     els.cash.disabled = b || !r || r.steps < 1;
-    els.cash.innerHTML = v.active && v.steps >= 1
-      ? `💰 Auszahlen: ${GK.formatMoneyHTML(Math.floor(v.bet * multiplierAt(v.diff, v.steps)))}`
-      : '💰 Auszahlen';
+    GK.setHTML(els.cash, v.active && v.steps >= 1
+      ? `${ic('bag')}Auszahlen: ${GK.formatMoneyHTML(Math.floor(v.bet * multiplierAt(v.diff, v.steps)))}`
+      : `${ic('bag')}Auszahlen`);
     els.again.disabled = b || !!r || !finished;
     els.diffs.forEach(btn => {
       const active = btn.dataset.diff === (r ? r.diff : s.diff);
@@ -1091,7 +1093,7 @@ window.GK = window.GK || {};
   function drawHistory() {
     const h = state().history;
     const html = h.length
-      ? h.map(m => (m > 0 ? `<span class="crash-chip high">🐔 ×${fmt(m)}</span>` : '<span class="crash-chip low">💥</span>')).join('')
+      ? h.map(m => (m > 0 ? `<span class="crash-chip high">×${fmt(m)}</span>` : `<span class="crash-chip low">${ic('close')}</span>`)).join('')
       : '<span class="muted small">Noch keine Runden.</span>';
     if (els.history.innerHTML !== html) els.history.innerHTML = html;
   }
@@ -1100,6 +1102,7 @@ window.GK = window.GK || {};
     if (!els.message) return;
     els.message.className = 'game-message ' + (cls || '');
     els.message.innerHTML = html;
+    if (GK.iconifyLead) GK.iconifyLead(els.message); // Emoji vorn → eigenes Symbol
   }
 
   function onKey(e) {
@@ -1127,7 +1130,7 @@ window.GK = window.GK || {};
           <div class="chicken-hud">
             <div class="fh-stat"><span class="fh-label">Einsatz</span><b class="cr-bet"></b></div>
             <div class="fh-stat"><span class="fh-label">Multiplikator</span><b class="cr-mult fh-mult"></b></div>
-            <div class="fh-stat"><span class="fh-label">Möglicher Gewinn</span><b class="cr-win"></b></div>
+            <div class="fh-stat"><span class="fh-label">Gewinn</span><b class="cr-win"></b></div>
             <div class="fh-stat"><span class="fh-label">Schritte</span><b class="cr-steps"></b></div>
             <div class="fh-stat"><span class="fh-label">Schwierigkeit</span><b class="cr-diff small-value"></b></div>
             <div class="cr-progress-wrap">
@@ -1140,7 +1143,7 @@ window.GK = window.GK || {};
         <div class="crash-controls">
           <div class="bet-label">Schwierigkeit</div>
           <div class="plinko-risks chicken-diffs" role="group" aria-label="Schwierigkeit">
-            ${Object.entries(DIFFICULTIES).map(([id, d]) => `<button type="button" class="btn btn-small chicken-diff" data-diff="${id}">${d.icon} ${d.name}</button>`).join('')}
+            ${Object.entries(DIFFICULTIES).map(([id, d]) => `<button type="button" class="btn btn-small chicken-diff" data-diff="${id}">${ic(d.sym)}${d.name}</button>`).join('')}
           </div>
           <div class="mines-info chicken-info"></div>
           <div class="game-message">&nbsp;</div>
@@ -1148,7 +1151,7 @@ window.GK = window.GK || {};
           <div class="game-actions chicken-actions">
             <button class="btn btn-primary btn-big chicken-step"></button>
             <button class="btn btn-primary btn-big chicken-cash"></button>
-            <button class="btn chicken-again">🔄 Neue Runde</button>
+            <button class="btn chicken-again">${ic('repeat')}Neue Runde</button>
           </div>
           <p class="muted small">Bring das Huhn Spur für Spur über die Straße. Jeder geschaffte Schritt erhöht den
             Multiplikator – auszahlen kannst du nach jedem Schritt. Erwischt dich ein Auto, ist der Einsatz weg.

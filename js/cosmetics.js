@@ -4,6 +4,9 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (js/icons.js); in den Tests ohne Browser gibt es keins
+  const ic = name => (GK.icon ? GK.icon(name) : '');
+
   // Seltenheit: Preis in Dublonen, Anteil der Gebäude, der abgegeben wird, Mindestzahl an Gebäuden,
   // Gewicht für das Glücksrad (seltene Sachen landen öfter auf dem Rad)
   const RARITIES = {
@@ -16,7 +19,7 @@ window.GK = window.GK || {};
   // Je Kategorie: Standard (immer da) + 5 Cosmetics. coins = Farben der Münzen, die beim Klicken wegfliegen.
   const CATEGORIES = [
     {
-      id: 'coin', name: 'Münz-Designs', icon: '🪙', items: [
+      id: 'coin', name: 'Münz-Designs', icon: '🪙', sym: 'coins', items: [
         { id: 'gold',    name: 'Golddublone',   icon: '🪙', rarity: 'common',    letter: 'D', desc: 'Die klassische Dublone.',
           coins: ['#fff6c2', '#f5c542', '#a8740a', '#8a6508'] },
         { id: 'silver',  name: 'Silbertaler',   icon: '🥈', rarity: 'rare',      letter: 'D', desc: 'Kühler Glanz aus der Silbermine.',
@@ -32,7 +35,7 @@ window.GK = window.GK || {};
       ],
     },
     {
-      id: 'effect', name: 'Klick-Effekte', icon: '✨', items: [
+      id: 'effect', name: 'Klick-Effekte', icon: '✨', sym: 'sparkle', items: [
         { id: 'coins',     name: 'Dublonen',     icon: '🪙', rarity: 'common',    desc: 'Münzen springen davon.' },
         { id: 'sparks',    name: 'Funkenregen',  icon: '✨', rarity: 'rare',      desc: 'Goldene Funken sprühen in alle Richtungen.' },
         { id: 'bubbles',   name: 'Meeresblasen', icon: '🫧', rarity: 'rare',      desc: 'Blasen steigen auf wie unter Wasser.' },
@@ -42,7 +45,7 @@ window.GK = window.GK || {};
       ],
     },
     {
-      id: 'theme', name: 'Farbthemen', icon: '🎨', items: [
+      id: 'theme', name: 'Farbthemen', icon: '🎨', sym: 'palette', items: [
         { id: 'tavern',  name: 'Taverne',      icon: '🍺', rarity: 'common',    desc: 'Dunkles Grün wie ein Spieltisch.' },
         { id: 'ocean',   name: 'Tiefsee',      icon: '🌊', rarity: 'rare',      desc: 'Tiefes Blau, weit unter den Wellen.' },
         { id: 'volcano', name: 'Vulkan',       icon: '🌋', rarity: 'rare',      desc: 'Glühende Lava unter schwarzem Fels.' },
@@ -53,7 +56,7 @@ window.GK = window.GK || {};
     },
     {
       // Namensschild mit Titel – sehen auch die anderen in Spielen mit Freunden
-      id: 'profile', name: 'Profil für Spiele mit Freunden', icon: '🎖️', items: [
+      id: 'profile', name: 'Profil für Spiele mit Freunden', icon: '🎖️', sym: 'medal', items: [
         { id: 'sailor',   name: 'Matrose',        icon: '⛵', rarity: 'common',    title: '',               desc: 'Name und Bild – ganz schlicht.' },
         { id: 'helmsman', name: 'Steuermann',     icon: '🧭', rarity: 'rare',      title: 'Steuermann',     desc: 'Silbernes Namensschild mit Titel.' },
         { id: 'hunter',   name: 'Schatzjäger',    icon: '🗺️', rarity: 'rare',      title: 'Schatzjäger',    desc: 'Grünes Schild mit gestricheltem Kartenrand.' },
@@ -64,7 +67,7 @@ window.GK = window.GK || {};
     },
     {
       // Filz der Spieltische (Blackjack, Poker, Roulette, Lügenwürfel) und die Kartenrücken
-      id: 'table', name: 'Casino-Look', icon: '🃏', items: [
+      id: 'table', name: 'Casino-Look', icon: '🃏', sym: 'cards', items: [
         { id: 'felt',     name: 'Grüner Filz',  icon: '🟩', rarity: 'common',    desc: 'Der klassische Spieltisch.' },
         { id: 'velvet',   name: 'Blauer Samt',  icon: '🟦', rarity: 'rare',      desc: 'Tiefblauer Samt und blaue Kartenrücken.' },
         { id: 'bordeaux', name: 'Bordeaux',     icon: '🍷', rarity: 'rare',      desc: 'Weinroter Filz, Karten mit goldenem Rand.' },
@@ -250,7 +253,7 @@ window.GK = window.GK || {};
     GK.sound.play(top ? 'jackpot' : 'powerup');
     GK.fx.confetti(top ? 200 : 110);
     if (top) GK.fx.coinRain(2, 40);
-    GK.notify(`<span class="notify-icon">${item.icon}</span><span><b>${item.name}</b> gehört jetzt dir!<br>` +
+    GK.notify(`<span class="notify-icon emoji-keep">${item.icon}</span><span><b>${item.name}</b> gehört jetzt dir!<br>` +
       `${RARITIES[item.rarity].name} · ${item.desc}</span>`, 5000);
   }
 
@@ -294,7 +297,7 @@ window.GK = window.GK || {};
     overlay.className = 'cos-overlay';
     overlay.innerHTML = `
       <div class="cos-dialog" role="dialog" aria-modal="true" aria-label="Glücksrad der großen Fahrt">
-        <h2>🎡 Glücksrad der großen Fahrt</h2>
+        <h2>${ic('wheel')}Glücksrad der großen Fahrt</h2>
         <p class="muted">Auf deiner Fahrt hast du ein paar Schätze entdeckt – dreh am Rad und hol dir einen davon!</p>
         <div class="cos-wheel-wrap">
           <div class="cos-pointer">▼</div>
@@ -303,7 +306,7 @@ window.GK = window.GK || {};
               <span class="cos-seg" style="transform: rotate(${i * size + size / 2}deg)">
                 <span class="cos-seg-icon">${id ? byId[id].icon : FLAUTE_ICON}</span>
               </span>`).join('')}
-            <div class="cos-hub">⚓</div>
+            <div class="cos-hub">${ic('anchor')}</div>
           </div>
         </div>
         <ul class="cos-legend">
@@ -313,7 +316,7 @@ window.GK = window.GK || {};
         </ul>
         <div class="cos-result" aria-live="polite"></div>
         <div class="game-actions cos-actions">
-          <button class="btn btn-primary btn-big cos-spin">🎡 Drehen!</button>
+          <button class="btn btn-primary btn-big cos-spin">${ic('wheel')}Drehen!</button>
         </div>
       </div>`;
     document.body.appendChild(overlay);
@@ -392,17 +395,17 @@ window.GK = window.GK || {};
     const on = equipped(item.category) === item.id;
     const r = RARITIES[item.rarity];
     let action;
-    if (on) action = '<button class="btn btn-small cos-action" disabled>✓ Angelegt</button>';
+    if (on) action = '<button class="btn btn-small cos-action" disabled>' + ic('check') + 'Angelegt</button>';
     else if (own) action = `<button class="btn btn-small cos-action" data-equip="${item.id}">Anlegen</button>`;
     else {
       const blocker = buyBlocker(item);
-      action = `<button class="btn btn-small btn-primary cos-action" data-buy="${item.id}" ${blocker ? 'disabled' : ''}>${blocker || '🔓 Kaufen'}</button>
+      action = `<button class="btn btn-small btn-primary cos-action" data-buy="${item.id}" ${blocker ? 'disabled' : ''}>${blocker || ic('unlock') + 'Kaufen'}</button>
         <span class="cos-price">${GK.formatMoneyHTML(r.price)} + ${r.shareText} deiner Gebäude</span>`;
     }
     return `
       <div class="cos-tile cos-${item.rarity}${own ? ' owned' : ''}${on ? ' equipped' : ''}" data-id="${item.id}">
         <button class="cos-preview" data-preview="${item.id}" aria-label="Vorschau ${item.name}">${preview(item)}</button>
-        <span class="cos-name">${item.name}${own ? '' : ' 🔒'}</span>
+        <span class="cos-name">${item.name}${own ? '' : ' ' + ic('lock')}</span>
         <span class="cos-rarity">${r.name}</span>
         <span class="cos-desc">${item.desc}</span>
         ${action}
@@ -419,7 +422,7 @@ window.GK = window.GK || {};
     document.getElementById('cosmetic-count').textContent = `(${store().owned.length}/${COLLECTIBLE.length})`;
     el.innerHTML = CATEGORIES.map(cat => `
       <section class="cos-category">
-        <h3>${cat.icon} ${cat.name}</h3>
+        <h3>${ic(cat.sym)}${cat.name}</h3>
         <div class="cos-grid">${cat.items.map(item => tile(byId[item.id])).join('')}</div>
       </section>`).join('');
   }

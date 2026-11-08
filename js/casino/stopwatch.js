@@ -5,6 +5,8 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
+  const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
   const MIN_BET = 10;
   const MIN_TARGET = 200;   // Zielzeit in Hundertstel: 2,00 …
   const MAX_TARGET = 1000;  // … bis 10,00 Sekunden
@@ -191,7 +193,7 @@ window.GK = window.GK || {};
       GK.setText(els.diff, '');
     }
     els.face.classList.toggle('exact', !!last && !r && !last.late && last.diff === 0);
-    GK.setHTML(els.best, s.best == null ? '' : `Dein bester Stopp: <b>${s.best === 0 ? 'genau getroffen' : `${fmt(s.best)} s daneben`}</b>${s.exact ? ` · 🎯 ${s.exact}× Volltreffer` : ''}`);
+    GK.setHTML(els.best, s.best == null ? '' : `Dein bester Stopp: <b>${s.best === 0 ? 'genau getroffen' : `${fmt(s.best)} s daneben`}</b>${s.exact ? ` · ${ic('target')} ${s.exact}× Volltreffer` : ''}`);
   }
 
   function showMessage(html, cls) {
@@ -231,7 +233,7 @@ window.GK = window.GK || {};
           <div class="sw-bet"></div>
           <div class="game-actions">
             <button class="btn btn-primary btn-big sw-start">▶️ Start</button>
-            <button class="btn btn-danger btn-big sw-stop" hidden>⏹️ STOPP</button>
+            <button class="btn btn-danger btn-big sw-stop" hidden>${ic('stop')}STOPP</button>
           </div>
           <p class="muted small">Nach dem Start siehst du die Zielzeit (2 bis 10 Sekunden), dann läuft die Uhr los.
             Tippe auf die Uhr oder auf STOPP, wenn sie genau die Zielzeit zeigt – je genauer, desto mehr gibt es.</p>

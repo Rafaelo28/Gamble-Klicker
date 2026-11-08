@@ -3,6 +3,10 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigene Symbole (js/icons.js); in den Tests ohne Browser gibt es keine – dann bleibt das Emoji
+  const ic = name => (GK.icon ? GK.icon(name) : '');
+  const gameIcon = game => (GK.gameIcon ? GK.gameIcon(game.id, game.emoji) : game.emoji);
+
   const HISTORY_LENGTH = 15;
   const games = [];
   const extraNames = {}; // Spiele außerhalb der Casino-Lobby, z. B. der Side-Slot im Klicker
@@ -61,12 +65,12 @@ window.GK = window.GK || {};
   // ---------- VIP-Karten: höhere Einsatz-Limits und bessere Poker-Tische ----------
 
   const VIP_LEVELS = [
-    { name: 'Standard',       icon: '🎫', cost: 0,      maxBet: 1e4,      achievement: '' },
-    { name: 'Silber',         icon: '🥈', cost: 2.5e5,  maxBet: 1e6,      achievement: 'vipSilver' },
-    { name: 'Gold',           icon: '🥇', cost: 5e7,    maxBet: 1e8,      achievement: 'vipGold' },
-    { name: 'Diamant',        icon: '💎', cost: 5e9,    maxBet: 1e10,     achievement: 'vipDiamond' },
-    { name: 'Schwarze Perle', icon: '🖤', cost: 5e11,   maxBet: 1e12,     achievement: 'vipPearl' },
-    { name: 'Kaiserkrone',    icon: '👑', cost: 5e13,   maxBet: Infinity, achievement: 'vipEmperor' },
+    { name: 'Standard',       icon: '🎫', ic: 'ticket', cost: 0,      maxBet: 1e4,      achievement: '' },
+    { name: 'Silber',         icon: '🥈', ic: 'medal', cost: 2.5e5,  maxBet: 1e6,      achievement: 'vipSilver' },
+    { name: 'Gold',           icon: '🥇', ic: 'medal', cost: 5e7,    maxBet: 1e8,      achievement: 'vipGold' },
+    { name: 'Diamant',        icon: '💎', ic: 'gem', cost: 5e9,    maxBet: 1e10,     achievement: 'vipDiamond' },
+    { name: 'Schwarze Perle', icon: '🖤', ic: 'pearl', cost: 5e11,   maxBet: 1e12,     achievement: 'vipPearl' },
+    { name: 'Kaiserkrone',    icon: '👑', ic: 'crown', cost: 5e13,   maxBet: Infinity, achievement: 'vipEmperor' },
   ];
 
   function vipLevel() {
@@ -217,7 +221,7 @@ window.GK = window.GK || {};
     const game = games.find(g => g.id === gameId);
     const panel = game && game.root && game.root.querySelector('.game-stats');
     if (panel && !panel.hidden) {
-      panel.innerHTML = `<h3>📊 Deine Statistik</h3>${statsHTML(gameId)}<p class="muted small">${statsSinceText()}</p>`;
+      panel.innerHTML = `<h3>${ic('chart')}Deine Statistik</h3>${statsHTML(gameId)}<p class="muted small">${statsSinceText()}</p>`;
     }
   }
 
@@ -320,11 +324,11 @@ window.GK = window.GK || {};
 
   // Bereiche der Lobby, in dieser Reihenfolge
   const CATEGORIES = [
-    { id: 'slots',   title: '🎰 Automaten' },
-    { id: 'quick',   title: '⚡ Schnelle Spiele' },
-    { id: 'market',  title: '📈 Börse' },
-    { id: 'table',   title: '🃏 Tischspiele' },
-    { id: 'friends', title: '👥 Mit Freunden' },
+    { id: 'slots',   title: 'Automaten',       icon: 'slot' },
+    { id: 'quick',   title: 'Schnelle Spiele', icon: 'bolt' },
+    { id: 'market',  title: 'Börse',           icon: 'trend' },
+    { id: 'table',   title: 'Tischspiele',     icon: 'cards' },
+    { id: 'friends', title: 'Mit Freunden',    icon: 'users' },
   ];
 
   // game: { id, name, emoji, desc, category, init(bodyEl), render(), onShow(), onHide() }
@@ -363,7 +367,7 @@ window.GK = window.GK || {};
       if (!games.some(g => (g.category || 'quick') === cat.id)) return;
       const section = document.createElement('section');
       section.className = 'casino-section';
-      section.innerHTML = `<h3 class="casino-section-title">${cat.title}</h3><div class="casino-grid"></div>`;
+      section.innerHTML = `<h3 class="casino-section-title">${ic(cat.icon)}${cat.title}</h3><div class="casino-grid"></div>`;
       sections.appendChild(section);
       grids[cat.id] = section.querySelector('.casino-grid');
     });
@@ -371,7 +375,7 @@ window.GK = window.GK || {};
       const card = document.createElement('button');
       card.className = 'casino-card';
       card.dataset.game = game.id;
-      card.innerHTML = `<div class="casino-emoji">${game.emoji}</div><h3>${game.name}</h3><p>${game.desc}</p>`;
+      card.innerHTML = `<div class="casino-emoji">${gameIcon(game)}</div><h3>${game.name}</h3><p>${game.desc}</p>`;
       card.addEventListener('click', () => openGame(game.id));
       grids[game.category || 'quick'].appendChild(card);
 
@@ -381,9 +385,9 @@ window.GK = window.GK || {};
       root.hidden = true;
       root.innerHTML = `
         <div class="game-header">
-          <button class="btn back-btn">← Lobby</button>
-          <h2>${game.emoji} ${game.name}</h2>
-          <button class="btn game-stats-btn" aria-expanded="false">📊 Statistik</button>
+          <button class="btn back-btn">${ic('back')}Lobby</button>
+          <h2>${gameIcon(game)} ${game.name}</h2>
+          <button class="btn game-stats-btn" aria-expanded="false">${ic('chart')}Statistik</button>
         </div>
         <div class="game-stats casino-info-box" hidden></div>
         <div class="game-body"></div>`;
@@ -419,13 +423,13 @@ window.GK = window.GK || {};
     const next = VIP_LEVELS[vipLevel() + 1];
     const nextTable = next && GK.poker.tournament.TIERS.find(t => t.vip === vipLevel() + 1);
     document.getElementById('casino-vip').innerHTML = `
-      <div class="vip-card vip-${vipLevel()}">${level.icon} ${level.name}-Karte</div>
+      <div class="vip-card vip-${vipLevel()}">${ic(level.ic)}${level.name}-Karte</div>
       <p>Einsatz-Limit pro Runde: <b>${formatLimit(level.maxBet)}</b></p>
       ${next ? `
-        <p class="muted small">Nächste Stufe: ${next.icon} ${next.name} – Limit ${formatLimit(next.maxBet)}${
+        <p class="muted small">Nächste Stufe: ${ic(next.ic)} ${next.name} – Limit ${formatLimit(next.maxBet)}${
           nextTable ? `, schaltet den Poker-Tisch „${nextTable.name}“ frei` : ''}.</p>
         <button class="btn btn-primary vip-buy">${next.name}-Karte kaufen (${GK.formatNumber(next.cost)} Dublonen)</button>`
-        : '<p class="muted small">Höchste Stufe erreicht – mehr Glanz gibt es nicht! 👑</p>'}`;
+        : `<p class="muted small">Höchste Stufe erreicht – mehr Glanz gibt es nicht! ${ic('crown')}</p>`}`;
     const buy = document.querySelector('.vip-buy');
     if (buy) {
       buy.disabled = !GK.canAfford(next.cost);

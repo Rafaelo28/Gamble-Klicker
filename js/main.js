@@ -16,9 +16,11 @@ window.GK = window.GK || {};
     return document.getElementById(id);
   }
 
-  GK.toast = function (message) {
+  // Kurze Meldung unten. Emojis im Text werden zu eigenen Symbolen (js/icons.js); icon: Symbol davor
+  GK.toast = function (message, icon) {
     const el = $('toast');
-    el.textContent = message;
+    if (GK.iconText) el.innerHTML = (icon ? GK.icon(...[].concat(icon)) + ' ' : '') + GK.iconText(message);
+    else el.textContent = message;
     el.classList.add('show');
     clearTimeout(GK.toast.timer);
     GK.toast.timer = setTimeout(() => el.classList.remove('show'), 2500);
@@ -29,6 +31,8 @@ window.GK = window.GK || {};
     const el = document.createElement('div');
     el.className = 'notify';
     el.innerHTML = html;
+    // Emojis in Meldungen (Erfolge, Aufgaben …) durch eigene Symbole ersetzen
+    if (GK.iconifyEmoji) GK.iconifyEmoji(el);
     el.addEventListener('click', () => el.remove());
     const stack = $('notify-stack');
     stack.appendChild(el);
@@ -127,7 +131,7 @@ window.GK = window.GK || {};
     $('set-volume').disabled = !st.sound;
     $('set-effects').value = st.effects;
     $('set-kraken').checked = st.kraken !== false;
-    $('sound-toggle').textContent = st.sound ? '🔊' : '🔇';
+    GK.setHTML($('sound-toggle'), GK.icon(st.sound ? 'sound' : 'mute'));
     $('sound-toggle').classList.toggle('off', !st.sound);
     document.body.classList.toggle('reduced-effects', st.effects === 'reduced');
   }
@@ -186,7 +190,7 @@ window.GK = window.GK || {};
     if (isExport) $('transfer-text').select();
   }
 
-  // Kurz „💾 gespeichert“ in der Kopfzeile aufblinken lassen
+  // Kurz „gespeichert“ in der Kopfzeile aufblinken lassen
   function flashSaveIndicator() {
     const el = $('save-indicator');
     el.classList.add('show');

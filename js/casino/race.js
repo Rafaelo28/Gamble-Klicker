@@ -4,6 +4,8 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
+  const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
   const MIN_CHIP = 10;
   const RACE_TIME = 8000;   // so lange braucht der Sieger (ms)
   const EDGE = 0.95;
@@ -230,6 +232,7 @@ window.GK = window.GK || {};
   function showMessage(html, cls) {
     els.message.className = 'game-message ' + (cls || '');
     els.message.innerHTML = html;
+    if (GK.iconifyLead) GK.iconifyLead(els.message); // Emoji vorn → eigenes Symbol
   }
 
   function updateButtons() {
@@ -263,8 +266,8 @@ window.GK = window.GK || {};
         <div class="game-message">&nbsp;</div>
         <div class="race-chip"></div>
         <div class="game-actions">
-          <button class="btn btn-primary btn-big race-start">📯 Rennen starten</button>
-          <button class="btn race-clear">✖ Wetten entfernen</button>
+          <button class="btn btn-primary btn-big race-start">${ic('flag')}Rennen starten</button>
+          <button class="btn race-clear">${ic('close')}Wetten entfernen</button>
         </div>
         <p class="muted small">Setze Chips auf ein oder mehrere Schiffe. Gewinnt dein Schiff, bekommst du
           deinen Einsatz mal der angezeigten Zahl. Vor jedem Rennen gibt es neue Zahlen.</p>

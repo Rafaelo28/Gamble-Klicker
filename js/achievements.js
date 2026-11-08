@@ -4,6 +4,10 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
+  const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
+  // Bild eines Erfolgs: eigenes Symbol zum Emoji (js/icons.js), sonst das Emoji selbst
+  const pic = a => (GK.iconFor && GK.iconFor(a.icon)) || a.icon;
   const totalBuildings = s => Object.values(s.buildings).reduce((sum, n) => sum + n, 0);
   const cps = () => (GK.clicker ? GK.clicker.getCpsPermanent() : 0);
 
@@ -141,7 +145,7 @@ window.GK = window.GK || {};
     if (!a || has(id)) return;
     GK.state.achievements.push(id);
     GK.sound.play('achievement');
-    GK.notify(`<span class="notify-icon">${a.icon}</span><span><b>Erfolg freigeschaltet: ${a.name}</b><br>${a.desc} · +1 % Einkommen</span>`);
+    GK.notify(`<span class="notify-icon">${pic(a)}</span><span><b>Erfolg freigeschaltet: ${a.name}</b><br>${a.desc} · +1 % Einkommen</span>`);
     GK.save();
   };
 
@@ -162,7 +166,7 @@ window.GK = window.GK || {};
     document.getElementById('achievement-grid').innerHTML = ACHIEVEMENTS.map(a => {
       const unlocked = has(a.id);
       return `<div class="achievement ${unlocked ? 'unlocked' : 'locked'}" title="${a.desc}">
-        <div class="achievement-icon">${unlocked ? a.icon : '🔒'}</div>
+        <div class="achievement-icon">${unlocked ? pic(a) : ic('lock')}</div>
         <div class="achievement-name">${a.name}</div>
         <div class="achievement-desc">${a.desc}</div>
       </div>`;

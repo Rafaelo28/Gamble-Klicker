@@ -6,6 +6,8 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
+  const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
   const W = 1000;
   const H = 500;
   const SEA = 420;             // Wasserlinie
@@ -542,14 +544,14 @@ window.GK = window.GK || {};
     setHtml(container.querySelector('.duel-players'), v.players.map((p, i) => `
       <div class="pool-player ${v.turn === i && v.phase === 'aim' ? 'active' : ''}">
         <div class="pool-name"><span class="duel-flag" style="background:${COLORS[i]}"></span> ${GK.cosmetics.nameTag(p)}${i === ui.mySeat ? ' (du)' : ''}</div>
-        <div class="pool-group">❤️ ${p.hp} · 🎯 ${p.hits} Treffer</div>
+        <div class="pool-group">${ic('heart')} ${p.hp} · ${ic('target')} ${p.hits} Treffer</div>
       </div>`).join('<span class="pool-vs">vs</span>'));
     let hint;
     if (v.phase === 'finished') {
       const w = v.players.findIndex(p => p.place === 1);
-      hint = w === ui.mySeat ? '🏆 Das gegnerische Schiff sinkt – du gewinnst!' : `🏁 ${esc(v.players[w].name)} gewinnt das Duell.`;
-    } else if (v.phase === 'flying') hint = '💥 Die Kugel fliegt …';
-    else if (myTurn) hint = '👉 Du bist dran: aufs Bild tippen, nach hinten ziehen (wie eine Schleuder) und loslassen. Achte auf den Wind!';
+      hint = w === ui.mySeat ? `${ic('trophy')} Das gegnerische Schiff sinkt – du gewinnst!` : `${ic('flag')} ${esc(v.players[w].name)} gewinnt das Duell.`;
+    } else if (v.phase === 'flying') hint = `${ic('burst')} Die Kugel fliegt …`;
+    else if (myTurn) hint = `${ic('tap')} Du bist dran: aufs Bild tippen, nach hinten ziehen (wie eine Schleuder) und loslassen. Achte auf den Wind!`;
     else hint = `${esc(v.players[v.turn].name)} zielt …`;
     setHtml(container.querySelector('.duel-hint'), hint);
     setHtml(container.querySelector('.duel-log'), v.log.slice(0, 2).map(l => `<div>${esc(l)}</div>`).join(''));

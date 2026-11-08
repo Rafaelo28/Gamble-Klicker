@@ -6,6 +6,9 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (js/icons.js); in den Tests ohne Browser gibt es keins
+  const ic = name => (GK.icon ? GK.icon(name) : '');
+
   const H = 3600;
   const MAX_LEVEL = 30;
   const LEVEL_GAIN = 1.1;   // Laderaum je Stufe
@@ -320,7 +323,7 @@ window.GK = window.GK || {};
           <div class="muted small">Laderaum ×${GK.formatDecimal(x.hold, 0, 2)} · Tempo ×${GK.formatDecimal(x.speed, 0, 2)}</div></div>
         ${open
           ? `<button type="button" class="btn btn-primary fleet-btn" data-act="buy" ${GK.canAfford(price) ? '' : 'disabled'}>Kaufen: ${GK.formatMoneyHTML(price)}</button>`
-          : `<p class="muted small fleet-hint">🔒 Erst die ${SHIPS[i - 1].name} kaufen</p>`}
+          : `<p class="muted small fleet-hint">${ic('lock')} Erst die ${SHIPS[i - 1].name} kaufen</p>`}
       </div>`;
     }
     const v = d.voyages[x.id];
@@ -329,24 +332,24 @@ window.GK = window.GK || {};
       body = `<div class="fleet-dests">${DESTS.map(dest => {
         if (!destOpen(dest)) {
           return `<button type="button" class="fleet-dest locked" data-act="lockedDest" data-dest="${dest.id}" title="Ab Rang ${GK.rank.name(dest.rank)}">
-            <span class="fd-icon">🔒</span><span class="fd-name">${dest.name}</span><span class="fd-meta">ab ${GK.rank.icon(dest.rank)} ${GK.rank.name(dest.rank)}</span></button>`;
+            <span class="fd-icon">${ic('lock')}</span><span class="fd-name">${dest.name}</span><span class="fd-meta">ab ${GK.rank.symbol(dest.rank)} ${GK.rank.name(dest.rank)}</span></button>`;
         }
         return `<button type="button" class="fleet-dest ${d.last[x.id] === dest.id ? 'last' : ''}" data-act="send" data-dest="${dest.id}">
           <span class="fd-icon">${dest.icon}</span><span class="fd-name">${dest.name}</span>
-          <span class="fd-meta">⏱️ ${short(durationOf(x.id, dest.id))} · ≈ ${GK.formatMoneyHTML(expectedLoot(x.id, dest.id))}</span></button>`;
+          <span class="fd-meta">${ic('hourglass')} ${short(durationOf(x.id, dest.id))} · ≈ ${GK.formatMoneyHTML(expectedLoot(x.id, dest.id))}</span></button>`;
       }).join('')}</div>`;
     } else if (now() >= v.end) {
       const dest = destById[v.dest] || DESTS[0];
-      body = `<div class="fleet-back">✅ Zurück von: ${dest.icon} ${dest.name}!</div>
-        <button type="button" class="btn btn-primary btn-big fleet-btn fleet-collect" data-act="collect">💰 Beute abholen</button>`;
+      body = `<div class="fleet-back">${ic('check')} Zurück von: ${dest.icon} ${dest.name}!</div>
+        <button type="button" class="btn btn-primary btn-big fleet-btn fleet-collect" data-act="collect">${ic('bag')}Beute abholen</button>`;
     } else {
       const dest = destById[v.dest] || DESTS[0];
       const price = windPrice(x.id);
-      body = `<div class="fleet-sea">🧭 Unterwegs: ${dest.icon} ${dest.name}</div>
+      body = `<div class="fleet-sea">${ic('compass')} Unterwegs: ${dest.icon} ${dest.name}</div>
         <div class="fleet-bar"><div></div></div>
         <div class="fleet-time muted small"></div>
-        ${v.wind ? '<p class="muted small">💨 Rückenwind ist gesetzt.</p>'
-          : `<button type="button" class="btn btn-small fleet-btn" data-act="wind" ${GK.canAfford(price) ? '' : 'disabled'}>💨 Rückenwind (halbe Zeit): ${GK.formatMoneyHTML(price)}</button>`}`;
+        ${v.wind ? `<p class="muted small">${ic('wind')} Rückenwind ist gesetzt.</p>`
+          : `<button type="button" class="btn btn-small fleet-btn" data-act="wind" ${GK.canAfford(price) ? '' : 'disabled'}>${ic('wind')}Rückenwind (halbe Zeit): ${GK.formatMoneyHTML(price)}</button>`}`;
     }
     const up = lvl < MAX_LEVEL ? upgradePrice(x.id) : 0;
     return `<div class="fleet-ship ${v ? (now() >= v.end ? 'is-back' : 'at-sea') : ''}" data-ship="${x.id}">
@@ -355,8 +358,8 @@ window.GK = window.GK || {};
         <div class="muted small">Laderaum ×${GK.formatDecimal(holdOf(x.id), 0, 2)} · Tempo ×${GK.formatDecimal(x.speed, 0, 2)}</div></div>
       ${body}
       ${lvl < MAX_LEVEL
-        ? `<button type="button" class="btn btn-small fleet-btn fleet-up" data-act="upgrade" ${GK.canAfford(up) ? '' : 'disabled'}>⬆️ Ausbauen (+10 % Laderaum): ${GK.formatMoneyHTML(up)}</button>`
-        : '<p class="muted small">⭐ Voll ausgebaut</p>'}
+        ? `<button type="button" class="btn btn-small fleet-btn fleet-up" data-act="upgrade" ${GK.canAfford(up) ? '' : 'disabled'}>${ic('up')}Ausbauen (+10 % Laderaum): ${GK.formatMoneyHTML(up)}</button>`
+        : `<p class="muted small">${ic('star')} Voll ausgebaut</p>`}
     </div>`;
   }
 
@@ -412,7 +415,7 @@ window.GK = window.GK || {};
       if (fresh.length || best === 'gold') GK.fx.confetti(80);
     }
     if (results.length === 1) GK.notify(`<span class="notify-icon">${shipSvg(results[0].ship)}</span><span><b>${shipById[results[0].ship].name}</b>: ${outcomeLine(results[0])}<br>+${GK.formatMoneyHTML(results[0].loot)}</span>`);
-    else GK.notify(`<span class="notify-icon">⚓</span><span><b>${results.length} Schiffe entladen</b>: +${GK.formatMoneyHTML(total)}${fresh.length ? `<br>💎 Neue Schätze: ${fresh.map(r => treasureById[r.treasure].name).join(', ')}` : ''}</span>`);
+    else GK.notify(`<span class="notify-icon">${ic('anchor')}</span><span><b>${results.length} Schiffe entladen</b>: +${GK.formatMoneyHTML(total)}${fresh.length ? `<br>💎 Neue Schätze: ${fresh.map(r => treasureById[r.treasure].name).join(', ')}` : ''}</span>`);
   }
 
   let lastShips = '';
@@ -456,7 +459,7 @@ window.GK = window.GK || {};
     const sendBtn = $('fleet-send-all');
     if (collectBtn) {
       collectBtn.disabled = !ready;
-      GK.setText(collectBtn, ready > 1 ? `💰 Alle ${ready} abholen` : '💰 Alle abholen');
+      GK.setHTML(collectBtn, `${ic('bag')}${ready > 1 ? `Alle ${ready} abholen` : 'Alle abholen'}`);
     }
     if (sendBtn) sendBtn.disabled = !SHIPS.some(x => owns(x.id) && !d.voyages[x.id]);
     // Schätze
@@ -468,7 +471,7 @@ window.GK = window.GK || {};
         <div class="fleet-tset-name">${dest.icon} ${dest.name}</div>
         <div class="fleet-tlist">${TREASURES.filter(t => t.dest === dest.id).map(t => found(t.id)
           ? `<div class="fleet-treasure"><span class="ft-icon">${t.icon}</span><span class="ft-name">${t.name}</span><span class="ft-eff">${treasureEffect(t)}</span></div>`
-          : `<div class="fleet-treasure unknown"><span class="ft-icon">❔</span><span class="ft-name">???</span><span class="ft-eff">${treasureEffect(t)}</span></div>`).join('')}</div>
+          : `<div class="fleet-treasure unknown"><span class="ft-icon">${ic('question')}</span><span class="ft-name">???</span><span class="ft-eff">${treasureEffect(t)}</span></div>`).join('')}</div>
       </div>`).join('');
     }
     // Logbuch

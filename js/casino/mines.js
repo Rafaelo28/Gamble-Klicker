@@ -4,6 +4,8 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
+  const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
   const MIN_BET = 10;
   const FIELDS = 25;
   const SKULL_OPTIONS = [1, 3, 5, 10, 20];
@@ -156,6 +158,7 @@ window.GK = window.GK || {};
   function showMessage(html, cls) {
     els.message.className = 'game-message ' + (cls || '');
     els.message.innerHTML = html;
+    if (GK.iconifyLead) GK.iconifyLead(els.message); // Emoji vorn → eigenes Symbol
   }
 
   function init(body) {
@@ -167,13 +170,13 @@ window.GK = window.GK || {};
         <div class="mines-controls">
           <div class="bet-label">Totenköpfe auf der Insel</div>
           <div class="mines-skulls" role="group" aria-label="Totenköpfe">
-            ${SKULL_OPTIONS.map(n => `<button type="button" class="btn btn-small mines-skull" data-skulls="${n}">☠️ ${n}</button>`).join('')}
+            ${SKULL_OPTIONS.map(n => `<button type="button" class="btn btn-small mines-skull" data-skulls="${n}">${ic('skull')}${n}</button>`).join('')}
           </div>
           <div class="mines-info"></div>
           <div class="game-message">&nbsp;</div>
           <div class="mines-bet"></div>
           <div class="game-actions">
-            <button class="btn btn-primary btn-big mines-start">🏝️ Schatzsuche starten</button>
+            <button class="btn btn-primary btn-big mines-start">${ic('island')}Schatzsuche starten</button>
             <button class="btn btn-primary btn-big mines-cash" hidden></button>
           </div>
           <p class="muted small">Grabe Feld für Feld nach Schätzen. Jeder Fund erhöht deinen Gewinn –
