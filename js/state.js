@@ -251,22 +251,17 @@ window.GK = window.GK || {};
     }
   };
 
-  // Spielstand als Text (Base64), z. B. zum Sichern oder Übertragen auf ein anderes Gerät
+  // Spielstand als Text, z. B. zum Sichern oder Übertragen auf ein anderes Gerät.
+  // Der Code ist verschlüsselt und fälschungssicher verpackt (siehe js/savecode.js);
+  // bearbeitete Codes werden beim Import abgewiesen. Alte reine Base64-Codes lassen
+  // sich weiterhin importieren.
   GK.exportSave = function () {
-    const bytes = new TextEncoder().encode(JSON.stringify(GK.state));
-    // In Stücken umwandeln: Safari erlaubt nur begrenzt viele Argumente pro Funktionsaufruf
-    let binary = '';
-    for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
-    return btoa(binary);
+    return GK.saveCode.encode(GK.state);
   };
 
   GK.importSave = function (text) {
-    try {
-      const bytes = Uint8Array.from(atob(text.trim()), c => c.charCodeAt(0));
-      if (!applyData(JSON.parse(new TextDecoder().decode(bytes)))) return false;
-    } catch (e) {
-      return false;
-    }
+    const data = GK.saveCode.decode(text);
+    if (!data || !applyData(data)) return false;
     GK.save();
     return true;
   };

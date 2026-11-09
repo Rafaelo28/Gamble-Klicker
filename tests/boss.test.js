@@ -7,6 +7,7 @@ global.location = { search: '', pathname: '/', origin: '', hash: '' };
 global.history = { replaceState() {} };
 const R = require('path').join(__dirname, '..', 'js') + '/';
 require(R + 'format.js');
+require(R + 'savecode.js');
 require(R + 'state.js');
 require(R + 'casino/casino.js');
 require(R + 'progress.js');
