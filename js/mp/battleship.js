@@ -5,6 +5,8 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
+  const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
   const N = 10;
   const FLEET = [
     { len: 5, name: 'Flaggschiff' },
@@ -366,8 +368,8 @@ window.GK = window.GK || {};
           </div>
           <div class="bs-hint"></div>
           <div class="game-actions bs-actions">
-            <button type="button" class="btn bs-shuffle">🎲 Neu verteilen</button>
-            <button type="button" class="btn btn-primary bs-ready">✅ Bereit</button>
+            <button type="button" class="btn bs-shuffle">${ic('shuffle')}Neu verteilen</button>
+            <button type="button" class="btn btn-primary bs-ready">${ic('check')}Bereit</button>
           </div>
           <div class="bs-log muted small"></div>
         </div>`;
@@ -416,14 +418,14 @@ window.GK = window.GK || {};
     setHtml(container.querySelector('.bs-players'), v.players.map((p, i) => `
       <div class="pool-player ${v.turn === i && v.phase === 'battle' ? 'active' : ''}">
         <div class="pool-name">${GK.cosmetics.nameTag(p)}${i === ui.mySeat ? ' (du)' : ''}</div>
-        ${placing ? `<div class="pool-group">${p.ready ? '✅ bereit' : '⏳ stellt auf …'}</div>` : fleetHtml(p)}
+        ${placing ? `<div class="pool-group">${p.ready ? `${ic('check')} bereit` : `${ic('hourglass')} stellt auf …`}</div>` : fleetHtml(p)}
       </div>`).join('<span class="pool-vs">vs</span>'));
     const last = v.lastShot;
     const isNew = last && container._lastNo !== null && last.no !== container._lastNo;
     const freshEnemy = isNew && last.by === seat ? last.y * N + last.x : -1;
     const freshOwn = isNew && last.by !== seat ? last.y * N + last.x : -1;
-    setHtml(container.querySelector('.bs-enemy .bs-title'), `🎯 Meer von ${esc(foe.name)}`);
-    setHtml(container.querySelector('.bs-own .bs-title'), placing ? '⚓ Deine Flotte' : '⚓ Dein Meer');
+    setHtml(container.querySelector('.bs-enemy .bs-title'), `${ic('target')} Meer von ${esc(foe.name)}`);
+    setHtml(container.querySelector('.bs-own .bs-title'), `${ic('anchor')} ${placing ? 'Deine Flotte' : 'Dein Meer'}`);
     paint(container.querySelector('.bs-enemy .bs-grid'), foe.grid, foe.ships, { target: myTurn, fresh: freshEnemy });
     paint(container.querySelector('.bs-own .bs-grid'), me.grid, ui.mySeat >= 0 ? myShips : [], { selected: placing && !me.ready ? container._sel : -1, fresh: freshOwn });
     if (isNew) {
@@ -437,18 +439,18 @@ window.GK = window.GK || {};
     let hint;
     if (v.phase === 'finished') {
       const winner = v.players.findIndex(p => p.place === 1);
-      hint = winner === ui.mySeat ? '🏆 Alle feindlichen Schiffe versenkt – du gewinnst!' : `🏁 ${esc(v.players[winner].name)} gewinnt die Seeschlacht.`;
+      hint = winner === ui.mySeat ? `${ic('trophy')} Alle feindlichen Schiffe versenkt – du gewinnst!` : `${ic('flag')} ${esc(v.players[winner].name)} gewinnt die Seeschlacht.`;
     } else if (placing) {
       if (ui.mySeat < 0) hint = 'Die Flotten werden aufgestellt …';
-      else if (me.ready) hint = `✅ Bereit! Warte auf ${esc(foe.name)} …`;
+      else if (me.ready) hint = `${ic('check')} Bereit! Warte auf ${esc(foe.name)} …`;
       else hint = 'Stelle deine Flotte auf: Schiff antippen = auswählen, nochmal antippen = drehen, freies Feld antippen = dorthin fahren.';
     } else if (myTurn) {
       hint = last && last.by === seat && last.hit
-        ? (last.sunk ? `💥 Versenkt: ${last.sunk}! Du darfst nochmal.` : '🔥 Treffer! Du darfst nochmal.')
-        : '🎯 Feuer frei! Tippe auf ein Feld im gegnerischen Meer.';
+        ? (last.sunk ? `${ic('burst')} Versenkt: ${last.sunk}! Du darfst nochmal.` : `${ic('flame')} Treffer! Du darfst nochmal.`)
+        : `${ic('target')} Feuer frei! Tippe auf ein Feld im gegnerischen Meer.`;
     } else {
       hint = last && last.by !== seat && last.hit
-        ? `🔥 ${esc(foe.name)} hat getroffen${last.sunk ? ` und dein ${last.sunk} versenkt` : ''} …`
+        ? `${ic('flame')} ${esc(foe.name)} hat getroffen${last.sunk ? ` und dein ${last.sunk} versenkt` : ''} …`
         : `${esc(foe.name)} zielt …`;
     }
     setHtml(container.querySelector('.bs-hint'), hint);

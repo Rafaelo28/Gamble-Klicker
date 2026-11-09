@@ -6,6 +6,8 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
+  const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
   const MIN_BET = 10;
   const ROWS = 12;
   const MAX_BALLS = 15;
@@ -440,7 +442,9 @@ window.GK = window.GK || {};
 
   function showMessage(html, cls) {
     els.message.className = 'game-message ' + (cls || '');
+    if (els.message._html === html) return;
     GK.setHTML(els.message, html);
+    if (GK.iconifyLead) GK.iconifyLead(els.message); // Emoji vorn → eigenes Symbol
   }
 
   // Gesamteinsatz bei mehreren Münzen (ändert sich mit dem Einsatz, deshalb auch im Takt)
@@ -459,7 +463,7 @@ window.GK = window.GK || {};
     const count = countOf(s);
     const massRunning = !!s.mass;
     els.drop.disabled = massRunning || (count === 1 ? s.pending.length >= MAX_BALLS : s.pending.length > 0);
-    GK.setText(els.drop, count === 1 ? '🪙 Münze werfen' : `🪙 ${GK.formatNumber(count)} Münzen werfen`);
+    GK.setHTML(els.drop, count === 1 ? `${ic('coins')}Münze werfen` : `${ic('coins')}${GK.formatNumber(count)} Münzen werfen`);
     els.skip.hidden = !massRunning;
     els.counts.forEach(btn => {
       btn.classList.toggle('active', Number(btn.dataset.count) === count);
@@ -491,8 +495,8 @@ window.GK = window.GK || {};
           </div>
           <div class="plinko-total"></div>
           <div class="game-actions">
-            <button class="btn btn-primary btn-big plinko-drop">🪙 Münze werfen</button>
-            <button class="btn plinko-skip" hidden>⏩ Sofort auszahlen</button>
+            <button class="btn btn-primary btn-big plinko-drop">${ic('coins')}Münze werfen</button>
+            <button class="btn plinko-skip" hidden>${ic('forward')}Sofort auszahlen</button>
           </div>
           <p class="muted small">Die Münze springt an jedem Nagel nach links oder rechts. Je weiter sie
             nach außen fällt, desto mehr gewinnst du. Einzelne Münzen kannst du schnell nacheinander werfen –
@@ -561,7 +565,7 @@ window.GK = window.GK || {};
     category: 'quick',
     name: 'Münzfall',
     emoji: '🪙',
-    desc: 'Lass die Münze durch die Nägel fallen – außen warten bis zu ×170! Bis zu 5.000 Münzen auf einmal.',
+    desc: 'Lass Münzen durch die Nägel fallen – bis zu 5.000 auf einmal!',
     init,
     refresh,
     render: () => {

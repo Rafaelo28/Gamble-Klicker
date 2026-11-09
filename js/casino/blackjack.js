@@ -5,6 +5,8 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
+  const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
   const MIN_BET = 10;
   const DECKS = 6;
   const RESHUFFLE_AT = 78; // neu mischen, wenn weniger als ein Viertel übrig ist
@@ -315,7 +317,7 @@ window.GK = window.GK || {};
       <div class="game-message">&nbsp;</div>
       <div class="bj-bet"></div>
       <div class="game-actions">
-        <button class="btn btn-primary bj-deal">🃏 Austeilen</button>
+        <button class="btn btn-primary bj-deal">${ic('cards')}Austeilen</button>
         <span class="bj-play-actions">
           <button class="btn btn-primary bj-hit">Karte</button>
           <button class="btn bj-stand">Bleiben</button>

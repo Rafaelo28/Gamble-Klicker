@@ -20,6 +20,9 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (js/icons.js); in den Tests ohne Browser gibt es keins
+  const ic = name => (GK.icon ? GK.icon(name) : '');
+
   const PROTOCOL = 1;
   const ID_PREFIX = 'gamble-klicker-';
   const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -947,21 +950,21 @@ window.GK = window.GK || {};
   function statusLine() {
     const s = session();
     if (s.solo) return '';
-    if (!peerAvailable()) return '<span class="mp-status lost">🔴 Online-Spiel nicht verfügbar – keine Internetverbindung?</span>';
+    if (!peerAvailable()) return '<span class="mp-status lost">' + ic('dot') + ' Online-Spiel nicht verfügbar – keine Internetverbindung?</span>';
     if (net.status === 'online') {
       if (s.role === 'host' && net.peer && net.peer.disconnected && !net.peer.destroyed) {
-        return '<span class="mp-status connecting">🟡 Verbindung zum Server wird erneuert – wer schon im Raum ist, bleibt verbunden …</span>';
+        return '<span class="mp-status connecting">' + ic('dot') + ' Verbindung zum Server wird erneuert – wer schon im Raum ist, bleibt verbunden …</span>';
       }
-      return s.role === 'host' ? '<span class="mp-status online">🟢 Raum ist online</span>' : '<span class="mp-status online">🟢 Mit dem Gastgeber verbunden</span>';
+      return s.role === 'host' ? '<span class="mp-status online">' + ic('dot') + ' Raum ist online</span>' : '<span class="mp-status online">' + ic('dot') + ' Mit dem Gastgeber verbunden</span>';
     }
     if (net.status === 'lost') {
       const ms = net.lostSince ? Date.now() - net.lostSince : 0;
       // Nur wer noch mitspielt (nicht schon ausgeschieden und abgerechnet), bekommt den Eintritt zurück
       const gone = s.role === 'client' && s.phase === 'playing' && !s.settled && ms >= ABANDON_AFTER
         ? ' Du kannst das Spiel auch verlassen – dann bekommst du deinen Eintritt zurück.' : '';
-      return `<span class="mp-status lost">🔴 Keine Verbindung${s.role === 'client' ? ` zum Gastgeber (seit ${Math.floor(ms / 1000)} s)` : ''} – versuche es erneut …${gone}</span>`;
+      return `<span class="mp-status lost">${ic('dot')} Keine Verbindung${s.role === 'client' ? ` zum Gastgeber (seit ${Math.floor(ms / 1000)} s)` : ''} – versuche es erneut …${gone}</span>`;
     }
-    return '<span class="mp-status connecting">🟡 Verbinde …</span>';
+    return '<span class="mp-status connecting">' + ic('dot') + ' Verbinde …</span>';
   }
 
   // Hauptfunktion für den Spielbereich: Startseite, Warteraum oder Spiel
@@ -1000,7 +1003,7 @@ window.GK = window.GK || {};
       ${otherRoom}
       <div class="room-intro">${d.intro || ''}</div>
       ${d.settings.html ? `<div class="room-settings">${d.settings.html(settings)}</div>` : ''}
-      <h3 class="poker-section-title">🤖 Gegen Computer</h3>
+      <h3 class="poker-section-title">${ic('robot')}Gegen Computer</h3>
       <div class="room-solo">
         ${d.maxPlayers > 2 ? `
           <div class="bet-label">Gegner</div>
@@ -1009,9 +1012,9 @@ window.GK = window.GK || {};
           </div>` : ''}
         <div class="room-solo-bet"></div>
         <div class="room-solo-prize small"></div>
-        <button class="btn btn-primary btn-big room-solo-start">${d.icon} Spiel starten</button>
+        <button class="btn btn-primary btn-big room-solo-start">${ic('play')}Spiel starten</button>
       </div>
-      <h3 class="poker-section-title">👥 Mit Freunden spielen</h3>
+      <h3 class="poker-section-title">${ic('users')}Mit Freunden spielen</h3>
       ${peerAvailable() ? '' : '<p class="warning">Online-Spiele brauchen eine Internetverbindung (PeerJS konnte nicht geladen werden).</p>'}
       <div class="mp-forms">
         <div class="mp-form">
@@ -1124,8 +1127,8 @@ window.GK = window.GK || {};
           <div class="mp-code">${s.code}</div>
           ${isHost ? `
             <div class="bet-row">
-              <button class="btn btn-small room-copy-code">📋 Code kopieren</button>
-              <button class="btn btn-small room-copy-link">🔗 Einladungs-Link kopieren</button>
+              <button class="btn btn-small room-copy-code">${ic('copy')}Code kopieren</button>
+              <button class="btn btn-small room-copy-link">${ic('link')}Einladungs-Link kopieren</button>
             </div>` : ''}
         </div>
         ${s.entry ? `<p class="mp-tier-info">${d.icon} <b>${esc(d.name)}</b> · Eintritt ${GK.formatMoneyHTML(s.entry)}
@@ -1135,15 +1138,15 @@ window.GK = window.GK || {};
           <ul class="mp-members">
             ${members.map(m => `<li class="${m.ready ? '' : 'not-ready'}">
               <span>${GK.cosmetics.nameTag(m)}</span>
-              ${m.ready ? '' : '<span class="mp-tag waiting">⏳ zahlt noch</span>'}
-              ${m.playerId === hostId ? '<span class="mp-tag">👑 Gastgeber</span>' : ''}
+              ${m.ready ? '' : `<span class="mp-tag waiting">${ic('hourglass')} zahlt noch</span>`}
+              ${m.playerId === hostId ? `<span class="mp-tag">${ic('crown')} Gastgeber</span>` : ''}
               ${m.playerId === store().playerId ? '<span class="mp-tag">Du</span>' : ''}
             </li>`).join('')}
           </ul>
           ${mustConfirm ? `
             <div class="mp-confirm">
               <p>Der Gastgeber hat den Eintritt auf <b>${GK.formatMoneyHTML(s.entry)}</b> festgelegt.</p>
-              <button class="btn btn-primary btn-big room-confirm" ${GK.canAfford(s.entry) ? '' : 'disabled'}>💰 Eintritt bezahlen und mitspielen</button>
+              <button class="btn btn-primary btn-big room-confirm" ${GK.canAfford(s.entry) ? '' : 'disabled'}>${ic('bag')}Eintritt bezahlen und mitspielen</button>
               ${GK.canAfford(s.entry) ? '' : '<p class="loss small">Dafür hast du nicht genug Dublonen.</p>'}
             </div>` : ''}
           ${isHost ? `
@@ -1210,7 +1213,7 @@ window.GK = window.GK || {};
     const players = view.players.length;
     const myPlace = mySeat >= 0 ? d.placeOf(view, mySeat) : null;
     const info = [
-      s.solo ? `${d.icon} Gegen Computer` : `👥 Raum ${s.code}`,
+      s.solo ? `${ic('robot')} Gegen Computer` : `${ic('users')} Raum ${s.code}`,
       d.settingsText && s.settings ? d.settingsText(s.settings) : '',
       `Eintritt ${GK.formatMoneyHTML(s.entry)}`,
       s.solo ? prizeText(s.entry, players, true)
@@ -1224,7 +1227,7 @@ window.GK = window.GK || {};
       const online = id => (isHost ? id === store().playerId || net.conns.has(id) : (s.members.find(m => m.playerId === id) || {}).online !== false);
       const away = view.players.filter((p, i) => p.id && !p.isBot && !d.placeOf(view, i) && !online(p.id)).map(p => esc(p.name));
       if (away.length && (isHost || net.status === 'online')) {
-        notices.push(`📴 ${away.join(', ')} ${away.length > 1 ? 'sind' : 'ist'} gerade nicht verbunden – wer länger als ${DROP_AFTER / 1000} Sekunden weg ist, scheidet aus.`);
+        notices.push(`${ic('warning')} ${away.join(', ')} ${away.length > 1 ? 'sind' : 'ist'} gerade nicht verbunden – wer länger als ${DROP_AFTER / 1000} Sekunden weg ist, scheidet aus.`);
       }
     }
     if (s.result && !s.result.refunded && s.phase !== 'ended') {
@@ -1234,7 +1237,7 @@ window.GK = window.GK || {};
     if (s.phase === 'ended') {
       const ranking = view.players.map((p, i) => ({ p, place: d.placeOf(view, i) })).sort((a, b) => a.place - b.place)
         .map(({ p, place }) => `${place}. ${GK.cosmetics.nameTag(p)}`).join(' · ');
-      notices.push(`🏁 Spiel vorbei! ${ranking}`);
+      notices.push(`${ic('flag')} Spiel vorbei! ${ranking}`);
     }
     const notice = container.querySelector('.room-notice');
     setHtml(notice, notices.join('<br>'));
@@ -1258,7 +1261,7 @@ window.GK = window.GK || {};
     const el = container && container.querySelector('.room-timer');
     if (!el || !s) return;
     const secs = s.deadline ? Math.ceil((s.deadline - Date.now()) / 1000) : -1;
-    el.textContent = secs >= 0 ? `⏱ ${secs} s` : '';
+    GK.setHTML(el, secs >= 0 ? `${ic('hourglass')} ${secs} s` : '');
     el.classList.toggle('urgent', secs >= 0 && secs <= 5);
   }
 

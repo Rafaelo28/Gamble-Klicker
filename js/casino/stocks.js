@@ -10,6 +10,8 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
+  const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
   const MIN_BET = 10;
   const BUY = 1.02;          // Kaufkurs = Kurs × 1,02
   const SELL = 0.99;         // Verkaufskurs = Kurs × 0,99
@@ -173,7 +175,7 @@ window.GK = window.GK || {};
       delete s.holdings[stock.uid];
       GK.casino.record('stocks', h.cost, 0, `${stock.emoji} ${stock.name}: pleite`);
       GK.unlockAchievement('stockCrash');
-      if (GK.notify) GK.notify(`<span class="notify-icon">💥</span><span><b>${stock.name} ist pleite!</b><br>Deine Anteile sind nichts mehr wert.</span>`);
+      if (GK.notify) GK.notify(`<span class="notify-icon">${ic('burst')}</span><span><b>${stock.name} ist pleite!</b><br>Deine Anteile sind nichts mehr wert.</span>`);
       GK.sound.play('boom');
     }
     s.news.unshift({ t: now, text: `💥 ${stock.emoji} ${stock.name} ist pleite!`, pct: -100 });
@@ -390,7 +392,7 @@ window.GK = window.GK || {};
       const chEl = card.querySelector('.stock-change');
       GK.setText(chEl, percent(ch));
       chEl.className = 'stock-change ' + (ch >= 0 ? 'up' : 'down');
-      GK.setText(card.querySelector('.stock-own'), h ? `💼 ${shares(h.shares)} Anteile` : '');
+      GK.setHTML(card.querySelector('.stock-own'), h ? `${ic('briefcase')} ${shares(h.shares)} Anteile` : '');
       drawChart(card.querySelector('.stock-spark'), stock, 0);
       if (h) {
         total += holdingValue(s, stock);
@@ -445,12 +447,12 @@ window.GK = window.GK || {};
           <div class="game-message">&nbsp;</div>
           <div class="stock-bet"></div>
           <div class="game-actions">
-            <button class="btn btn-primary btn-big stock-buy">📈 Kaufen</button>
+            <button class="btn btn-primary btn-big stock-buy">${ic('trend')}Kaufen</button>
             <button class="btn stock-sell-half">Hälfte verkaufen</button>
-            <button class="btn stock-sell-all">💰 Alles verkaufen</button>
+            <button class="btn stock-sell-all">${ic('bag')}Alles verkaufen</button>
           </div>
           <div class="stock-depot"></div>
-          <h4 class="stock-news-title">🗞️ Hafen-Nachrichten</h4>
+          <h4 class="stock-news-title">${ic('news')} Hafen-Nachrichten</h4>
           <ul class="stock-news"></ul>
           <p class="muted small">Kauf Anteile an Hafen-Firmen und verkauf sie wieder. Die Kurse ändern sich jede Sekunde und
             laufen weiter, auch wenn du nicht hinschaust. Geht eine Firma pleite, sind ihre Anteile nichts mehr wert.</p>

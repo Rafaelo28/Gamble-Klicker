@@ -5,6 +5,8 @@ GK.poker = GK.poker || {};
 
 (function () {
   const engine = () => GK.poker.engine;
+  // Eigenes Symbol (in Node-Tests gibt es keins → Emoji)
+  const ic = (name, emoji) => (GK.icon ? GK.icon(name) : emoji || '');
 
   // Welche der 6 Sitz-Positionen am Tisch bei wie vielen Spielern benutzt werden
   // (0 = unten Mitte, dann im Uhrzeigersinn: 1 unten links … 5 unten rechts)
@@ -196,7 +198,7 @@ GK.poker = GK.poker || {};
     if (!el) return;
     const deadline = Number(el.dataset.deadline);
     const seconds = Math.ceil((deadline - Date.now()) / 1000);
-    el.textContent = deadline && seconds >= 0 ? `⏱ ${seconds} s` : '';
+    setHtml(el, deadline && seconds >= 0 ? `${ic('hourglass', '⏱')} ${seconds} s` : '');
     el.classList.toggle('urgent', seconds <= 5);
   }
 
@@ -229,7 +231,7 @@ GK.poker = GK.poker || {};
         : me.folded ? 'Du hast gepasst – warte auf die nächste Hand.'
           : me.allIn ? 'Du bist All-in – jetzt heißt es Daumen drücken!' : 'Warte auf die anderen Spieler …';
       const html = `${handInfo}<div class="muted">${text}</div>` +
-        (opts.onSkip ? '<button class="btn poker-skip">⏩ Hand vorspulen</button>' : '');
+        (opts.onSkip ? `<button class="btn poker-skip">${ic('forward', '⏩')}Hand vorspulen</button>` : '');
       if (setHtml(el, html) && opts.onSkip) {
         el.querySelector('.poker-skip').addEventListener('click', e => {
           e.currentTarget.disabled = true;
@@ -302,7 +304,7 @@ GK.poker = GK.poker || {};
     return `<div class="poker-modes ${cls}" role="group" aria-label="Spielmodus">
       ${Object.values(T.MODES).map(m => `
         <button type="button" class="poker-mode ${m.id === selected ? 'active' : ''}" data-mode="${m.id}">
-          <span class="poker-mode-name">${m.icon} ${m.name}</span>
+          <span class="poker-mode-name">${ic(m.sym, m.icon)} ${m.name}</span>
           <span class="poker-mode-desc">${m.desc}</span>
         </button>`).join('')}
       ${selected === 'blitz' ? `

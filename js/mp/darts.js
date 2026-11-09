@@ -5,6 +5,8 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
+  const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
   // Felder im Uhrzeigersinn, oben beginnend
   const SECTORS = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
   // Radien im Verhältnis zum Außenrand des Doppelrings (echte Maße in mm / 170)
@@ -375,7 +377,7 @@ window.GK = window.GK || {};
             </div>
             <div class="darts-side">
               <div class="darts-turn"></div>
-              <button type="button" class="btn btn-primary btn-big darts-throw">🎯 Werfen!</button>
+              <button type="button" class="btn btn-primary btn-big darts-throw">${ic('target')}Werfen!</button>
               <div class="darts-hint"></div>
               <div class="darts-scores"></div>
             </div>
@@ -412,8 +414,8 @@ window.GK = window.GK || {};
     }
     container._lastNo = d ? d.no : -1;
     if (!container._raf) container._raf = requestAnimationFrame(() => frame(container));
-    const head = v.phase === 'finished' ? '🏁 Spiel vorbei'
-      : v.shootout ? `⚔️ Stechen${v.shootout > 1 ? ` (${v.shootout})` : ''}` : `🍺 Runde ${v.round} von ${v.rounds}`;
+    const head = v.phase === 'finished' ? `${ic('flag')} Spiel vorbei`
+      : v.shootout ? `${ic('swords')} Stechen${v.shootout > 1 ? ` (${v.shootout})` : ''}` : `${ic('target')} Runde ${v.round} von ${v.rounds}`;
     setHtml(container.querySelector('.darts-head'), head);
     const ranked = v.players.map((p, i) => i).sort((a, b) => v.players[b].score - v.players[a].score);
     setHtml(container.querySelector('.darts-scores'), ranked.map(i => {
@@ -435,7 +437,7 @@ window.GK = window.GK || {};
     let hint;
     if (v.phase === 'finished') {
       const w = v.players.findIndex(p => p.place === 1);
-      hint = w === ui.mySeat ? '🏆 Du bist der Champion der Taverne!' : `🏁 ${esc(v.players[w].name)} gewinnt.`;
+      hint = w === ui.mySeat ? `${ic('trophy')} Du bist der Champion der Taverne!` : `${ic('flag')} ${esc(v.players[w].name)} gewinnt.`;
     } else if (myTurn) {
       hint = `Pfeil ${darts.length + 1} von ${DARTS_PER_TURN}: Tippe aufs Brett zum Zielen – dann im richtigen Moment werfen!`;
     } else if (seat >= 0) {

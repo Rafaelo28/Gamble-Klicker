@@ -5,6 +5,11 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (js/icons.js); in den Tests ohne Browser gibt es keins
+  const ic = name => (GK.icon ? GK.icon(name) : '');
+  // Symbol einer Aufgabe (ohne icons.js das Emoji)
+  const taskIcon = def => (GK.icon && def.ic ? GK.icon(def.ic) : def.icon);
+
   const TASKS = 3;
   const STREAK_STEP = 0.25;   // +25 % Bonus je Tag in Folge …
   const STREAK_MAX = 4;       // … höchstens +100 %
@@ -34,61 +39,62 @@ window.GK = window.GK || {};
   const isFriendsGame = id => id === 'poker' || (gameInfo(id) && gameInfo(id).category === 'friends');
 
   // ---------- Aufgaben ----------
-  // make(): Ziel und Zusatzwerte · on(type, value, task): neuer Fortschritt oder null · text(task)
+  // icon: Emoji (für Texte) · ic: eigenes Symbol (js/icons.js) · make(): Ziel und Zusatzwerte
+  // on(type, value, task): neuer Fortschritt oder null · text(task)
 
   const DEFS = {
     clicks: {
-      group: 'clicker', icon: '👆',
+      group: 'clicker', icon: '👆', ic: 'tap',
       make: () => ({ target: pick([300, 400, 500, 600, 800]) }),
       text: t => `Klicke ${GK.formatNumber(t.target)}-mal auf die Dublone`,
       on: (type, v, t) => (type === 'click' ? t.progress + v : null),
     },
     combo: {
-      group: 'clicker', icon: '🔥',
+      group: 'clicker', icon: '🔥', ic: 'flame',
       make: () => ({ target: GK.state.bestCombo >= 60 ? 50 : 30 }),
       text: t => `Schaffe eine Klick-Combo von ${t.target}`,
       on: (type, v, t) => (type === 'combo' ? Math.max(t.progress, v) : null),
     },
     buildings: {
-      group: 'clicker', icon: '🏗️',
+      group: 'clicker', icon: '🏗️', ic: 'bricks',
       make: () => ({ target: pick([5, 10, 15]) }),
       text: t => `Kaufe ${t.target} ${plural(t.target, 'Gebäude', 'Gebäude')}`,
       on: (type, v, t) => (type === 'building' ? t.progress + v : null),
     },
     upgrades: {
-      group: 'clicker', icon: '⬆️',
+      group: 'clicker', icon: '⬆️', ic: 'up',
       possible: () => GK.clicker.remainingUpgrades() >= 3,
       make: () => ({ target: pick([1, 2]) }),
       text: t => `Kaufe ${t.target} ${plural(t.target, 'Upgrade', 'Upgrades')}`,
       on: (type, v, t) => (type === 'upgrade' ? t.progress + v : null),
     },
     voyages: {
-      group: 'clicker', icon: '⛵',
+      group: 'clicker', icon: '⛵', ic: 'sailboat',
       possible: () => GK.fleet && GK.fleet.shipCount() >= 1,
       make: () => ({ target: pick([2, 3, 4]) }),
       text: t => `Schicke ${t.target}-mal ein Schiff auf Fahrt`,
       on: (type, v, t) => (type === 'voyage' ? t.progress + v : null),
     },
     golden: {
-      group: 'clicker', icon: '✨',
+      group: 'clicker', icon: '✨', ic: 'sparkle',
       make: () => ({ target: pick([1, 2, 3]) }),
       text: t => `Fange ${t.target} goldene ${plural(t.target, 'Dublone', 'Dublonen')}`,
       on: (type, v, t) => (type === 'golden' ? t.progress + v : null),
     },
     earn: {
-      group: 'clicker', icon: '💰',
+      group: 'clicker', icon: '💰', ic: 'bag',
       make: () => ({ target: nice(Math.max(2000, GK.clicker.getCpsPermanent() * 900)) }),
       text: t => `Verdiene ${GK.formatMoneyHTML(t.target)} mit Klicks und Gebäuden`,
       on: (type, v, t) => (type === 'earn' ? t.progress + v : null),
     },
     rounds: {
-      group: 'casino', icon: '🎲',
+      group: 'casino', icon: '🎲', ic: 'dice',
       make: () => ({ target: pick([10, 15, 20, 25]) }),
       text: t => `Spiele ${t.target} ${plural(t.target, 'Runde', 'Runden')} im Casino`,
       on: (type, v, t) => (type === 'round' && v.game !== 'sideSlot' ? t.progress + 1 : null),
     },
     variety: {
-      group: 'casino', icon: '🎰',
+      group: 'casino', icon: '🎰', ic: 'slot',
       make: () => ({ target: pick([3, 4, 5]), games: [] }),
       text: t => `Spiele ${t.target} verschiedene Casino-Spiele`,
       on: (type, v, t) => {
@@ -98,7 +104,7 @@ window.GK = window.GK || {};
       },
     },
     game: {
-      group: 'casino', icon: '🃏',
+      group: 'casino', icon: '🃏', ic: 'cards',
       make: () => {
         const g = pick(quickGames());
         return { target: pick([3, 5]), game: g.id };
@@ -107,19 +113,19 @@ window.GK = window.GK || {};
       on: (type, v, t) => (type === 'round' && v.game === t.game ? t.progress + 1 : null),
     },
     wins: {
-      group: 'casino', icon: '🏆',
+      group: 'casino', icon: '🏆', ic: 'trophy',
       make: () => ({ target: pick([3, 5, 8]) }),
       text: t => `Gewinne ${t.target} ${plural(t.target, 'Runde', 'Runden')} im Casino`,
       on: (type, v, t) => (type === 'round' && v.game !== 'sideSlot' && v.payout > v.bet ? t.progress + 1 : null),
     },
     bigHit: {
-      group: 'casino', icon: '🎯',
+      group: 'casino', icon: '🎯', ic: 'target',
       make: () => ({ target: 1, mult: pick([5, 10]) }),
       text: t => `Hol im Casino einen Treffer mit mindestens ×${t.mult}`,
       on: (type, v, t) => (type === 'round' && v.bet > 0 && v.payout >= v.bet * t.mult ? 1 : null),
     },
     friends: {
-      group: 'mixed', icon: '👥',
+      group: 'mixed', icon: '👥', ic: 'users',
       make: () => ({ target: 1 }),
       text: () => 'Spiele eine Partie mit Freunden oder gegen Computer (Spiele mit Freunden oder Poker)',
       on: (type, v, t) => (type === 'round' && isFriendsGame(v.game) ? t.progress + 1 : null),
@@ -204,7 +210,7 @@ window.GK = window.GK || {};
       }
       if (paid > 0) {
         GK.earn(paid, 'daily');
-        if (GK.notify) GK.notify(`<span class="notify-icon">📅</span><span><b>Belohnungen von gestern</b><br>Nicht abgeholt – trotzdem gutgeschrieben: +${GK.formatMoneyHTML(paid)}</span>`, 7000);
+        if (GK.notify) GK.notify(`<span class="notify-icon">${ic('calendar')}</span><span><b>Belohnungen von gestern</b><br>Nicht abgeholt – trotzdem gutgeschrieben: +${GK.formatMoneyHTML(paid)}</span>`, 7000);
       }
     }
     d.day = today();
@@ -233,7 +239,7 @@ window.GK = window.GK || {};
         d.completed++;
         lastHtml = '';
         if (GK.sound) GK.sound.play('achievement');
-        if (GK.notify) GK.notify(`<span class="notify-icon">${DEFS[t.id].icon}</span><span><b>Tägliche Aufgabe geschafft!</b><br>${DEFS[t.id].text(t)} – hol dir die Belohnung unter <b>Fortschritt</b>.</span>`, 6000);
+        if (GK.notify) GK.notify(`<span class="notify-icon">${taskIcon(DEFS[t.id])}</span><span><b>Tägliche Aufgabe geschafft!</b><br>${DEFS[t.id].text(t)} – hol dir die Belohnung unter <b>Fortschritt</b>.</span>`, 6000);
         updateBadge();
       }
     });
@@ -299,23 +305,23 @@ window.GK = window.GK || {};
     const html = d.tasks.map((t, i) => {
       const def = DEFS[t.id];
       return `<div class="daily-task ${t.done ? 'done' : ''} ${t.claimed ? 'claimed' : ''}">
-        <div class="daily-icon">${def.icon}</div>
+        <div class="daily-icon">${taskIcon(def)}</div>
         <div class="daily-body">
           <div class="daily-text">${def.text(t)}</div>
           <div class="daily-bar"><span></span></div>
-          <div class="daily-meta"><span class="daily-count"></span><span>🎁 +${GK.formatMoneyHTML(rewardNow)}</span></div>
+          <div class="daily-meta"><span class="daily-count"></span><span>${ic('gift')} +${GK.formatMoneyHTML(rewardNow)}</span></div>
         </div>
-        <button type="button" class="btn ${t.claimed ? '' : 'btn-primary'} daily-claim" data-i="${i}" ${t.done && !t.claimed ? '' : 'disabled'}>${t.claimed ? '✅ Abgeholt' : t.done ? '🎁 Abholen' : '⏳ Offen'}</button>
+        <button type="button" class="btn ${t.claimed ? '' : 'btn-primary'} daily-claim" data-i="${i}" ${t.done && !t.claimed ? '' : 'disabled'}>${t.claimed ? ic('check') + 'Abgeholt' : t.done ? ic('gift') + 'Abholen' : ic('hourglass') + 'Offen'}</button>
       </div>`;
     }).join('');
     const allClaimed = d.tasks.every(t => t.claimed);
     const bonusDone = d.bonusDay === today();
     const streak = bonusDone ? d.streak : streakNow();
     const bonus = `<div class="daily-bonus-text">
-        <b>🔥 Alle drei geschafft:</b> +${GK.formatMoneyHTML(bonusAmount())}
+        <b>${ic('flame')}Alle drei geschafft:</b> +${GK.formatMoneyHTML(bonusAmount())}
         <span class="muted small">${streak ? `Serie: ${streak} ${plural(streak, 'Tag', 'Tage')} in Folge` : 'Schaff alle drei an mehreren Tagen hintereinander – der Bonus wächst!'}${bonusMult() > 1 ? ` (Bonus +${Math.round((bonusMult() - 1) * 100)} %)` : ''}</span>
       </div>
-      <button type="button" class="btn ${bonusDone ? '' : 'btn-primary'} daily-bonus-btn" ${allClaimed && !bonusDone ? '' : 'disabled'}>${bonusDone ? '✅ Abgeholt' : '🎁 Bonus abholen'}</button>`;
+      <button type="button" class="btn ${bonusDone ? '' : 'btn-primary'} daily-bonus-btn" ${allClaimed && !bonusDone ? '' : 'disabled'}>${bonusDone ? ic('check') + 'Abgeholt' : ic('gift') + 'Bonus abholen'}</button>`;
     if (html !== lastHtml) {
       lastHtml = html;
       list.innerHTML = html;

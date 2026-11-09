@@ -5,6 +5,8 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
+  const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
   const W = 1000;
   const H = 600;
   const R = 9;               // Ball
@@ -388,10 +390,10 @@ window.GK = window.GK || {};
     setHtml(container.querySelector('.golf-head'), `<b>Bahn ${v.hole + 1}/${v.course.length}: ${h.name}</b> · Par ${h.par}`);
     const myTurn = v.phase === 'aim' && v.turn === ui.mySeat;
     let hint;
-    if (v.phase === 'finished') hint = '🏁 Alle Bahnen gespielt!';
-    else if (v.phase === 'holeDone') hint = '⛳ Bahn geschafft – gleich geht es weiter …';
+    if (v.phase === 'finished') hint = `${ic('flag')} Alle Bahnen gespielt!`;
+    else if (v.phase === 'holeDone') hint = `${ic('flag')} Bahn geschafft – gleich geht es weiter …`;
     else if (v.phase === 'rolling') hint = `${esc(v.players[v.lastShot.seat].name)} hat geschlagen …`;
-    else if (myTurn) hint = '👉 Du bist dran! Tippe auf die Bahn und ziehe zurück – je weiter, desto fester. Loslassen = Schlag.';
+    else if (myTurn) hint = `${ic('tap')} Du bist dran! Tippe auf die Bahn und ziehe zurück – je weiter, desto fester. Loslassen = Schlag.`;
     else hint = `${esc(turnName)} ist dran …`;
     setHtml(container.querySelector('.golf-hint'), hint);
     container.querySelector('.golf-course').classList.toggle('my-turn', myTurn);

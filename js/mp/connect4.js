@@ -4,6 +4,8 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
+  const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
   const COLS = 7;
   const ROWS = 6;
   const DISCS = ['gold', 'red'];
@@ -230,9 +232,9 @@ window.GK = window.GK || {};
     let hint;
     if (v.phase === 'finished') {
       const winner = v.players.findIndex(p => p.place === 1);
-      hint = winner === ui.mySeat ? '🏆 Vier in einer Reihe – du gewinnst!' : `🏁 ${esc(v.players[winner].name)} gewinnt.`;
-    } else if (v.phase === 'full') hint = '🤝 Unentschieden – das Brett wird geleert …';
-    else if (myTurn) hint = '👉 Du bist dran – tippe auf eine Spalte!';
+      hint = winner === ui.mySeat ? `${ic('trophy')} Vier in einer Reihe – du gewinnst!` : `${ic('flag')} ${esc(v.players[winner].name)} gewinnt.`;
+    } else if (v.phase === 'full') hint = `${ic('handshake')} Unentschieden – das Brett wird geleert …`;
+    else if (myTurn) hint = `${ic('tap')} Du bist dran – tippe auf eine Spalte!`;
     else hint = `${esc(v.players[v.turn].name)} überlegt …`;
     setHtml(container.querySelector('.c4-hint'), hint);
   }

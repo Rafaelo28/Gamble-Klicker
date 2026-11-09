@@ -7,6 +7,8 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
+  const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
   const REELS = 5;
   const ROWS = 3;
   const MIN_BET = 20;
@@ -577,7 +579,7 @@ window.GK = window.GK || {};
       const freeMode = !!s.free;
       els.machine.classList.toggle('free-mode', freeMode);
       els.status.innerHTML = freeMode
-        ? `🎉 Freispiele: <b>${s.free.total - s.free.left}/${s.free.total}</b> · ×${theme.freeMult} · Gewinn <b>${GK.formatMoneyHTML(s.free.won)}</b>`
+        ? `${ic('sparkle')} Freispiele: <b>${s.free.total - s.free.left}/${s.free.total}</b> · ×${theme.freeMult} · Gewinn <b>${GK.formatMoneyHTML(s.free.won)}</b>`
         : '';
       const locked = busy || freeMode || !!s.bonus || !!s.pending;
       els.spin.disabled = locked;

@@ -7,6 +7,8 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
+  const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
   const W = 1000;
   const H = 500;
   const L = 40;
@@ -482,11 +484,11 @@ window.GK = window.GK || {};
     }).join('<div class="pool-vs">vs</div>'));
     const myTurn = v.phase === 'aim' && v.turn === ui.mySeat;
     let hint;
-    if (v.phase === 'finished') hint = v.winner != null ? `🏆 ${esc(v.players[v.winner].name)} gewinnt!` : 'Spiel vorbei';
+    if (v.phase === 'finished') hint = v.winner != null ? `${ic('trophy')} ${esc(v.players[v.winner].name)} gewinnt!` : 'Spiel vorbei';
     else if (v.phase === 'rolling') hint = 'Die Kugeln rollen …';
     else if (myTurn) hint = v.inHand
-      ? `✋ Ball in der Hand: Ziehe die weiße Kugel an eine freie Stelle${v.kitchen ? ' (links der Linie)' : ''}, dann tippe auf den Tisch und ziehe zurück zum Stoßen.`
-      : '👉 Du bist dran! Tippe auf den Tisch und ziehe zurück – je weiter, desto fester. Loslassen = Stoß.';
+      ? `${ic('hand')} Ball in der Hand: Ziehe die weiße Kugel an eine freie Stelle${v.kitchen ? ' (links der Linie)' : ''}, dann tippe auf den Tisch und ziehe zurück zum Stoßen.`
+      : `${ic('tap')} Du bist dran! Tippe auf den Tisch und ziehe zurück – je weiter, desto fester. Loslassen = Stoß.`;
     else hint = `${esc(v.players[v.turn].name)} ist dran …`;
     setHtml(container.querySelector('.pool-hint'), hint);
     container.querySelector('.pool-table').classList.toggle('my-turn', myTurn);
