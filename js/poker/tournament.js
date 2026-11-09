@@ -3,6 +3,15 @@
 // Im Blitz-Modus wird nur eine feste Zahl Hände gespielt; danach teilen die Besten das
 // Preisgeld im Verhältnis ihrer Chips.
 window.GK = window.GK || {};
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+GK.i18n.add({
+  'Klassisch': 'Classic',
+  'Turbo': 'Turbo',
+  'Blitz': 'Blitz',
+  '{name} · {n} Hände': '{name} · {n} hands',
+});
 GK.poker = GK.poker || {};
 
 (function () {
@@ -49,7 +58,8 @@ GK.poker = GK.poker || {};
     const m = mode(modeId);
     // Im Browser eigenes Symbol, in Node (Tests) das Emoji
     const icon = typeof GK !== 'undefined' && GK.icon ? GK.icon(m.sym) : m.icon;
-    const text = m.id === 'blitz' ? `${m.name} · ${blitzHands(hands)} Hände` : m.name;
+    const name = GK.t(m.name);
+    const text = m.id === 'blitz' ? GK.t('{name} · {n} Hände', { name, n: blitzHands(hands) }) : name;
     return plain ? text : `${icon} ${text}`;
   }
 

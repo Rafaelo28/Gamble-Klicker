@@ -4,6 +4,49 @@
 // (nur 3, 5 oder 10 Hände, danach teilen die Besten das Preisgeld nach Chips).
 // Wer gegen Computer vorzeitig aussteigt, bekommt anteilig ausgezahlt, was seine Chips wert sind.
 window.GK = window.GK || {};
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+GK.i18n.add({
+  'Nur mit {name}-Karte': 'Only with the {name} card',
+  'Nicht genug Dublonen': 'Not enough Doubloons',
+  'Du bist gerade in einem Raum mit Freunden.': 'You are currently in a room with friends.',
+  'Turnier wirklich verlassen? Für deine Chips bekommst du anteilig {n} Dublonen ausgezahlt.': 'Really leave the tournament? For your chips you get a prorated payout of {n} Doubloons.',
+  'Ausgestiegen – {name}': 'Cashed out – {name}',
+  '{place}. Platz – {name}': 'Place {place} – {name}',
+  'Ausgestiegen · {label}': 'Cashed out · {label}',
+  '{place}. Platz · {label}': 'Place {place} · {label}',
+  'Die besten {n} teilen {pool} nach Chips': 'The top {n} share {pool} by chips',
+  '{place}. Platz': 'place {place}',
+  'Du bist im {tier} ausgestiegen und hast anteilig {n} bekommen.': 'You cashed out at the {tier} and received a prorated {n}.',
+  'Du bist im {tier} ausgestiegen.': 'You cashed out at the {tier}.',
+  'Du hast im {tier} {place} belegt und {n} gewonnen!': 'You finished in {place} at the {tier} and won {n}!',
+  'Du hast im {tier} {place} belegt.': 'You finished in {place} at the {tier}.',
+  'Gegen Computer': 'Vs. computer',
+  'Mit Freunden spielen': 'Play with friends',
+  '<b>Sit &amp; Go-Turnier:</b> Du zahlst den Eintritt in Dublonen und bekommst – genau wie deine 5 Computer-Gegner – gleich viele Tisch-Chips. Gespielt wird, bis einer alle Chips hat. Preise: 🥇 3× · 🥈 1,8× · 🥉 1,2× Eintritt. Steigst du vorher aus, bekommst du anteilig ausgezahlt, was deine Chips wert sind. <b>Blitz:</b> Nach 3, 5 oder 10 Händen ist Schluss – dann teilen die besten 4 das ganze Preisgeld im Verhältnis ihrer Chips.': '<b>Sit &amp; Go tournament:</b> You pay the entry in Doubloons and receive – just like your 5 computer opponents – the same number of table chips. Play continues until someone has all the chips. Prizes: 🥇 3× · 🥈 1.8× · 🥉 1.2× entry. If you cash out early, you get a prorated payout of what your chips are worth. <b>Blitz:</b> After 3, 5 or 10 hands it ends – then the top 4 share the whole prize pool in proportion to their chips.',
+  'Eintritt: {n}': 'Entry: {n}',
+  'Top {k} teilen {pool}': 'Top {k} share {pool}',
+  '1. Platz: {n}': '1st place: {n}',
+  'Platz nehmen': 'Take a seat',
+  'Erhöhung in {n} Hand': 'Blinds rise in {n} hand',
+  'Erhöhung in {n} Händen': 'Blinds rise in {n} hands',
+  'Höchste Stufe': 'Top level',
+  'Letzte Hand ({a}/{b})': 'Last hand ({a}/{b})',
+  'Hand {a}/{b}': 'Hand {a}/{b}',
+  'Spieler: {a}/{b}': 'Players: {a}/{b}',
+  'Schluss! {ranking}': 'Finished! {ranking}',
+  'Turnier beenden ▶': 'Finish tournament ▶',
+  'Nächste Hand ▶': 'Next hand ▶',
+  'Aussteigen · {n}': 'Cash out · {n}',
+  'Turnier gegen Computer – oder online mit Freunden.': 'Tournament vs. computer – or online with friends.',
+  'Hafenkneipe': 'Harbor Tavern',
+  'Kapitänstisch': "Captain's Table",
+  'Königlicher Salon': 'Royal Salon',
+  'Diamanten-Saal': 'Diamond Hall',
+  'Perlen-Lounge': 'Pearl Lounge',
+  'Thron des Kaisers': "Emperor's Throne",
+});
 
 (function () {
   const engine = () => GK.poker.engine;
@@ -35,8 +78,8 @@ window.GK = window.GK || {};
 
   // Darf man an diesem Tisch spielen? (VIP-Stufe und Eintritt)
   function tierBlockReason(tr) {
-    if (GK.casino.vipLevel() < tr.vip) return `Nur mit ${GK.casino.VIP_LEVELS[tr.vip].name}-Karte`;
-    if (!GK.canAfford(tr.entry)) return 'Nicht genug Dublonen';
+    if (GK.casino.vipLevel() < tr.vip) return GK.t('Nur mit {name}-Karte', { name: GK.casino.VIP_LEVELS[tr.vip].name });
+    if (!GK.canAfford(tr.entry)) return GK.t('Nicht genug Dublonen');
     return '';
   }
 
@@ -46,7 +89,7 @@ window.GK = window.GK || {};
     const tr = T().tier(tierId);
     const reason = tierBlockReason(tr);
     if (reason || mpActive() || (GK.room && GK.room.active())) {
-      GK.toast(reason || 'Du bist gerade in einem Raum mit Freunden.');
+      GK.toast(reason || GK.t('Du bist gerade in einem Raum mit Freunden.'));
       return;
     }
     GK.casino.bet(tr.entry);
@@ -95,8 +138,7 @@ window.GK = window.GK || {};
     const t = state().table;
     if (!t) return;
     const value = cashOutValue();
-    const text = 'Turnier wirklich verlassen? Für deine Chips bekommst du anteilig ' +
-      `${GK.formatNumber(value)} Dublonen ausgezahlt.`;
+    const text = GK.t('Turnier wirklich verlassen? Für deine Chips bekommst du anteilig {n} Dublonen ausgezahlt.', { n: GK.formatNumber(value) });
     if (!confirm(text)) return;
     engine().forfeit(t, HUMAN);
     finishTournament(value);
@@ -120,14 +162,14 @@ window.GK = window.GK || {};
       if (m.id === 'blitz') GK.unlockAchievement('pokerBlitz');
       if (tr.id === 'throne') GK.unlockAchievement('pokerThrone');
     }
-    const label = m.id === 'classic' ? tr.name : `${tr.name} (${T().modeLabel(m.id, t.maxHands, true)})`;
-    GK.casino.record('poker', tr.entry, win, left ? `Ausgestiegen · ${label}` : `${place}. Platz · ${label}`);
+    const label = m.id === 'classic' ? GK.t(tr.name) : `${GK.t(tr.name)} (${T().modeLabel(m.id, t.maxHands, true)})`;
+    GK.casino.record('poker', tr.entry, win, left ? GK.t('Ausgestiegen · {label}', { label }) : GK.t('{place}. Platz · {label}', { place, label }));
     afterChange();
     if (left) {
-      if (win > tr.entry) GK.fx.celebrate(win, tr.entry, { subtitle: `Ausgestiegen – ${tr.name}` });
+      if (win > tr.entry) GK.fx.celebrate(win, tr.entry, { subtitle: GK.t('Ausgestiegen – {name}', { name: GK.t(tr.name) }) });
       else if (win > 0) GK.sound.play('coin');
     } else {
-      GK.fx.celebrate(win, tr.entry, { level: place === 1 ? 'mega' : undefined, subtitle: `${place}. Platz – ${tr.name}` });
+      GK.fx.celebrate(win, tr.entry, { level: place === 1 ? 'mega' : undefined, subtitle: GK.t('{place}. Platz – {name}', { place, name: GK.t(tr.name) }) });
     }
   }
 
@@ -202,7 +244,7 @@ window.GK = window.GK || {};
 
   function prizeLine(entry, t) {
     if (t && T().isBlitz(t)) {
-      return `Die besten ${T().blitzPaidPlaces(SEATS)} teilen ${GK.formatMoneyHTML(entry * SEATS)} nach Chips`;
+      return GK.t('Die besten {n} teilen {pool} nach Chips', { n: T().blitzPaidPlaces(SEATS), pool: GK.formatMoneyHTML(entry * SEATS) });
     }
     const p = place => GK.formatMoneyHTML(T().prize(place, entry, SEATS));
     return `🥇 ${p(1)} 🥈 ${p(2)} 🥉 ${p(3)}`;
@@ -222,42 +264,43 @@ window.GK = window.GK || {};
     const m = mode();
     let resultHtml = '';
     if (r && r.left) {
-      resultHtml = `<div class="poker-result ${r.prize ? 'win' : 'loss'}">${ic('door')} Du bist im ${r.tierName} ausgestiegen` +
-        (r.prize ? ` und hast anteilig ${GK.formatMoneyHTML(r.prize)} bekommen.` : '.') + '</div>';
+      const tier = GK.t(r.tierName);
+      resultHtml = `<div class="poker-result ${r.prize ? 'win' : 'loss'}">${ic('door')} ` +
+        (r.prize
+          ? GK.t('Du bist im {tier} ausgestiegen und hast anteilig {n} bekommen.', { tier, n: GK.formatMoneyHTML(r.prize) })
+          : GK.t('Du bist im {tier} ausgestiegen.', { tier })) + '</div>';
     } else if (r) {
+      const tier = GK.t(r.tierName);
+      const place = `<b>${GK.t('{place}. Platz', { place: r.place })}</b>`;
       resultHtml = `
       <div class="poker-result ${r.prize ? 'win' : 'loss'}">
         ${r.place === 1 ? '🏆' : r.prize ? '🎉' : '😢'}
-        Du hast im ${r.tierName} den <b>${r.place}. Platz</b> belegt${r.prize
-          ? ` und ${GK.formatMoneyHTML(r.prize)} gewonnen!` : '.'}
+        ${r.prize
+          ? GK.t('Du hast im {tier} {place} belegt und {n} gewonnen!', { tier, place, n: GK.formatMoneyHTML(r.prize) })
+          : GK.t('Du hast im {tier} {place} belegt.', { tier, place })}
       </div>`;
     }
     body.innerHTML = `
       ${resultHtml}
-      <h3 class="poker-section-title">${ic('robot')}Gegen Computer</h3>
+      <h3 class="poker-section-title">${ic('robot')}${GK.t('Gegen Computer')}</h3>
       <p class="muted">
-        <b>Sit &amp; Go-Turnier:</b> Du zahlst den Eintritt in Dublonen und bekommst – genau wie deine
-        5 Computer-Gegner – gleich viele Tisch-Chips. Gespielt wird, bis einer alle Chips hat.
-        Preise: 🥇 3× · 🥈 1,8× · 🥉 1,2× Eintritt. Steigst du vorher aus, bekommst du anteilig
-        ausgezahlt, was deine Chips wert sind.
-        <b>Blitz:</b> Nach 3, 5 oder 10 Händen ist Schluss – dann teilen die besten 4 das ganze
-        Preisgeld im Verhältnis ihrer Chips.
+        ${GK.t('<b>Sit &amp; Go-Turnier:</b> Du zahlst den Eintritt in Dublonen und bekommst – genau wie deine 5 Computer-Gegner – gleich viele Tisch-Chips. Gespielt wird, bis einer alle Chips hat. Preise: 🥇 3× · 🥈 1,8× · 🥉 1,2× Eintritt. Steigst du vorher aus, bekommst du anteilig ausgezahlt, was deine Chips wert sind. <b>Blitz:</b> Nach 3, 5 oder 10 Händen ist Schluss – dann teilen die besten 4 das ganze Preisgeld im Verhältnis ihrer Chips.')}
       </p>
       ${GK.poker.ui.modePicker(m.id, T().blitzHands(state().hands), 'sp-modes')}
       <div class="casino-grid poker-tiers">
         ${T().TIERS.map(tr => `
           <div class="casino-card poker-tier">
             <div class="casino-emoji">${tr.icon}</div>
-            <h3>${tr.name}</h3>
-            <p>Eintritt: ${GK.formatMoneyHTML(tr.entry)}</p>
+            <h3>${GK.t(tr.name)}</h3>
+            <p>${GK.t('Eintritt: {n}', { n: GK.formatMoneyHTML(tr.entry) })}</p>
             <p class="small">${m.id === 'blitz'
-              ? `Top ${T().blitzPaidPlaces(SEATS)} teilen ${GK.formatMoneyHTML(tr.entry * SEATS)}`
-              : `1. Platz: ${GK.formatMoneyHTML(T().prize(1, tr.entry, SEATS))}`}</p>
-            <button class="btn btn-primary poker-join" data-tier="${tr.id}">Platz nehmen</button>
+              ? GK.t('Top {k} teilen {pool}', { k: T().blitzPaidPlaces(SEATS), pool: GK.formatMoneyHTML(tr.entry * SEATS) })
+              : GK.t('1. Platz: {n}', { n: GK.formatMoneyHTML(T().prize(1, tr.entry, SEATS)) })}</p>
+            <button class="btn btn-primary poker-join" data-tier="${tr.id}">${GK.t('Platz nehmen')}</button>
             <p class="small poker-block-reason"></p>
           </div>`).join('')}
       </div>
-      <h3 class="poker-section-title">${ic('users')}Mit Freunden spielen</h3>
+      <h3 class="poker-section-title">${ic('users')}${GK.t('Mit Freunden spielen')}</h3>
       <div class="mp-join-panel"></div>`;
     body.querySelectorAll('.poker-join').forEach(btn => {
       btn.addEventListener('click', () => join(btn.dataset.tier));
@@ -301,25 +344,25 @@ window.GK = window.GK || {};
     const last = t.phase === 'finished' || t.players[HUMAN].out;
     const blitz = T().isBlitz(t);
     let progress;
-    if (blitz) progress = t.handNo >= t.maxHands ? `${ic('flame')} Letzte Hand (${t.maxHands}/${t.maxHands})` : `Hand ${t.handNo}/${t.maxHands}`;
-    else progress = t.level < t.blindLevels.length - 1 ? `Erhöhung in ${handsLeft} ${handsLeft === 1 ? 'Hand' : 'Händen'}` : 'Höchste Stufe';
+    if (blitz) progress = t.handNo >= t.maxHands ? `${ic('flame')} ${GK.t('Letzte Hand ({a}/{b})', { a: t.maxHands, b: t.maxHands })}` : GK.t('Hand {a}/{b}', { a: t.handNo, b: t.maxHands });
+    else progress = t.level < t.blindLevels.length - 1 ? (handsLeft === 1 ? GK.t('Erhöhung in {n} Hand', { n: handsLeft }) : GK.t('Erhöhung in {n} Händen', { n: handsLeft })) : GK.t('Höchste Stufe');
     GK.poker.ui.render(body, t, {
       mySeat: HUMAN,
       info: [
-        `${tr.icon} ${tr.name}`,
+        `${tr.icon} ${GK.t(tr.name)}`,
         T().modeLabel(m.id, t.maxHands),
         `Blinds ${GK.formatNumber(sb)}/${GK.formatNumber(bb)}`,
         progress,
-        `Spieler: ${t.players.filter(p => !p.out).length}/${SEATS}`,
+        GK.t('Spieler: {a}/{b}', { a: t.players.filter(p => !p.out).length, b: SEATS }),
         prizeLine(tr.entry, t),
       ],
-      notice: blitz && t.phase === 'finished' ? `${ic('flag')} Schluss! ${blitzRanking(t, tr.entry)}` : '',
+      notice: blitz && t.phase === 'finished' ? `${ic('flag')} ${GK.t('Schluss! {ranking}', { ranking: blitzRanking(t, tr.entry) })}` : '',
       onAction: humanAct,
       onNext: continueAfterHand,
-      nextLabel: last ? 'Turnier beenden ▶' : 'Nächste Hand ▶',
+      nextLabel: last ? GK.t('Turnier beenden ▶') : GK.t('Nächste Hand ▶'),
       onSkip: canSkip(t) ? fastForward : null,
       onLeave: last ? null : leaveTable,
-      leaveLabel: `${ic('door')}Aussteigen · ${GK.formatMoneyHTML(cashOutValue())}`,
+      leaveLabel: `${ic('door')}${GK.t('Aussteigen · {n}', { n: GK.formatMoneyHTML(cashOutValue()) })}`,
     });
   }
 
@@ -339,7 +382,7 @@ window.GK = window.GK || {};
     category: 'table',
     name: 'Poker',
     emoji: '♠️',
-    desc: 'Turnier gegen Computer – oder online mit Freunden.',
+    desc: GK.t('Turnier gegen Computer – oder online mit Freunden.'),
     init,
     refresh,
     onShow: refresh,

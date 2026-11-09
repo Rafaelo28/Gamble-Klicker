@@ -6,6 +6,34 @@
 // Weggehen hilft also nicht. In den Einstellungen lassen sich die Angriffe ausschalten.
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  '🐙 Kraken-Angriffe sind wieder an – bleib wachsam!': '🐙 Kraken attacks are on again – stay alert!',
+  '🐙 Keine Kraken-Angriffe mehr.': '🐙 No more kraken attacks.',
+  ' Der laufende Angriff muss aber noch abgewehrt werden!': ' But the ongoing attack still has to be fought off!',
+  'Gebäude': 'building',
+  'Kraft des Kraken': 'Kraken’s power',
+  'Zeit': 'Time',
+  'Kraken treffen': 'Hit the kraken',
+  'Kraken-Angriff! Triff ihn, wenn er auftaucht!': 'Kraken attack! Hit it when it surfaces!',
+  'Kraken-Angriff!': 'Kraken attack!',
+  'Triff ihn, solange er aufgetaucht ist – sonst klaut er Gebäude!': 'Hit it while it’s surfaced – or it will steal buildings!',
+  'Daneben!': 'Missed!',
+  '🌊 Abgetaucht!': '🌊 Submerged!',
+  'Gerettet!': 'Saved!',
+  'Jetzt! Triff ihn!': 'Now! Hit it!',
+  'Abgetaucht – warte …': 'Submerged – wait …',
+  'Kraken vertrieben!': 'Kraken driven off!',
+  'Alle Gebäude gerettet – und er hat Beute zurückgelassen: +{amount}': 'All buildings saved – and it left loot behind: +{amount}',
+  'Der Kraken ist abgetaucht …': 'The kraken has submerged …',
+  'und hat {list} in die Tiefe gezogen.': 'and dragged {list} into the depths.',
+  'Der Kraken ist abgetaucht.': 'The kraken has submerged.',
+  'Zum Glück hat er nichts erwischt.': 'Luckily it caught nothing.',
+});
+
 (function () {
   // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
@@ -147,13 +175,14 @@ window.GK = window.GK || {};
     GK.state.settings.kraken = on;
     if (on) scheduleNext();
     GK.save();
-    GK.toast(on ? '🐙 Kraken-Angriffe sind wieder an – bleib wachsam!'
-      : '🐙 Keine Kraken-Angriffe mehr.' + (k().attack ? ' Der laufende Angriff muss aber noch abgewehrt werden!' : ''));
+    GK.toast(on ? GK.t('🐙 Kraken-Angriffe sind wieder an – bleib wachsam!')
+      : GK.t('🐙 Keine Kraken-Angriffe mehr.') + (k().attack ? GK.t(' Der laufende Angriff muss aber noch abgewehrt werden!') : ''));
   }
 
   // ---------- Darstellung ----------
 
   const building = id => GK.clicker.BUILDINGS.find(b => b.id === id) || { icon: '🏠', name: 'Gebäude' };
+  const buildingName = id => GK.t(building(id).name);
 
   function show(fresh) {
     const stage = document.querySelector('.coin-stage');
@@ -164,12 +193,12 @@ window.GK = window.GK || {};
     root.className = 'kraken-attack';
     root.innerHTML = `
       <div class="kr-bars">
-        <div class="kr-bar kr-hp" aria-label="Kraft des Kraken"><span></span><b></b></div>
-        <div class="kr-bar kr-time" aria-label="Zeit"><span></span><b></b></div>
+        <div class="kr-bar kr-hp" aria-label="${GK.t('Kraft des Kraken')}"><span></span><b></b></div>
+        <div class="kr-bar kr-time" aria-label="${GK.t('Zeit')}"><span></span><b></b></div>
       </div>
-      <div class="kr-msg">${ic('kraken')} Kraken-Angriff! Triff ihn, wenn er auftaucht!</div>
+      <div class="kr-msg">${ic('kraken')} ${GK.t('Kraken-Angriff! Triff ihn, wenn er auftaucht!')}</div>
       ${a.arms.map((arm, i) => `<div class="kr-arm arm-${i}${arm.held ? '' : ' free'}"><span class="kr-loot">${building(arm.id).icon}</span></div>`).join('')}
-      <button type="button" class="kr-body" aria-label="Kraken treffen"><span>🐙</span></button>
+      <button type="button" class="kr-body" aria-label="${GK.t('Kraken treffen')}"><span>🐙</span></button>
       <div class="kr-sea"></div>`;
     stage.appendChild(root);
     els = {
@@ -191,7 +220,7 @@ window.GK = window.GK || {};
     if (fresh) {
       GK.sound.play('horn');
       GK.fx.shake('small');
-      GK.notify(`<span class="notify-icon">${ic('kraken')}</span><span><b>Kraken-Angriff!</b><br>Triff ihn, solange er aufgetaucht ist – sonst klaut er Gebäude!</span>`);
+      GK.notify(`<span class="notify-icon">${ic('kraken')}</span><span><b>${GK.t('Kraken-Angriff!')}</b><br>${GK.t('Triff ihn, solange er aufgetaucht ist – sonst klaut er Gebäude!')}</span>`);
     }
     render();
   }
@@ -201,7 +230,7 @@ window.GK = window.GK || {};
     if (!a) return;
     const pos = { x: e.clientX, y: e.clientY };
     if (!onBody || !a.up) {
-      GK.fx.floatText(pos.x, pos.y, a.up ? 'Daneben!' : '🌊 Abgetaucht!', '');
+      GK.fx.floatText(pos.x, pos.y, a.up ? GK.t('Daneben!') : GK.t('🌊 Abgetaucht!'), '');
       return;
     }
     const res = hit();
@@ -216,7 +245,7 @@ window.GK = window.GK || {};
       const arm = els.arms[a.arms.findIndex(x => x.id === id)];
       if (arm) {
         const c = GK.fx.center(arm.querySelector('.kr-loot'));
-        GK.fx.floatText(c.x, c.y, `${building(id).icon} Gerettet!`, 'win');
+        GK.fx.floatText(c.x, c.y, `${building(id).icon} ${GK.t('Gerettet!')}`, 'win');
       }
     });
     if (res.defeated) onDefeat(res, pos);
@@ -233,7 +262,7 @@ window.GK = window.GK || {};
     els.body.classList.toggle('down', !a.up);
     els.body.style.setProperty('--kr-x', `${a.x * 60}px`);
     els.arms.forEach((el, i) => el.classList.toggle('free', !a.arms[i].held));
-    GK.setHTML(els.msg, a.up ? `${ic('target')} Jetzt! Triff ihn!` : `${ic('wave')} Abgetaucht – warte …`);
+    GK.setHTML(els.msg, a.up ? `${ic('target')} ${GK.t('Jetzt! Triff ihn!')}` : `${ic('wave')} ${GK.t('Abgetaucht – warte …')}`);
     els.root.classList.toggle('urgent', a.left <= 5);
   }
 
@@ -251,8 +280,7 @@ window.GK = window.GK || {};
     GK.sound.play('jackpot');
     GK.fx.burst(pos.x, pos.y, { count: 30, speed: 700 });
     GK.fx.floatText(pos.x, pos.y - 30, `+${GK.formatNumber(res.loot)}`, 'win big');
-    GK.notify(`<span class="notify-icon">${ic('kraken')}</span><span><b>Kraken vertrieben!</b><br>Alle Gebäude gerettet – und er hat Beute
-      zurückgelassen: +${GK.formatMoneyHTML(res.loot)}</span>`, 7000);
+    GK.notify(`<span class="notify-icon">${ic('kraken')}</span><span><b>${GK.t('Kraken vertrieben!')}</b><br>${GK.t('Alle Gebäude gerettet – und er hat Beute zurückgelassen: +{amount}', { amount: GK.formatMoneyHTML(res.loot) })}</span>`, 7000);
   }
 
   function onEscape(res) {
@@ -260,10 +288,10 @@ window.GK = window.GK || {};
     GK.sound.play('lose');
     GK.fx.shake('small');
     if (res.total) {
-      const list = res.stolen.map(x => `${x.n}× ${building(x.id).icon} ${building(x.id).name}`).join(', ');
-      GK.notify(`<span class="notify-icon">${ic('kraken')}</span><span><b>Der Kraken ist abgetaucht …</b><br>und hat ${list} in die Tiefe gezogen.</span>`, 8000);
+      const list = res.stolen.map(x => `${x.n}× ${building(x.id).icon} ${buildingName(x.id)}`).join(', ');
+      GK.notify(`<span class="notify-icon">${ic('kraken')}</span><span><b>${GK.t('Der Kraken ist abgetaucht …')}</b><br>${GK.t('und hat {list} in die Tiefe gezogen.', { list })}</span>`, 8000);
     } else {
-      GK.notify(`<span class="notify-icon">${ic('kraken')}</span><span><b>Der Kraken ist abgetaucht.</b><br>Zum Glück hat er nichts erwischt.</span>`);
+      GK.notify(`<span class="notify-icon">${ic('kraken')}</span><span><b>${GK.t('Der Kraken ist abgetaucht.')}</b><br>${GK.t('Zum Glück hat er nichts erwischt.')}</span>`);
     }
     GK.clicker.render();
   }

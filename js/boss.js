@@ -4,6 +4,46 @@
 // Der Kampf selbst wird nicht gespeichert: Neuladen beendet ihn ohne Verlust (es gibt keinen Einsatz).
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Riesenkrabbe': 'Giant Crab',
+  'Hai-Kapitän': 'Shark Captain',
+  'Geisterpirat': 'Ghost Pirate',
+  'Seeschlange': 'Sea Serpent',
+  'Riesenkalmar': 'Giant Squid',
+  'Skelett-Admiral': 'Skeleton Admiral',
+  'Weißer Wal': 'White Whale',
+  'Sturmgeist': 'Storm Spirit',
+  'Meerhexe': 'Sea Witch',
+  'Kraken-König': 'Kraken King',
+  'Seedrache': 'Sea Dragon',
+  '{name} besiegt!': '{name} defeated!',
+  '🏆 Trophäe: Klickkraft jetzt dauerhaft ×{mult} · +{money}': '🏆 Trophy: click power now permanently ×{mult} · +{money}',
+  '⚔️ {n} {ding} besiegt! Der nächste ist entkommen.': '⚔️ {n} {ding} defeated! The next one got away.',
+  'Boss': 'boss',
+  'Bosse': 'bosses',
+  '💨 Der {name} ist entkommen – stärker werden und nochmal versuchen!': '💨 The {name} got away – get stronger and try again!',
+  'Stufe {n}: {name}': 'Level {n}: {name}',
+  'Großer Boss': 'Big Boss',
+  'Lebenspunkte: {hp} · dein Tipp: {tap} · Kanonen: {cannon} pro Sek.': 'Health: {hp} · your tap: {tap} · cannons: {cannon} per sec.',
+  'Belohnung: {amount}': 'Reward: {amount}',
+  'Trophäe (+5 % Klickkraft für immer)': 'Trophy (+5 % click power forever)',
+  'Kampf beginnen': 'Start fight',
+  'Höchste Stufe': 'Highest level',
+  'Trophäen': 'Trophies',
+  'Klickkraft ×{mult}': 'click power ×{mult}',
+  'Stufe {level}': 'Level {level}',
+  'Kampf beenden': 'End fight',
+  '{hp} von {max}': '{hp} of {max}',
+  'Besiegt: {won} · Beute: {loot} · Kanonen: {cannon} pro Sek.': 'Defeated: {won} · Loot: {loot} · Cannons: {cannon} per sec.',
+  '⚔️ Kampf beendet: {n} {ding} besiegt.': '⚔️ Fight ended: {n} {ding} defeated.',
+  'Kampf beendet.': 'Fight ended.',
+  'Boss angreifen': 'Attack boss',
+});
+
 (function () {
   // Eigenes Symbol (js/icons.js); in den Tests ohne Browser gibt es keins
   const ic = name => (GK.icon ? GK.icon(name) : '');
@@ -127,7 +167,7 @@ window.GK = window.GK || {};
     if (isBig(level)) {
       GK.sound.play('jackpot');
       if (GK.fx) GK.fx.confetti(120);
-      GK.notify(`<span class="notify-icon">${GK.icon ? ic('swords') : monster(level).icon}</span><span><b>${monster(level).name} besiegt!</b><br>🏆 Trophäe: Klickkraft jetzt dauerhaft ×${GK.formatDecimal(clickMult(), 0, 2)} · +${GK.formatMoneyHTML(money)}</span>`);
+      GK.notify(`<span class="notify-icon">${GK.icon ? ic('swords') : monster(level).icon}</span><span><b>${GK.t('{name} besiegt!', { name: GK.t(monster(level).name) })}</b><br>${GK.t('🏆 Trophäe: Klickkraft jetzt dauerhaft ×{mult} · +{money}', { mult: GK.formatDecimal(clickMult(), 0, 2), money: GK.formatMoneyHTML(money) })}</span>`);
     } else {
       GK.sound.play('winBig');
     }
@@ -156,8 +196,8 @@ window.GK = window.GK || {};
       const r = stop();
       GK.sound.play(r.won ? 'collect' : 'lose');
       GK.toast(r.won
-        ? `⚔️ ${r.won} ${r.won === 1 ? 'Boss' : 'Bosse'} besiegt! Der nächste ist entkommen.`
-        : `💨 Der ${monster(r.level).name} ist entkommen – stärker werden und nochmal versuchen!`);
+        ? GK.t('⚔️ {n} {ding} besiegt! Der nächste ist entkommen.', { n: r.won, ding: GK.t(r.won === 1 ? 'Boss' : 'Bosse') })
+        : GK.t('💨 Der {name} ist entkommen – stärker werden und nochmal versuchen!', { name: GK.t(monster(r.level).name) }));
       return r;
     }
     return null;
@@ -176,19 +216,18 @@ window.GK = window.GK || {};
     return `<div class="boss-idle">
       <div class="boss-preview">${m.icon}</div>
       <div>
-        <div class="boss-title">Stufe ${GK.formatNumber(level)}: ${m.name}${isBig(level) ? ' <span class="boss-big">Großer Boss</span>' : ''}</div>
-        <div class="muted small">Lebenspunkte: ${GK.formatNumber(hp(level))} · dein Tipp: ${GK.formatNumber(tapDamage())}
-          · Kanonen: ${GK.formatNumber(cannonDps())} pro Sek.</div>
-        <div class="muted small">Belohnung: ${GK.formatMoneyHTML(reward(level))}${isBig(level) ? ` + ${ic('trophy')} Trophäe (+5 % Klickkraft für immer)` : ''}</div>
+        <div class="boss-title">${GK.t('Stufe {n}: {name}', { n: GK.formatNumber(level), name: GK.t(m.name) })}${isBig(level) ? ` <span class="boss-big">${GK.t('Großer Boss')}</span>` : ''}</div>
+        <div class="muted small">${GK.t('Lebenspunkte: {hp} · dein Tipp: {tap} · Kanonen: {cannon} pro Sek.', { hp: GK.formatNumber(hp(level)), tap: GK.formatNumber(tapDamage()), cannon: GK.formatNumber(cannonDps()) })}</div>
+        <div class="muted small">${GK.t('Belohnung: {amount}', { amount: GK.formatMoneyHTML(reward(level)) })}${isBig(level) ? ` + ${ic('trophy')} ${GK.t('Trophäe (+5 % Klickkraft für immer)')}` : ''}</div>
       </div>
-      <button type="button" class="btn btn-primary btn-big boss-start">${ic('swords')}Kampf beginnen</button>
+      <button type="button" class="btn btn-primary btn-big boss-start">${ic('swords')}${GK.t('Kampf beginnen')}</button>
     </div>
     <dl class="stats-list compact boss-stats">
-      <dt>Höchste Stufe</dt><dd>${GK.formatNumber(best())}</dd>
-      <dt>${ic('trophy')}Trophäen</dt><dd>${GK.formatNumber(trophies())} · Klickkraft ×${GK.formatDecimal(clickMult(), 0, 2)}</dd>
+      <dt>${GK.t('Höchste Stufe')}</dt><dd>${GK.formatNumber(best())}</dd>
+      <dt>${ic('trophy')}${GK.t('Trophäen')}</dt><dd>${GK.formatNumber(trophies())} · ${GK.t('Klickkraft ×{mult}', { mult: GK.formatDecimal(clickMult(), 0, 2) })}</dd>
     </dl>
     ${GK.figure ? `<div class="rank-rewards">${GK.figure.bossParts().map(x => `<span class="rank-reward ${best() >= x.level ? 'done' : ''}" title="${x.slot}">
-      ${best() >= x.level ? ic('check') : ic('lock')} ${x.name} <span class="muted">· Stufe ${x.level}</span></span>`).join('')}</div>` : ''}`;
+      ${best() >= x.level ? ic('check') : ic('lock')} ${GK.t(x.name)} <span class="muted">· ${GK.t('Stufe {level}', { level: x.level })}</span></span>`).join('')}</div>` : ''}`;
   }
 
   function fightHtml() {
@@ -196,10 +235,10 @@ window.GK = window.GK || {};
       <div class="boss-head"><span class="boss-name"></span><span class="boss-timer"></span></div>
       <div class="boss-hpbar"><div></div></div>
       <div class="boss-hptext muted small"></div>
-      <button type="button" class="boss-target" aria-label="Boss angreifen"><span class="boss-icon"></span></button>
+      <button type="button" class="boss-target" aria-label="${GK.t('Boss angreifen')}"><span class="boss-icon"></span></button>
       <div class="boss-timebar"><div></div></div>
       <div class="boss-info muted small"></div>
-      <button type="button" class="btn btn-small boss-stop">${ic('flag')}Kampf beenden</button>
+      <button type="button" class="btn btn-small boss-stop">${ic('flag')}${GK.t('Kampf beenden')}</button>
     </div>`;
   }
 
@@ -225,7 +264,7 @@ window.GK = window.GK || {};
         if (start()) render(true);
       } else if (e.target.closest('.boss-stop') && fight) {
         const r = stop();
-        GK.toast(r.won ? `⚔️ Kampf beendet: ${r.won} ${r.won === 1 ? 'Boss' : 'Bosse'} besiegt.` : 'Kampf beendet.');
+        GK.toast(r.won ? GK.t('⚔️ Kampf beendet: {n} {ding} besiegt.', { n: r.won, ding: GK.t(r.won === 1 ? 'Boss' : 'Bosse') }) : GK.t('Kampf beendet.'));
         render(true);
       }
     });
@@ -248,14 +287,14 @@ window.GK = window.GK || {};
       lastIdle = '';
     }
     const m = monster(fight.level);
-    GK.setHTML(box.querySelector('.boss-name'), `Stufe ${GK.formatNumber(fight.level)}: ${m.name}${isBig(fight.level) ? ' <span class="boss-big">Großer Boss</span>' : ''}`);
+    GK.setHTML(box.querySelector('.boss-name'), `${GK.t('Stufe {n}: {name}', { n: GK.formatNumber(fight.level), name: GK.t(m.name) })}${isBig(fight.level) ? ` <span class="boss-big">${GK.t('Großer Boss')}</span>` : ''}`);
     GK.setText(box.querySelector('.boss-icon'), m.icon);
     const left = Math.max(0, (fight.end - now()) / 1000);
     GK.setHTML(box.querySelector('.boss-timer'), `${ic('hourglass')} ${Math.ceil(left)} s`);
     box.querySelector('.boss-hpbar > div').style.transform = `scaleX(${Math.max(0, fight.hp / fight.max).toFixed(4)})`;
     box.querySelector('.boss-timebar > div').style.transform = `scaleX(${(left / FIGHT_SECONDS).toFixed(3)})`;
-    GK.setHTML(box.querySelector('.boss-hptext'), `${ic('heart')} ${GK.formatNumber(Math.max(0, Math.ceil(fight.hp)))} von ${GK.formatNumber(fight.max)}`);
-    GK.setHTML(box.querySelector('.boss-info'), `Besiegt: ${fight.won} · Beute: ${GK.formatMoneyHTML(fight.earned)} · Kanonen: ${GK.formatNumber(fight.dps)} pro Sek.`);
+    GK.setHTML(box.querySelector('.boss-hptext'), `${ic('heart')} ${GK.t('{hp} von {max}', { hp: GK.formatNumber(Math.max(0, Math.ceil(fight.hp))), max: GK.formatNumber(fight.max) })}`);
+    GK.setHTML(box.querySelector('.boss-info'), GK.t('Besiegt: {won} · Beute: {loot} · Kanonen: {cannon} pro Sek.', { won: fight.won, loot: GK.formatMoneyHTML(fight.earned), cannon: GK.formatNumber(fight.dps) }));
     // Kanonenschuss sichtbar machen
     if (fight.cannonShot && fight.cannonShot !== lastShot) {
       lastShot = fight.cannonShot;

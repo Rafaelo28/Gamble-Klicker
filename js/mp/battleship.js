@@ -4,6 +4,37 @@
 // Der Gastgeber schickt jedem nur die eigenen Schiffe und die schon versenkten des Gegners.
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Seeschlacht': 'Battleship',
+  'Schiffe versenken – zu zweit online oder gegen den Computer.': 'Sink ships – two players online or vs. the computer.',
+  '<p class="muted"><b>So geht\'s:</b> Jeder versteckt fünf Schiffe in seinem Meer. Dann wird abwechselnd\n      geschossen – wer trifft, darf gleich nochmal. Wer zuerst die ganze gegnerische Flotte versenkt, gewinnt.</p>':
+    '<p class="muted"><b>How it works:</b> Each hides five ships in their sea. Then you fire in turns –\n      whoever hits goes again. Whoever sinks the entire enemy fleet first wins.</p>',
+  'Flaggschiff': 'Flagship', 'Fregatte': 'Frigate', 'Brigg': 'Brig', 'Schoner': 'Schooner', 'Beiboot': 'Dinghy',
+  'Neu verteilen': 'Shuffle',
+  'Bereit': 'Ready',
+  ' (du)': ' (you)',
+  'bereit': 'ready',
+  'stellt auf …': 'placing …',
+  'Meer von {name}': "{name}'s sea",
+  'Deine Flotte': 'Your fleet',
+  'Dein Meer': 'Your sea',
+  'Alle feindlichen Schiffe versenkt – du gewinnst!': 'All enemy ships sunk – you win!',
+  '{name} gewinnt die Seeschlacht.': '{name} wins the battle.',
+  'Die Flotten werden aufgestellt …': 'The fleets are being placed …',
+  'Bereit! Warte auf {name} …': 'Ready! Waiting for {name} …',
+  'Stelle deine Flotte auf: Schiff antippen = auswählen, nochmal antippen = drehen, freies Feld antippen = dorthin fahren.': 'Place your fleet: tap a ship = select, tap again = rotate, tap a free cell = move there.',
+  'Versenkt: {ship}! Du darfst nochmal.': 'Sunk: {ship}! You go again.',
+  'Treffer! Du darfst nochmal.': 'Hit! You go again.',
+  'Feuer frei! Tippe auf ein Feld im gegnerischen Meer.': 'Fire at will! Tap a cell in the enemy sea.',
+  '{name} hat getroffen{sunk} …': '{name} scored a hit{sunk} …',
+  ' und dein {ship} versenkt': ' and sank your {ship}',
+  '{name} zielt …': '{name} is aiming …',
+});
+
 (function () {
   // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
@@ -310,7 +341,7 @@ window.GK = window.GK || {};
   }
 
   function fleetHtml(p) {
-    return `<div class="bs-fleet">${FLEET.map((f, i) => `<span class="bs-mini ${p.sunk[i] ? 'gone' : ''}" title="${f.name}">${'<i></i>'.repeat(f.len)}</span>`).join('')}</div>`;
+    return `<div class="bs-fleet">${FLEET.map((f, i) => `<span class="bs-mini ${p.sunk[i] ? 'gone' : ''}" title="${GK.t(f.name)}">${'<i></i>'.repeat(f.len)}</span>`).join('')}</div>`;
   }
 
   let current = null;
@@ -368,8 +399,8 @@ window.GK = window.GK || {};
           </div>
           <div class="bs-hint"></div>
           <div class="game-actions bs-actions">
-            <button type="button" class="btn bs-shuffle">${ic('shuffle')}Neu verteilen</button>
-            <button type="button" class="btn btn-primary bs-ready">${ic('check')}Bereit</button>
+            <button type="button" class="btn bs-shuffle">${ic('shuffle')}${GK.t('Neu verteilen')}</button>
+            <button type="button" class="btn btn-primary bs-ready">${ic('check')}${GK.t('Bereit')}</button>
           </div>
           <div class="bs-log muted small"></div>
         </div>`;
@@ -417,15 +448,15 @@ window.GK = window.GK || {};
     wrap.classList.toggle('my-turn', myTurn);
     setHtml(container.querySelector('.bs-players'), v.players.map((p, i) => `
       <div class="pool-player ${v.turn === i && v.phase === 'battle' ? 'active' : ''}">
-        <div class="pool-name">${GK.cosmetics.nameTag(p)}${i === ui.mySeat ? ' (du)' : ''}</div>
-        ${placing ? `<div class="pool-group">${p.ready ? `${ic('check')} bereit` : `${ic('hourglass')} stellt auf …`}</div>` : fleetHtml(p)}
+        <div class="pool-name">${GK.cosmetics.nameTag(p)}${i === ui.mySeat ? GK.t(' (du)') : ''}</div>
+        ${placing ? `<div class="pool-group">${p.ready ? `${ic('check')} ${GK.t('bereit')}` : `${ic('hourglass')} ${GK.t('stellt auf …')}`}</div>` : fleetHtml(p)}
       </div>`).join('<span class="pool-vs">vs</span>'));
     const last = v.lastShot;
     const isNew = last && container._lastNo !== null && last.no !== container._lastNo;
     const freshEnemy = isNew && last.by === seat ? last.y * N + last.x : -1;
     const freshOwn = isNew && last.by !== seat ? last.y * N + last.x : -1;
-    setHtml(container.querySelector('.bs-enemy .bs-title'), `${ic('target')} Meer von ${esc(foe.name)}`);
-    setHtml(container.querySelector('.bs-own .bs-title'), `${ic('anchor')} ${placing ? 'Deine Flotte' : 'Dein Meer'}`);
+    setHtml(container.querySelector('.bs-enemy .bs-title'), `${ic('target')} ${GK.t('Meer von {name}', { name: esc(foe.name) })}`);
+    setHtml(container.querySelector('.bs-own .bs-title'), `${ic('anchor')} ${placing ? GK.t('Deine Flotte') : GK.t('Dein Meer')}`);
     paint(container.querySelector('.bs-enemy .bs-grid'), foe.grid, foe.ships, { target: myTurn, fresh: freshEnemy });
     paint(container.querySelector('.bs-own .bs-grid'), me.grid, ui.mySeat >= 0 ? myShips : [], { selected: placing && !me.ready ? container._sel : -1, fresh: freshOwn });
     if (isNew) {
@@ -439,19 +470,19 @@ window.GK = window.GK || {};
     let hint;
     if (v.phase === 'finished') {
       const winner = v.players.findIndex(p => p.place === 1);
-      hint = winner === ui.mySeat ? `${ic('trophy')} Alle feindlichen Schiffe versenkt – du gewinnst!` : `${ic('flag')} ${esc(v.players[winner].name)} gewinnt die Seeschlacht.`;
+      hint = winner === ui.mySeat ? `${ic('trophy')} ${GK.t('Alle feindlichen Schiffe versenkt – du gewinnst!')}` : `${ic('flag')} ${GK.t('{name} gewinnt die Seeschlacht.', { name: esc(v.players[winner].name) })}`;
     } else if (placing) {
-      if (ui.mySeat < 0) hint = 'Die Flotten werden aufgestellt …';
-      else if (me.ready) hint = `${ic('check')} Bereit! Warte auf ${esc(foe.name)} …`;
-      else hint = 'Stelle deine Flotte auf: Schiff antippen = auswählen, nochmal antippen = drehen, freies Feld antippen = dorthin fahren.';
+      if (ui.mySeat < 0) hint = GK.t('Die Flotten werden aufgestellt …');
+      else if (me.ready) hint = `${ic('check')} ${GK.t('Bereit! Warte auf {name} …', { name: esc(foe.name) })}`;
+      else hint = GK.t('Stelle deine Flotte auf: Schiff antippen = auswählen, nochmal antippen = drehen, freies Feld antippen = dorthin fahren.');
     } else if (myTurn) {
       hint = last && last.by === seat && last.hit
-        ? (last.sunk ? `${ic('burst')} Versenkt: ${last.sunk}! Du darfst nochmal.` : `${ic('flame')} Treffer! Du darfst nochmal.`)
-        : `${ic('target')} Feuer frei! Tippe auf ein Feld im gegnerischen Meer.`;
+        ? (last.sunk ? `${ic('burst')} ${GK.t('Versenkt: {ship}! Du darfst nochmal.', { ship: GK.t(last.sunk) })}` : `${ic('flame')} ${GK.t('Treffer! Du darfst nochmal.')}`)
+        : `${ic('target')} ${GK.t('Feuer frei! Tippe auf ein Feld im gegnerischen Meer.')}`;
     } else {
       hint = last && last.by !== seat && last.hit
-        ? `${ic('flame')} ${esc(foe.name)} hat getroffen${last.sunk ? ` und dein ${last.sunk} versenkt` : ''} …`
-        : `${esc(foe.name)} zielt …`;
+        ? `${ic('flame')} ${GK.t('{name} hat getroffen{sunk} …', { name: esc(foe.name), sunk: last.sunk ? GK.t(' und dein {ship} versenkt', { ship: GK.t(last.sunk) }) : '' })}`
+        : GK.t('{name} zielt …', { name: esc(foe.name) });
     }
     setHtml(container.querySelector('.bs-hint'), hint);
     setHtml(container.querySelector('.bs-log'), v.log.slice(0, 3).map(l => `<div>${esc(l)}</div>`).join(''));
@@ -462,8 +493,8 @@ window.GK = window.GK || {};
     name: 'Seeschlacht',
     icon: '⚓',
     desc: 'Schiffe versenken – zu zweit online oder gegen den Computer.',
-    intro: `<p class="muted"><b>So geht's:</b> Jeder versteckt fünf Schiffe in seinem Meer. Dann wird abwechselnd
-      geschossen – wer trifft, darf gleich nochmal. Wer zuerst die ganze gegnerische Flotte versenkt, gewinnt.</p>`,
+    intro: GK.t(`<p class="muted"><b>So geht's:</b> Jeder versteckt fünf Schiffe in seinem Meer. Dann wird abwechselnd
+      geschossen – wer trifft, darf gleich nochmal. Wer zuerst die ganze gegnerische Flotte versenkt, gewinnt.</p>`),
     minPlayers: 2,
     maxPlayers: 2,
     bots: true,

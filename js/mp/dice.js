@@ -5,6 +5,41 @@
 // Läuft gegen Computer und online mit Freunden (siehe room.js).
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Lügenwürfel': "Liar's Dice",
+  'Bluffen, bieten, „Lüge!“ rufen – gegen Computer oder online mit Freunden.': 'Bluff, bid, call "Lie!" – vs. computer or online with friends.',
+  '<p class="muted"><b>So geht\'s:</b> Jeder würfelt verdeckt. Reihum wird geboten, wie viele Würfel einer\n      Augenzahl <i>insgesamt</i> auf dem Tisch liegen – <b>Einsen zählen als Joker</b> immer mit. Wer dran ist,\n      bietet höher (mehr Würfel oder gleich viele mit höherer Augenzahl) oder ruft <b>„Lüge!“</b>. Dann wird\n      aufgedeckt: Wer falsch lag, verliert einen Würfel. Der Letzte mit Würfeln gewinnt.</p>':
+    '<p class="muted"><b>How it works:</b> Everyone rolls hidden. Taking turns, you bid how many dice of a\n      face value are <i>in total</i> on the table – <b>ones always count as jokers</b>. Whoever is up\n      bids higher (more dice, or the same number with a higher face) or calls <b>"Lie!"</b>. Then all are\n      revealed: whoever was wrong loses a die. The last one with dice wins.</p>',
+  'Würfel pro Spieler': 'Dice per player',
+  '{n} Würfel': '{n} dice',
+  ' (schnell)': ' (quick)',
+  'Spielverlauf': 'Game log',
+  '{n}. Platz': 'Place {n}',
+  'bietet': 'bids',
+  'Gebot:': 'Bid:',
+  'Es liegen {n} (Einsen zählen mit) –': 'There are {n} (ones count too) –',
+  'das Gebot stimmt!': 'the bid holds!',
+  'gelogen!': 'a lie!',
+  '{name} verliert einen Würfel.': '{name} loses a die.',
+  'gewinnt!': 'wins!',
+  'Spiel vorbei': 'Game over',
+  'Gebot von {name}:': 'Bid by {name}:',
+  'Insgesamt liegen {n} Würfel auf dem Tisch.': 'There are {n} dice on the table in total.',
+  '{name} eröffnet die Runde …': '{name} opens the round …',
+  'Deine Würfel': 'Your dice',
+  'Du schaust zu.': 'You are watching.',
+  '{name} ist dran …': '{name} is up …',
+  'weniger': 'fewer',
+  'mehr': 'more',
+  'Bieten: {q} × {f}': 'Bid: {q} × {f}',
+  'Lüge!': 'Lie!',
+  'Du musst höher bieten: mehr Würfel oder gleich viele mit höherer Augenzahl.': 'You must bid higher: more dice, or the same number with a higher face.',
+});
+
 (function () {
   // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
@@ -224,7 +259,7 @@ window.GK = window.GK || {};
           <div class="dice-center"></div>
           <div class="dice-mine"></div>
           <div class="dice-controls"></div>
-          <details class="poker-log dice-log"><summary>Spielverlauf</summary><ul></ul></details>
+          <details class="poker-log dice-log"><summary>${GK.t('Spielverlauf')}</summary><ul></ul></details>
         </div>`;
       container._lastStep = null;
     }
@@ -244,8 +279,8 @@ window.GK = window.GK || {};
         : p.out ? '' : `<span class="dice-cup">🥤</span><span class="dice-count">${p.count}</span>`;
       return `<div class="${cls.join(' ')}">
         <div class="dice-name">${GK.cosmetics.nameTag(p)}</div>
-        <div class="dice-row">${p.out ? `${ic('skull')} ${p.place}. Platz` : dice}</div>
-        <div class="dice-status">${p.lastBid ? `bietet <b>${p.lastBid.replace(/(\d+)× (\d)/, '$1 × $2')}</b>` : '&nbsp;'}</div>
+        <div class="dice-row">${p.out ? `${ic('skull')} ${GK.t('{n}. Platz', { n: p.place })}` : dice}</div>
+        <div class="dice-status">${p.lastBid ? `${GK.t('bietet')} <b>${p.lastBid.replace(/(\d+)× (\d)/, '$1 × $2')}</b>` : '&nbsp;'}</div>
       </div>`;
     }).join(''));
 
@@ -253,33 +288,33 @@ window.GK = window.GK || {};
     let center;
     if (reveal) {
       const ok = reveal.actual >= reveal.bid.q;
-      center = `<div class="dice-bid">Gebot: <b>${reveal.bid.q} ×</b> ${dieHtml(reveal.bid.f)}</div>
-        <div class="dice-result ${ok ? 'ok' : 'lie'}">Es liegen <b>${reveal.actual}</b> (Einsen zählen mit) –
-          ${ok ? 'das Gebot stimmt!' : 'gelogen!'} <b>${esc(v.players[reveal.loser].name)}</b> verliert einen Würfel.</div>`;
+      center = `<div class="dice-bid">${GK.t('Gebot:')} <b>${reveal.bid.q} ×</b> ${dieHtml(reveal.bid.f)}</div>
+        <div class="dice-result ${ok ? 'ok' : 'lie'}">${GK.t('Es liegen {n} (Einsen zählen mit) –', { n: `<b>${reveal.actual}</b>` })}
+          ${ok ? GK.t('das Gebot stimmt!') : GK.t('gelogen!')} ${GK.t('{name} verliert einen Würfel.', { name: `<b>${esc(v.players[reveal.loser].name)}</b>` })}</div>`;
     } else if (v.phase === 'finished') {
       const winner = v.players.find(p => p.place === 1);
-      center = `<div class="dice-bid">${ic('trophy')} ${winner ? `${GK.cosmetics.nameTag(winner)} gewinnt!` : 'Spiel vorbei'}</div>`;
+      center = `<div class="dice-bid">${ic('trophy')} ${winner ? `${GK.cosmetics.nameTag(winner)} ${GK.t('gewinnt!')}` : GK.t('Spiel vorbei')}</div>`;
     } else if (v.bid) {
-      center = `<div class="dice-bid">Gebot von ${esc(v.players[v.bid.seat].name)}: <b>${v.bid.q} ×</b> ${dieHtml(v.bid.f)}</div>
-        <div class="muted small">Insgesamt liegen ${totalDice(v)} Würfel auf dem Tisch.</div>`;
+      center = `<div class="dice-bid">${GK.t('Gebot von {name}:', { name: esc(v.players[v.bid.seat].name) })} <b>${v.bid.q} ×</b> ${dieHtml(v.bid.f)}</div>
+        <div class="muted small">${GK.t('Insgesamt liegen {n} Würfel auf dem Tisch.', { n: totalDice(v) })}</div>`;
     } else {
-      center = `<div class="dice-bid">${esc(v.players[v.turn].name)} eröffnet die Runde …</div>
-        <div class="muted small">Insgesamt liegen ${totalDice(v)} Würfel auf dem Tisch.</div>`;
+      center = `<div class="dice-bid">${GK.t('{name} eröffnet die Runde …', { name: esc(v.players[v.turn].name) })}</div>
+        <div class="muted small">${GK.t('Insgesamt liegen {n} Würfel auf dem Tisch.', { n: totalDice(v) })}</div>`;
     }
     setHtml(container.querySelector('.dice-center'), center);
 
     // Eigene Würfel
     setHtml(container.querySelector('.dice-mine'), me
-      ? `<div class="dice-name">${me.avatar} Deine Würfel ${me.out ? `– ${ic('skull')} ${me.place}. Platz` : ''}</div>
+      ? `<div class="dice-name">${me.avatar} ${GK.t('Deine Würfel')} ${me.out ? `– ${ic('skull')} ${GK.t('{n}. Platz', { n: me.place })}` : ''}</div>
          <div class="dice-row big">${me.dice.map(d => dieHtml(d, reveal && (d === matchFace || d === 1) ? 'match' : '')).join('')}</div>`
-      : '<div class="muted">Du schaust zu.</div>');
+      : `<div class="muted">${GK.t('Du schaust zu.')}</div>`);
 
     // Bedienung
     const myTurn = me && v.phase === 'bidding' && v.turn === ui.mySeat;
     const controls = container.querySelector('.dice-controls');
     if (!myTurn) {
       setHtml(controls, v.phase === 'bidding' && !me?.out
-        ? `<div class="muted">${esc(v.players[v.turn].name)} ist dran …</div>` : '');
+        ? `<div class="muted">${GK.t('{name} ist dran …', { name: esc(v.players[v.turn].name) })}</div>` : '');
     } else {
       const key = `${v.round}:${v.bids.length}`;
       if (choice.key !== key) {
@@ -294,17 +329,17 @@ window.GK = window.GK || {};
       const html = `
         <div class="dice-pick">
           <div class="dice-qty">
-            <button class="btn dice-minus" aria-label="weniger">−</button>
+            <button class="btn dice-minus" aria-label="${GK.t('weniger')}">−</button>
             <span class="dice-q">${choice.q} ×</span>
-            <button class="btn dice-plus" aria-label="mehr">+</button>
+            <button class="btn dice-plus" aria-label="${GK.t('mehr')}">+</button>
           </div>
           <div class="dice-faces">${FACES.map(f => `<button class="dice-face ${f === choice.f ? 'active' : ''}" data-f="${f}">${dieHtml(f)}</button>`).join('')}</div>
         </div>
         <div class="game-actions">
-          <button class="btn btn-primary btn-big dice-bid-btn" ${valid ? '' : 'disabled'}>${ic('dice')}Bieten: ${choice.q} × ${choice.f}</button>
-          ${v.bid ? `<button class="btn btn-danger btn-big dice-lie">${ic('shout')}Lüge!</button>` : ''}
+          <button class="btn btn-primary btn-big dice-bid-btn" ${valid ? '' : 'disabled'}>${ic('dice')}${GK.t('Bieten: {q} × {f}', { q: choice.q, f: choice.f })}</button>
+          ${v.bid ? `<button class="btn btn-danger btn-big dice-lie">${ic('shout')}${GK.t('Lüge!')}</button>` : ''}
         </div>
-        ${valid ? '' : '<div class="small loss">Du musst höher bieten: mehr Würfel oder gleich viele mit höherer Augenzahl.</div>'}`;
+        ${valid ? '' : `<div class="small loss">${GK.t('Du musst höher bieten: mehr Würfel oder gleich viele mit höherer Augenzahl.')}</div>`}`;
       if (setHtml(controls, html)) {
         controls.querySelector('.dice-minus').addEventListener('click', () => { choice.q = Math.max(1, choice.q - 1); controls._html = null; draw(container, v, ui); });
         controls.querySelector('.dice-plus').addEventListener('click', () => { choice.q = Math.min(totalDice(v), choice.q + 1); controls._html = null; draw(container, v, ui); });
@@ -349,17 +384,17 @@ window.GK = window.GK || {};
     name: 'Lügenwürfel',
     icon: '🎲',
     desc: 'Bluffen, bieten, „Lüge!“ rufen – gegen Computer oder online mit Freunden.',
-    intro: `<p class="muted"><b>So geht's:</b> Jeder würfelt verdeckt. Reihum wird geboten, wie viele Würfel einer
+    intro: GK.t(`<p class="muted"><b>So geht's:</b> Jeder würfelt verdeckt. Reihum wird geboten, wie viele Würfel einer
       Augenzahl <i>insgesamt</i> auf dem Tisch liegen – <b>Einsen zählen als Joker</b> immer mit. Wer dran ist,
       bietet höher (mehr Würfel oder gleich viele mit höherer Augenzahl) oder ruft <b>„Lüge!“</b>. Dann wird
-      aufgedeckt: Wer falsch lag, verliert einen Würfel. Der Letzte mit Würfeln gewinnt.</p>`,
+      aufgedeckt: Wer falsch lag, verliert einen Würfel. Der Letzte mit Würfeln gewinnt.</p>`),
     minPlayers: 2,
     maxPlayers: 6,
     bots: true,
     settings: {
       defaults: { dice: 5 },
-      html: s => `<div class="bet-label">Würfel pro Spieler</div>
-        <div class="room-opts">${[3, 5].map(n => `<button type="button" class="btn btn-small room-opt ${s.dice === n ? 'active' : ''}" data-dice="${n}">${n} Würfel${n === 3 ? ' (schnell)' : ''}</button>`).join('')}</div>`,
+      html: s => `<div class="bet-label">${GK.t('Würfel pro Spieler')}</div>
+        <div class="room-opts">${[3, 5].map(n => `<button type="button" class="btn btn-small room-opt ${s.dice === n ? 'active' : ''}" data-dice="${n}">${GK.t('{n} Würfel', { n })}${n === 3 ? GK.t(' (schnell)') : ''}</button>`).join('')}</div>`,
       bind: (el, changed) => el.querySelectorAll('.room-opt').forEach(btn => btn.addEventListener('click', () => {
         el.querySelectorAll('.room-opt').forEach(b => b.classList.toggle('active', b === btn));
         GK.sound.play('chip');
@@ -367,7 +402,7 @@ window.GK = window.GK || {};
       })),
       read: el => ({ dice: Number((el.querySelector('.room-opt.active') || {}).dataset?.dice) || 5 }),
     },
-    settingsText: s => `${s.dice} Würfel`,
+    settingsText: s => GK.t('{n} Würfel', { n: s.dice }),
     create,
     actor: st => (st.phase === 'bidding' ? st.turn : -1),
     act,

@@ -9,6 +9,60 @@
 // Gekauft wird über GK.casino.bet, verkauft über payout + record (eine Runde = ein Verkauf).
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Hafenbörse': 'Harbour Exchange',
+  'Kauf Anteile an Hafen-Firmen – Kurse in Echtzeit, Nachrichten und Pleiten.': 'Buy shares in harbour companies – live prices, news and bankruptcies.',
+  // Firmennamen (Datentabelle bleibt Deutsch, Anzeige wird übersetzt)
+  'Rum-Brennerei Tortuga': 'Tortuga Rum Distillery',
+  'Papageien-Post': 'Parrot Post',
+  'Gewürzhandel Ostindien': 'East India Spice Trade',
+  'Kanonengießerei': 'Cannon Foundry',
+  'Schatzkarten AG': 'Treasure Maps Inc.',
+  'Kraken-Versicherung': 'Kraken Insurance',
+  'Ankerwerft': 'Anchor Shipyard',
+  'Kompass & Co.': 'Compass & Co.',
+  'Bananen-Import': 'Banana Import',
+  'Haifisch-Reederei': 'Shark Shipping',
+  'Insel-Immobilien': 'Island Real Estate',
+  'Muschelbank': 'Shell Bank',
+  'Hafenschänke': 'Harbour Tavern',
+  'Meerjungfrauen-Reisen': 'Mermaid Travel',
+  // Kursprofile
+  'ruhig': 'calm',
+  'mittel': 'medium',
+  'wild': 'wild',
+  // Meldungen und Anzeigen
+  'Nicht genug Dublonen für diesen Betrag.': 'Not enough Doubloons for this amount.',
+  '{emoji} Für {money} gekauft.': '{emoji} Bought for {money}.',
+  '{emoji} {name}: verkauft ({pct})': '{emoji} {name}: sold ({pct})',
+  'Verkauft für {money} – Gewinn {gain}!': 'Sold for {money} – win {gain}!',
+  'Verkauft für {money} – Verlust {loss}.': 'Sold for {money} – loss {loss}.',
+  '{emoji} {name}: pleite': '{emoji} {name}: bankrupt',
+  '<b>{name} ist pleite!</b><br>Deine Anteile sind nichts mehr wert.':
+    '<b>{name} is bankrupt!</b><br>Your shares are worthless now.',
+  '{n} Anteile': '{n} shares',
+  '{pct} in 12 Min.': '{pct} in 12 min',
+  'Kaufkurs <b>{buy}</b> · Verkaufskurs <b>{sell}</b>': 'Buy price <b>{buy}</b> · Sell price <b>{sell}</b>',
+  'Dein Anteil: <b>{shares}</b> Anteile · Wert <b>{value}</b> · {change}':
+    'Your holding: <b>{shares}</b> shares · value <b>{value}</b> · {change}',
+  'Du hast noch keine Anteile an dieser Firma.': 'You have no shares in this company yet.',
+  'Depotwert <b>{value}</b> · eingesetzt {cost} · {change}': 'Portfolio value <b>{value}</b> · invested {cost} · {change}',
+  'Dein Depot ist leer.': 'Your portfolio is empty.',
+  'Noch keine Nachrichten.': 'No news yet.',
+  'Kaufen': 'Buy',
+  'Hälfte verkaufen': 'Sell half',
+  'Alles verkaufen': 'Sell all',
+  'Hafen-Nachrichten': 'Harbour news',
+  'Betrag': 'Amount',
+  'Kauf Anteile an Hafen-Firmen und verkauf sie wieder. Die Kurse ändern sich jede Sekunde und laufen weiter, auch wenn du nicht hinschaust. Geht eine Firma pleite, sind ihre Anteile nichts mehr wert.':
+    'Buy shares in harbour companies and sell them again. Prices change every second and keep running even when you are not looking. If a company goes bankrupt, its shares are worthless.',
+  'Kauf billig, verkauf teuer – so der Plan.': 'Buy low, sell high – that is the plan.',
+});
+
 (function () {
   // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
@@ -173,9 +227,9 @@ window.GK = window.GK || {};
     const h = s.holdings[stock.uid];
     if (h) {
       delete s.holdings[stock.uid];
-      GK.casino.record('stocks', h.cost, 0, `${stock.emoji} ${stock.name}: pleite`);
+      GK.casino.record('stocks', h.cost, 0, GK.t('{emoji} {name}: pleite', { emoji: stock.emoji, name: GK.t(stock.name) }));
       GK.unlockAchievement('stockCrash');
-      if (GK.notify) GK.notify(`<span class="notify-icon">${ic('burst')}</span><span><b>${stock.name} ist pleite!</b><br>Deine Anteile sind nichts mehr wert.</span>`);
+      if (GK.notify) GK.notify(`<span class="notify-icon">${ic('burst')}</span><span>${GK.t('<b>{name} ist pleite!</b><br>Deine Anteile sind nichts mehr wert.', { name: GK.t(stock.name) })}</span>`);
       GK.sound.play('boom');
     }
     s.news.unshift({ t: now, text: `💥 ${stock.emoji} ${stock.name} ist pleite!`, pct: -100 });
@@ -255,7 +309,7 @@ window.GK = window.GK || {};
     const amount = s.bet;
     if (!GK.casino.bet(amount)) {
       GK.sound.play('denied');
-      showMessage('Nicht genug Dublonen für diesen Betrag.', 'loss');
+      showMessage(GK.t('Nicht genug Dublonen für diesen Betrag.'), 'loss');
       return;
     }
     // since: erster Kauf (weitere Käufe verlängern die Anfangsphase nicht)
@@ -264,7 +318,7 @@ window.GK = window.GK || {};
     h.cost += amount;
     GK.save();
     GK.sound.play('chip');
-    showMessage(`${stock.emoji} Für ${GK.formatMoneyHTML(amount)} gekauft.`, '');
+    showMessage(GK.t('{emoji} Für {money} gekauft.', { emoji: stock.emoji, money: GK.formatMoneyHTML(amount) }), '');
     render(true);
   }
 
@@ -284,14 +338,14 @@ window.GK = window.GK || {};
     }
     GK.casino.payout(proceeds);
     const diff = proceeds - cost;
-    GK.casino.record('stocks', cost, proceeds, `${stock.emoji} ${stock.name}: verkauft (${percent(proceeds / cost - 1)})`);
+    GK.casino.record('stocks', cost, proceeds, GK.t('{emoji} {name}: verkauft ({pct})', { emoji: stock.emoji, name: GK.t(stock.name), pct: percent(proceeds / cost - 1) }));
     if (diff > 0) {
       GK.unlockAchievement('stockWin');
       GK.sound.play('winSmall');
-      showMessage(`Verkauft für ${GK.formatMoneyHTML(proceeds)} – Gewinn ${GK.formatMoneyHTML(diff)}!`, 'win');
+      showMessage(GK.t('Verkauft für {money} – Gewinn {gain}!', { money: GK.formatMoneyHTML(proceeds), gain: GK.formatMoneyHTML(diff) }), 'win');
     } else {
       GK.sound.play('lose');
-      showMessage(`Verkauft für ${GK.formatMoneyHTML(proceeds)} – Verlust ${GK.formatMoneyHTML(-diff)}.`, 'loss');
+      showMessage(GK.t('Verkauft für {money} – Verlust {loss}.', { money: GK.formatMoneyHTML(proceeds), loss: GK.formatMoneyHTML(-diff) }), 'loss');
     }
     render(true);
   }
@@ -364,7 +418,7 @@ window.GK = window.GK || {};
     els.list.innerHTML = s.stocks.map(stock => `
       <button type="button" class="stock-card" data-uid="${stock.uid}">
         <span class="stock-emoji">${stock.emoji}</span>
-        <span class="stock-name">${stock.name}<small class="stock-own"></small></span>
+        <span class="stock-name">${GK.t(stock.name)}<small class="stock-own"></small></span>
         <span class="stock-price"></span>
         <span class="stock-change"></span>
         <canvas class="stock-spark" width="240" height="60"></canvas>
@@ -392,7 +446,7 @@ window.GK = window.GK || {};
       const chEl = card.querySelector('.stock-change');
       GK.setText(chEl, percent(ch));
       chEl.className = 'stock-change ' + (ch >= 0 ? 'up' : 'down');
-      GK.setHTML(card.querySelector('.stock-own'), h ? `${ic('briefcase')} ${shares(h.shares)} Anteile` : '');
+      GK.setHTML(card.querySelector('.stock-own'), h ? `${ic('briefcase')} ${GK.t('{n} Anteile', { n: shares(h.shares) })}` : '');
       drawChart(card.querySelector('.stock-spark'), stock, 0);
       if (h) {
         total += holdingValue(s, stock);
@@ -402,20 +456,22 @@ window.GK = window.GK || {};
 
     // Ausgewählte Firma
     const h = s.holdings[sel.uid];
-    GK.setHTML(els.title, `${sel.emoji} ${sel.name} <span class="muted small">(${PROFILES[sel.profile].name})</span>`);
+    GK.setHTML(els.title, `${sel.emoji} ${GK.t(sel.name)} <span class="muted small">(${GK.t(PROFILES[sel.profile].name)})</span>`);
     GK.setText(els.price, price(sel.price));
     const ch = change(sel);
-    GK.setText(els.change, `${percent(ch)} in 12 Min.`);
+    GK.setText(els.change, GK.t('{pct} in 12 Min.', { pct: percent(ch) }));
     els.change.className = 'stock-big-change ' + (ch >= 0 ? 'up' : 'down');
-    GK.setHTML(els.quotes, `Kaufkurs <b>${price(sel.price * BUY)}</b> · Verkaufskurs <b>${price(sel.price * SELL)}</b>`);
+    GK.setHTML(els.quotes, GK.t('Kaufkurs <b>{buy}</b> · Verkaufskurs <b>{sell}</b>', { buy: price(sel.price * BUY), sell: price(sel.price * SELL) }));
     drawChart(els.chart, sel, h ? h.cost / h.shares / SELL : 0);
     if (h) {
       const value = holdingValue(s, sel);
       const diff = value - h.cost;
-      GK.setHTML(els.holding, `Dein Anteil: <b>${shares(h.shares)}</b> Anteile · Wert <b>${GK.formatMoneyHTML(value)}</b> ·
-        <span class="${diff >= 0 ? 'win' : 'loss'}">${diff >= 0 ? '+' : '−'}${GK.formatMoneyHTML(Math.abs(diff))} (${percent(value / h.cost - 1)})</span>`);
+      GK.setHTML(els.holding, GK.t('Dein Anteil: <b>{shares}</b> Anteile · Wert <b>{value}</b> · {change}', {
+        shares: shares(h.shares), value: GK.formatMoneyHTML(value),
+        change: `<span class="${diff >= 0 ? 'win' : 'loss'}">${diff >= 0 ? '+' : '−'}${GK.formatMoneyHTML(Math.abs(diff))} (${percent(value / h.cost - 1)})</span>`,
+      }));
     } else {
-      GK.setHTML(els.holding, '<span class="muted">Du hast noch keine Anteile an dieser Firma.</span>');
+      GK.setHTML(els.holding, `<span class="muted">${GK.t('Du hast noch keine Anteile an dieser Firma.')}</span>`);
     }
     els.sellAll.disabled = !h;
     els.sellHalf.disabled = !h;
@@ -423,12 +479,14 @@ window.GK = window.GK || {};
     // Depot und Nachrichten
     const diff = total - totalCost;
     GK.setHTML(els.depot, totalCost
-      ? `Depotwert <b>${GK.formatMoneyHTML(total)}</b> · eingesetzt ${GK.formatMoneyHTML(totalCost)} ·
-        <span class="${diff >= 0 ? 'win' : 'loss'}">${diff >= 0 ? '+' : '−'}${GK.formatMoneyHTML(Math.abs(diff))}</span>`
-      : '<span class="muted">Dein Depot ist leer.</span>');
+      ? GK.t('Depotwert <b>{value}</b> · eingesetzt {cost} · {change}', {
+          value: GK.formatMoneyHTML(total), cost: GK.formatMoneyHTML(totalCost),
+          change: `<span class="${diff >= 0 ? 'win' : 'loss'}">${diff >= 0 ? '+' : '−'}${GK.formatMoneyHTML(Math.abs(diff))}</span>`,
+        })
+      : `<span class="muted">${GK.t('Dein Depot ist leer.')}</span>`);
     GK.setHTML(els.news, s.news.length
       ? s.news.map(n => `<li class="${n.pct > 0 ? 'up' : n.pct < 0 ? 'down' : ''}"><span>${n.text}</span>${n.pct ? `<b>${n.pct > 0 ? '+' : '−'}${Math.abs(n.pct)} %</b>` : ''}</li>`).join('')
-      : '<li class="muted">Noch keine Nachrichten.</li>');
+      : `<li class="muted">${GK.t('Noch keine Nachrichten.')}</li>`);
   }
 
   function init(body) {
@@ -447,15 +505,14 @@ window.GK = window.GK || {};
           <div class="game-message">&nbsp;</div>
           <div class="stock-bet"></div>
           <div class="game-actions">
-            <button class="btn btn-primary btn-big stock-buy">${ic('trend')}Kaufen</button>
-            <button class="btn stock-sell-half">Hälfte verkaufen</button>
-            <button class="btn stock-sell-all">${ic('bag')}Alles verkaufen</button>
+            <button class="btn btn-primary btn-big stock-buy">${ic('trend')}${GK.t('Kaufen')}</button>
+            <button class="btn stock-sell-half">${GK.t('Hälfte verkaufen')}</button>
+            <button class="btn stock-sell-all">${ic('bag')}${GK.t('Alles verkaufen')}</button>
           </div>
           <div class="stock-depot"></div>
-          <h4 class="stock-news-title">${ic('news')} Hafen-Nachrichten</h4>
+          <h4 class="stock-news-title">${ic('news')} ${GK.t('Hafen-Nachrichten')}</h4>
           <ul class="stock-news"></ul>
-          <p class="muted small">Kauf Anteile an Hafen-Firmen und verkauf sie wieder. Die Kurse ändern sich jede Sekunde und
-            laufen weiter, auch wenn du nicht hinschaust. Geht eine Firma pleite, sind ihre Anteile nichts mehr wert.</p>
+          <p class="muted small">${GK.t('Kauf Anteile an Hafen-Firmen und verkauf sie wieder. Die Kurse ändern sich jede Sekunde und laufen weiter, auch wenn du nicht hinschaust. Geht eine Firma pleite, sind ihre Anteile nichts mehr wert.')}</p>
         </div>
       </div>`;
     els = Object.assign(els, {
@@ -475,7 +532,7 @@ window.GK = window.GK || {};
     });
     betControl = GK.casino.createBetControl(body.querySelector('.stock-bet'), {
       min: MIN_BET,
-      label: 'Betrag',
+      label: GK.t('Betrag'),
       get: () => state().bet,
       set: v => { state().bet = v; },
     });
@@ -496,7 +553,7 @@ window.GK = window.GK || {};
   function refresh() {
     tick();
     if (els.list) els.list._sig = '';
-    showMessage('Kauf billig, verkauf teuer – so der Plan.', '');
+    showMessage(GK.t('Kauf billig, verkauf teuer – so der Plan.'), '');
     render(true);
   }
 

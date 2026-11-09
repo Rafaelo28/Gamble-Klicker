@@ -1,6 +1,12 @@
 // Zahlen- und Zeitformatierung (deutsche Schreibweise).
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({ 'T.': 'd', 'Std.': 'h', 'Min.': 'min', 'Sek.': 's' });
+
 (function () {
   // Deutsche Zahlwörter (lange Skala), vom größten zum kleinsten
   const BIG_UNITS = [
@@ -161,10 +167,10 @@ window.GK = window.GK || {};
     const m = Math.floor((seconds % 3600) / 60);
     const s = seconds % 60;
     const parts = [];
-    if (d) parts.push(d + ' T.');
-    if (h) parts.push(h + ' Std.');
-    if (m) parts.push(m + ' Min.');
-    if (!d && !h) parts.push(s + ' Sek.');
+    if (d) parts.push(d + ' ' + GK.t('T.'));
+    if (h) parts.push(h + ' ' + GK.t('Std.'));
+    if (m) parts.push(m + ' ' + GK.t('Min.'));
+    if (!d && !h) parts.push(s + ' ' + GK.t('Sek.'));
     return parts.join(' ');
   };
 })();

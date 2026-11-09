@@ -14,7 +14,15 @@ Online über GitHub Pages aus `main`: https://rafaelo28.github.io/Gamble-Klicker
 
 ## Regeln
 
-- **Alles auf Deutsch**: Texte im Spiel, Code-Kommentare, Commits, Pull Requests.
+- **Deutsch ist die Quelle**: Code-Kommentare, Commits und Pull Requests bleiben auf Deutsch.
+  Spieltexte stehen deutsch im Code und in `index.html`; Englisch kommt als Übersetzung dazu.
+- **Sprache (Deutsch/Englisch)**: Neue, dem Spieler angezeigte Texte in `GK.t('deutscher text')`
+  einpacken (Platzhalter: `GK.t('… {x} …', { x })`) und die englische Fassung in der jeweiligen Datei
+  per `GK.i18n.add({ 'deutscher text': 'english text' })` anmelden – Schlüssel ist der deutsche Quelltext.
+  Feste Texte in `index.html` übersetzt `js/i18n-ui.js` (Fließtext mit Auszeichnung über `data-i18n`).
+  Nie Schlüssel, IDs, Netzwerk-Nachrichten oder Spielstand-Felder übersetzen. Deutsch ist Standard;
+  fremdsprachige Browser starten auf Englisch (`js/state.js`, `createDefaultSettings`). Zahlen bleiben
+  in deutscher Schreibweise.
 - **Versionsnummer erhöhen**: Bei jeder Änderung an JS- oder CSS-Dateien in `index.html`
   alle `?v=…` auf einen neuen Wert setzen (Format `JJJJMMTTNN`), sonst mischen Browser alte
   und neue Dateien aus dem Zwischenspeicher.

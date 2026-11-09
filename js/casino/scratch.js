@@ -3,6 +3,51 @@
 // Auszahlungsquote: 99 %, fast jedes zweite Los gewinnt (ca. 44,5 %).
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  // Rubbellos-Namen (Datentabelle bleibt deutsch, nur die Anzeige wird übersetzt)
+  'Glückskleeblatt': 'Lucky Clover',
+  'Goldene Truhe': 'Golden Chest',
+  'Piratenschatz': "Pirate's Treasure",
+  'Kronjuwelen': 'Crown Jewels',
+  'Diamanten-Los': 'Diamond Ticket',
+  'Schatzflotte': 'Treasure Fleet',
+  'Kaiserschatz': 'Imperial Treasure',
+  // Meldungen und Beschriftungen
+  'Dieses Los braucht eine höhere VIP-Karte.': 'This ticket needs a higher VIP card.',
+  'Nicht genug Dublonen für dieses Los.': 'Not enough Doubloons for this ticket.',
+  'Für {count} Lose brauchst du {amount} Dublonen.': 'You need {amount} Doubloons for {count} tickets.',
+  'Gewinn': 'win',
+  'Gewinne': 'wins',
+  'ausgezahlt': 'paid out',
+  'Niete': 'No win',
+  '🎉 Plus von {amt} mit {count} Losen!': '🎉 Up by {amt} on {count} tickets!',
+  'Genau den Einsatz zurück.': 'Exactly your bet back.',
+  '{count} Lose: {wins} {word}, insgesamt {amt} weniger.': '{count} tickets: {wins} {word}, {amt} down overall.',
+  '{count} Lose': '{count} tickets',
+  '🎉 3× {n} – du gewinnst {amt}!': '🎉 3× {n} – you win {amt}!',
+  '3× Lospreis – du bekommst deinen Einsatz zurück.': '3× ticket price – you get your bet back.',
+  'Leider eine Niete. Nächstes Mal!': 'No win this time. Better luck next time!',
+  'RUBBELN': 'SCRATCH',
+  'Neues Los kaufen': 'Buy new ticket',
+  'Los kaufen': 'Buy ticket',
+  'Stopp ({n})': 'Stop ({n})',
+  'Auto-Rubbeln ×{n}': 'Auto-scratch ×{n}',
+  '{count} Lose sofort ({price})': '{count} tickets now ({price})',
+  'Hauptgewinn': 'Jackpot',
+  'Wähle ein Los und kaufe es,<br>dann geht’s ans Rubbeln! ✨': 'Pick a ticket and buy it,<br>then start scratching! ✨',
+  'Rubble die Felder frei – mit dem Finger oder der Maus!': 'Scratch the fields free – with your finger or mouse!',
+  '3 gleiche Beträge = du gewinnst diesen Betrag!': '3 matching amounts = you win that amount!',
+  'Alles aufdecken': 'Reveal all',
+  'Hauptgewinn: 1.000× Lospreis': 'Jackpot: 1,000× ticket price',
+  // Spiel-Name und -Beschreibung (für die Lobby)
+  'Rubbellose': 'Scratch Cards',
+  'Rubbeln, drei gleiche Beträge finden – bis zu ×1.000!': 'Scratch, find three matching amounts – up to ×1,000!',
+});
+
 (function () {
   // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
@@ -98,12 +143,12 @@ window.GK = window.GK || {};
     if (s.current && !s.current.settled) return false;
     const t = ticket(s.ticketId);
     if (t.price > GK.casino.maxBet()) {
-      GK.toast(`Dieses Los braucht eine höhere VIP-Karte.`);
+      GK.toast(GK.t('Dieses Los braucht eine höhere VIP-Karte.'));
       return false;
     }
     if (!GK.casino.bet(t.price)) {
       GK.sound.play('denied');
-      GK.toast('Nicht genug Dublonen für dieses Los.');
+      GK.toast(GK.t('Nicht genug Dublonen für dieses Los.'));
       return false;
     }
     const winMult = drawPrize();
@@ -205,12 +250,12 @@ window.GK = window.GK || {};
     if (autoLeft > 0 || (s.current && !s.current.settled)) return;
     const t = ticket(s.ticketId);
     if (t.price > GK.casino.maxBet()) {
-      GK.toast('Dieses Los braucht eine höhere VIP-Karte.');
+      GK.toast(GK.t('Dieses Los braucht eine höhere VIP-Karte.'));
       return;
     }
     if (!GK.canAfford(t.price * BATCH_COUNT)) {
       GK.sound.play('denied');
-      GK.toast(`Für ${BATCH_COUNT} Lose brauchst du ${GK.formatNumber(t.price * BATCH_COUNT)} Dublonen.`);
+      GK.toast(GK.t('Für {count} Lose brauchst du {amount} Dublonen.', { count: BATCH_COUNT, amount: GK.formatNumber(t.price * BATCH_COUNT) }));
       return;
     }
     const results = [];
@@ -238,19 +283,19 @@ window.GK = window.GK || {};
     const wins = results.filter(c => c.winMult > 0).length;
     els.batch.hidden = false;
     els.batch.innerHTML = `
-      <div class="sb-head">${ic('bolt')} ${results.length} × ${t.icon} ${t.name}: <b>${wins}</b> ${wins === 1 ? 'Gewinn' : 'Gewinne'} ·
-        ausgezahlt ${GK.formatMoneyHTML(paid)}</div>
+      <div class="sb-head">${ic('bolt')} ${results.length} × ${t.icon} ${GK.t(t.name)}: <b>${wins}</b> ${GK.t(wins === 1 ? 'Gewinn' : 'Gewinne')} ·
+        ${GK.t('ausgezahlt')} ${GK.formatMoneyHTML(paid)}</div>
       <div class="sb-grid">${results.map((c, i) => `
         <div class="sb-ticket ${c.winMult > 1 ? 'win' : c.winMult === 1 ? 'even' : 'lose'}" style="animation-delay: ${i * 0.12}s">
           <span class="sb-icon">${c.winMult ? prizeIcon(c.winMult) : '✖'}</span>
-          <span class="sb-amount">${c.winMult ? GK.formatNumber(c.winMult * t.price) : 'Niete'}</span>
+          <span class="sb-amount">${c.winMult ? GK.formatNumber(c.winMult * t.price) : GK.t('Niete')}</span>
         </div>`).join('')}</div>`;
     results.forEach((c, i) => setTimeout(() => GK.sound.play(c.winMult ? 'coin' : 'flip'), i * 120));
     const diff = paid - cost;
-    showMessage(diff > 0 ? `🎉 Plus von ${GK.formatMoneyHTML(diff)} mit ${results.length} Losen!`
-      : diff === 0 ? 'Genau den Einsatz zurück.' : `${results.length} Lose: ${wins} ${wins === 1 ? 'Gewinn' : 'Gewinne'}, insgesamt ${GK.formatMoneyHTML(-diff)} weniger.`,
+    showMessage(diff > 0 ? GK.t('🎉 Plus von {amt} mit {count} Losen!', { amt: GK.formatMoneyHTML(diff), count: results.length })
+      : diff === 0 ? GK.t('Genau den Einsatz zurück.') : GK.t('{count} Lose: {wins} {word}, insgesamt {amt} weniger.', { count: results.length, wins, word: GK.t(wins === 1 ? 'Gewinn' : 'Gewinne'), amt: GK.formatMoneyHTML(-diff) }),
     diff > 0 ? 'win' : diff < 0 ? 'loss' : '');
-    setTimeout(() => GK.fx.celebrate(paid, cost, { el: els.batch, subtitle: `${results.length} Lose` }), results.length * 120);
+    setTimeout(() => GK.fx.celebrate(paid, cost, { el: els.batch, subtitle: GK.t('{count} Lose', { count: results.length }) }), results.length * 120);
   }
 
   // ---------- Aufdecken & abrechnen ----------
@@ -285,13 +330,13 @@ window.GK = window.GK || {};
     const payout = c.winMult * t.price;
     els.fields.forEach((f, i) => f.classList.toggle('win', c.winMult > 0 && c.fields[i] === c.winMult));
     if (payout > t.price) {
-      showMessage(`🎉 3× ${GK.formatNumber(payout)} – du gewinnst ${GK.formatMoneyHTML(payout)}!`, 'win');
+      showMessage(GK.t('🎉 3× {n} – du gewinnst {amt}!', { n: GK.formatNumber(payout), amt: GK.formatMoneyHTML(payout) }), 'win');
     } else if (payout === t.price) {
-      showMessage('3× Lospreis – du bekommst deinen Einsatz zurück.', '');
+      showMessage(GK.t('3× Lospreis – du bekommst deinen Einsatz zurück.'), '');
     } else {
-      showMessage('Leider eine Niete. Nächstes Mal!', 'loss');
+      showMessage(GK.t('Leider eine Niete. Nächstes Mal!'), 'loss');
     }
-    if (animated) GK.fx.celebrate(payout, t.price, { el: els.grid, subtitle: `${t.icon} ${t.name}` });
+    if (animated) GK.fx.celebrate(payout, t.price, { el: els.grid, subtitle: `${t.icon} ${GK.t(t.name)}` });
     updateButtons();
   }
 
@@ -334,7 +379,7 @@ window.GK = window.GK || {};
     const ch = h / 3;
     for (let r = 0; r < 3; r++) {
       for (let c = 0; c < 3; c++) {
-        ctx.fillText('RUBBELN', c * cw + cw / 2, r * ch + ch / 2);
+        ctx.fillText(GK.t('RUBBELN'), c * cw + cw / 2, r * ch + ch / 2);
       }
     }
     ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
@@ -442,13 +487,13 @@ window.GK = window.GK || {};
     els.buy.hidden = open || auto;
     els.revealBtn.hidden = !open || auto;
     els.buy.disabled = locked || !GK.canAfford(t.price);
-    GK.setHTML(els.buy, `${ic('ticket')}${s.current ? 'Neues Los kaufen' : 'Los kaufen'} (${GK.formatNumber(t.price)})`);
-    GK.setHTML(els.auto, auto ? `${ic('stop')}Stopp (${autoLeft})` : `${ic('repeat')}Auto-Rubbeln ×${AUTO_COUNT}`);
+    GK.setHTML(els.buy, `${ic('ticket')}${GK.t(s.current ? 'Neues Los kaufen' : 'Los kaufen')} (${GK.formatNumber(t.price)})`);
+    GK.setHTML(els.auto, auto ? `${ic('stop')}${GK.t('Stopp ({n})', { n: autoLeft })}` : `${ic('repeat')}${GK.t('Auto-Rubbeln ×{n}', { n: AUTO_COUNT })}`);
     els.auto.classList.toggle('active', auto);
     els.auto.disabled = !auto && (locked || (!open && !GK.canAfford(t.price)));
     els.batchBtn.hidden = open || auto;
     els.batchBtn.disabled = locked || !GK.canAfford(t.price * BATCH_COUNT);
-    GK.setHTML(els.batchBtn, `${ic('bolt')}${BATCH_COUNT} Lose sofort (${GK.formatNumber(t.price * BATCH_COUNT)})`);
+    GK.setHTML(els.batchBtn, `${ic('bolt')}${GK.t('{count} Lose sofort ({price})', { count: BATCH_COUNT, price: GK.formatNumber(t.price * BATCH_COUNT) })}`);
     els.picker.querySelectorAll('.ticket-choice').forEach(btn => {
       const tt = ticket(btn.dataset.ticket);
       btn.classList.toggle('active', tt.id === s.ticketId);
@@ -465,11 +510,11 @@ window.GK = window.GK || {};
     revealedFields = new Array(9).fill(false);
     const t = ticket(c ? c.ticketId : s.ticketId);
     els.ticket.className = `scratch-ticket theme-${t.theme}`;
-    els.ticketName.innerHTML = `${t.icon} ${t.name}`;
-    els.ticketPrice.innerHTML = `${GK.formatMoneyHTML(t.price)} · Hauptgewinn ${GK.formatMoneyHTML(t.price * 1000)}`;
+    els.ticketName.innerHTML = `${t.icon} ${GK.t(t.name)}`;
+    els.ticketPrice.innerHTML = `${GK.formatMoneyHTML(t.price)} · ${GK.t('Hauptgewinn')} ${GK.formatMoneyHTML(t.price * 1000)}`;
 
     if (!c) {
-      els.grid.innerHTML = '<div class="scratch-empty">Wähle ein Los und kaufe es,<br>dann geht’s ans Rubbeln! ✨</div>';
+      els.grid.innerHTML = `<div class="scratch-empty">${GK.t('Wähle ein Los und kaufe es,<br>dann geht’s ans Rubbeln! ✨')}</div>`;
       showMessage('&nbsp;', '');
       updateButtons();
       return;
@@ -487,7 +532,7 @@ window.GK = window.GK || {};
       showResult(false);
       return;
     }
-    showMessage('Rubble die Felder frei – mit dem Finger oder der Maus!', '');
+    showMessage(GK.t('Rubble die Felder frei – mit dem Finger oder der Maus!'), '');
     setupCanvas();
     els.canvas.addEventListener('pointerdown', onPointerDown);
     els.canvas.addEventListener('pointermove', onPointerMove);
@@ -507,20 +552,20 @@ window.GK = window.GK || {};
               <div class="scratch-name"></div>
               <div class="scratch-price"></div>
             </div>
-            <div class="scratch-rules">3 gleiche Beträge = du gewinnst diesen Betrag!</div>
+            <div class="scratch-rules">${GK.t('3 gleiche Beträge = du gewinnst diesen Betrag!')}</div>
             <div class="scratch-grid"></div>
           </div>
           <div class="game-message">&nbsp;</div>
           <div class="game-actions">
             <button class="btn btn-primary btn-big scratch-buy"></button>
-            <button class="btn scratch-reveal">${ic('sparkle')}Alles aufdecken</button>
+            <button class="btn scratch-reveal">${ic('sparkle')}${GK.t('Alles aufdecken')}</button>
           </div>
           <div class="game-actions scratch-auto-actions">
             <button class="btn scratch-auto"></button>
             <button class="btn scratch-batch-btn"></button>
           </div>
           <div class="scratch-batch" hidden></div>
-          <p class="muted small">Hauptgewinn: 1.000× Lospreis ${ic('crown')}</p>
+          <p class="muted small">${GK.t('Hauptgewinn: 1.000× Lospreis')} ${ic('crown')}</p>
         </div>
       </div>`;
     els = {
@@ -541,7 +586,7 @@ window.GK = window.GK || {};
     els.picker.innerHTML = TICKETS.map(t => `
       <button class="ticket-choice theme-${t.theme}" data-ticket="${t.id}">
         <span class="ticket-icon">${t.icon}</span>
-        <span class="ticket-name">${t.name}</span>
+        <span class="ticket-name">${GK.t(t.name)}</span>
         <span class="ticket-cost">${GK.formatMoneyHTML(t.price)}</span>
         <span class="ticket-lock"></span>
       </button>`).join('');
