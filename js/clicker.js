@@ -604,7 +604,8 @@ window.GK = window.GK || {};
           if (els.fill.style.width !== width) els.fill.style.width = width;
           const cls = `building-progress-fill rarity-${nextTier.rarity}`;
           if (els.fill.className !== cls) els.fill.className = cls;
-          GK.setText(els.next, `Noch ${nextTier.owned - count} bis zum ${nextTier.name}-Upgrade (×${nextTier.value})`);
+          // Wie beim „Alle Stufen“-Text über GK.setHTML – sonst stimmt dessen Zwischenspeicher nicht mehr
+          GK.setHTML(els.next, `Noch ${nextTier.owned - count} bis zum ${nextTier.name}-Upgrade (×${nextTier.value})`);
         } else {
           GK.setHTML(els.next, `${ic('sparkle')} Alle Stufen freigeschaltet`);
         }
