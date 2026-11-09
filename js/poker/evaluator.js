@@ -88,6 +88,6 @@ GK.poker = GK.poker || {};
 
   GK.poker.evaluate = evaluate;
   GK.poker.CATEGORY_NAMES = CATEGORY_NAMES;
-  // Für den Erfolg „Vierling!“: Vierling oder besser
-  GK.poker.quadsOrBetter = name => ['Vierling', 'Straight Flush', 'Royal Flush'].includes(name);
+  // Für den Erfolg „Full House!“ (früher „Vierling!“, war kaum zu schaffen): Full House oder besser
+  GK.poker.fullHouseOrBetter = name => ['Full House', 'Vierling', 'Straight Flush', 'Royal Flush'].includes(name);
 })();

@@ -16,6 +16,11 @@ const cases = [
   ['7H 7D KC 4S 2H 3D 9C', 'Ein Paar'], ['7H 8D KC 4S 2H 3D TC', 'Höchste Karte'],
 ];
 cases.forEach(([c, name]) => assert(ev(c).name === name, `${c} -> ${ev(c).name} (erwartet ${name})`));
+// Erfolg „Full House!“: ab Full House aufwärts, darunter nicht
+cases.forEach(([c, name]) => {
+  const want = ['Royal Flush', 'Straight Flush', 'Vierling', 'Full House'].includes(name);
+  assert(GK.poker.fullHouseOrBetter(ev(c).name) === want, `Erfolg Full House bei ${name}: ${!want ? 'nicht ' : ''}erwartet`);
+});
 assert(ev('AH AD KC 4S 2H').score > ev('AH AD QC JS TH').score, 'Kicker');
 assert(ev('6H 5D 4C 3S 2H').score > ev('5H 4D 3C 2S AH').score, '6-high straight > wheel');
 assert(ev('KH KD QC QS 3H').score > ev('KH KD 2C 2S AH').score, 'two pair compare');

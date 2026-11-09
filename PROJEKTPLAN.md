@@ -576,7 +576,13 @@ Wunsch: Ein Freund hat 7 Mio. Schatzkarten und das Spiel „durchgespielt“ –
 - Neuladen während der Runde: vor bzw. knapp um die Zielzeit gibt es den Einsatz zurück, deutlich danach zählt die
   Runde als verloren (sie war nicht mehr zu gewinnen). Nach dem Stopp ist „Start“ kurz gesperrt, damit der Klick des
   Stopp-Tipps auf dem iPad nicht gleich die nächste Runde startet.
-- Bester Stopp und Zahl der Volltreffer werden angezeigt, Erfolg „Auf die Hundertstel“.
+- Bester Stopp und Zahl der Volltreffer werden angezeigt, Erfolg „Gutes Timing“ (höchstens 3 Hundertstel daneben;
+  anfangs „Auf die Hundertstel“ für einen genauen Treffer – war zu schwer).
+
+### Pflege: Zwei Erfolge leichter ✅
+- Poker: „Vierling!“ → **„Full House!“** (Full House oder besser aufgedeckt). Ein Vierling war fast unmöglich.
+- Stoppuhr: „Auf die Hundertstel“ (genau getroffen) → **„Gutes Timing“** (höchstens 3 Hundertstel daneben).
+- Die IDs (`pokerRoyal`, `stopwatchExact`) bleiben gleich: Wer einen der Erfolge schon hat, behält ihn.
 
 ## Entscheidungen
 
