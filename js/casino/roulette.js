@@ -1,6 +1,35 @@
 // Europäisches Roulette (0–36) mit Wett-Tisch und drehendem Kessel.
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Roulette': 'Roulette',
+  'Setze auf Zahlen oder Farben – bis zu ×36.': 'Bet on numbers or colors – up to ×36.',
+  'Chip-Wert': 'Chip value',
+  'Dein Limit sind {n} Dublonen pro Drehung – eine bessere VIP-Karte erhöht es.': 'Your limit is {n} Doubloons per spin – a better VIP card raises it.',
+  'Nicht genug Dublonen für diesen Chip.': 'Not enough Doubloons for this chip.',
+  'Das würde dein Einsatz-Limit pro Drehung überschreiten.': 'That would exceed your bet limit per spin.',
+  'Nicht genug Dublonen, um die letzten Wetten zu wiederholen.': 'Not enough Doubloons to repeat the last bets.',
+  'Setze zuerst Chips auf den Tisch.': 'Place chips on the table first.',
+  'Rien ne va plus – nichts geht mehr!': 'Rien ne va plus – no more bets!',
+  'Grün': 'Green',
+  'Rot': 'Red',
+  'Schwarz': 'Black',
+  'Gerade': 'Even',
+  'Ungerade': 'Odd',
+  '{html} {color} – Gewinn: {n}': '{html} {color} – Win: {n}',
+  '{html} {color} – leider verloren.': '{html} {color} – unfortunately lost.',
+  'Gesetzt: {n}': 'Placed: {n}',
+  'Noch keine Zahlen gefallen.': 'No numbers yet.',
+  'Drehen': 'Spin',
+  'Wiederholen': 'Repeat',
+  'Wetten entfernen': 'Clear bets',
+  'Klicke auf ein Feld, um einen Chip zu setzen. Zahl: ×36 · Dutzend/Kolonne: ×3 · Rot/Schwarz, Gerade/Ungerade, 1–18/19–36: ×2 (jeweils inklusive Einsatz).': 'Click a field to place a chip. Number: ×36 · Dozen/column: ×3 · Red/Black, Even/Odd, 1–18/19–36: ×2 (each including your bet).',
+});
+
 (function () {
   // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
@@ -58,11 +87,11 @@ window.GK = window.GK || {};
   function placeBet(key, amount) {
     if (spinning) return false;
     if (totalBets(state().bets) + amount > GK.casino.maxBet()) {
-      showMessage(`Dein Limit sind ${GK.formatNumber(GK.casino.maxBet())} Dublonen pro Drehung – eine bessere VIP-Karte erhöht es.`, 'loss');
+      showMessage(GK.t('Dein Limit sind {n} Dublonen pro Drehung – eine bessere VIP-Karte erhöht es.', { n: GK.formatNumber(GK.casino.maxBet()) }), 'loss');
       return false;
     }
     if (!GK.casino.bet(amount)) {
-      showMessage('Nicht genug Dublonen für diesen Chip.', 'loss');
+      showMessage(GK.t('Nicht genug Dublonen für diesen Chip.'), 'loss');
       return false;
     }
     const bets = state().bets;
@@ -85,11 +114,11 @@ window.GK = window.GK || {};
   function repeatBets() {
     const last = state().lastBets;
     if (totalBets(state().bets) + totalBets(last) > GK.casino.maxBet()) {
-      showMessage('Das würde dein Einsatz-Limit pro Drehung überschreiten.', 'loss');
+      showMessage(GK.t('Das würde dein Einsatz-Limit pro Drehung überschreiten.'), 'loss');
       return;
     }
     if (!GK.canAfford(totalBets(last))) {
-      showMessage('Nicht genug Dublonen, um die letzten Wetten zu wiederholen.', 'loss');
+      showMessage(GK.t('Nicht genug Dublonen, um die letzten Wetten zu wiederholen.'), 'loss');
       return;
     }
     Object.entries(last).forEach(([key, amount]) => placeBet(key, amount));
@@ -99,7 +128,7 @@ window.GK = window.GK || {};
     const s = state();
     if (spinning) return;
     if (!totalBets(s.bets)) {
-      showMessage('Setze zuerst Chips auf den Tisch.', '');
+      showMessage(GK.t('Setze zuerst Chips auf den Tisch.'), '');
       return;
     }
     const result = GK.rng.int(37);
@@ -115,7 +144,7 @@ window.GK = window.GK || {};
 
     spinning = true;
     updateButtons();
-    showMessage('Rien ne va plus – nichts geht mehr!', '');
+    showMessage(GK.t('Rien ne va plus – nichts geht mehr!'), '');
     drawBets();
     spinWheelTo(result, true);
     GK.sound.play('rouletteSpin', SPIN_TIME / 1000);
@@ -141,14 +170,14 @@ window.GK = window.GK || {};
         if (p.result === 0) GK.unlockAchievement('rouletteZero');
       }
     });
-    const colorName = { green: 'Grün', red: 'Rot', black: 'Schwarz' }[colorOf(p.result)];
+    const colorName = GK.t({ green: 'Grün', red: 'Rot', black: 'Schwarz' }[colorOf(p.result)]);
     GK.casino.record('roulette', p.bet, p.payout, `${p.result} ${colorName}`);
 
     const resultHtml = `<span class="roulette-num ${colorOf(p.result)}">${p.result}</span>`;
     if (p.payout > 0) {
-      showMessage(`${resultHtml} ${colorName} – Gewinn: ${GK.formatMoneyHTML(p.payout)}`, 'win');
+      showMessage(GK.t('{html} {color} – Gewinn: {n}', { html: resultHtml, color: colorName, n: GK.formatMoneyHTML(p.payout) }), 'win');
     } else {
-      showMessage(`${resultHtml} ${colorName} – leider verloren.`, 'loss');
+      showMessage(GK.t('{html} {color} – leider verloren.', { html: resultHtml, color: colorName }), 'loss');
     }
     drawBets(p.result);
     drawResults();
@@ -213,10 +242,10 @@ window.GK = window.GK || {};
       <button class="rb-cell outside" data-bet="d2" style="grid-row: 4; grid-column: 6 / 10">13–24</button>
       <button class="rb-cell outside" data-bet="d3" style="grid-row: 4; grid-column: 10 / 14">25–36</button>
       <button class="rb-cell outside" data-bet="low" style="grid-row: 5; grid-column: 2 / 4">1–18</button>
-      <button class="rb-cell outside" data-bet="even" style="grid-row: 5; grid-column: 4 / 6">Gerade</button>
-      <button class="rb-cell outside red" data-bet="red" style="grid-row: 5; grid-column: 6 / 8">Rot</button>
-      <button class="rb-cell outside black" data-bet="black" style="grid-row: 5; grid-column: 8 / 10">Schwarz</button>
-      <button class="rb-cell outside" data-bet="odd" style="grid-row: 5; grid-column: 10 / 12">Ungerade</button>
+      <button class="rb-cell outside" data-bet="even" style="grid-row: 5; grid-column: 4 / 6">${GK.t('Gerade')}</button>
+      <button class="rb-cell outside red" data-bet="red" style="grid-row: 5; grid-column: 6 / 8">${GK.t('Rot')}</button>
+      <button class="rb-cell outside black" data-bet="black" style="grid-row: 5; grid-column: 8 / 10">${GK.t('Schwarz')}</button>
+      <button class="rb-cell outside" data-bet="odd" style="grid-row: 5; grid-column: 10 / 12">${GK.t('Ungerade')}</button>
       <button class="rb-cell outside" data-bet="high" style="grid-row: 5; grid-column: 12 / 14">19–36</button>`;
     els.board.innerHTML = html;
     els.board.querySelectorAll('.rb-cell').forEach(cell => {
@@ -252,14 +281,14 @@ window.GK = window.GK || {};
       }
       cell.classList.toggle('winner', winner !== undefined && betInfo(key).wins(winner));
     });
-    els.total.innerHTML = 'Gesetzt: ' + GK.formatMoneyHTML(totalBets(bets));
+    els.total.innerHTML = GK.t('Gesetzt: {n}', { n: GK.formatMoneyHTML(totalBets(bets)) });
   }
 
   function drawResults() {
     const results = state().results;
     els.results.innerHTML = results.length
       ? results.map(n => `<span class="roulette-num ${colorOf(n)}">${n}</span>`).join('')
-      : '<span class="muted small">Noch keine Zahlen gefallen.</span>';
+      : `<span class="muted small">${GK.t('Noch keine Zahlen gefallen.')}</span>`;
   }
 
   function showMessage(html, cls) {
@@ -292,11 +321,11 @@ window.GK = window.GK || {};
           <div class="game-message">&nbsp;</div>
           <div class="roulette-chip"></div>
           <div class="game-actions">
-            <button class="btn btn-primary roulette-spin">${ic('roulette')}Drehen</button>
-            <button class="btn roulette-repeat">${ic('repeat')}Wiederholen</button>
-            <button class="btn roulette-clear">${ic('close')}Wetten entfernen</button>
+            <button class="btn btn-primary roulette-spin">${ic('roulette')}${GK.t('Drehen')}</button>
+            <button class="btn roulette-repeat">${ic('repeat')}${GK.t('Wiederholen')}</button>
+            <button class="btn roulette-clear">${ic('close')}${GK.t('Wetten entfernen')}</button>
           </div>
-          <p class="muted small">Klicke auf ein Feld, um einen Chip zu setzen. Zahl: ×36 · Dutzend/Kolonne: ×3 · Rot/Schwarz, Gerade/Ungerade, 1–18/19–36: ×2 (jeweils inklusive Einsatz).</p>
+          <p class="muted small">${GK.t('Klicke auf ein Feld, um einen Chip zu setzen. Zahl: ×36 · Dutzend/Kolonne: ×3 · Rot/Schwarz, Gerade/Ungerade, 1–18/19–36: ×2 (jeweils inklusive Einsatz).')}</p>
         </div>
       </div>`;
     els = {

@@ -6,6 +6,42 @@
 // Der ganze Flug steht beim Start fest und wird gespeichert – Neuladen zahlt trotzdem aus.
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Flugkapitän': 'Flight Captain',
+  'Sammle Multiplikatoren, weich Raketen aus, lande auf dem Träger!': 'Collect multipliers, dodge rockets, land on the carrier!',
+  'Nicht genug Dublonen für diesen Einsatz.': 'Not enough Doubloons for this bet.',
+  'Gemütlich': 'Leisurely',
+  'Normal': 'Normal',
+  'Schnell': 'Fast',
+  'Turbo': 'Turbo',
+  '✈️ Abflug!': '✈️ Takeoff!',
+  '🛬 Gelandet mit ×{mult}': '🛬 Landed with ×{mult}',
+  '🌊 Ins Meer gestürzt (×{mult})': '🌊 Crashed into the sea (×{mult})',
+  '🛬 Sicher gelandet! Gewinn: {money} (×{mult})': '🛬 Landed safely! Win: {money} (×{mult})',
+  'Landung mit ×{mult}': 'Landing with ×{mult}',
+  '🛬 Gelandet – aber ohne Beute.': '🛬 Landed – but with no loot.',
+  '🌊 Knapp vorbei – das Flugzeug ist ins Meer gestürzt. (×{mult} wären es gewesen)':
+    '🌊 So close – the plane crashed into the sea. (it would have been ×{mult})',
+  '🛬 GELANDET! ×{mult}': '🛬 LANDED! ×{mult}',
+  '🌊 ABGESTÜRZT – Träger verfehlt': '🌊 CRASHED – missed the carrier',
+  'Landeanflug …': 'Approaching …',
+  'Höhe': 'Altitude',
+  'Distanz': 'Distance',
+  'Multiplikator': 'Multiplier',
+  'Guthaben': 'Balance',
+  'Fluggeschwindigkeit': 'Flight speed',
+  'Gesamteinsatz': 'Total bet',
+  'Abheben!': 'Take off!',
+  'Wähle Einsatz und Geschwindigkeit – und dann ab in die Luft!': 'Choose bet and speed – then up into the air!',
+  'Noch keine Flüge.': 'No flights yet.',
+  'Dein Flugzeug startet mit ×1. Unterwegs erhöhen +1, +2, +5 und +10 den Multiplikator, ×2 bis ×5 vervielfachen ihn – und geben Auftrieb. ÷2 und Raketen halbieren ihn und lassen das Flugzeug absacken. Landet es am Ende auf dem Flugzeugträger, bekommst du Einsatz × Multiplikator – stürzt es ins Meer, ist der Einsatz weg. Schnellere Flüge sind länger und können mehr bringen.':
+    'Your plane starts at ×1. Along the way +1, +2, +5 and +10 raise the multiplier, ×2 to ×5 multiply it – and give lift. ÷2 and rockets halve it and make the plane sink. If it lands on the aircraft carrier at the end, you get bet × multiplier – if it crashes into the sea, your bet is gone. Faster flights are longer and can pay more.',
+});
+
 (function () {
   // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
@@ -223,14 +259,14 @@ window.GK = window.GK || {};
     if (s.pending || flying) return;
     if (!GK.casino.bet(s.bet)) {
       GK.sound.play('denied');
-      showMessage('Nicht genug Dublonen für diesen Einsatz.', 'loss');
+      showMessage(GK.t('Nicht genug Dublonen für diesen Einsatz.'), 'loss');
       return;
     }
     const f = makeFlight(s.mode);
     const payout = f.landed ? Math.floor(s.bet * f.counter) : 0;
     s.pending = { bet: s.bet, mode: s.mode, events: f.events, counter: f.counter, landed: f.landed, payout };
     GK.save();
-    showMessage('✈️ Abflug!', '');
+    showMessage(GK.t('✈️ Abflug!'), '');
     updateButtons();
     updateMoney();
     GK.sound.play('spinStart');
@@ -253,14 +289,14 @@ window.GK = window.GK || {};
     s.history.unshift(p.landed ? Math.round(p.counter * 100) / 100 : 0);
     s.history.length = Math.min(s.history.length, 14);
     const mult = fmt(p.counter);
-    GK.casino.record('flight', p.bet, p.payout, p.landed ? `🛬 Gelandet mit ×${mult}` : `🌊 Ins Meer gestürzt (×${mult})`);
+    GK.casino.record('flight', p.bet, p.payout, p.landed ? GK.t('🛬 Gelandet mit ×{mult}', { mult }) : GK.t('🌊 Ins Meer gestürzt (×{mult})', { mult }));
     if (p.landed && p.payout > 0) {
-      showMessage(`🛬 Sicher gelandet! Gewinn: ${GK.formatMoneyHTML(p.payout)} (×${mult})`, p.payout >= p.bet ? 'win' : '');
-      if (animated && p.payout >= p.bet) GK.fx.celebrate(p.payout, p.bet, { el: els.canvas, subtitle: `Landung mit ×${mult}` });
+      showMessage(GK.t('🛬 Sicher gelandet! Gewinn: {money} (×{mult})', { money: GK.formatMoneyHTML(p.payout), mult }), p.payout >= p.bet ? 'win' : '');
+      if (animated && p.payout >= p.bet) GK.fx.celebrate(p.payout, p.bet, { el: els.canvas, subtitle: GK.t('Landung mit ×{mult}', { mult }) });
     } else if (p.landed) {
-      showMessage('🛬 Gelandet – aber ohne Beute.', '');
+      showMessage(GK.t('🛬 Gelandet – aber ohne Beute.'), '');
     } else {
-      showMessage(`🌊 Knapp vorbei – das Flugzeug ist ins Meer gestürzt. (×${mult} wären es gewesen)`, 'loss');
+      showMessage(GK.t('🌊 Knapp vorbei – das Flugzeug ist ins Meer gestürzt. (×{mult} wären es gewesen)', { mult }), 'loss');
       if (animated) GK.sound.play('lose');
     }
     drawHistory();
@@ -453,10 +489,10 @@ window.GK = window.GK || {};
     // Ergebnis groß anzeigen
     if (outcomeAt) {
       const k = clamp01((now - outcomeAt) / 250);
-      if (p.landed) drawBanner(`🛬 GELANDET! ×${fmt(p.counter)}`, '#2fa866', k);
-      else drawBanner('🌊 ABGESTÜRZT – Träger verfehlt', '#c62828', k);
+      if (p.landed) drawBanner(GK.t('🛬 GELANDET! ×{mult}', { mult: fmt(p.counter) }), '#2fa866', k);
+      else drawBanner(GK.t('🌊 ABGESTÜRZT – Träger verfehlt'), '#c62828', k);
     } else if (t > end + 0.2) {
-      drawBanner('Landeanflug …', 'rgba(0, 0, 0, 0.45)', 1);
+      drawBanner(GK.t('Landeanflug …'), 'rgba(0, 0, 0, 0.45)', 1);
     }
     updateHud(crashed ? 0 : pos.a - DECK_A, Math.min(t, end + APPROACH) * DIST_METERS, counter);
   }
@@ -815,7 +851,7 @@ window.GK = window.GK || {};
     const h = state().history;
     els.history.innerHTML = h.length
       ? h.map(m => (m > 0 ? `<span class="crash-chip high">×${fmt(m)}</span>` : `<span class="crash-chip low">${ic('close')}</span>`)).join('')
-      : '<span class="muted small">Noch keine Flüge.</span>';
+      : `<span class="muted small">${GK.t('Noch keine Flüge.')}</span>`;
   }
 
   function showMessage(html, cls) {
@@ -843,15 +879,15 @@ window.GK = window.GK || {};
           <canvas class="flight-canvas" width="${W * SCALE}" height="${H * SCALE}"></canvas>
           <div class="flight-hud">
             <div class="fh-stats">
-              <div class="fh-stat"><span class="fh-label">Höhe</span><b class="fh-alt"></b></div>
-              <div class="fh-stat"><span class="fh-label">Distanz</span><b class="fh-dist"></b></div>
-              <div class="fh-stat"><span class="fh-label">Multiplikator</span><b class="fh-mult"></b></div>
+              <div class="fh-stat"><span class="fh-label">${GK.t('Höhe')}</span><b class="fh-alt"></b></div>
+              <div class="fh-stat"><span class="fh-label">${GK.t('Distanz')}</span><b class="fh-dist"></b></div>
+              <div class="fh-stat"><span class="fh-label">${GK.t('Multiplikator')}</span><b class="fh-mult"></b></div>
             </div>
-            <div class="fh-money"><span class="fh-label">Guthaben</span><b class="fh-balance"></b></div>
-            <div class="fh-speeds" role="group" aria-label="Fluggeschwindigkeit">
-              ${Object.entries(MODES).map(([id, m]) => `<button type="button" class="fh-speed flight-mode" data-mode="${id}" title="${m.name}" aria-label="${m.name}"><span class="fh-icon">${ic(m.sym)}</span><span class="fh-name">${m.name}</span></button>`).join('')}
+            <div class="fh-money"><span class="fh-label">${GK.t('Guthaben')}</span><b class="fh-balance"></b></div>
+            <div class="fh-speeds" role="group" aria-label="${GK.t('Fluggeschwindigkeit')}">
+              ${Object.entries(MODES).map(([id, m]) => `<button type="button" class="fh-speed flight-mode" data-mode="${id}" title="${GK.t(m.name)}" aria-label="${GK.t(m.name)}"><span class="fh-icon">${ic(m.sym)}</span><span class="fh-name">${GK.t(m.name)}</span></button>`).join('')}
             </div>
-            <div class="fh-money right"><span class="fh-label">Gesamteinsatz</span><b class="fh-total"></b></div>
+            <div class="fh-money right"><span class="fh-label">${GK.t('Gesamteinsatz')}</span><b class="fh-total"></b></div>
           </div>
           <div class="crash-history flight-history"></div>
         </div>
@@ -859,13 +895,9 @@ window.GK = window.GK || {};
           <div class="game-message">&nbsp;</div>
           <div class="flight-bet"></div>
           <div class="game-actions">
-            <button class="btn btn-primary btn-big flight-start">${ic('plane')}Abheben!</button>
+            <button class="btn btn-primary btn-big flight-start">${ic('plane')}${GK.t('Abheben!')}</button>
           </div>
-          <p class="muted small">Dein Flugzeug startet mit ×1. Unterwegs erhöhen +1, +2, +5 und +10 den
-            Multiplikator, ×2 bis ×5 vervielfachen ihn – und geben Auftrieb. ÷2 und Raketen halbieren ihn und
-            lassen das Flugzeug absacken. Landet es am Ende auf dem Flugzeugträger, bekommst du Einsatz ×
-            Multiplikator – stürzt es ins Meer, ist der Einsatz weg. Schnellere Flüge sind länger und können
-            mehr bringen.</p>
+          <p class="muted small">${GK.t('Dein Flugzeug startet mit ×1. Unterwegs erhöhen +1, +2, +5 und +10 den Multiplikator, ×2 bis ×5 vervielfachen ihn – und geben Auftrieb. ÷2 und Raketen halbieren ihn und lassen das Flugzeug absacken. Landet es am Ende auf dem Flugzeugträger, bekommst du Einsatz × Multiplikator – stürzt es ins Meer, ist der Einsatz weg. Schnellere Flüge sind länger und können mehr bringen.')}</p>
         </div>
       </div>`;
     els = {
@@ -909,7 +941,7 @@ window.GK = window.GK || {};
     ended = null;
     // Flug aus der letzten Sitzung: sofort abrechnen
     if (state().pending) settle(false);
-    else showMessage('Wähle Einsatz und Geschwindigkeit – und dann ab in die Luft!', '');
+    else showMessage(GK.t('Wähle Einsatz und Geschwindigkeit – und dann ab in die Luft!'), '');
     drawHistory();
     updateButtons();
     updateMoney();

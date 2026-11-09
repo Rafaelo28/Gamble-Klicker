@@ -4,6 +4,31 @@
 // abkassiert – so kostet Neuladen nie den Einsatz.
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Kanonenkugel': 'Cannonball',
+  'Der Multiplikator steigt – kassier ab, bevor die Kugel explodiert!': 'The multiplier climbs – cash out before the ball explodes!',
+  'Nicht genug Dublonen für diesen Einsatz.': 'Not enough Doubloons for this bet.',
+  'automatisch': 'automatic',
+  'Spiel verlassen': 'left the game',
+  'Seite neu geladen': 'page reloaded',
+  '🔥 Feuer! Kassier ab, bevor sie explodiert!': '🔥 Fire! Cash out before it explodes!',
+  '💰 bei ×{mult}': '💰 at ×{mult}',
+  '💰 Abkassiert bei ×{mult}: {money}': '💰 Cashed out at ×{mult}: {money}',
+  '💥 bei ×{mult}': '💥 at ×{mult}',
+  '💥 Explodiert bei ×{mult} – der Einsatz ist weg.': '💥 Exploded at ×{mult} – your bet is gone.',
+  'Noch keine Schüsse.': 'No shots yet.',
+  'Automatisch abkassieren bei ×': 'Auto cash out at ×',
+  'Feuer!': 'Fire!',
+  'Abkassieren: ': 'Cash out: ',
+  'Der Multiplikator steigt, solange die Kugel fliegt. Kassiere rechtzeitig ab – explodiert sie vorher, ist der Einsatz weg.':
+    'The multiplier rises while the ball flies. Cash out in time – if it explodes first, your bet is gone.',
+  'Setz deinen Einsatz und feuer die Kanone ab!': 'Place your bet and fire the cannon!',
+});
+
 (function () {
   // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
@@ -49,7 +74,7 @@ window.GK = window.GK || {};
     if (s.round) return;
     if (!GK.casino.bet(s.bet)) {
       GK.sound.play('denied');
-      showMessage('Nicht genug Dublonen für diesen Einsatz.', 'loss');
+      showMessage(GK.t('Nicht genug Dublonen für diesen Einsatz.'), 'loss');
       return;
     }
     const auto = s.auto.on ? Math.max(1.01, floor2(Number(s.auto.at) || 2)) : null;
@@ -58,7 +83,7 @@ window.GK = window.GK || {};
     explosion = null;
     GK.sound.play('cannon');
     GK.fx.shake('small');
-    showMessage('🔥 Feuer! Kassier ab, bevor sie explodiert!', '');
+    showMessage(GK.t('🔥 Feuer! Kassier ab, bevor sie explodiert!'), '');
     updateButtons();
     startLoop();
   }
@@ -74,9 +99,9 @@ window.GK = window.GK || {};
     const payout = Math.floor(r.bet * now);
     GK.casino.payout(payout);
     if (now >= 10) GK.unlockAchievement('crash10');
-    GK.casino.record('crash', r.bet, payout, `💰 bei ×${fmt(now)}`);
+    GK.casino.record('crash', r.bet, payout, GK.t('💰 bei ×{mult}', { mult: fmt(now) }));
     GK.save();
-    showMessage(`💰 Abkassiert bei ×${fmt(now)}: ${GK.formatMoneyHTML(payout)}${reason ? ` (${reason})` : ''}`, 'win');
+    showMessage(GK.t('💰 Abkassiert bei ×{mult}: {money}', { mult: fmt(now), money: GK.formatMoneyHTML(payout) }) + (reason ? ` (${reason})` : ''), 'win');
     if (!reason) GK.fx.celebrate(payout, r.bet, { el: els.canvas, subtitle: `×${fmt(now)}` });
     updateButtons();
   }
@@ -98,8 +123,8 @@ window.GK = window.GK || {};
     if (!r) return;
     finishRound(r);
     if (!r.cashed) {
-      GK.casino.record('crash', r.bet, 0, `💥 bei ×${fmt(r.crash)}`);
-      showMessage(`💥 Explodiert bei ×${fmt(r.crash)} – der Einsatz ist weg.`, 'loss');
+      GK.casino.record('crash', r.bet, 0, GK.t('💥 bei ×{mult}', { mult: fmt(r.crash) }));
+      showMessage(GK.t('💥 Explodiert bei ×{mult} – der Einsatz ist weg.', { mult: fmt(r.crash) }), 'loss');
     }
     GK.save();
     explosion = { start: performance.now(), mult: r.crash, x: lastBall ? lastBall.x : W / 2, y: lastBall ? lastBall.y : H / 2 };
@@ -114,8 +139,8 @@ window.GK = window.GK || {};
     if (!r) return;
     const elapsed = Date.now() - r.start;
     const m = multAt(elapsed);
-    if (!r.cashed && r.auto && r.auto < r.crash && m >= r.auto) cashOut('automatisch', r.auto);
-    if (!r.cashed && !isVisible()) cashOut('Spiel verlassen');
+    if (!r.cashed && r.auto && r.auto < r.crash && m >= r.auto) cashOut(GK.t('automatisch'), r.auto);
+    if (!r.cashed && !isVisible()) cashOut(GK.t('Spiel verlassen'));
     if (m >= r.crash) explode();
   }
 
@@ -282,7 +307,7 @@ window.GK = window.GK || {};
     const h = state().history;
     els.history.innerHTML = h.length
       ? h.map(m => `<span class="crash-chip ${m >= 10 ? 'huge' : m >= 2 ? 'high' : 'low'}">×${fmt(m)}</span>`).join('')
-      : '<span class="muted small">Noch keine Schüsse.</span>';
+      : `<span class="muted small">${GK.t('Noch keine Schüsse.')}</span>`;
   }
 
   function updateCashLabel() {
@@ -325,15 +350,14 @@ window.GK = window.GK || {};
           <div class="crash-bet"></div>
           <label class="crash-auto">
             <input type="checkbox" class="crash-auto-on">
-            Automatisch abkassieren bei ×
+            ${GK.t('Automatisch abkassieren bei ×')}
             <input type="number" class="bet-input crash-auto-at" min="1.01" step="0.1" inputmode="decimal">
           </label>
           <div class="game-actions">
-            <button class="btn btn-primary btn-big crash-fire">${ic('bomb')}Feuer!</button>
-            <button class="btn btn-primary btn-big crash-cash" hidden>${ic('bag')}Abkassieren: <span class="crash-cash-value"></span></button>
+            <button class="btn btn-primary btn-big crash-fire">${ic('bomb')}${GK.t('Feuer!')}</button>
+            <button class="btn btn-primary btn-big crash-cash" hidden>${ic('bag')}${GK.t('Abkassieren: ')}<span class="crash-cash-value"></span></button>
           </div>
-          <p class="muted small">Der Multiplikator steigt, solange die Kugel fliegt. Kassiere rechtzeitig ab –
-            explodiert sie vorher, ist der Einsatz weg.</p>
+          <p class="muted small">${GK.t('Der Multiplikator steigt, solange die Kugel fliegt. Kassiere rechtzeitig ab – explodiert sie vorher, ist der Einsatz weg.')}</p>
         </div>
       </div>`;
     els = {
@@ -372,7 +396,7 @@ window.GK = window.GK || {};
     // Seite wird verlassen oder in den Hintergrund geschickt: sofort abkassieren
     const leave = () => {
       const r = state().round;
-      if (r && !r.cashed) cashOut('Spiel verlassen');
+      if (r && !r.cashed) cashOut(GK.t('Spiel verlassen'));
     };
     window.addEventListener('pagehide', leave);
     document.addEventListener('visibilitychange', () => {
@@ -386,12 +410,12 @@ window.GK = window.GK || {};
     const r = s.round;
     // Flug aus einer früheren Sitzung (Seite ohne Abmelden geschlossen): jetzt abrechnen
     if (r) {
-      if (!r.cashed && multAt(Date.now() - r.start) < r.crash) cashOut('Seite neu geladen');
+      if (!r.cashed && multAt(Date.now() - r.start) < r.crash) cashOut(GK.t('Seite neu geladen'));
       finishRound(r);
-      if (!r.cashed) GK.casino.record('crash', r.bet, 0, `💥 bei ×${fmt(r.crash)}`);
+      if (!r.cashed) GK.casino.record('crash', r.bet, 0, GK.t('💥 bei ×{mult}', { mult: fmt(r.crash) }));
       GK.save();
     } else {
-      showMessage('Setz deinen Einsatz und feuer die Kanone ab!', '');
+      showMessage(GK.t('Setz deinen Einsatz und feuer die Kanone ab!'), '');
     }
     explosion = null;
     drawHistory();
@@ -411,7 +435,7 @@ window.GK = window.GK || {};
     onShow: () => draw(),
     onHide: () => {
       const r = state().round;
-      if (r && !r.cashed) cashOut('Spiel verlassen');
+      if (r && !r.cashed) cashOut(GK.t('Spiel verlassen'));
     },
     render: () => {
       if (!state().round) betControl.refresh();

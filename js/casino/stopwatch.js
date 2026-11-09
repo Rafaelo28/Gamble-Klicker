@@ -4,6 +4,53 @@
 // Einsatz zurück; war die Zielzeit schon klar vorbei, zählt die Runde als verloren (Neuladen kostet also nichts).
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Stoppuhr': 'Stopwatch',
+  'Stoppe die Uhr genau bei der Zielzeit – auf die Hundertstel!': 'Stop the clock exactly at the target time – to the hundredth!',
+  'Nicht genug Dublonen für diesen Einsatz.': 'Not enough Doubloons for this bet.',
+  'Volltreffer – auf die Hundertstel genau!': 'Bullseye – spot on to the hundredth!',
+  'Nur eine Hundertstel daneben!': 'Just one hundredth off!',
+  'Ganz knapp daneben.': 'Just barely off.',
+  'Fast getroffen.': 'Almost got it.',
+  'Daneben.': 'Missed.',
+  'Ziel: <b>{time} s</b> – gleich geht’s los …': 'Target: <b>{time} s</b> – here we go …',
+  'Ziel {time} s · nicht gestoppt': 'Target {time} s · not stopped',
+  'Ziel {time} s · gestoppt {shown} s ({sign}{off})': 'Target {time} s · stopped {shown} s ({sign}{off})',
+  '⏰ Zu spät – die Uhr ist abgelaufen.': '⏰ Too late – the clock ran out.',
+  '{msg} {money} (×{mult})': '{msg} {money} (×{mult})',
+  '{msg} Zurück: {money}': '{msg} Back: {money}',
+  'Volltreffer!': 'Bullseye!',
+  'Super gestoppt!': 'Great stop!',
+  'Los! Stoppe bei <b>{time} s</b>': 'Go! Stop at <b>{time} s</b>',
+  'Achtung … {n}': 'Ready … {n}',
+  'Stopp drücken!': 'Press stop!',
+  'Die Seite wurde neu geladen, als die Zielzeit schon vorbei war – die Runde zählt als verloren.':
+    'The page was reloaded after the target time had already passed – the round counts as lost.',
+  'Die Seite wurde während der Runde neu geladen – du hast deinen Einsatz zurück.':
+    'The page was reloaded during the round – you get your bet back.',
+  'Ziel: <b>{time} s</b>': 'Target: <b>{time} s</b>',
+  'Nicht gestoppt': 'Not stopped',
+  'Gestoppt': 'Stopped',
+  'Ziel: <b>?,?? s</b>': 'Target: <b>?,?? s</b>',
+  'Bereit': 'Ready',
+  'Dein bester Stopp: <b>{best}</b>': 'Your best stop: <b>{best}</b>',
+  'genau getroffen': 'exactly right',
+  '{off} s daneben': '{off} s off',
+  '{n}× Volltreffer': '{n}× bullseye',
+  'Stoppuhr anhalten': 'Stop the stopwatch',
+  'Genau getroffen': 'Exactly right',
+  'bis {max} Hundertstel daneben': 'up to {max} hundredths off',
+  '▶️ Start': '▶️ Start',
+  'STOPP': 'STOP',
+  'Nach dem Start siehst du die Zielzeit (2 bis 10 Sekunden), dann läuft die Uhr los. Tippe auf die Uhr oder auf STOPP, wenn sie genau die Zielzeit zeigt – je genauer, desto mehr gibt es.':
+    'After the start you see the target time (2 to 10 seconds), then the clock starts. Tap the clock or STOP when it shows exactly the target time – the more precise, the more you get.',
+  'Setze deinen Einsatz und drücke Start.': 'Place your bet and press start.',
+});
+
 (function () {
   // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
@@ -65,7 +112,7 @@ window.GK = window.GK || {};
     if (s.round || performance.now() - stoppedAt < START_LOCK_MS) return;
     if (!GK.casino.bet(s.bet)) {
       GK.sound.play('denied');
-      showMessage('Nicht genug Dublonen für diesen Einsatz.', 'loss');
+      showMessage(GK.t('Nicht genug Dublonen für diesen Einsatz.'), 'loss');
       return;
     }
     const target = MIN_TARGET + GK.rng.int(MAX_TARGET - MIN_TARGET + 1);
@@ -75,7 +122,7 @@ window.GK = window.GK || {};
     startPerf = performance.now() + READY_MS;
     GK.save();
     GK.sound.play('chip');
-    showMessage(`Ziel: <b>${fmt(target)} s</b> – gleich geht’s los …`, '');
+    showMessage(GK.t('Ziel: <b>{time} s</b> – gleich geht’s los …', { time: fmt(target) }), '');
     render();
     loop();
   }
@@ -108,16 +155,16 @@ window.GK = window.GK || {};
     }
     GK.casino.payout(payout);
     GK.casino.record('stopwatch', r.bet, payout, late
-      ? `Ziel ${fmt(r.target)} s · nicht gestoppt`
-      : `Ziel ${fmt(r.target)} s · gestoppt ${fmt(shown)} s (${diff >= 0 ? '+' : '−'}${fmt(Math.abs(diff))})`);
+      ? GK.t('Ziel {time} s · nicht gestoppt', { time: fmt(r.target) })
+      : GK.t('Ziel {time} s · gestoppt {shown} s ({sign}{off})', { time: fmt(r.target), shown: fmt(shown), sign: diff >= 0 ? '+' : '−', off: fmt(Math.abs(diff)) }));
     render();
-    const msg = late ? '⏰ Zu spät – die Uhr ist abgelaufen.' : `${t.icon} ${t.text}`;
+    const msg = late ? GK.t('⏰ Zu spät – die Uhr ist abgelaufen.') : `${t.icon} ${GK.t(t.text)}`;
     if (payout > r.bet) {
-      showMessage(`${msg} ${GK.formatMoneyHTML(payout)} (×${GK.formatDecimal(t.mult, 0, 2)})`, 'win');
-      GK.fx.celebrate(payout, r.bet, { el: els.face, subtitle: t.max === 0 ? 'Volltreffer!' : 'Super gestoppt!' });
+      showMessage(GK.t('{msg} {money} (×{mult})', { msg, money: GK.formatMoneyHTML(payout), mult: GK.formatDecimal(t.mult, 0, 2) }), 'win');
+      GK.fx.celebrate(payout, r.bet, { el: els.face, subtitle: t.max === 0 ? GK.t('Volltreffer!') : GK.t('Super gestoppt!') });
       if (t.max === 0) GK.fx.pulse(els.face, 'sw-exact');
     } else if (payout > 0) {
-      showMessage(`${msg} Zurück: ${GK.formatMoneyHTML(payout)}`, '');
+      showMessage(GK.t('{msg} Zurück: {money}', { msg, money: GK.formatMoneyHTML(payout) }), '');
       GK.sound.play('coin');
     } else {
       showMessage(msg, 'loss');
@@ -135,7 +182,7 @@ window.GK = window.GK || {};
       const ms = performance.now() - startPerf;
       if (ms >= 0 && !going) {
         going = true;
-        showMessage(`Los! Stoppe bei <b>${fmt(r.target)} s</b>`, '');
+        showMessage(GK.t('Los! Stoppe bei <b>{time} s</b>', { time: fmt(r.target) }), '');
         GK.sound.play('tick');
       }
       if (ms > r.target * 10 + LATE_MS) {
@@ -143,7 +190,7 @@ window.GK = window.GK || {};
         return;
       }
       GK.setText(els.time, ms < 0 ? '0,00' : fmt(centis(ms)));
-      GK.setText(els.status, ms < 0 ? `Achtung … ${Math.ceil(-ms / 1000)}` : 'Stopp drücken!');
+      GK.setText(els.status, ms < 0 ? GK.t('Achtung … {n}', { n: Math.ceil(-ms / 1000) }) : GK.t('Stopp drücken!'));
       frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
@@ -158,12 +205,12 @@ window.GK = window.GK || {};
     if (ms > r.target * 10 + TABLE[TABLE.length - 1].max * 10 + 10) {
       // Die Zielzeit war schon vorbei – die Runde war nicht mehr zu gewinnen
       finish(centis(ms), true);
-      showMessage('Die Seite wurde neu geladen, als die Zielzeit schon vorbei war – die Runde zählt als verloren.', 'loss');
+      showMessage(GK.t('Die Seite wurde neu geladen, als die Zielzeit schon vorbei war – die Runde zählt als verloren.'), 'loss');
     } else {
       s.round = null;
       GK.casino.refund(r.bet);
       GK.save();
-      showMessage('Die Seite wurde während der Runde neu geladen – du hast deinen Einsatz zurück.', '');
+      showMessage(GK.t('Die Seite wurde während der Runde neu geladen – du hast deinen Einsatz zurück.'), '');
       render();
     }
   }
@@ -179,21 +226,21 @@ window.GK = window.GK || {};
     betControl.setDisabled(!!r);
     els.face.classList.toggle('running', !!r);
     if (r) {
-      GK.setHTML(els.target, `Ziel: <b>${fmt(r.target)} s</b>`);
+      GK.setHTML(els.target, GK.t('Ziel: <b>{time} s</b>', { time: fmt(r.target) }));
       GK.setText(els.diff, '');
     } else if (last) {
-      GK.setHTML(els.target, `Ziel: <b>${fmt(last.target)} s</b>`);
+      GK.setHTML(els.target, GK.t('Ziel: <b>{time} s</b>', { time: fmt(last.target) }));
       GK.setText(els.time, fmt(Math.max(0, last.shown)));
-      GK.setText(els.status, last.late ? 'Nicht gestoppt' : 'Gestoppt');
+      GK.setText(els.status, last.late ? GK.t('Nicht gestoppt') : GK.t('Gestoppt'));
       GK.setText(els.diff, last.late ? '' : last.diff === 0 ? '±0,00 s' : `${last.diff > 0 ? '+' : '−'}${fmt(Math.abs(last.diff))} s`);
     } else {
-      GK.setHTML(els.target, 'Ziel: <b>?,?? s</b>');
+      GK.setHTML(els.target, GK.t('Ziel: <b>?,?? s</b>'));
       GK.setText(els.time, '0,00');
-      GK.setText(els.status, 'Bereit');
+      GK.setText(els.status, GK.t('Bereit'));
       GK.setText(els.diff, '');
     }
     els.face.classList.toggle('exact', !!last && !r && !last.late && last.diff === 0);
-    GK.setHTML(els.best, s.best == null ? '' : `Dein bester Stopp: <b>${s.best === 0 ? 'genau getroffen' : `${fmt(s.best)} s daneben`}</b>${s.exact ? ` · ${ic('target')} ${s.exact}× Volltreffer` : ''}`);
+    GK.setHTML(els.best, s.best == null ? '' : GK.t('Dein bester Stopp: <b>{best}</b>', { best: s.best === 0 ? GK.t('genau getroffen') : GK.t('{off} s daneben', { off: fmt(s.best) }) }) + (s.exact ? ` · ${ic('target')} ${GK.t('{n}× Volltreffer', { n: s.exact })}` : ''));
   }
 
   function showMessage(html, cls) {
@@ -217,26 +264,25 @@ window.GK = window.GK || {};
   function init(body) {
     body.innerHTML = `
       <div class="sw-layout">
-        <div class="sw-face" role="button" aria-label="Stoppuhr anhalten">
+        <div class="sw-face" role="button" aria-label="${GK.t('Stoppuhr anhalten')}">
           <div class="sw-crown"></div>
           <div class="sw-target"></div>
           <div class="sw-time">0,00</div>
-          <div class="sw-status muted">Bereit</div>
+          <div class="sw-status muted">${GK.t('Bereit')}</div>
           <div class="sw-diff"></div>
         </div>
         <div class="sw-controls">
           <div class="sw-table">
-            ${TABLE.map(t => `<div class="sw-row"><span>${t.icon} ${t.max === 0 ? 'Genau getroffen' : `bis ${t.max} Hundertstel daneben`}</span><b>×${GK.formatDecimal(t.mult, 0, 2)}</b></div>`).join('')}
+            ${TABLE.map(t => `<div class="sw-row"><span>${t.icon} ${t.max === 0 ? GK.t('Genau getroffen') : GK.t('bis {max} Hundertstel daneben', { max: t.max })}</span><b>×${GK.formatDecimal(t.mult, 0, 2)}</b></div>`).join('')}
           </div>
           <div class="sw-best muted small"></div>
           <div class="game-message">&nbsp;</div>
           <div class="sw-bet"></div>
           <div class="game-actions">
-            <button class="btn btn-primary btn-big sw-start">▶️ Start</button>
-            <button class="btn btn-danger btn-big sw-stop" hidden>${ic('stop')}STOPP</button>
+            <button class="btn btn-primary btn-big sw-start">${GK.t('▶️ Start')}</button>
+            <button class="btn btn-danger btn-big sw-stop" hidden>${ic('stop')}${GK.t('STOPP')}</button>
           </div>
-          <p class="muted small">Nach dem Start siehst du die Zielzeit (2 bis 10 Sekunden), dann läuft die Uhr los.
-            Tippe auf die Uhr oder auf STOPP, wenn sie genau die Zielzeit zeigt – je genauer, desto mehr gibt es.</p>
+          <p class="muted small">${GK.t('Nach dem Start siehst du die Zielzeit (2 bis 10 Sekunden), dann läuft die Uhr los. Tippe auf die Uhr oder auf STOPP, wenn sie genau die Zielzeit zeigt – je genauer, desto mehr gibt es.')}</p>
         </div>
       </div>`;
     els = {
@@ -269,7 +315,7 @@ window.GK = window.GK || {};
   function refresh() {
     const s = state();
     if (s.round && startPerf) loop();
-    else if (!s.round && !s.last) showMessage('Setze deinen Einsatz und drücke Start.', '');
+    else if (!s.round && !s.last) showMessage(GK.t('Setze deinen Einsatz und drücke Start.'), '');
     render();
   }
 

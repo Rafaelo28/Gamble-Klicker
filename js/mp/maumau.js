@@ -6,6 +6,39 @@
 // Kartenwert platziert. Läuft gegen Computer und online mit Freunden (siehe room.js).
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Mau-Mau': 'Mau-Mau',
+  'Farbe auf Farbe, Wert auf Wert – wer zuerst alle Karten los ist, gewinnt!': 'Suit on suit, rank on rank – first to shed all cards wins!',
+  '<p class="muted"><b>So geht\'s:</b> Leg eine Karte mit gleicher Farbe oder gleichem Wert auf die Ablage –\n      sonst ziehst du eine. <b>7</b>: Der Nächste zieht zwei (mit einer eigenen 7 gibst du weiter). <b>8</b>: Der Nächste\n      setzt aus. <b>Bube</b>: passt immer (nur nicht auf einen Buben) – du wünschst dir eine Farbe. Wer zuerst keine\n      Karten mehr hat, gewinnt; die anderen werden nach ihren übrigen Karten platziert.</p>':
+    '<p class="muted"><b>How it works:</b> Play a card of the same suit or same rank onto the pile –\n      otherwise you draw one. <b>7</b>: The next player draws two (with your own 7 you pass it on). <b>8</b>: The next\n      player misses a turn. <b>Jack</b>: always fits (just not on a jack) – you wish for a suit. Whoever runs out of\n      cards first wins; the others are ranked by their remaining cards.</p>',
+  'Kreuz': 'Clubs', 'Pik': 'Spades', 'Herz': 'Hearts', 'Karo': 'Diamonds',
+  'Spielverlauf': 'Game log',
+  '{n}. Platz': 'Place {n}',
+  'Karte': 'card', 'Karten': 'cards',
+  'Mau!': 'Mau!',
+  'Wunsch:': 'Wish:',
+  '+{n} ziehen!': 'Draw +{n}!',
+  'Mau-Mau!': 'Mau-Mau!',
+  'gewinnt!': 'wins!',
+  'Spiel vorbei': 'Game over',
+  'Du bist dran!': "You're up!",
+  'Leg eine 7 drauf oder zieh {n} Karten.': 'Play a 7 or draw {n} cards.',
+  'Leg die gezogene Karte (oder eine andere passende) – oder passe.': 'Play the drawn card (or another matching one) – or pass.',
+  'Leg eine passende Karte oder zieh eine.': 'Play a matching card or draw one.',
+  '{name} ist dran …': '{name} is up …',
+  'Deine Karten ({n})': 'Your cards ({n})',
+  'Du schaust zu.': 'You are watching.',
+  'Welche Farbe wünschst du dir?': 'Which suit do you wish for?',
+  'Doch nicht': 'Never mind',
+  '{n} Karten ziehen': 'Draw {n} cards',
+  'Passen': 'Pass',
+  'Karte ziehen': 'Draw a card',
+});
+
 (function () {
   // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
@@ -307,7 +340,7 @@ window.GK = window.GK || {};
           <div class="mm-status"></div>
           <div class="mm-hand"></div>
           <div class="mm-actions"></div>
-          <details class="poker-log mm-log"><summary>Spielverlauf</summary><ul></ul></details>
+          <details class="poker-log mm-log"><summary>${GK.t('Spielverlauf')}</summary><ul></ul></details>
         </div>`;
       container._lastMove = null;
       container.addEventListener('click', e => {
@@ -367,8 +400,8 @@ window.GK = window.GK || {};
         : Array.from({ length: Math.min(p.count, 8) }, () => GK.cards.html(null, true, 'small mm-back')).join('');
       return `<div class="${cls.join(' ')}">
         <div class="mm-name">${GK.cosmetics.nameTag(p)}</div>
-        <div class="mm-fan">${p.out ? `${ic('skull')} ${p.place}. Platz` : backs}</div>
-        <div class="mm-count">${p.out ? '' : `${p.count} ${p.count === 1 ? 'Karte' : 'Karten'}${p.count === 1 && v.phase === 'play' ? ' · <b class="mm-mau">Mau!</b>' : ''}`}${p.place && !p.out ? ` · ${p.place}. Platz` : ''}</div>
+        <div class="mm-fan">${p.out ? `${ic('skull')} ${GK.t('{n}. Platz', { n: p.place })}` : backs}</div>
+        <div class="mm-count">${p.out ? '' : `${p.count} ${p.count === 1 ? GK.t('Karte') : GK.t('Karten')}${p.count === 1 && v.phase === 'play' ? ` · <b class="mm-mau">${GK.t('Mau!')}</b>` : ''}`}${p.place && !p.out ? ` · ${GK.t('{n}. Platz', { n: p.place })}` : ''}</div>
       </div>`;
     }).join(''));
 
@@ -384,38 +417,38 @@ window.GK = window.GK || {};
         <span class="mm-top">${t ? GK.cards.html(t, false, `mm-big ${fresh && v.last && v.last.type === 'play' ? 'deal-in' : ''}`) : ''}</span>
       </div>
       <div class="mm-flags">
-        ${v.wish ? `<span class="mm-flag wish">Wunsch: <b class="${v.wish === 'H' || v.wish === 'D' ? 'red' : ''}">${SUIT_SYMBOLS[v.wish]} ${SUIT_NAMES[v.wish]}</b></span>` : ''}
-        ${v.pending7 ? `<span class="mm-flag seven">+${v.pending7} ziehen!</span>` : ''}
+        ${v.wish ? `<span class="mm-flag wish">${GK.t('Wunsch:')} <b class="${v.wish === 'H' || v.wish === 'D' ? 'red' : ''}">${SUIT_SYMBOLS[v.wish]} ${GK.t(SUIT_NAMES[v.wish])}</b></span>` : ''}
+        ${v.pending7 ? `<span class="mm-flag seven">${GK.t('+{n} ziehen!', { n: v.pending7 })}</span>` : ''}
       </div>`);
 
     // Wer ist dran?
     const cur = v.turn >= 0 ? v.players[v.turn] : null;
     setHtml(container.querySelector('.mm-status'), v.phase === 'finished'
-      ? (() => { const w = v.players.find(p => p.place === 1); return w ? `${ic('sparkle')} Mau-Mau! ${GK.cosmetics.nameTag(w)} gewinnt!` : 'Spiel vorbei'; })()
-      : myTurn ? `<b>Du bist dran!</b> ${v.pending7 ? `Leg eine 7 drauf oder zieh ${v.pending7} Karten.` : v.drawn ? 'Leg die gezogene Karte (oder eine andere passende) – oder passe.' : 'Leg eine passende Karte oder zieh eine.'}`
-        : `${GK.cosmetics.nameTag(cur)} ist dran …`);
+      ? (() => { const w = v.players.find(p => p.place === 1); return w ? `${ic('sparkle')} ${GK.t('Mau-Mau!')} ${GK.cosmetics.nameTag(w)} ${GK.t('gewinnt!')}` : GK.t('Spiel vorbei'); })()
+      : myTurn ? `<b>${GK.t('Du bist dran!')}</b> ${v.pending7 ? GK.t('Leg eine 7 drauf oder zieh {n} Karten.', { n: v.pending7 }) : v.drawn ? GK.t('Leg die gezogene Karte (oder eine andere passende) – oder passe.') : GK.t('Leg eine passende Karte oder zieh eine.')}`
+        : GK.t('{name} ist dran …', { name: GK.cosmetics.nameTag(cur) }));
 
     // Eigene Hand (bin ich dran, werden nicht passende Karten abgedunkelt)
     container.querySelector('.mm-hand').classList.toggle('myturn', myTurn);
     setHtml(container.querySelector('.mm-hand'), me
-      ? `<div class="mm-hand-label">Deine Karten (${me.hand.length})${me.hand.length === 1 && v.phase === 'play' ? ' · <b class="mm-mau">Mau!</b>' : ''}</div>
+      ? `<div class="mm-hand-label">${GK.t('Deine Karten ({n})', { n: me.hand.length })}${me.hand.length === 1 && v.phase === 'play' ? ` · <b class="mm-mau">${GK.t('Mau!')}</b>` : ''}</div>
          <div class="mm-hand-cards">${me.hand.map(c => {
            const ok = myTurn && can(c);
            return `<button type="button" class="mm-hand-card ${ok ? 'mm-play' : ''} ${wishFor === c ? 'chosen' : ''}" data-card="${c}" ${ok ? '' : 'tabindex="-1"'} aria-label="${cardName(c)}">${cardHtml(c)}</button>`;
          }).join('')}</div>`
-      : '<div class="muted">Du schaust zu.</div>');
+      : `<div class="muted">${GK.t('Du schaust zu.')}</div>`);
 
     // Knöpfe
     let actions = '';
     if (myTurn && wishFor) {
-      actions = `<div class="mm-wish-box"><div>Welche Farbe wünschst du dir?</div>
-        <div class="mm-wishes">${SUITS.map(s => `<button type="button" class="btn mm-wish ${s === 'H' || s === 'D' ? 'red' : ''}" data-suit="${s}">${SUIT_SYMBOLS[s]} ${SUIT_NAMES[s]}</button>`).join('')}</div>
-        <button type="button" class="btn btn-small mm-cancel">Doch nicht</button></div>`;
+      actions = `<div class="mm-wish-box"><div>${GK.t('Welche Farbe wünschst du dir?')}</div>
+        <div class="mm-wishes">${SUITS.map(s => `<button type="button" class="btn mm-wish ${s === 'H' || s === 'D' ? 'red' : ''}" data-suit="${s}">${SUIT_SYMBOLS[s]} ${GK.t(SUIT_NAMES[s])}</button>`).join('')}</div>
+        <button type="button" class="btn btn-small mm-cancel">${GK.t('Doch nicht')}</button></div>`;
     } else if (myTurn) {
       actions = `<div class="game-actions">
-        ${v.pending7 ? `<button class="btn btn-danger btn-big mm-draw">${ic('cards')}${v.pending7} Karten ziehen</button>`
-          : v.drawn ? `<button class="btn btn-big mm-pass">${ic('forward')}Passen</button>`
-          : `<button class="btn btn-primary btn-big mm-draw">${ic('cards')}Karte ziehen</button>`}
+        ${v.pending7 ? `<button class="btn btn-danger btn-big mm-draw">${ic('cards')}${GK.t('{n} Karten ziehen', { n: v.pending7 })}</button>`
+          : v.drawn ? `<button class="btn btn-big mm-pass">${ic('forward')}${GK.t('Passen')}</button>`
+          : `<button class="btn btn-primary btn-big mm-draw">${ic('cards')}${GK.t('Karte ziehen')}</button>`}
       </div>`;
     }
     setHtml(container.querySelector('.mm-actions'), actions);
@@ -439,10 +472,10 @@ window.GK = window.GK || {};
     name: 'Mau-Mau',
     icon: '🃏',
     desc: 'Farbe auf Farbe, Wert auf Wert – wer zuerst alle Karten los ist, gewinnt!',
-    intro: `<p class="muted"><b>So geht's:</b> Leg eine Karte mit gleicher Farbe oder gleichem Wert auf die Ablage –
+    intro: GK.t(`<p class="muted"><b>So geht's:</b> Leg eine Karte mit gleicher Farbe oder gleichem Wert auf die Ablage –
       sonst ziehst du eine. <b>7</b>: Der Nächste zieht zwei (mit einer eigenen 7 gibst du weiter). <b>8</b>: Der Nächste
       setzt aus. <b>Bube</b>: passt immer (nur nicht auf einen Buben) – du wünschst dir eine Farbe. Wer zuerst keine
-      Karten mehr hat, gewinnt; die anderen werden nach ihren übrigen Karten platziert.</p>`,
+      Karten mehr hat, gewinnt; die anderen werden nach ihren übrigen Karten platziert.</p>`),
     minPlayers: 2,
     maxPlayers: 4,
     bots: true,

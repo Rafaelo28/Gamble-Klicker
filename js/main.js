@@ -169,9 +169,11 @@ GK.i18n.add({
       GK.toast(GK.t('👤 Dein Name: {name}', { name: e.target.value }));
     });
     $('set-lang').addEventListener('change', e => {
+      // Sprache speichern und neu laden: so werden auch zwischengespeicherte Anzeigen
+      // (Render-Caches in einzelnen Modulen) sauber in der neuen Sprache aufgebaut.
+      // Laufende Runden sind gespeichert, Neuladen kostet nichts.
       GK.i18n.set(e.target.value);
-      GK.sound.play('tick');
-      refreshAll();
+      location.reload();
     });
     $('set-name').addEventListener('keydown', e => { if (e.key === 'Enter') e.target.blur(); });
     $('set-avatar').addEventListener('click', () => {

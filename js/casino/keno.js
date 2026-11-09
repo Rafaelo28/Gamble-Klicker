@@ -3,6 +3,37 @@
 // Anzahl deiner Markierungen. Die Ziehung steht beim Start fest und wird gespeichert (Neuladen zahlt aus).
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Höchstens {max} Inseln – nimm erst eine andere weg.': 'At most {max} islands – remove one first.',
+  'Markiere zuerst mindestens eine Insel.': 'Mark at least one island first.',
+  'Nicht genug Dublonen für diesen Einsatz.': 'Not enough Doubloons for this bet.',
+  '🗺️ Die Schätze werden gezogen …': '🗺️ Drawing the treasures …',
+  '🏴‍☠️ {hits} Treffer! Gewinn: {amt}': '🏴‍☠️ {hits} hits! Win: {amt}',
+  '{hits} von {total} Inseln': '{hits} of {total} islands',
+  '{hits} Treffer – diesmal kein Schatz.': '{hits} hits – no treasure this time.',
+  'Gewinne bei {count} {word}': 'Wins for {count} {word}',
+  'Insel': 'island',
+  'Inseln': 'islands',
+  '{h} Treffer': '{h} hits',
+  'Markiere 1 bis 10 Inseln auf der Karte.': 'Mark 1 to 10 islands on the map.',
+  '<b>{count}</b> von {max} Inseln markiert': '<b>{count}</b> of {max} islands marked',
+  ' · gezogen: {shown}/{draws}': ' · drawn: {shown}/{draws}',
+  'Noch keine Ziehungen.': 'No draws yet.',
+  'Zufällig': 'Random',
+  'Löschen': 'Clear',
+  'Schätze ziehen': 'Draw treasures',
+  'Insel {n}': 'Island {n}',
+  'Markiere 1 bis 10 Inseln auf der Schatzkarte. Dann werden 10 Schatzinseln gezogen – je mehr deiner Inseln dabei sind, desto mehr gewinnst du. Die Gewinne für deine Anzahl stehen in der Tabelle.': 'Mark 1 to 10 islands on the treasure map. Then 10 treasure islands are drawn – the more of yours are among them, the more you win. The wins for your number are shown in the table.',
+  'Markiere deine Inseln und zieh die Schätze!': 'Mark your islands and draw the treasures!',
+  // Spiel-Name und -Beschreibung (für die Lobby)
+  'Schatzkarten-Keno': 'Treasure Map Keno',
+  'Markiere Inseln auf der Schatzkarte – wo liegen die 10 Schätze?': 'Mark islands on the treasure map – where are the 10 treasures?',
+});
+
 (function () {
   // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
@@ -71,7 +102,7 @@ window.GK = window.GK || {};
     else if (s.picks.length < MAX_PICKS) s.picks.push(n);
     else {
       GK.sound.play('denied');
-      showMessage(`Höchstens ${MAX_PICKS} Inseln – nimm erst eine andere weg.`, 'loss');
+      showMessage(GK.t('Höchstens {max} Inseln – nimm erst eine andere weg.', { max: MAX_PICKS }), 'loss');
       return;
     }
     s.last = null;
@@ -105,12 +136,12 @@ window.GK = window.GK || {};
     if (s.pending || drawing) return;
     if (!s.picks.length) {
       GK.sound.play('denied');
-      showMessage('Markiere zuerst mindestens eine Insel.', 'loss');
+      showMessage(GK.t('Markiere zuerst mindestens eine Insel.'), 'loss');
       return;
     }
     if (!GK.casino.bet(s.bet)) {
       GK.sound.play('denied');
-      showMessage('Nicht genug Dublonen für diesen Einsatz.', 'loss');
+      showMessage(GK.t('Nicht genug Dublonen für diesen Einsatz.'), 'loss');
       return;
     }
     const drawn = draw();
@@ -122,7 +153,7 @@ window.GK = window.GK || {};
     s.last = null;
     GK.save();
     GK.sound.play('spinStart');
-    showMessage('🗺️ Die Schätze werden gezogen …', '');
+    showMessage(GK.t('🗺️ Die Schätze werden gezogen …'), '');
     drawing = { shown: 0 };
     render();
     const fast = GK.state.settings.effects === 'reduced';
@@ -153,10 +184,10 @@ window.GK = window.GK || {};
     GK.casino.record('keno', p.bet, p.payout, `🗺️ ${p.hits} von ${p.picks.length} Inseln getroffen`);
     if (p.hits >= 6) GK.unlockAchievement('keno6');
     if (p.payout > 0) {
-      showMessage(`🏴‍☠️ ${p.hits} Treffer! Gewinn: ${GK.formatMoneyHTML(p.payout)}`, p.payout > p.bet ? 'win' : '');
-      if (animated && p.payout > p.bet) GK.fx.celebrate(p.payout, p.bet, { el: els.map, subtitle: `${p.hits} von ${p.picks.length} Inseln` });
+      showMessage(GK.t('🏴‍☠️ {hits} Treffer! Gewinn: {amt}', { hits: p.hits, amt: GK.formatMoneyHTML(p.payout) }), p.payout > p.bet ? 'win' : '');
+      if (animated && p.payout > p.bet) GK.fx.celebrate(p.payout, p.bet, { el: els.map, subtitle: GK.t('{hits} von {total} Inseln', { hits: p.hits, total: p.picks.length }) });
     } else {
-      showMessage(`${p.hits} Treffer – diesmal kein Schatz.`, 'loss');
+      showMessage(GK.t('{hits} Treffer – diesmal kein Schatz.', { hits: p.hits }), 'loss');
       if (animated) GK.sound.play('lose');
     }
     GK.save();
@@ -191,19 +222,19 @@ window.GK = window.GK || {};
     const table = PAYTABLE[count];
     const hitsNow = view && !drawing ? view.hits : null;
     els.paytable.innerHTML = table
-      ? `<div class="kn-pay-title">Gewinne bei ${count} ${count === 1 ? 'Insel' : 'Inseln'}</div>` +
+      ? `<div class="kn-pay-title">${GK.t('Gewinne bei {count} {word}', { count, word: GK.t(count === 1 ? 'Insel' : 'Inseln') })}</div>` +
         Object.keys(table).map(Number).sort((a, b) => b - a).map(h => `<div class="kn-pay-row ${h === hitsNow ? 'hit' : ''}">
-          <span>${h} Treffer</span><b>×${fmtMult(table[h])}</b></div>`).join('')
-      : '<div class="kn-pay-title">Markiere 1 bis 10 Inseln auf der Karte.</div>';
+          <span>${GK.t('{h} Treffer', { h })}</span><b>×${fmtMult(table[h])}</b></div>`).join('')
+      : `<div class="kn-pay-title">${GK.t('Markiere 1 bis 10 Inseln auf der Karte.')}</div>`;
     const busy = !!(s.pending || drawing);
-    els.count.innerHTML = `<b>${count}</b> von ${MAX_PICKS} Inseln markiert${drawing ? ` · gezogen: ${drawing.shown}/${DRAWS}` : ''}`;
+    els.count.innerHTML = GK.t('<b>{count}</b> von {max} Inseln markiert', { count, max: MAX_PICKS }) + (drawing ? GK.t(' · gezogen: {shown}/{draws}', { shown: drawing.shown, draws: DRAWS }) : '');
     els.start.disabled = busy || !count;
     els.quick.disabled = busy;
     els.clear.disabled = busy || !count;
     betControl.setDisabled(busy);
     els.history.innerHTML = s.history.length
       ? s.history.map(t => `<span class="crash-chip ${Number(t.split('/')[0]) > 0 ? 'high' : 'low'}">${t}</span>`).join('')
-      : '<span class="muted small">Noch keine Ziehungen.</span>';
+      : `<span class="muted small">${GK.t('Noch keine Ziehungen.')}</span>`;
   }
 
   function showMessage(html, cls) {
@@ -218,24 +249,23 @@ window.GK = window.GK || {};
       <div class="crash-layout">
         <div class="crash-scene">
           <div class="kn-board">
-            <div class="kn-map">${Array.from({ length: ISLANDS }, (_, i) => `<button type="button" class="kn-cell" data-n="${i + 1}" aria-label="Insel ${i + 1}"></button>`).join('')}</div>
+            <div class="kn-map">${Array.from({ length: ISLANDS }, (_, i) => `<button type="button" class="kn-cell" data-n="${i + 1}" aria-label="${GK.t('Insel {n}', { n: i + 1 })}"></button>`).join('')}</div>
           </div>
           <div class="crash-history keno-history"></div>
         </div>
         <div class="crash-controls">
           <div class="keno-count mines-info"></div>
           <div class="keno-picks-actions game-actions">
-            <button type="button" class="btn keno-quick">${ic('shuffle')}Zufällig</button>
-            <button type="button" class="btn keno-clear">${ic('trash')}Löschen</button>
+            <button type="button" class="btn keno-quick">${ic('shuffle')}${GK.t('Zufällig')}</button>
+            <button type="button" class="btn keno-clear">${ic('trash')}${GK.t('Löschen')}</button>
           </div>
           <div class="kn-paytable"></div>
           <div class="game-message">&nbsp;</div>
           <div class="keno-bet"></div>
           <div class="game-actions">
-            <button class="btn btn-primary btn-big keno-start">${ic('map')}Schätze ziehen</button>
+            <button class="btn btn-primary btn-big keno-start">${ic('map')}${GK.t('Schätze ziehen')}</button>
           </div>
-          <p class="muted small">Markiere 1 bis 10 Inseln auf der Schatzkarte. Dann werden 10 Schatzinseln gezogen –
-            je mehr deiner Inseln dabei sind, desto mehr gewinnst du. Die Gewinne für deine Anzahl stehen in der Tabelle.</p>
+          <p class="muted small">${GK.t('Markiere 1 bis 10 Inseln auf der Schatzkarte. Dann werden 10 Schatzinseln gezogen – je mehr deiner Inseln dabei sind, desto mehr gewinnst du. Die Gewinne für deine Anzahl stehen in der Tabelle.')}</p>
         </div>
       </div>`;
     els = {
@@ -267,7 +297,7 @@ window.GK = window.GK || {};
     drawing = null;
     // Ziehung aus der letzten Sitzung: sofort abrechnen
     if (state().pending) settle(false);
-    else showMessage('Markiere deine Inseln und zieh die Schätze!', '');
+    else showMessage(GK.t('Markiere deine Inseln und zieh die Schätze!'), '');
     render();
   }
 

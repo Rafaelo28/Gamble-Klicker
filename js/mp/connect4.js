@@ -3,6 +3,24 @@
 // Zu zweit online oder gegen einen Computer-Gegner (sucht mehrere Züge voraus).
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Vier gewinnt': 'Connect Four',
+  'Vier in einer Reihe – zu zweit online oder gegen den Computer.': 'Four in a row – two players online or vs. the computer.',
+  '<p class="muted"><b>So geht\'s:</b> Abwechselnd wirft jeder einen Stein in eine Spalte. Wer zuerst vier\n      eigene Steine in einer Reihe hat – waagerecht, senkrecht oder schräg – gewinnt. Ist das Brett voll,\n      geht es von vorne los.</p>':
+    '<p class="muted"><b>How it works:</b> Taking turns, each drops a disc into a column. Whoever first has four\n      of their discs in a row – horizontally, vertically or diagonally – wins. When the board is full,\n      it starts over.</p>',
+  'Spalte {n}': 'Column {n}',
+  ' (du)': ' (you)',
+  'Vier in einer Reihe – du gewinnst!': 'Four in a row – you win!',
+  '{name} gewinnt.': '{name} wins.',
+  'Unentschieden – das Brett wird geleert …': 'Draw – the board is cleared …',
+  'Du bist dran – tippe auf eine Spalte!': "You're up – tap a column!",
+  '{name} überlegt …': '{name} is thinking …',
+});
+
 (function () {
   // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
@@ -185,7 +203,7 @@ window.GK = window.GK || {};
         <div class="c4-wrap">
           <div class="pool-players c4-players"></div>
           <div class="c4-board">${Array.from({ length: COLS }, (_, c) => `
-            <button class="c4-col" data-col="${c}" aria-label="Spalte ${c + 1}">
+            <button class="c4-col" data-col="${c}" aria-label="${GK.t('Spalte {n}', { n: c + 1 })}">
               ${Array.from({ length: ROWS }, (_, r) => `<span class="c4-cell" data-r="${ROWS - 1 - r}"></span>`).join('')}
             </button>`).join('')}</div>
           <div class="c4-hint"></div>
@@ -204,7 +222,7 @@ window.GK = window.GK || {};
     current = { view: v, ui };
     setHtml(container.querySelector('.c4-players'), v.players.map((p, seat) => `
       <div class="pool-player c4-player ${v.turn === seat && v.phase === 'play' ? 'active' : ''}">
-        <span class="c4-disc ${DISCS[seat]}"></span> ${GK.cosmetics.nameTag(p)}${seat === ui.mySeat ? ' (du)' : ''}
+        <span class="c4-disc ${DISCS[seat]}"></span> ${GK.cosmetics.nameTag(p)}${seat === ui.mySeat ? GK.t(' (du)') : ''}
       </div>`).join('<span class="pool-vs">vs</span>'));
     const myTurn = v.phase === 'play' && v.turn === ui.mySeat;
     const win = new Set((v.winLine || []).map(([c, r]) => `${c}:${r}`));
@@ -232,10 +250,10 @@ window.GK = window.GK || {};
     let hint;
     if (v.phase === 'finished') {
       const winner = v.players.findIndex(p => p.place === 1);
-      hint = winner === ui.mySeat ? `${ic('trophy')} Vier in einer Reihe – du gewinnst!` : `${ic('flag')} ${esc(v.players[winner].name)} gewinnt.`;
-    } else if (v.phase === 'full') hint = `${ic('handshake')} Unentschieden – das Brett wird geleert …`;
-    else if (myTurn) hint = `${ic('tap')} Du bist dran – tippe auf eine Spalte!`;
-    else hint = `${esc(v.players[v.turn].name)} überlegt …`;
+      hint = winner === ui.mySeat ? `${ic('trophy')} ${GK.t('Vier in einer Reihe – du gewinnst!')}` : `${ic('flag')} ${GK.t('{name} gewinnt.', { name: esc(v.players[winner].name) })}`;
+    } else if (v.phase === 'full') hint = `${ic('handshake')} ${GK.t('Unentschieden – das Brett wird geleert …')}`;
+    else if (myTurn) hint = `${ic('tap')} ${GK.t('Du bist dran – tippe auf eine Spalte!')}`;
+    else hint = GK.t('{name} überlegt …', { name: esc(v.players[v.turn].name) });
     setHtml(container.querySelector('.c4-hint'), hint);
   }
 
@@ -246,9 +264,9 @@ window.GK = window.GK || {};
     name: 'Vier gewinnt',
     icon: '🔴',
     desc: 'Vier in einer Reihe – zu zweit online oder gegen den Computer.',
-    intro: `<p class="muted"><b>So geht's:</b> Abwechselnd wirft jeder einen Stein in eine Spalte. Wer zuerst vier
+    intro: GK.t(`<p class="muted"><b>So geht's:</b> Abwechselnd wirft jeder einen Stein in eine Spalte. Wer zuerst vier
       eigene Steine in einer Reihe hat – waagerecht, senkrecht oder schräg – gewinnt. Ist das Brett voll,
-      geht es von vorne los.</p>`,
+      geht es von vorne los.</p>`),
     minPlayers: 2,
     maxPlayers: 2,
     bots: true,

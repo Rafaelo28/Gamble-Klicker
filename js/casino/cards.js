@@ -3,6 +3,13 @@
 // damit sie sich problemlos speichern und später auch über das Netzwerk verschicken lässt.
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+// Deutsche Kartenbilder (Bube, Dame) – im Englischen Jack und Queen.
+GK.i18n.add({ 'B': 'J', 'D': 'Q' });
+
 (function () {
   const RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'];
   const SUITS = ['S', 'H', 'D', 'C'];
@@ -33,7 +40,7 @@ window.GK = window.GK || {};
   }
 
   function label(card) {
-    return (RANK_LABELS[rank(card)] || rank(card)) + SUIT_SYMBOLS[suit(card)];
+    return GK.t(RANK_LABELS[rank(card)] || rank(card)) + SUIT_SYMBOLS[suit(card)];
   }
 
   // HTML für eine Karte. hidden = verdeckt; extraClass z. B. 'small' oder 'deal-in'; style z. B. eine Verzögerung
@@ -41,7 +48,7 @@ window.GK = window.GK || {};
     const styleAttr = style ? ` style="${style}"` : '';
     if (hidden || !card) return `<div class="card card-back ${extraClass}"${styleAttr}></div>`;
     const red = suit(card) === 'H' || suit(card) === 'D';
-    const r = RANK_LABELS[rank(card)] || rank(card);
+    const r = GK.t(RANK_LABELS[rank(card)] || rank(card));
     const s = SUIT_SYMBOLS[suit(card)];
     return `<div class="card ${red ? 'red' : ''} ${extraClass}"${styleAttr}>
       <span class="card-corner">${r}<br>${s}</span>

@@ -5,6 +5,69 @@
 // - Offline-Einnahmen, während das Spiel geschlossen ist
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  // Boni
+  'Goldrausch': 'Gold Rush',
+  'Klickfieber': 'Click Fever',
+  'Glückssträhne': 'Lucky Streak',
+  'Einkommen ×7': 'Income ×7',
+  'Klickkraft ×25': 'Click power ×25',
+  'Casino-Gewinne': 'Casino wins',
+  // Offene Runden, die eine große Fahrt blockieren
+  'Spiele zuerst deine Blackjack-Runde zu Ende.': 'Finish your blackjack round first.',
+  'Nimm zuerst deine Roulette-Chips vom Tisch.': 'Take your roulette chips off the table first.',
+  'Warte, bis die Walzen stehen.': 'Wait until the reels stop.',
+  'Rubble zuerst dein Los auf.': 'Scratch your card first.',
+  'Beende zuerst dein Poker-Turnier.': 'Finish your poker tournament first.',
+  'Verlasse zuerst deinen Poker-Raum.': 'Leave your poker room first.',
+  'Beende zuerst dein Spiel mit Freunden bzw. gegen Computer.': 'Finish your game with friends or vs. the computer first.',
+  'Beende zuerst deine Schatzsuche.': 'Finish your treasure hunt first.',
+  'Halte zuerst deine Stoppuhr an.': 'Stop your stopwatch first.',
+  'Warte, bis die Kanonenkugel gelandet ist.': 'Wait until the cannonball has landed.',
+  'Warte, bis deine Runde vorbei ist.': 'Wait until your round is over.',
+  'Warte, bis dein Flugzeug gelandet ist.': 'Wait until your plane has landed.',
+  'Verkaufe zuerst deine Aktien an der Hafenbörse.': 'Sell your stocks on the harbor exchange first.',
+  'Warte, bis alle Münzen gefallen sind.': 'Wait until all coins have dropped.',
+  'Spiel zuerst deine Freispiele bzw. die Bonusrunde zu Ende.': 'Finish your free spins or bonus round first.',
+  // Große Fahrt
+  'Schatzkarte': 'treasure map',
+  'Schatzkarten': 'treasure maps',
+  'Auf große Fahrt gehen?\n\nDu verlierst deine {money} Dublonen, alle Gebäude und Upgrades.\nDafür bekommst du {n} {maps}: +{pct} % Einkommen für immer.\n\nErfolge, VIP-Karte, Cosmetics, Flotte und Casino-Statistik bleiben erhalten.':
+    'Go on a great voyage?\n\nYou lose your {money} doubloons, all buildings and upgrades.\nIn return you get {n} {maps}: +{pct}% income forever.\n\nAchievements, VIP card, cosmetics, fleet and casino stats are kept.',
+  '\n\nDanach darfst du am Glücksrad der Schatzkammer drehen!': "\n\nAfterwards you get to spin the treasure vault's wheel of fortune!",
+  '<b>Leinen los!</b><br>{n} neue {maps} – dein Einkommen ist jetzt dauerhaft ×{mult}.':
+    '<b>Cast off!</b><br>{n} new {maps} – your income is now permanently ×{mult}.',
+  // Offline-Einnahmen
+  '<b>Willkommen zurück!</b><br>Während du {dur} weg warst, haben deine Gebäude {amount} verdient{max}.':
+    '<b>Welcome back!</b><br>While you were away for {dur}, your buildings earned {amount}{max}.',
+  ' (höchstens 8 Stunden)': ' (at most 8 hours)',
+  // Goldene Dublone
+  'Goldene Dublone – schnell klicken!': 'Golden doubloon – click quick!',
+  '<b>Schatzfund!</b><br>+{amount}': '<b>Treasure found!</b><br>+{amount}',
+  'Casino-Gewinne +{pct} % für {sec} Sekunden': 'Casino wins +{pct}% for {sec} seconds',
+  '{desc} für {sec} Sekunden': '{desc} for {sec} seconds',
+  // Fortschritt-Tab
+  'Bonus durch Schatzkarten': 'Bonus from treasure maps',
+  'Große Fahrten': 'Great voyages',
+  'Insgesamt verdient': 'Total earned',
+  'Nächste Schatzkarte ab': 'Next treasure map at',
+  'Auf große Fahrt gehen (+{n} {maps})': 'Go on a great voyage (+{n} {maps})',
+  'Auf große Fahrt gehen': 'Go on a great voyage',
+  'Verdiene insgesamt mehr Dublonen, um deine erste bzw. nächste Schatzkarte zu bekommen.':
+    'Earn more doubloons in total to get your first or next treasure map.',
+  'Erfolge ({n})': 'Achievements ({n})',
+  'Schätze der Flotte': 'Fleet treasures',
+  'Gesamt-Bonus Einkommen': 'Total income bonus',
+  'Offline-Einnahmen': 'Offline earnings',
+  '{pct} %, max. 8 Std.': '{pct}%, max. 8 hrs',
+  'Klicks': 'Clicks',
+  'Einkommen': 'Income',
+});
+
 (function () {
   const PRESTIGE_DIVISOR = 1e8;     // 1 Schatzkarte ab 100 Mio., 2 ab 800 Mio., 3 ab 2,7 Mrd. … (Kubikwurzel)
   const PRESTIGE_BONUS = 0.1;       // +10 % Einkommen pro Schatzkarte
@@ -88,22 +151,22 @@ window.GK = window.GK || {};
   // Laufende Casino-Runden würden beim Neustart verloren gehen
   function prestigeBlocker() {
     const g = GK.state.casino.games;
-    if (g.blackjack && g.blackjack.round && !g.blackjack.round.finished) return 'Spiele zuerst deine Blackjack-Runde zu Ende.';
-    if (g.roulette && (g.roulette.pending || Object.keys(g.roulette.bets || {}).length)) return 'Nimm zuerst deine Roulette-Chips vom Tisch.';
-    if ((g.slots && g.slots.pending) || (g.sideSlot && g.sideSlot.pending)) return 'Warte, bis die Walzen stehen.';
-    if (g.scratch && g.scratch.current && !g.scratch.current.settled) return 'Rubble zuerst dein Los auf.';
-    if (g.poker && g.poker.table) return 'Beende zuerst dein Poker-Turnier.';
-    if (g.pokerMp && g.pokerMp.session) return 'Verlasse zuerst deinen Poker-Raum.';
-    if (g.room && g.room.session) return 'Beende zuerst dein Spiel mit Freunden bzw. gegen Computer.';
-    if (g.mines && g.mines.round) return 'Beende zuerst deine Schatzsuche.';
-    if (g.stopwatch && g.stopwatch.round) return 'Halte zuerst deine Stoppuhr an.';
-    if (g.crash && g.crash.round && !g.crash.round.cashed) return 'Warte, bis die Kanonenkugel gelandet ist.';
-    if ((g.wheel && g.wheel.pending) || (g.race && (g.race.pending || Object.keys(g.race.bets || {}).length))) return 'Warte, bis deine Runde vorbei ist.';
-    if (g.flight && g.flight.pending) return 'Warte, bis dein Flugzeug gelandet ist.';
-    if (g.stocks && g.stocks.holdings && Object.keys(g.stocks.holdings).length) return 'Verkaufe zuerst deine Aktien an der Hafenbörse.';
-    if (g.plinko && ((g.plinko.pending && g.plinko.pending.length) || g.plinko.mass)) return 'Warte, bis alle Münzen gefallen sind.';
+    if (g.blackjack && g.blackjack.round && !g.blackjack.round.finished) return GK.t('Spiele zuerst deine Blackjack-Runde zu Ende.');
+    if (g.roulette && (g.roulette.pending || Object.keys(g.roulette.bets || {}).length)) return GK.t('Nimm zuerst deine Roulette-Chips vom Tisch.');
+    if ((g.slots && g.slots.pending) || (g.sideSlot && g.sideSlot.pending)) return GK.t('Warte, bis die Walzen stehen.');
+    if (g.scratch && g.scratch.current && !g.scratch.current.settled) return GK.t('Rubble zuerst dein Los auf.');
+    if (g.poker && g.poker.table) return GK.t('Beende zuerst dein Poker-Turnier.');
+    if (g.pokerMp && g.pokerMp.session) return GK.t('Verlasse zuerst deinen Poker-Raum.');
+    if (g.room && g.room.session) return GK.t('Beende zuerst dein Spiel mit Freunden bzw. gegen Computer.');
+    if (g.mines && g.mines.round) return GK.t('Beende zuerst deine Schatzsuche.');
+    if (g.stopwatch && g.stopwatch.round) return GK.t('Halte zuerst deine Stoppuhr an.');
+    if (g.crash && g.crash.round && !g.crash.round.cashed) return GK.t('Warte, bis die Kanonenkugel gelandet ist.');
+    if ((g.wheel && g.wheel.pending) || (g.race && (g.race.pending || Object.keys(g.race.bets || {}).length))) return GK.t('Warte, bis deine Runde vorbei ist.');
+    if (g.flight && g.flight.pending) return GK.t('Warte, bis dein Flugzeug gelandet ist.');
+    if (g.stocks && g.stocks.holdings && Object.keys(g.stocks.holdings).length) return GK.t('Verkaufe zuerst deine Aktien an der Hafenbörse.');
+    if (g.plinko && ((g.plinko.pending && g.plinko.pending.length) || g.plinko.mass)) return GK.t('Warte, bis alle Münzen gefallen sind.');
     const vs = ['vsPirate', 'vsOcean', 'vsVolcano'].map(id => g[id]).filter(Boolean);
-    if (vs.some(x => x.pending || x.free || x.bonus)) return 'Spiel zuerst deine Freispiele bzw. die Bonusrunde zu Ende.';
+    if (vs.some(x => x.pending || x.free || x.bonus)) return GK.t('Spiel zuerst deine Freispiele bzw. die Bonusrunde zu Ende.');
     return '';
   }
 
@@ -116,10 +179,9 @@ window.GK = window.GK || {};
       return;
     }
     const s = GK.state;
-    const text = `Auf große Fahrt gehen?\n\nDu verlierst deine ${GK.formatNumber(s.money)} Dublonen, alle Gebäude und Upgrades.\n` +
-      `Dafür bekommst du ${gain} Schatzkarte${gain === 1 ? '' : 'n'}: +${gain * PRESTIGE_BONUS * 100} % Einkommen für immer.\n\n` +
-      'Erfolge, VIP-Karte, Cosmetics, Flotte und Casino-Statistik bleiben erhalten.' +
-      (GK.cosmetics.unownedCount() ? '\n\nDanach darfst du am Glücksrad der Schatzkammer drehen!' : '');
+    const text = GK.t('Auf große Fahrt gehen?\n\nDu verlierst deine {money} Dublonen, alle Gebäude und Upgrades.\nDafür bekommst du {n} {maps}: +{pct} % Einkommen für immer.\n\nErfolge, VIP-Karte, Cosmetics, Flotte und Casino-Statistik bleiben erhalten.',
+      { money: GK.formatNumber(s.money), n: gain, maps: GK.t(gain === 1 ? 'Schatzkarte' : 'Schatzkarten'), pct: gain * PRESTIGE_BONUS * 100 }) +
+      (GK.cosmetics.unownedCount() ? GK.t('\n\nDanach darfst du am Glücksrad der Schatzkammer drehen!') : '');
     if (!confirm(text)) return;
     s.prestige.points += gain;
     s.prestige.journeys++;
@@ -134,7 +196,7 @@ window.GK = window.GK || {};
     GK.sound.play('jackpot');
     GK.fx.confetti(200);
     GK.fx.coinRain(2, 40);
-    GK.notify(`<span class="notify-icon">${ic('sailboat')}</span><span><b>Leinen los!</b><br>${gain} neue Schatzkarte${gain === 1 ? '' : 'n'} – dein Einkommen ist jetzt dauerhaft ×${formatMult(prestigeMult())}.</span>`);
+    GK.notify(`<span class="notify-icon">${ic('sailboat')}</span><span>${GK.t('<b>Leinen los!</b><br>{n} neue {maps} – dein Einkommen ist jetzt dauerhaft ×{mult}.', { n: gain, maps: GK.t(gain === 1 ? 'Schatzkarte' : 'Schatzkarten'), mult: formatMult(prestigeMult()) })}</span>`);
     GK.cosmetics.journeyReward();
   }
 
@@ -152,9 +214,7 @@ window.GK = window.GK || {};
     const amount = GK.clicker.getCpsPermanent() * counted * OFFLINE_RATE;
     if (amount < 1) return;
     GK.earn(amount, 'passive');
-    GK.notify(`<span class="notify-icon">${ic('moon')}</span><span><b>Willkommen zurück!</b><br>Während du ${GK.formatDuration(seconds)} weg warst, ` +
-      `haben deine Gebäude ${GK.formatMoneyHTML(amount)} verdient` +
-      `${seconds > OFFLINE_MAX ? ' (höchstens 8 Stunden)' : ''}.</span>`, 8000);
+    GK.notify(`<span class="notify-icon">${ic('moon')}</span><span>${GK.t('<b>Willkommen zurück!</b><br>Während du {dur} weg warst, haben deine Gebäude {amount} verdient{max}.', { dur: GK.formatDuration(seconds), amount: GK.formatMoneyHTML(amount), max: seconds > OFFLINE_MAX ? GK.t(' (höchstens 8 Stunden)') : '' })}</span>`, 8000);
   }
 
   // ---------- Goldene Dublone ----------
@@ -172,7 +232,7 @@ window.GK = window.GK || {};
   function spawnGolden() {
     const el = document.createElement('button');
     el.className = 'golden-coin';
-    el.setAttribute('aria-label', 'Goldene Dublone – schnell klicken!');
+    el.setAttribute('aria-label', GK.t('Goldene Dublone – schnell klicken!'));
     el.innerHTML = '<span>D</span>';
     const margin = 80;
     el.style.left = margin / 2 + GK.rng.int(Math.max(1, window.innerWidth - margin * 1.5)) + 'px';
@@ -204,7 +264,7 @@ window.GK = window.GK || {};
         GK.clicker.getClickPower() * 30);
       GK.earn(amount, 'passive');
       GK.fx.floatText(pos.x, pos.y, '+' + GK.formatMoneyHTML(amount), 'win big');
-      text = `<b>Schatzfund!</b><br>+${GK.formatMoneyHTML(amount)}`;
+      text = GK.t('<b>Schatzfund!</b><br>+{amount}', { amount: GK.formatMoneyHTML(amount) });
     } else {
       const id = roll < 0.75 ? 'goldrush' : roll < 0.87 ? 'clickfever' : 'luck';
       // Glückssträhne: 30 bis 50 % (in 5er-Schritten)
@@ -212,10 +272,10 @@ window.GK = window.GK || {};
       addBuff(id, mult);
       const b = BUFFS[id];
       if (id === 'goldrush') GK.fx.coinRain(1.5, 25);
-      GK.fx.floatText(pos.x, pos.y, `${b.icon} ${b.name}!`, 'win big');
+      GK.fx.floatText(pos.x, pos.y, `${b.icon} ${GK.t(b.name)}!`, 'win big');
       text = id === 'luck'
-        ? `<b>${b.icon} ${b.name}!</b><br>Casino-Gewinne +${Math.round((mult - 1) * 100)} % für ${b.seconds} Sekunden`
-        : `<b>${b.icon} ${b.name}!</b><br>${b.desc} für ${b.seconds} Sekunden`;
+        ? `<b>${b.icon} ${GK.t(b.name)}!</b><br>${GK.t('Casino-Gewinne +{pct} % für {sec} Sekunden', { pct: Math.round((mult - 1) * 100), sec: b.seconds })}`
+        : `<b>${b.icon} ${GK.t(b.name)}!</b><br>${GK.t('{desc} für {sec} Sekunden', { desc: GK.t(b.desc), sec: b.seconds })}`;
     }
     GK.notify(`<span class="notify-icon">${ic('sparkle')}</span><span>${text}</span>`);
     GK.save();
@@ -236,7 +296,7 @@ window.GK = window.GK || {};
     }
     buffs.forEach((b, i) => {
       const def = BUFFS[b.id];
-      GK.setHTML(bar.children[i], `${ic(def.ic)}${def.name} ${buffEffect(b)} · ${Math.ceil((b.until - now) / 1000)} s`);
+      GK.setHTML(bar.children[i], `${ic(def.ic)}${GK.t(def.name)} ${buffEffect(b)} · ${Math.ceil((b.until - now) / 1000)} s`);
     });
   }
 
@@ -245,26 +305,26 @@ window.GK = window.GK || {};
     const gain = pendingPoints();
     const blocker = prestigeBlocker();
     GK.setHTML(document.getElementById('prestige-stats'), `
-      <dt>Schatzkarten</dt><dd>${ic('map')} ${GK.formatNumber(s.prestige.points)}</dd>
-      <dt>Bonus durch Schatzkarten</dt><dd>+${GK.formatNumber(s.prestige.points * PRESTIGE_BONUS * 100)} %</dd>
-      <dt>Große Fahrten</dt><dd>${GK.formatNumber(s.prestige.journeys)}</dd>
-      <dt>Insgesamt verdient</dt><dd>${GK.formatMoneyHTML(s.allTimeEarned)}</dd>
-      <dt>Nächste Schatzkarte ab</dt><dd>${GK.formatMoneyHTML(nextPointAt())}</dd>`);
+      <dt>${GK.t('Schatzkarten')}</dt><dd>${ic('map')} ${GK.formatNumber(s.prestige.points)}</dd>
+      <dt>${GK.t('Bonus durch Schatzkarten')}</dt><dd>+${GK.formatNumber(s.prestige.points * PRESTIGE_BONUS * 100)} %</dd>
+      <dt>${GK.t('Große Fahrten')}</dt><dd>${GK.formatNumber(s.prestige.journeys)}</dd>
+      <dt>${GK.t('Insgesamt verdient')}</dt><dd>${GK.formatMoneyHTML(s.allTimeEarned)}</dd>
+      <dt>${GK.t('Nächste Schatzkarte ab')}</dt><dd>${GK.formatMoneyHTML(nextPointAt())}</dd>`);
     const btn = document.getElementById('prestige-btn');
     btn.disabled = gain < 1 || !!blocker;
-    GK.setHTML(btn, ic('sailboat') + (gain >= 1 ? `Auf große Fahrt gehen (+${gain} Schatzkarte${gain === 1 ? '' : 'n'})` : 'Auf große Fahrt gehen'));
+    GK.setHTML(btn, ic('sailboat') + (gain >= 1 ? GK.t('Auf große Fahrt gehen (+{n} {maps})', { n: gain, maps: GK.t(gain === 1 ? 'Schatzkarte' : 'Schatzkarten') }) : GK.t('Auf große Fahrt gehen')));
     GK.setText(document.getElementById('prestige-hint'), gain < 1
-      ? 'Verdiene insgesamt mehr Dublonen, um deine erste bzw. nächste Schatzkarte zu bekommen.'
+      ? GK.t('Verdiene insgesamt mehr Dublonen, um deine erste bzw. nächste Schatzkarte zu bekommen.')
       : blocker);
 
     const buffs = activeBuffs();
     GK.setHTML(document.getElementById('bonus-stats'), `
-      <dt>${ic('map')}Schatzkarten</dt><dd>×${formatMult(prestigeMult())}</dd>
-      <dt>${ic('trophy')}Erfolge (${s.achievements.length})</dt><dd>×${formatMult(achievementMult())}</dd>
-      ${fleetMult() > 1 ? `<dt>${ic('gem')}Schätze der Flotte</dt><dd>×${formatMult(fleetMult())}</dd>` : ''}
-      ${buffs.map(b => `<dt>${ic(BUFFS[b.id].ic)}${BUFFS[b.id].name}</dt><dd>${buffEffect(b)} (${{ click: 'Klicks', income: 'Einkommen', luck: 'Casino-Gewinne' }[b.type]})</dd>`).join('')}
-      <dt>Gesamt-Bonus Einkommen</dt><dd>×${formatMult(permanentMult() * buffMult('income'))}</dd>
-      <dt>Offline-Einnahmen</dt><dd>${OFFLINE_RATE * 100} %, max. 8 Std.</dd>`);
+      <dt>${ic('map')}${GK.t('Schatzkarten')}</dt><dd>×${formatMult(prestigeMult())}</dd>
+      <dt>${ic('trophy')}${GK.t('Erfolge ({n})', { n: s.achievements.length })}</dt><dd>×${formatMult(achievementMult())}</dd>
+      ${fleetMult() > 1 ? `<dt>${ic('gem')}${GK.t('Schätze der Flotte')}</dt><dd>×${formatMult(fleetMult())}</dd>` : ''}
+      ${buffs.map(b => `<dt>${ic(BUFFS[b.id].ic)}${GK.t(BUFFS[b.id].name)}</dt><dd>${buffEffect(b)} (${{ click: GK.t('Klicks'), income: GK.t('Einkommen'), luck: GK.t('Casino-Gewinne') }[b.type]})</dd>`).join('')}
+      <dt>${GK.t('Gesamt-Bonus Einkommen')}</dt><dd>×${formatMult(permanentMult() * buffMult('income'))}</dd>
+      <dt>${GK.t('Offline-Einnahmen')}</dt><dd>${GK.t('{pct} %, max. 8 Std.', { pct: OFFLINE_RATE * 100 })}</dd>`);
     if (GK.rank) GK.rank.render();
   }
 

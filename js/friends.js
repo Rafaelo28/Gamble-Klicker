@@ -3,6 +3,54 @@
 // mit dem Stand vom letzten gemeinsamen Spiel. Es wird nichts ins Internet hochgeladen.
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  // Ranglisten
+  'Vermögen mit Gebäuden': 'Wealth with buildings',
+  'Rang': 'Rank',
+  'Boss-Stufe': 'Boss level',
+  'Casino-Bilanz': 'Casino balance',
+  'Größter Gewinn': 'Biggest win',
+  'Verlust in % vom Einkommen': 'Loss in % of income',
+  'Klicks': 'Clicks',
+  'Multiplikator': 'Multiplier',
+  'Guthaben': 'Balance',
+  'Insgesamt verdient': 'Total earned',
+  'Größter Verlust': 'Biggest loss',
+  'Bester Treffer': 'Best hit',
+  'Siege mit Freunden': 'Wins with friends',
+  'Erfolge': 'Achievements',
+  // Erklärungen unter der Liste
+  'Guthaben plus das, was deine Gebäude gekostet haben.': 'Balance plus what your buildings have cost.',
+  'Alle Auszahlungen minus alle Einsätze im Casino.': 'All payouts minus all bets in the casino.',
+  'Größter Gewinn in einer einzigen Runde.': 'Biggest win in a single round.',
+  'Größter Verlust in einer Runde im Vergleich zum Einkommen pro Sekunde (ohne Goldrausch): 500 % heißt, die Runde hat so viel gekostet wie 5 Sekunden Einkommen.':
+    'Biggest loss in a round compared to income per second (without gold rush): 500% means the round cost as much as 5 seconds of income.',
+  'Dauerhafter Einkommens-Bonus aus Schatzkarten, Erfolgen und Schätzen der Flotte.':
+    'Permanent income bonus from treasure maps, achievements and fleet treasures.',
+  'Je 1.000-mal mehr insgesamt verdient, ein Rang höher.': 'For every 1,000× more total earned, one rank higher.',
+  'Höchste besiegte Stufe im Bosskampf (⚓ Abenteuer).': 'Highest level defeated in the boss fight (⚓ Adventure).',
+  // Auswahl und Liste
+  'Spiel': 'Game',
+  'Gesamt': 'Total',
+  'Rangliste': 'Leaderboard',
+  'Du': 'You',
+  'Stand: {t}': 'As of: {t}',
+  'Entfernen': 'Remove',
+  'Aus der Rangliste entfernen': 'Remove from leaderboard',
+  'gerade eben': 'just now',
+  'vor {d}': '{d} ago',
+  '{name} aus der Freundes-Rangliste entfernen? Spielt ihr wieder zusammen, taucht er oder sie wieder auf.':
+    'Remove {name} from the friends leaderboard? If you play together again, they will reappear.',
+  'Noch keine Freunde in der Rangliste. Spielt zusammen in einem Raum (<b>Spiele mit Freunden</b> oder <b>Poker mit Freunden</b>) – dann tauschen eure Spiele die Rekorde automatisch aus.':
+    'No friends on the leaderboard yet. Play together in a room (<b>Games with Friends</b> or <b>Poker with Friends</b>) – then your games exchange the records automatically.',
+  'Die Werte deiner Freunde stammen vom letzten gemeinsamen Spiel. Jeder sieht nur die Freunde, mit denen er selbst zusammen gespielt hat.':
+    'Your friends\' values come from the last game you played together. Everyone only sees the friends they have played with themselves.',
+});
+
 (function () {
   // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
@@ -162,7 +210,7 @@ window.GK = window.GK || {};
 
   function forget(id) {
     const f = GK.state.friends[id];
-    if (!f || !confirm(`${f.name} aus der Freundes-Rangliste entfernen? Spielt ihr wieder zusammen, taucht er oder sie wieder auf.`)) return;
+    if (!f || !confirm(GK.t('{name} aus der Freundes-Rangliste entfernen? Spielt ihr wieder zusammen, taucht er oder sie wieder auf.', { name: f.name }))) return;
     delete GK.state.friends[id];
     version++;
     GK.save();
@@ -198,20 +246,20 @@ window.GK = window.GK || {};
     const current = game ? gameBoard : board;
     const ids = gameIds();
     return `
-      <select class="bet-input fb-game" aria-label="Spiel">
-        <option value="">🌍 Gesamt</option>
+      <select class="bet-input fb-game" aria-label="${GK.t('Spiel')}">
+        <option value="">🌍 ${GK.t('Gesamt')}</option>
         ${ids.map(id => `<option value="${id}" ${id === game ? 'selected' : ''}>${GK.casino.gameName(id)}</option>`).join('')}
       </select>
-      <div class="fb-boards" role="group" aria-label="Rangliste">
-        ${boards.map(x => `<button type="button" class="btn btn-small fb-board ${x.id === current ? 'active' : ''}" data-board="${x.id}">${x.icon} ${x.name}</button>`).join('')}
+      <div class="fb-boards" role="group" aria-label="${GK.t('Rangliste')}">
+        ${boards.map(x => `<button type="button" class="btn btn-small fb-board ${x.id === current ? 'active' : ''}" data-board="${x.id}">${x.icon} ${GK.t(x.name)}</button>`).join('')}
       </div>
-      ${!game && HINTS[current] ? `<p class="muted small fb-hint">${HINTS[current]}</p>` : ''}`;
+      ${!game && HINTS[current] ? `<p class="muted small fb-hint">${GK.t(HINTS[current])}</p>` : ''}`;
   }
 
   // „Stand vor …“ auf Minuten gerundet, damit sich die Liste nicht jede Sekunde ändert
   function ago(t) {
     const minutes = Math.floor((Date.now() - t) / 60000);
-    return minutes < 1 ? 'gerade eben' : `vor ${GK.formatDuration(minutes * 60)}`;
+    return minutes < 1 ? GK.t('gerade eben') : GK.t('vor {d}', { d: GK.formatDuration(minutes * 60) });
   }
 
   function listHtml() {
@@ -229,16 +277,15 @@ window.GK = window.GK || {};
       const medal = v != null && place <= 3 ? ['🥇', '🥈', '🥉'][place - 1] : `${place}.`;
       return `<li class="${r.me ? 'me' : ''}">
         <span class="fb-place">${medal}</span>
-        <span class="fb-name">${GK.cosmetics.nameTag(r)}${r.me ? ' <span class="mp-tag">Du</span>' : ''}
-          ${r.me ? '' : `<span class="muted small fb-seen">Stand: ${ago(r.t)}</span>`}</span>
+        <span class="fb-name">${GK.cosmetics.nameTag(r)}${r.me ? ` <span class="mp-tag">${GK.t('Du')}</span>` : ''}
+          ${r.me ? '' : `<span class="muted small fb-seen">${GK.t('Stand: {t}', { t: ago(r.t) })}</span>`}</span>
         <span class="fb-value">${formatValue(v, b)}</span>
-        ${r.me ? '<span class="fb-remove"></span>' : `<button type="button" class="fb-remove" data-id="${r.id}" aria-label="Entfernen" title="Aus der Rangliste entfernen">${ic('close')}</button>`}
+        ${r.me ? '<span class="fb-remove"></span>' : `<button type="button" class="fb-remove" data-id="${r.id}" aria-label="${GK.t('Entfernen')}" title="${GK.t('Aus der Rangliste entfernen')}">${ic('close')}</button>`}
       </li>`;
     }).join('');
   }
 
-  const EMPTY_HTML = `<p class="muted">Noch keine Freunde in der Rangliste. Spielt zusammen in einem Raum (<b>Spiele mit Freunden</b>
-    oder <b>Poker mit Freunden</b>) – dann tauschen eure Spiele die Rekorde automatisch aus.</p>`;
+  const emptyHtml = () => `<p class="muted">${GK.t('Noch keine Freunde in der Rangliste. Spielt zusammen in einem Raum (<b>Spiele mit Freunden</b> oder <b>Poker mit Freunden</b>) – dann tauschen eure Spiele die Rekorde automatisch aus.')}</p>`;
 
   // Ein Klick-Empfänger je Rangliste – überlebt das Neuzeichnen der Liste
   function bind(el) {
@@ -276,17 +323,17 @@ window.GK = window.GK || {};
         el._fbControls = el._fbList = null;
       }
       if (empty) {
-        if (el._fbControls !== EMPTY_HTML) {
-          el.innerHTML = EMPTY_HTML;
-          el._fbControls = EMPTY_HTML;
+        const emptyMsg = emptyHtml();
+        if (el._fbControls !== emptyMsg) {
+          el.innerHTML = emptyMsg;
+          el._fbControls = emptyMsg;
           el._fbList = null;
         }
         return;
       }
       if (!el.querySelector('.fb-list')) {
         el.innerHTML = `<div class="fb-controls"></div><ol class="fb-list"></ol>
-          <p class="muted small">Die Werte deiner Freunde stammen vom letzten gemeinsamen Spiel. Jeder sieht nur die Freunde,
-          mit denen er selbst zusammen gespielt hat.</p>`;
+          <p class="muted small">${GK.t('Die Werte deiner Freunde stammen vom letzten gemeinsamen Spiel. Jeder sieht nur die Freunde, mit denen er selbst zusammen gespielt hat.')}</p>`;
         el._fbControls = el._fbList = null;
       }
       if (controls == null) controls = controlsHtml();

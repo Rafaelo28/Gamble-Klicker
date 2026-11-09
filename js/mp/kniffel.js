@@ -4,6 +4,52 @@
 // Sitzreihenfolge. Läuft gegen Computer und online mit Freunden (siehe room.js).
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Kniffel': 'Yahtzee',
+  'Würfeln, halten, eintragen – wer schafft die meisten Punkte?': 'Roll, hold, score – who gets the most points?',
+  '<p class="muted"><b>So geht\'s:</b> Du hast pro Zug bis zu drei Würfe. Tippe Würfel an, um sie zu halten,\n      und würfle die anderen neu. Danach trägst du das Ergebnis in ein freies Feld deines Spielblocks ein – passt\n      nichts, streichst du ein Feld mit 0. Beim vollen Block gibt es <b>35 Bonuspunkte</b>, wenn die obere Hälfte\n      mindestens 63 Punkte hat. Wer am Ende die meisten Punkte hat, gewinnt.</p>':
+    '<p class="muted"><b>How it works:</b> You have up to three rolls per turn. Tap dice to hold them,\n      and reroll the others. Then record the result in a free field of your scorecard – if nothing fits,\n      cross out a field with 0. On the full card there are <b>35 bonus points</b> when the upper half\n      has at least 63 points. Whoever has the most points at the end wins.</p>',
+  'Spielblock': 'Scorecard',
+  'Voller Block (13 Felder)': 'Full card (13 fields)',
+  'Schnell (7 Felder)': 'Quick (7 fields)',
+  'Voller Block': 'Full card',
+  'Einser': 'Ones', 'Zweier': 'Twos', 'Dreier': 'Threes', 'Vierer': 'Fours', 'Fünfer': 'Fives', 'Sechser': 'Sixes',
+  'Dreierpasch': 'Three of a kind', 'Viererpasch': 'Four of a kind', 'Full House': 'Full House',
+  'Kleine Straße': 'Small straight', 'Große Straße': 'Large straight', 'Chance': 'Chance',
+  'drei gleiche – alle Augen': 'three alike – all pips',
+  'vier gleiche – alle Augen': 'four alike – all pips',
+  'drei + zwei gleiche – 25': 'three + two alike – 25',
+  'vier in Folge – 30': 'four in a row – 30',
+  'fünf in Folge – 40': 'five in a row – 40',
+  'fünf gleiche – 50': 'five alike – 50',
+  'alle Augen': 'all pips',
+  'Spielverlauf': 'Game log',
+  '{name} gewinnt mit {pts} Punkten!': '{name} wins with {pts} points!',
+  'Spiel vorbei': 'Game over',
+  'Du bist dran!': "You're up!",
+  'Würfle los.': 'Start rolling.',
+  'Noch {n}× würfeln – tippe Würfel an, um sie zu halten.': '{n} more roll(s) – tap dice to hold them.',
+  'Trag dein Ergebnis ein.': 'Record your result.',
+  '{name} ist dran{extra} …': '{name} is up{extra} …',
+  ' (noch {n}× würfeln)': ' ({n} roll(s) left)',
+  'Würfel {n}': 'Die {n}',
+  ', gehalten': ', held',
+  'gehalten': 'held',
+  'Würfeln': 'Roll',
+  ' (noch {n}×)': ' ({n} left)',
+  '{n} Punkte': '{n} points',
+  'streichen (0)': 'cross out (0)',
+  'Feld im Block wählen': 'Pick a field on the card',
+  'Du': 'You',
+  'Obere Hälfte': 'Upper half',
+  'Bonus (+{n})': 'Bonus (+{n})',
+  'Gesamt': 'Total',
+});
+
 (function () {
   // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
@@ -298,7 +344,7 @@ window.GK = window.GK || {};
             <div class="kf-actions"></div>
           </div>
           <div class="kf-sheet-wrap"><table class="kf-sheet"></table></div>
-          <details class="poker-log kf-log"><summary>Spielverlauf</summary><ul></ul></details>
+          <details class="poker-log kf-log"><summary>${GK.t('Spielverlauf')}</summary><ul></ul></details>
         </div>`;
       container._lastRoll = null;
       container._lastScore = null;
@@ -340,16 +386,16 @@ window.GK = window.GK || {};
     // Wer ist dran?
     const current = v.turn >= 0 ? v.players[v.turn] : null;
     setHtml(container.querySelector('.kf-turn'), v.phase === 'finished'
-      ? (() => { const w = v.players.find(p => p.place === 1); return w ? `${ic('trophy')} ${GK.cosmetics.nameTag(w)} gewinnt mit ${totals(v, w).total} Punkten!` : 'Spiel vorbei'; })()
-      : myTurn ? `<b>Du bist dran!</b> ${v.rollsLeft === 3 ? 'Würfle los.' : v.rollsLeft ? `Noch ${v.rollsLeft}× würfeln – tippe Würfel an, um sie zu halten.` : 'Trag dein Ergebnis ein.'}`
-        : `${GK.cosmetics.nameTag(current)} ist dran${v.rollsLeft < 3 ? ` (noch ${v.rollsLeft}× würfeln)` : ''} …`);
+      ? (() => { const w = v.players.find(p => p.place === 1); return w ? `${ic('trophy')} ${GK.t('{name} gewinnt mit {pts} Punkten!', { name: GK.cosmetics.nameTag(w), pts: totals(v, w).total })}` : GK.t('Spiel vorbei'); })()
+      : myTurn ? `<b>${GK.t('Du bist dran!')}</b> ${v.rollsLeft === 3 ? GK.t('Würfle los.') : v.rollsLeft ? GK.t('Noch {n}× würfeln – tippe Würfel an, um sie zu halten.', { n: v.rollsLeft }) : GK.t('Trag dein Ergebnis ein.')}`
+        : GK.t('{name} ist dran{extra} …', { name: GK.cosmetics.nameTag(current), extra: v.rollsLeft < 3 ? GK.t(' (noch {n}× würfeln)', { n: v.rollsLeft }) : '' }));
 
     // Würfel (neu gewürfelte rollen herein)
     const fresh = container._lastRoll !== null && container._lastRoll !== v.rolls;
     const diceHtml = v.dice.map((d, i) => {
       const held = v.held[i] && rolled;
-      return `<button type="button" class="kf-die ${held ? 'held' : ''} ${myTurn && rolled && v.rollsLeft > 0 ? 'can' : ''}" data-i="${i}" ${myTurn && rolled && v.rollsLeft > 0 ? '' : 'tabindex="-1"'} aria-label="Würfel ${i + 1}${held ? ', gehalten' : ''}">
-        ${dieHtml(d, fresh && !held ? 'roll' : '')}${held ? '<span class="kf-held">gehalten</span>' : ''}</button>`;
+      return `<button type="button" class="kf-die ${held ? 'held' : ''} ${myTurn && rolled && v.rollsLeft > 0 ? 'can' : ''}" data-i="${i}" ${myTurn && rolled && v.rollsLeft > 0 ? '' : 'tabindex="-1"'} aria-label="${GK.t('Würfel {n}', { n: i + 1 })}${held ? GK.t(', gehalten') : ''}">
+        ${dieHtml(d, fresh && !held ? 'roll' : '')}${held ? `<span class="kf-held">${GK.t('gehalten')}</span>` : ''}</button>`;
     }).join('');
     if (setHtml(container.querySelector('.kf-dice'), diceHtml + `<span class="kf-roll-key" hidden>${v.rolls}</span>`) && fresh) GK.sound.play('deal');
     container._lastRoll = v.rolls;
@@ -358,15 +404,15 @@ window.GK = window.GK || {};
     const pickPts = pick.cat ? score(v.dice, pick.cat) : 0;
     setHtml(container.querySelector('.kf-actions'), myTurn ? `
       <div class="game-actions">
-        <button class="btn btn-primary btn-big kf-roll" ${v.rollsLeft > 0 ? '' : 'disabled'}>${ic('dice')}Würfeln${v.rollsLeft < 3 ? ` (noch ${v.rollsLeft}×)` : ''}</button>
+        <button class="btn btn-primary btn-big kf-roll" ${v.rollsLeft > 0 ? '' : 'disabled'}>${ic('dice')}${GK.t('Würfeln')}${v.rollsLeft < 3 ? GK.t(' (noch {n}×)', { n: v.rollsLeft }) : ''}</button>
         ${rolled ? `<button class="btn btn-big kf-write" ${pick.cat ? '' : 'disabled'}>${pick.cat
-          ? `${ic('pen')}${CATS[pick.cat].name}: ${pickPts ? `${pickPts} Punkte` : 'streichen (0)'}` : `${ic('pen')}Feld im Block wählen`}</button>` : ''}
+          ? `${ic('pen')}${GK.t(CATS[pick.cat].name)}: ${pickPts ? GK.t('{n} Punkte', { n: pickPts }) : GK.t('streichen (0)')}` : `${ic('pen')}${GK.t('Feld im Block wählen')}`}</button>` : ''}
       </div>` : '');
 
     // Spielblock
     const t = v.players.map(p => totals(v, p));
-    const head = `<thead><tr><th></th>${v.players.map((p, i) => `<th class="${i === v.turn ? 'turn' : ''} ${p.out ? 'out' : ''}">${GK.cosmetics.nameTag(p)}${i === ui.mySeat ? ' <span class="mp-tag">Du</span>' : ''}</th>`).join('')}</tr></thead>`;
-    const row = cat => `<tr><th>${CATS[cat].name}${CATS[cat].hint ? `<small>${CATS[cat].hint}</small>` : ''}</th>${v.players.map((p, i) => {
+    const head = `<thead><tr><th></th>${v.players.map((p, i) => `<th class="${i === v.turn ? 'turn' : ''} ${p.out ? 'out' : ''}">${GK.cosmetics.nameTag(p)}${i === ui.mySeat ? ` <span class="mp-tag">${GK.t('Du')}</span>` : ''}</th>`).join('')}</tr></thead>`;
+    const row = cat => `<tr><th>${GK.t(CATS[cat].name)}${CATS[cat].hint ? `<small>${GK.t(CATS[cat].hint)}</small>` : ''}</th>${v.players.map((p, i) => {
       const val = p.sheet[cat];
       if (val != null) {
         const isLast = v.last && v.last.seat === i && v.last.cat === cat;
@@ -382,11 +428,11 @@ window.GK = window.GK || {};
     let body = '';
     if (v.mode === 'full') {
       body += UPPER.map(row).join('');
-      body += sumRow('Obere Hälfte', x => `${x.upper} <small>/ ${BONUS_AT}</small>`);
-      body += sumRow(`Bonus (+${BONUS})`, x => (x.bonus ? `+${x.bonus}` : '–'));
+      body += sumRow(GK.t('Obere Hälfte'), x => `${x.upper} <small>/ ${BONUS_AT}</small>`);
+      body += sumRow(GK.t('Bonus (+{n})', { n: BONUS }), x => (x.bonus ? `+${x.bonus}` : '–'));
     }
     body += LOWER.map(row).join('');
-    body += sumRow('Gesamt', x => `<b>${x.total}</b>`, 'total');
+    body += sumRow(GK.t('Gesamt'), x => `<b>${x.total}</b>`, 'total');
     setHtml(container.querySelector('.kf-sheet'), head + `<tbody>${body}</tbody>`);
     setHtml(container.querySelector('.kf-log ul'), v.log.map(l => `<li>${esc(l)}</li>`).join(''));
 
@@ -409,18 +455,18 @@ window.GK = window.GK || {};
     name: 'Kniffel',
     icon: '🎲',
     desc: 'Würfeln, halten, eintragen – wer schafft die meisten Punkte?',
-    intro: `<p class="muted"><b>So geht's:</b> Du hast pro Zug bis zu drei Würfe. Tippe Würfel an, um sie zu halten,
+    intro: GK.t(`<p class="muted"><b>So geht's:</b> Du hast pro Zug bis zu drei Würfe. Tippe Würfel an, um sie zu halten,
       und würfle die anderen neu. Danach trägst du das Ergebnis in ein freies Feld deines Spielblocks ein – passt
       nichts, streichst du ein Feld mit 0. Beim vollen Block gibt es <b>35 Bonuspunkte</b>, wenn die obere Hälfte
-      mindestens 63 Punkte hat. Wer am Ende die meisten Punkte hat, gewinnt.</p>`,
+      mindestens 63 Punkte hat. Wer am Ende die meisten Punkte hat, gewinnt.</p>`),
     minPlayers: 2,
     maxPlayers: 4,
     bots: true,
     settings: {
       defaults: { mode: 'full' },
-      html: s => `<div class="bet-label">Spielblock</div>
+      html: s => `<div class="bet-label">${GK.t('Spielblock')}</div>
         <div class="room-opts">${[['full', 'Voller Block (13 Felder)'], ['quick', 'Schnell (7 Felder)']].map(([m, label]) =>
-          `<button type="button" class="btn btn-small room-opt ${s.mode === m ? 'active' : ''}" data-mode="${m}">${label}</button>`).join('')}</div>`,
+          `<button type="button" class="btn btn-small room-opt ${s.mode === m ? 'active' : ''}" data-mode="${m}">${GK.t(label)}</button>`).join('')}</div>`,
       bind: (el, changed) => el.querySelectorAll('.room-opt').forEach(btn => btn.addEventListener('click', () => {
         el.querySelectorAll('.room-opt').forEach(b => b.classList.toggle('active', b === btn));
         GK.sound.play('chip');
@@ -428,7 +474,7 @@ window.GK = window.GK || {};
       })),
       read: el => ({ mode: ((el.querySelector('.room-opt.active') || {}).dataset || {}).mode === 'quick' ? 'quick' : 'full' }),
     },
-    settingsText: s => (s.mode === 'quick' ? 'Schnell (7 Felder)' : 'Voller Block'),
+    settingsText: s => (s.mode === 'quick' ? GK.t('Schnell (7 Felder)') : GK.t('Voller Block')),
     create,
     actor: st => (st.phase === 'turn' ? st.turn : -1),
     act,

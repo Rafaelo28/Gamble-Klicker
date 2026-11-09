@@ -3,6 +3,34 @@
 // Das Ergebnis steht beim Start fest und wird sofort gespeichert – Neuladen zahlt trotzdem aus.
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Nicht genug Dublonen für diesen Einsatz.': 'Not enough Doubloons for this bet.',
+  '🎁 Gratis-Dreh – viel Glück!': '🎁 Free spin – good luck!',
+  'Das Rad dreht sich …': 'The wheel is spinning …',
+  '⭐ BONUSRAD! ⭐': '⭐ BONUS WHEEL! ⭐',
+  '🎁 Gratis-Dreh: {text} – du bekommst {amt}!': '🎁 Free spin: {text} – you get {amt}!',
+  '🎁 Trostpreis: {amt}. Morgen gibt es den nächsten Gratis-Dreh!': '🎁 Consolation prize: {amt}. Your next free spin is tomorrow!',
+  '{text} – Gewinn: {amt}': '{text} – win: {amt}',
+  '{text} – Einsatz zurück': '{text} – bet back',
+  '☠️ Leider nichts – dreh noch einmal!': '☠️ Nothing this time – spin again!',
+  'Gratis-Dreh (Wert {amt})': 'Free spin (worth {amt})',
+  'Gratis-Dreh: morgen wieder': 'Free spin: back tomorrow',
+  'Drehen': 'Spin',
+  'Felder': 'Segments',
+  'Einsatz zurück': 'bet back',
+  'Bonusrad:': 'Bonus wheel:',
+  '= leider nichts. Größere Felder werden öfter getroffen. Einmal am Tag gibt es einen Gratis-Dreh – ohne Einsatz.': '= nothing, unfortunately. Bigger segments are hit more often. Once a day there is a free spin – no bet needed.',
+  'Noch nicht gedreht.': 'No spins yet.',
+  'Setz deinen Einsatz und dreh das Rad!': 'Place your bet and spin the wheel!',
+  // Spiel-Name und -Beschreibung (für die Lobby)
+  'Glücksrad': 'Wheel of Fortune',
+  'Dreh das Rad – der Stern startet das Bonusrad. Täglich gratis!': 'Spin the wheel – the star starts the bonus wheel. Free daily!',
+});
+
 (function () {
   // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
@@ -97,7 +125,7 @@ window.GK = window.GK || {};
       s.lastFree = today();
     } else if (!GK.casino.bet(bet)) {
       GK.sound.play('denied');
-      showMessage('Nicht genug Dublonen für diesen Einsatz.', 'loss');
+      showMessage(GK.t('Nicht genug Dublonen für diesen Einsatz.'), 'loss');
       return;
     }
     const index = pickSegment();
@@ -110,7 +138,7 @@ window.GK = window.GK || {};
     GK.save();
 
     spinning = true;
-    showMessage(free ? '🎁 Gratis-Dreh – viel Glück!' : 'Das Rad dreht sich …', '');
+    showMessage(free ? GK.t('🎁 Gratis-Dreh – viel Glück!') : GK.t('Das Rad dreht sich …'), '');
     updateButtons();
     drawWheel(SEGMENTS);
     const range = segmentRange(SEGMENTS, index);
@@ -123,7 +151,7 @@ window.GK = window.GK || {};
       }
       // ⭐ getroffen: weiter zum Bonusrad
       GK.sound.play('bonus');
-      showMessage('⭐ BONUSRAD! ⭐', 'win');
+      showMessage(GK.t('⭐ BONUSRAD! ⭐'), 'win');
       GK.fx.pulse(els.wrap, 'wheel-bonus-flash');
       const pos = GK.fx.center(els.canvas);
       GK.fx.burst(pos.x, pos.y, { count: 30, kind: 'sparkle', speed: 600 });
@@ -166,14 +194,14 @@ window.GK = window.GK || {};
     GK.casino.record('wheel', p.free ? 0 : p.bet, p.payout, (p.free ? 'Gratis-Dreh · ' : '') + text);
 
     if (p.free) {
-      showMessage(p.mult ? `🎁 Gratis-Dreh: ${text} – du bekommst ${GK.formatMoneyHTML(p.payout)}!`
-        : `🎁 Trostpreis: ${GK.formatMoneyHTML(p.payout)}. Morgen gibt es den nächsten Gratis-Dreh!`, 'win');
+      showMessage(p.mult ? GK.t('🎁 Gratis-Dreh: {text} – du bekommst {amt}!', { text, amt: GK.formatMoneyHTML(p.payout) })
+        : GK.t('🎁 Trostpreis: {amt}. Morgen gibt es den nächsten Gratis-Dreh!', { amt: GK.formatMoneyHTML(p.payout) }), 'win');
     } else if (p.payout > p.bet) {
-      showMessage(`${text} – Gewinn: ${GK.formatMoneyHTML(p.payout)}`, 'win');
+      showMessage(GK.t('{text} – Gewinn: {amt}', { text, amt: GK.formatMoneyHTML(p.payout) }), 'win');
     } else if (p.payout === p.bet) {
-      showMessage(`${text} – Einsatz zurück`, '');
+      showMessage(GK.t('{text} – Einsatz zurück', { text }), '');
     } else {
-      showMessage('☠️ Leider nichts – dreh noch einmal!', 'loss');
+      showMessage(GK.t('☠️ Leider nichts – dreh noch einmal!'), 'loss');
     }
     if (animated) {
       if (p.free) GK.fx.celebrate(p.payout, 0, { el: els.canvas, level: p.mult >= 3 ? 'big' : undefined, subtitle: text });
@@ -301,7 +329,7 @@ window.GK = window.GK || {};
     const results = state().results;
     els.results.innerHTML = results.length
       ? results.map(r => `<span class="wheel-result">${r}</span>`).join('')
-      : '<span class="muted small">Noch nicht gedreht.</span>';
+      : `<span class="muted small">${GK.t('Noch nicht gedreht.')}</span>`;
   }
 
   function showMessage(html, cls) {
@@ -316,7 +344,7 @@ window.GK = window.GK || {};
     betControl.setDisabled(busy);
     const free = freeAvailable();
     els.free.disabled = busy || !free;
-    const html = free ? `${ic('gift')}<span>Gratis-Dreh (Wert ${GK.formatMoneyHTML(freeValue())})</span>` : `${ic('gift')}Gratis-Dreh: morgen wieder`;
+    const html = free ? `${ic('gift')}<span>${GK.t('Gratis-Dreh (Wert {amt})', { amt: GK.formatMoneyHTML(freeValue()) })}</span>` : `${ic('gift')}${GK.t('Gratis-Dreh: morgen wieder')}`;
     if (els.free._html !== html) {
       els.free._html = html;
       els.free.innerHTML = html;
@@ -339,20 +367,19 @@ window.GK = window.GK || {};
           <div class="game-message">&nbsp;</div>
           <div class="wheel-bet"></div>
           <div class="game-actions">
-            <button class="btn btn-primary btn-big wheel-spin">${ic('wheel')}Drehen</button>
+            <button class="btn btn-primary btn-big wheel-spin">${ic('wheel')}${GK.t('Drehen')}</button>
           </div>
           <div class="game-actions">
             <button class="btn wheel-free"></button>
           </div>
           <div class="paytable wheel-paytable">
-            <h3>Felder</h3>
-            <p><span class="wheel-chip" style="background:${COLORS[1]}">1×</span> Einsatz zurück
+            <h3>${GK.t('Felder')}</h3>
+            <p><span class="wheel-chip" style="background:${COLORS[1]}">1×</span> ${GK.t('Einsatz zurück')}
               <span class="wheel-chip" style="background:${COLORS[1.5]}">1,5×</span>
               <span class="wheel-chip" style="background:${COLORS[2]}">2×</span>
               <span class="wheel-chip" style="background:${COLORS[3]}">3×</span></p>
-            <p><span class="wheel-chip gold">${ic('star')}</span> Bonusrad: ${BONUS.slice().sort((a, b) => a - b).map(m => m + '×').join(' · ')}</p>
-            <p class="muted small">${ic('skull')} = leider nichts. Größere Felder werden öfter getroffen.
-              Einmal am Tag gibt es einen Gratis-Dreh – ohne Einsatz.</p>
+            <p><span class="wheel-chip gold">${ic('star')}</span> ${GK.t('Bonusrad:')} ${BONUS.slice().sort((a, b) => a - b).map(m => m + '×').join(' · ')}</p>
+            <p class="muted small">${ic('skull')} ${GK.t('= leider nichts. Größere Felder werden öfter getroffen. Einmal am Tag gibt es einen Gratis-Dreh – ohne Einsatz.')}</p>
           </div>
         </div>
       </div>`;
@@ -388,7 +415,7 @@ window.GK = window.GK || {};
     rotation = 360 - (r.start + r.end) / 2;
     setRotation(rotation);
     if (p) settle(false);
-    else showMessage('Setz deinen Einsatz und dreh das Rad!', '');
+    else showMessage(GK.t('Setz deinen Einsatz und dreh das Rad!'), '');
     drawResults();
     updateButtons();
   }

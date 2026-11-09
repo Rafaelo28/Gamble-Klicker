@@ -3,6 +3,33 @@
 // Teile für die eigene Figur frei. Er sinkt nie, auch nicht nach einer großen Fahrt.
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Landratte': 'Landlubber',
+  'Schiffsjunge': 'Cabin Boy',
+  'Matrose': 'Sailor',
+  'Bootsmann': 'Boatswain',
+  'Steuermann': 'Helmsman',
+  'Quartiermeister': 'Quartermaster',
+  'Erster Offizier': 'First Officer',
+  'Kapitän': 'Captain',
+  'Kommodore': 'Commodore',
+  'Admiral': 'Admiral',
+  'Großadmiral': 'Grand Admiral',
+  'Piratenkönig': 'Pirate King',
+  'Herrscher der Meere': 'Ruler of the Seas',
+  'Legende {n}': 'Legend {n}',
+  'Neuer Rang: {name}!': 'New rank: {name}!',
+  'Rang {n}': 'Rank {n}',
+  'Nächster Rang: <b>{sym} {name}</b> ab {to} insgesamt verdient (noch {missing}).':
+    'Next rank: <b>{sym} {name}</b> at {to} total earned (still {missing} to go).',
+  'Je 1.000-mal mehr insgesamt verdient, ein Rang höher – ohne Ende. Der Rang bleibt auch nach einer großen Fahrt und steht bei Spielen mit Freunden neben deinem Namen.':
+    'Every 1,000× more earned in total means one rank up – endlessly. Your rank never drops, even after a great voyage, and shows next to your name in games with friends.',
+});
+
 (function () {
   // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
@@ -44,6 +71,8 @@ window.GK = window.GK || {};
   }
 
   const name = r => (r < LEGEND ? NAMED[r].name : `Legende ${roman(r - LEGEND + 1)}`);
+  // Nur für die Anzeige übersetzt (das logische `name` bleibt deutsch)
+  const nameT = r => (r < LEGEND ? GK.t(NAMED[r].name) : GK.t('Legende {n}', { n: roman(r - LEGEND + 1) }));
   const icon = r => (r < LEGEND ? NAMED[r].icon : '🐉');
 
   // Rang-Abzeichen als eigenes Symbol (js/icons.js). Die Akzentfarbe zeigt die Stufe:
@@ -65,7 +94,7 @@ window.GK = window.GK || {};
   // Kleines Rang-Zeichen am Namen (Landratten bekommen keins)
   function tag(r) {
     r = valid(r);
-    return r >= 1 ? `<span class="rank-ico" title="${name(r)}">${symbol(r)}</span>` : '';
+    return r >= 1 ? `<span class="rank-ico" title="${nameT(r)}">${symbol(r)}</span>` : '';
   }
 
   // Fortschritt zum nächsten Rang (0 … 1, logarithmisch – sonst stünde der Balken fast immer bei 0 %)
@@ -83,8 +112,8 @@ window.GK = window.GK || {};
     const r = mine();
     if (r <= (s.rankSeen || 0)) return false;
     s.rankSeen = r;
-    if (GK.icon) GK.toast(`Neuer Rang: ${name(r)}!`, [sym(r), `rk rk-t${tier(r)}`]);
-    else GK.toast(`${icon(r)} Neuer Rang: ${name(r)}!`);
+    if (GK.icon) GK.toast(GK.t('Neuer Rang: {name}!', { name: nameT(r) }), [sym(r), `rk rk-t${tier(r)}`]);
+    else GK.toast(icon(r) + ' ' + GK.t('Neuer Rang: {name}!', { name: nameT(r) }));
     if (GK.sound) GK.sound.play('achievement');
     GK.save();
     return true;
@@ -103,14 +132,12 @@ window.GK = window.GK || {};
     const rewards = GK.figure ? GK.figure.rankParts() : [];
     box.innerHTML = `
       <div class="rank-now"><span class="rank-big">${symbol(p.rank)}</span>
-        <div><div class="rank-name">${name(p.rank)}</div><div class="muted small">Rang ${p.rank}</div></div></div>
+        <div><div class="rank-name">${nameT(p.rank)}</div><div class="muted small">${GK.t('Rang {n}', { n: p.rank })}</div></div></div>
       <div class="rank-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><div style="transform:scaleX(${p.frac.toFixed(3)})"></div></div>
-      <p class="small">Nächster Rang: <b>${symbol(p.next)} ${name(p.next)}</b> ab ${GK.formatMoneyHTML(p.to)} insgesamt verdient
-        (noch ${GK.formatMoneyHTML(p.missing)}).</p>
-      <p class="muted small">Je 1.000-mal mehr insgesamt verdient, ein Rang höher – ohne Ende. Der Rang bleibt auch nach einer großen Fahrt
-        und steht bei Spielen mit Freunden neben deinem Namen.</p>
+      <p class="small">${GK.t('Nächster Rang: <b>{sym} {name}</b> ab {to} insgesamt verdient (noch {missing}).', { sym: symbol(p.next), name: nameT(p.next), to: GK.formatMoneyHTML(p.to), missing: GK.formatMoneyHTML(p.missing) })}</p>
+      <p class="muted small">${GK.t('Je 1.000-mal mehr insgesamt verdient, ein Rang höher – ohne Ende. Der Rang bleibt auch nach einer großen Fahrt und steht bei Spielen mit Freunden neben deinem Namen.')}</p>
       ${rewards.length ? `<div class="rank-rewards">${rewards.map(x => `<span class="rank-reward ${x.rank <= p.rank ? 'done' : ''}" title="${x.slot}">
-        ${x.rank <= p.rank ? ic('check') : ic('lock')} ${x.name} <span class="muted">· ${name(x.rank)}</span></span>`).join('')}</div>` : ''}`;
+        ${x.rank <= p.rank ? ic('check') : ic('lock')} ${x.name} <span class="muted">· ${nameT(x.rank)}</span></span>`).join('')}</div>` : ''}`;
   }
 
   GK.rank = { NAMED, LEGEND, MAX, threshold, of, name, icon, symbol, valid, mine, tag, progress, check, render };

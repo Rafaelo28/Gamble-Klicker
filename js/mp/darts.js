@@ -4,6 +4,30 @@
 // Der Gastgeber wertet jeden Pfeil (mit Streuung) und schickt das Ergebnis an alle.
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Darts in der Taverne': 'Darts in the Tavern',
+  'Drei Pfeile pro Runde – wer trifft am besten? Für 2 bis 4 Spieler.': 'Three darts per round – who aims best? For 2 to 4 players.',
+  '<p class="muted"><b>So geht\'s:</b> Reihum wirft jeder drei Pfeile. Tippe aufs Brett, um zu zielen –\n      die Hand zittert, also wirf im richtigen Moment. Ganz genau landet kein Pfeil, ein bisschen streut jeder Wurf.\n      Dreifach-Ring zählt dreifach, der äußere Ring doppelt,\n      das Bull in der Mitte 50 Punkte. Nach der letzten Runde gewinnt, wer die meisten Punkte hat.</p>':
+    '<p class="muted"><b>How it works:</b> Taking turns, each throws three darts. Tap the board to aim –\n      your hand shakes, so throw at the right moment. No dart lands exactly, every throw scatters a bit.\n      The triple ring counts triple, the outer ring double,\n      the bull in the centre 50 points. After the last round, whoever has the most points wins.</p>',
+  'Runden': 'Rounds',
+  '{n} Runden': '{n} rounds',
+  'Werfen!': 'Throw!',
+  'Spiel vorbei': 'Game over',
+  'Stechen': 'Shootout',
+  'Runde {r} von {n}': 'Round {r} of {n}',
+  ' (du)': ' (you)',
+  'Daneben': 'Miss',
+  'Du bist der Champion der Taverne!': 'You are the tavern champion!',
+  '{name} gewinnt.': '{name} wins.',
+  'Pfeil {k} von {n}: Tippe aufs Brett zum Zielen – dann im richtigen Moment werfen!': 'Dart {k} of {n}: Tap the board to aim – then throw at the right moment!',
+  '{name} hat {pts} Punkte geworfen.': '{name} threw {pts} points.',
+  '{name} wirft …': '{name} throws …',
+});
+
 (function () {
   // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
@@ -377,7 +401,7 @@ window.GK = window.GK || {};
             </div>
             <div class="darts-side">
               <div class="darts-turn"></div>
-              <button type="button" class="btn btn-primary btn-big darts-throw">${ic('target')}Werfen!</button>
+              <button type="button" class="btn btn-primary btn-big darts-throw">${ic('target')}${GK.t('Werfen!')}</button>
               <div class="darts-hint"></div>
               <div class="darts-scores"></div>
             </div>
@@ -414,21 +438,21 @@ window.GK = window.GK || {};
     }
     container._lastNo = d ? d.no : -1;
     if (!container._raf) container._raf = requestAnimationFrame(() => frame(container));
-    const head = v.phase === 'finished' ? `${ic('flag')} Spiel vorbei`
-      : v.shootout ? `${ic('swords')} Stechen${v.shootout > 1 ? ` (${v.shootout})` : ''}` : `${ic('target')} Runde ${v.round} von ${v.rounds}`;
+    const head = v.phase === 'finished' ? `${ic('flag')} ${GK.t('Spiel vorbei')}`
+      : v.shootout ? `${ic('swords')} ${GK.t('Stechen')}${v.shootout > 1 ? ` (${v.shootout})` : ''}` : `${ic('target')} ${GK.t('Runde {r} von {n}', { r: v.round, n: v.rounds })}`;
     setHtml(container.querySelector('.darts-head'), head);
     const ranked = v.players.map((p, i) => i).sort((a, b) => v.players[b].score - v.players[a].score);
     setHtml(container.querySelector('.darts-scores'), ranked.map(i => {
       const p = v.players[i];
       return `<div class="darts-row ${i === seat && v.phase !== 'finished' ? 'active' : ''} ${p.out ? 'out' : ''}">
-        <span class="darts-name">${GK.cosmetics.nameTag(p)}${i === ui.mySeat ? ' (du)' : ''}</span>
+        <span class="darts-name">${GK.cosmetics.nameTag(p)}${i === ui.mySeat ? GK.t(' (du)') : ''}</span>
         <span class="darts-last">${p.turns.length ? `+${p.turns[p.turns.length - 1]}` : ''}</span>
         <b class="darts-total">${p.out ? '–' : p.score}</b>
       </div>`;
     }).join(''));
     const darts = seat >= 0 ? v.players[seat].darts : [];
     setHtml(container.querySelector('.darts-turn'), seat >= 0
-      ? Array.from({ length: DARTS_PER_TURN }, (_, k) => `<span class="darts-slot ${darts[k] ? (darts[k].points >= 50 || darts[k].label[0] === 'T' ? 'great' : darts[k].points ? 'hit' : 'miss') : ''}">${darts[k] ? darts[k].label : '🎯'}</span>`).join('')
+      ? Array.from({ length: DARTS_PER_TURN }, (_, k) => `<span class="darts-slot ${darts[k] ? (darts[k].points >= 50 || darts[k].label[0] === 'T' ? 'great' : darts[k].points ? 'hit' : 'miss') : ''}">${darts[k] ? GK.t(darts[k].label) : '🎯'}</span>`).join('')
         + `<span class="darts-sum">= ${darts.reduce((s, x) => s + x.points, 0)}</span>`
       : '');
     const btn = container.querySelector('.darts-throw');
@@ -437,11 +461,11 @@ window.GK = window.GK || {};
     let hint;
     if (v.phase === 'finished') {
       const w = v.players.findIndex(p => p.place === 1);
-      hint = w === ui.mySeat ? `${ic('trophy')} Du bist der Champion der Taverne!` : `${ic('flag')} ${esc(v.players[w].name)} gewinnt.`;
+      hint = w === ui.mySeat ? `${ic('trophy')} ${GK.t('Du bist der Champion der Taverne!')}` : `${ic('flag')} ${GK.t('{name} gewinnt.', { name: esc(v.players[w].name) })}`;
     } else if (myTurn) {
-      hint = `Pfeil ${darts.length + 1} von ${DARTS_PER_TURN}: Tippe aufs Brett zum Zielen – dann im richtigen Moment werfen!`;
+      hint = GK.t('Pfeil {k} von {n}: Tippe aufs Brett zum Zielen – dann im richtigen Moment werfen!', { k: darts.length + 1, n: DARTS_PER_TURN });
     } else if (seat >= 0) {
-      hint = v.phase === 'show' ? `${esc(v.players[seat].name)} hat ${darts.reduce((s, x) => s + x.points, 0)} Punkte geworfen.` : `${esc(v.players[seat].name)} wirft …`;
+      hint = v.phase === 'show' ? GK.t('{name} hat {pts} Punkte geworfen.', { name: esc(v.players[seat].name), pts: darts.reduce((s, x) => s + x.points, 0) }) : GK.t('{name} wirft …', { name: esc(v.players[seat].name) });
     } else hint = '';
     setHtml(container.querySelector('.darts-hint'), hint);
     setHtml(container.querySelector('.darts-log'), v.log.slice(0, 3).map(l => `<div>${esc(l)}</div>`).join(''));
@@ -452,17 +476,17 @@ window.GK = window.GK || {};
     name: 'Darts in der Taverne',
     icon: '🎯',
     desc: 'Drei Pfeile pro Runde – wer trifft am besten? Für 2 bis 4 Spieler.',
-    intro: `<p class="muted"><b>So geht's:</b> Reihum wirft jeder drei Pfeile. Tippe aufs Brett, um zu zielen –
+    intro: GK.t(`<p class="muted"><b>So geht's:</b> Reihum wirft jeder drei Pfeile. Tippe aufs Brett, um zu zielen –
       die Hand zittert, also wirf im richtigen Moment. Ganz genau landet kein Pfeil, ein bisschen streut jeder Wurf.
       Dreifach-Ring zählt dreifach, der äußere Ring doppelt,
-      das Bull in der Mitte 50 Punkte. Nach der letzten Runde gewinnt, wer die meisten Punkte hat.</p>`,
+      das Bull in der Mitte 50 Punkte. Nach der letzten Runde gewinnt, wer die meisten Punkte hat.</p>`),
     minPlayers: 2,
     maxPlayers: 4,
     bots: true,
     settings: {
       defaults: { rounds: 5 },
-      html: s => `<div class="bet-label">Runden</div>
-        <div class="room-opts">${[3, 5, 8].map(n => `<button type="button" class="btn btn-small room-opt ${s.rounds === n ? 'active' : ''}" data-rounds="${n}">${n} Runden</button>`).join('')}</div>`,
+      html: s => `<div class="bet-label">${GK.t('Runden')}</div>
+        <div class="room-opts">${[3, 5, 8].map(n => `<button type="button" class="btn btn-small room-opt ${s.rounds === n ? 'active' : ''}" data-rounds="${n}">${GK.t('{n} Runden', { n })}</button>`).join('')}</div>`,
       bind: (el, changed) => el.querySelectorAll('.room-opt').forEach(btn => btn.addEventListener('click', () => {
         el.querySelectorAll('.room-opt').forEach(b => b.classList.toggle('active', b === btn));
         GK.sound.play('chip');
@@ -470,7 +494,7 @@ window.GK = window.GK || {};
       })),
       read: el => ({ rounds: Number((el.querySelector('.room-opt.active') || {}).dataset?.rounds) || 5 }),
     },
-    settingsText: s => `${s.rounds} Runden`,
+    settingsText: s => GK.t('{n} Runden', { n: s.rounds }),
     create,
     actor: st => (st.phase === 'throw' ? current(st) : -1),
     act,

@@ -11,6 +11,98 @@
 // - Gastgeber und Mitspieler können die Seite neu laden: Der Raum wird gespeichert und die
 //   Verbindung automatisch wieder aufgebaut.
 window.GK = window.GK || {};
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+GK.i18n.add({
+  'Der Eintritt muss mindestens {n} Dublonen betragen.': 'The entry must be at least {n} Doubloons.',
+  'Beende zuerst dein Turnier gegen die Computer-Gegner.': 'Finish your tournament against the computer opponents first.',
+  'Verlasse zuerst deinen anderen Spielraum.': 'Leave your other game room first.',
+  'Nicht genug Dublonen für den Eintritt.': 'Not enough Doubloons for the entry.',
+  'Der Raum-Code hat {n} Zeichen.': 'The room code has {n} characters.',
+  'Raum {code} nicht gefunden. Stimmt der Code?': 'Room {code} not found. Is the code correct?',
+  ' Dein Eintritt wurde erstattet.': ' Your entry was refunded.',
+  'Raum schließen? Alle bekommen ihren Eintritt zurück.': 'Close the room? Everyone gets their entry back.',
+  'Wenn du gehst, endet das Turnier für alle. Deine Mitspieler bekommen ihren Eintritt zurück.': 'If you leave, the tournament ends for everyone. Your fellow players get their entry back.',
+  'Wenn du gehst, endet das Turnier für alle. Deine Mitspieler bekommen ihren Eintritt zurück, du belegst Platz {n}.': 'If you leave, the tournament ends for everyone. Your fellow players get their entry back, and you finish in place {n}.',
+  'Du hast den Raum geschlossen.': 'You closed the room.',
+  'Du hast den Raum verlassen.': 'You left the room.',
+  'Der Gastgeber ist nicht mehr erreichbar. Turnier abbrechen? Du bekommst deinen Eintritt zurück.': 'The host is no longer reachable. Cancel the tournament? You get your entry back.',
+  'Turnier abgebrochen.': 'Tournament cancelled.',
+  'Turnier wirklich verlassen? Du belegst damit Platz {place}': 'Really leave the tournament? You will finish in place {place}',
+  ' und bekommst {n} Dublonen.': ' and receive {n} Doubloons.',
+  ' und gehst leer aus.': ' and go away empty-handed.',
+  'Keine Verbindung zum Gastgeber – versuche es gleich noch einmal.': 'No connection to the host – please try again in a moment.',
+  'Multiplayer nicht verfügbar – keine Internetverbindung?': 'Multiplayer not available – no internet connection?',
+  'Verbindung zum Server wird erneuert – wer schon am Tisch sitzt, bleibt verbunden …': 'Reconnecting to the server – anyone already at the table stays connected …',
+  'Raum ist online': 'Room is online',
+  'Mit dem Gastgeber verbunden': 'Connected to the host',
+  ' Du kannst das Turnier auch verlassen – dann bekommst du deinen Eintritt zurück.': ' You can also leave the tournament – then you get your entry back.',
+  'Keine Verbindung{host} – versuche es erneut …{gone}': 'No connection{host} – trying again …{gone}',
+  ' zum Gastgeber (seit {s} s)': ' to the host (for {s} s)',
+  'Verbinde …': 'Connecting …',
+  '{place}. Platz': 'place {place}',
+  ' Du hast {place} belegt und {n} gewonnen!': ' You finished in {place} and won {n}!',
+  ' Du hast {place} belegt.': ' You finished in {place}.',
+  'Spielt online zusammen: Einer eröffnet einen Raum und schickt den anderen den Raum-Code. Jeder zahlt den Eintritt, alle bekommen gleich viele Tisch-Chips, freie Plätze können Computer-Gegner übernehmen.': 'Play online together: one person opens a room and sends the others the room code. Everyone pays the entry, all get the same number of table chips, and computer opponents can take over empty seats.',
+  'Der Multiplayer braucht eine Internetverbindung (die Bibliothek PeerJS konnte nicht geladen werden).': 'Multiplayer needs an internet connection (the PeerJS library could not be loaded).',
+  'Dein Name am Tisch': 'Your name at the table',
+  'Anderes Bild': 'Different picture',
+  'Raum eröffnen – Eintritt pro Spieler': 'Open a room – entry per player',
+  'Eröffnen': 'Open',
+  'Raum beitreten': 'Join a room',
+  'Beitreten': 'Join',
+  'CODE': 'CODE',
+  'Deine Figur änderst du unter 📊 Statistiken → 🎨 Deine Figur.': 'You change your character under 📊 Statistics → 🎨 Your character.',
+  'Keine Verbindung zum Internet': 'No connection to the internet',
+  'Zahl nicht erkannt – z. B. 500k, 2,5M oder 1B': 'Number not recognized – e.g. 500k, 2.5M or 1B',
+  'Mindestens {n} Dublonen': 'At least {n} Doubloons',
+  'Nicht genug Dublonen': 'Not enough Doubloons',
+  'Eintritt {n} Dublonen · {detail}': 'Entry {n} Doubloons · {detail}',
+  'bei 6 Freunden teilen die besten 4 {pool} nach Chips': 'with 6 friends the top 4 share {pool} by chips',
+  'bei 6 Freunden gewinnt Platz 1: {n}': 'with 6 friends place 1 wins: {n}',
+  'Die besten {n} teilen {pool} nach Chips': 'The top {n} share {pool} by chips',
+  'Raum-Code': 'Room code',
+  'Code kopieren': 'Copy code',
+  'Einladungs-Link kopieren': 'Copy invite link',
+  'Freundesrunde': 'Friends round',
+  'Eintritt {n}': 'Entry {n}',
+  'Preise: {p}': 'Prizes: {p}',
+  'Suche den Raum …': 'Searching for the room …',
+  'Spieler ({a}/{b})': 'Players ({a}/{b})',
+  'zahlt noch': 'still paying',
+  'Gastgeber': 'Host',
+  'Du': 'You',
+  'Der Gastgeber hat den Eintritt auf {n} festgelegt.': 'The host set the entry to {n}.',
+  'Eintritt bezahlen und mitspielen': 'Pay entry and join in',
+  'Dafür hast du nicht genug Dublonen.': "You don't have enough Doubloons for that.",
+  'Freie Plätze mit Computer-Gegnern auffüllen': 'Fill empty seats with computer opponents',
+  '(sie zahlen keinen Eintritt – gewinnen sie einen Preis, behält ihn das Casino)': '(they pay no entry – if they win a prize, the casino keeps it)',
+  '▶ Spiel starten': '▶ Start game',
+  'Warte auf mindestens einen Mitspieler, der den Eintritt bezahlt hat …': 'Waiting for at least one fellow player who has paid the entry …',
+  'Wer noch nicht bezahlt hat, spielt nicht mit.': 'Anyone who has not paid yet will not take part.',
+  'Alle da? Dann los!': 'Everyone here? Then go!',
+  'Als Gastgeber leitest du den Tisch – lass das Spiel bitte geöffnet, bis das Turnier vorbei ist.': 'As the host you run the table – please keep the game open until the tournament is over.',
+  'Warte, bis der Gastgeber das Spiel startet …': 'Wait for the host to start the game …',
+  'Raum schließen': 'Close room',
+  'Raum verlassen': 'Leave room',
+  'Zum Kopieren:': 'To copy:',
+  'Code kopiert': 'Code copied',
+  'Einladungs-Link kopiert': 'Invite link copied',
+  'Du bist ausgeschieden: {place} – {n} gewonnen!': 'You were eliminated: {place} – won {n}!',
+  'Du bist ausgeschieden: {place}.': 'You were eliminated: {place}.',
+  ' Du leitest den Tisch weiter, bis das Turnier vorbei ist.': ' You keep running the table until the tournament is over.',
+  ' Du kannst weiter zuschauen.': ' You can keep watching.',
+  'Turnier vorbei! {ranking}': 'Tournament over! {ranking}',
+  'Dein Ergebnis: {place} – {n} gewonnen!': 'Your result: {place} – won {n}!',
+  'Dein Ergebnis: {place}.': 'Your result: {place}.',
+  'Raum {code}': 'Room {code}',
+  'Letzte Hand ({a}/{b})': 'Last hand ({a}/{b})',
+  'Hand {a}/{b}': 'Hand {a}/{b}',
+  'Spieler: {a}/{b}': 'Players: {a}/{b}',
+  'Zurück zur Lobby': 'Back to lobby',
+  'Turnier verlassen': 'Leave tournament',
+});
 GK.poker = GK.poker || {};
 
 (function () {
@@ -115,7 +207,7 @@ GK.poker = GK.poker || {};
 
   // Preise des Raums als Text. players = Plätze am Tisch, paying = echte Spieler, die Eintritt zahlen
   function prizeText(entry, players, blitz, paying = players) {
-    if (blitz) return `Die besten ${T().blitzPaidPlaces(players)} teilen ${GK.formatMoneyHTML(entry * paying)} nach Chips`;
+    if (blitz) return GK.t('Die besten {n} teilen {pool} nach Chips', { n: T().blitzPaidPlaces(players), pool: GK.formatMoneyHTML(entry * paying) });
     return T().prizeShares(players).map((_, i) => `${['🥇', '🥈', '🥉'][i]} ${GK.formatMoneyHTML(T().prize(i + 1, entry, players, paying))}`).join(' ');
   }
 
@@ -159,7 +251,7 @@ GK.poker = GK.poker || {};
   function endSession(message, refund) {
     const s = session();
     if (!s) return;
-    if (refund && refundEntry()) message += ' Dein Eintritt wurde erstattet.';
+    if (refund && refundEntry()) message += GK.t(' Dein Eintritt wurde erstattet.');
     const tr = s.entry ? sessionTier() : null;
     store().lastResult = { message, result: s.result || null, tierName: tr ? tr.name : '' };
     store().session = null;
@@ -243,10 +335,10 @@ GK.poker = GK.poker || {};
 
   function createRoom(entry, modeId, hands) {
     entry = Math.floor(GK.parseAmount(entry) || 0);
-    if (entry < MIN_ENTRY) return GK.toast(`Der Eintritt muss mindestens ${GK.formatNumber(MIN_ENTRY)} Dublonen betragen.`);
-    if (GK.poker.singleActive()) return GK.toast('Beende zuerst dein Turnier gegen die Computer-Gegner.');
-    if (GK.room && GK.room.active()) return GK.toast('Verlasse zuerst deinen anderen Spielraum.');
-    if (!GK.casino.bet(entry)) return GK.toast('Nicht genug Dublonen für den Eintritt.');
+    if (entry < MIN_ENTRY) return GK.toast(GK.t('Der Eintritt muss mindestens {n} Dublonen betragen.', { n: GK.formatNumber(MIN_ENTRY) }));
+    if (GK.poker.singleActive()) return GK.toast(GK.t('Beende zuerst dein Turnier gegen die Computer-Gegner.'));
+    if (GK.room && GK.room.active()) return GK.toast(GK.t('Verlasse zuerst deinen anderen Spielraum.'));
+    if (!GK.casino.bet(entry)) return GK.toast(GK.t('Nicht genug Dublonen für den Eintritt.'));
     const me = store();
     me.lastEntry = entry;
     me.lastMode = T().mode(modeId).id;
@@ -570,13 +662,13 @@ GK.poker = GK.poker || {};
     const s = session();
     let text;
     if (s.phase === 'lobby') {
-      text = 'Raum schließen? Alle bekommen ihren Eintritt zurück.';
+      text = GK.t('Raum schließen? Alle bekommen ihren Eintritt zurück.');
     } else if (s.phase === 'playing') {
       const t = s.table;
       const me = t.players.find(p => p.id === store().playerId);
       text = me.out
-        ? 'Wenn du gehst, endet das Turnier für alle. Deine Mitspieler bekommen ihren Eintritt zurück.'
-        : `Wenn du gehst, endet das Turnier für alle. Deine Mitspieler bekommen ihren Eintritt zurück, du belegst Platz ${t.players.filter(p => !p.out).length}.`;
+        ? GK.t('Wenn du gehst, endet das Turnier für alle. Deine Mitspieler bekommen ihren Eintritt zurück.')
+        : GK.t('Wenn du gehst, endet das Turnier für alle. Deine Mitspieler bekommen ihren Eintritt zurück, du belegst Platz {n}.', { n: t.players.filter(p => !p.out).length });
     }
     if (text && !confirm(text)) return;
     net.conns.forEach(conn => send(conn, { type: 'closed', reason: 'Der Gastgeber hat den Raum geschlossen.' }));
@@ -587,16 +679,16 @@ GK.poker = GK.poker || {};
       settle(t.players[seat].place, t.players.length, mpPayout(t, seat, s.entry));
     }
     // Kurz warten, damit die Nachricht noch rausgeht
-    setTimeout(() => endSession(s.phase === 'lobby' ? 'Du hast den Raum geschlossen.' : 'Du hast den Raum verlassen.', s.phase === 'lobby'), 300);
+    setTimeout(() => endSession(s.phase === 'lobby' ? GK.t('Du hast den Raum geschlossen.') : GK.t('Du hast den Raum verlassen.'), s.phase === 'lobby'), 300);
   }
 
   // ========== Mitspieler ==========
 
   function joinRoom(code) {
     code = String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
-    if (code.length !== CODE_LENGTH) return GK.toast(`Der Raum-Code hat ${CODE_LENGTH} Zeichen.`);
-    if (GK.poker.singleActive()) return GK.toast('Beende zuerst dein Turnier gegen die Computer-Gegner.');
-    if (GK.room && GK.room.active()) return GK.toast('Verlasse zuerst deinen anderen Spielraum.');
+    if (code.length !== CODE_LENGTH) return GK.toast(GK.t('Der Raum-Code hat {n} Zeichen.', { n: CODE_LENGTH }));
+    if (GK.poker.singleActive()) return GK.toast(GK.t('Beende zuerst dein Turnier gegen die Computer-Gegner.'));
+    if (GK.room && GK.room.active()) return GK.toast(GK.t('Verlasse zuerst deinen anderen Spielraum.'));
     store().session = {
       role: 'client',
       code,
@@ -632,7 +724,7 @@ GK.poker = GK.poker || {};
       if (net.peer !== peer) return;
       const s = session();
       if (err.type === 'peer-unavailable' && s && !s.joined) {
-        endSession(`Raum ${s.code} nicht gefunden. Stimmt der Code?`, true);
+        endSession(GK.t('Raum {code} nicht gefunden. Stimmt der Code?', { code: s.code }), true);
         return;
       }
       if (err.type === 'peer-unavailable') {
@@ -753,7 +845,7 @@ GK.poker = GK.poker || {};
     if (!s || s.paid || !s.entry) return;
     if (!GK.casino.bet(s.entry)) {
       GK.sound.play('denied');
-      GK.toast('Nicht genug Dublonen für den Eintritt.');
+      GK.toast(GK.t('Nicht genug Dublonen für den Eintritt.'));
       return;
     }
     s.paid = true;
@@ -768,26 +860,26 @@ GK.poker = GK.poker || {};
     const me = s.view && s.view.players[s.mySeat];
     if (s.phase === 'connecting' || s.phase === 'lobby') {
       send(net.hostConn, { type: 'leave' });
-      endSession('Du hast den Raum verlassen.', true);
+      endSession(GK.t('Du hast den Raum verlassen.'), true);
       return;
     }
     if (s.phase === 'playing' && me && !me.out && !s.settled) {
       const hostGone = net.status === 'lost' && Date.now() - net.lostSince >= ABANDON_AFTER;
       if (hostGone) {
-        if (!confirm('Der Gastgeber ist nicht mehr erreichbar. Turnier abbrechen? Du bekommst deinen Eintritt zurück.')) return;
-        endSession('Turnier abgebrochen.', true);
+        if (!confirm(GK.t('Der Gastgeber ist nicht mehr erreichbar. Turnier abbrechen? Du bekommst deinen Eintritt zurück.'))) return;
+        endSession(GK.t('Turnier abgebrochen.'), true);
         return;
       }
       const place = s.view.players.filter(p => !p.out).length;
       // Wer aufgibt, verliert seine Chips und landet hinter allen, die noch im Turnier sind –
       // im Blitz zählen nur die Chips am Ende
       const win = T().isBlitz(s.view) ? 0 : T().prize(place, sessionTier().entry, s.view.players.length, humans(s.view));
-      if (!confirm(`Turnier wirklich verlassen? Du belegst damit Platz ${place}` +
-        (win ? ` und bekommst ${GK.formatNumber(win)} Dublonen.` : ' und gehst leer aus.'))) return;
+      if (!confirm(GK.t('Turnier wirklich verlassen? Du belegst damit Platz {place}', { place }) +
+        (win ? GK.t(' und bekommst {n} Dublonen.', { n: GK.formatNumber(win) }) : GK.t(' und gehst leer aus.')))) return;
       send(net.hostConn, { type: 'leave' });
       settle(place, s.view.players.length, win);
     }
-    setTimeout(() => endSession('Du hast den Raum verlassen.', false), 300);
+    setTimeout(() => endSession(GK.t('Du hast den Raum verlassen.'), false), 300);
   }
 
   // ========== Gemeinsam ==========
@@ -862,7 +954,7 @@ GK.poker = GK.poker || {};
     if (s.role === 'host') {
       playerAction(s.table.players.findIndex(p => p.id === store().playerId), action);
     } else if (!net.hostConn || !net.hostConn.open) {
-      GK.toast('Keine Verbindung zum Gastgeber – versuche es gleich noch einmal.');
+      GK.toast(GK.t('Keine Verbindung zum Gastgeber – versuche es gleich noch einmal.'));
     } else {
       send(net.hostConn, { type: 'action', action });
     }
@@ -904,23 +996,24 @@ GK.poker = GK.poker || {};
 
   function statusLine() {
     const s = session();
-    if (!peerAvailable()) return '<span class="mp-status lost">' + ic('dot') + ' Multiplayer nicht verfügbar – keine Internetverbindung?</span>';
+    if (!peerAvailable()) return '<span class="mp-status lost">' + ic('dot') + ' ' + GK.t('Multiplayer nicht verfügbar – keine Internetverbindung?') + '</span>';
     if (net.status === 'online') {
       if (s.role === 'host' && net.peer && net.peer.disconnected && !net.peer.destroyed) {
-        return '<span class="mp-status connecting">' + ic('dot') + ' Verbindung zum Server wird erneuert – wer schon am Tisch sitzt, bleibt verbunden …</span>';
+        return '<span class="mp-status connecting">' + ic('dot') + ' ' + GK.t('Verbindung zum Server wird erneuert – wer schon am Tisch sitzt, bleibt verbunden …') + '</span>';
       }
       return s.role === 'host'
-        ? '<span class="mp-status online">' + ic('dot') + ' Raum ist online</span>'
-        : '<span class="mp-status online">' + ic('dot') + ' Mit dem Gastgeber verbunden</span>';
+        ? '<span class="mp-status online">' + ic('dot') + ' ' + GK.t('Raum ist online') + '</span>'
+        : '<span class="mp-status online">' + ic('dot') + ' ' + GK.t('Mit dem Gastgeber verbunden') + '</span>';
     }
     if (net.status === 'lost') {
       const ms = net.lostSince ? Date.now() - net.lostSince : 0;
       // Nur wer noch mitspielt (nicht schon ausgeschieden und abgerechnet), bekommt den Eintritt zurück
       const gone = s.role === 'client' && s.phase === 'playing' && !s.settled && ms >= ABANDON_AFTER
-        ? ' Du kannst das Turnier auch verlassen – dann bekommst du deinen Eintritt zurück.' : '';
-      return `<span class="mp-status lost">${ic('dot')} Keine Verbindung${s.role === 'client' ? ` zum Gastgeber (seit ${Math.floor(ms / 1000)} s)` : ''} – versuche es erneut …${gone}</span>`;
+        ? GK.t(' Du kannst das Turnier auch verlassen – dann bekommst du deinen Eintritt zurück.') : '';
+      const host = s.role === 'client' ? GK.t(' zum Gastgeber (seit {s} s)', { s: Math.floor(ms / 1000) }) : '';
+      return `<span class="mp-status lost">${ic('dot')} ${GK.t('Keine Verbindung{host} – versuche es erneut …{gone}', { host, gone })}</span>`;
     }
-    return '<span class="mp-status connecting">' + ic('dot') + ' Verbinde …</span>';
+    return '<span class="mp-status connecting">' + ic('dot') + ' ' + GK.t('Verbinde …') + '</span>';
   }
 
   // Formular in der Poker-Lobby: Name, Raum eröffnen, Raum beitreten
@@ -930,33 +1023,32 @@ GK.poker = GK.poker || {};
     let resultHtml = '';
     if (result) {
       const r = result.result;
+      const place = r ? `<b>${GK.t('{place}. Platz', { place: r.place })}</b>` : '';
       const extra = r && !r.refunded
-        ? ` Du hast den <b>${r.place}. Platz</b> belegt${r.prize ? ` und ${GK.formatMoneyHTML(r.prize)} gewonnen!` : '.'}`
+        ? (r.prize ? GK.t(' Du hast {place} belegt und {n} gewonnen!', { place, n: GK.formatMoneyHTML(r.prize) }) : GK.t(' Du hast {place} belegt.', { place }))
         : '';
       resultHtml = `<div class="poker-result ${r && r.prize ? 'win' : ''}">${esc(result.message)}${extra}</div>`;
     }
     el.innerHTML = `
       ${resultHtml}
       <p class="muted">
-        Spielt online zusammen: Einer eröffnet einen Raum und schickt den anderen den Raum-Code.
-        Jeder zahlt den Eintritt, alle bekommen gleich viele Tisch-Chips,
-        freie Plätze können Computer-Gegner übernehmen.
+        ${GK.t('Spielt online zusammen: Einer eröffnet einen Raum und schickt den anderen den Raum-Code. Jeder zahlt den Eintritt, alle bekommen gleich viele Tisch-Chips, freie Plätze können Computer-Gegner übernehmen.')}
       </p>
-      ${peerAvailable() ? '' : '<p class="warning">Der Multiplayer braucht eine Internetverbindung (die Bibliothek PeerJS konnte nicht geladen werden).</p>'}
+      ${peerAvailable() ? '' : `<p class="warning">${GK.t('Der Multiplayer braucht eine Internetverbindung (die Bibliothek PeerJS konnte nicht geladen werden).')}</p>`}
       <div class="mp-forms">
         <div class="mp-form">
-          <label class="bet-label" for="mp-name">Dein Name am Tisch</label>
+          <label class="bet-label" for="mp-name">${GK.t('Dein Name am Tisch')}</label>
           <div class="bet-row">
-            <button type="button" class="btn mp-avatar" title="Anderes Bild">${GK.figure.avatarHTML()}</button>
+            <button type="button" class="btn mp-avatar" title="${GK.t('Anderes Bild')}">${GK.figure.avatarHTML()}</button>
             <input id="mp-name" class="bet-input mp-name" maxlength="${MAX_NAME}" value="${esc(GK.player.name())}">
           </div>
         </div>
         <div class="mp-form">
-          <label class="bet-label" for="mp-entry">Raum eröffnen – Eintritt pro Spieler</label>
+          <label class="bet-label" for="mp-entry">${GK.t('Raum eröffnen – Eintritt pro Spieler')}</label>
           <div class="mp-mode-slot">${GK.poker.ui.modePicker(T().mode(me.lastMode).id, T().blitzHands(me.lastHands), 'mp-modes')}</div>
           <div class="bet-row">
             <input id="mp-entry" class="bet-input mp-entry" ${GK.AMOUNT_INPUT} value="${GK.formatAmount(me.lastEntry)}">
-            <button type="button" class="btn btn-primary mp-create">Eröffnen</button>
+            <button type="button" class="btn btn-primary mp-create">${GK.t('Eröffnen')}</button>
           </div>
           <div class="bet-row mp-presets">
             ${ENTRY_PRESETS.map(v => `<button type="button" class="btn btn-small mp-preset" data-entry="${v}">${GK.formatNumber(v)}</button>`).join('')}
@@ -964,10 +1056,10 @@ GK.poker = GK.poker || {};
           <span class="small mp-create-reason"></span>
         </div>
         <div class="mp-form">
-          <label class="bet-label" for="mp-code">Raum beitreten</label>
+          <label class="bet-label" for="mp-code">${GK.t('Raum beitreten')}</label>
           <div class="bet-row">
-            <input id="mp-code" class="bet-input mp-code-input" maxlength="${CODE_LENGTH}" placeholder="CODE" value="${esc(pendingCode)}" autocomplete="off">
-            <button type="button" class="btn btn-primary mp-join">Beitreten</button>
+            <input id="mp-code" class="bet-input mp-code-input" maxlength="${CODE_LENGTH}" placeholder="${GK.t('CODE')}" value="${esc(pendingCode)}" autocomplete="off">
+            <button type="button" class="btn btn-primary mp-join">${GK.t('Beitreten')}</button>
           </div>
         </div>
       </div>`;
@@ -977,7 +1069,7 @@ GK.poker = GK.poker || {};
       nameInput.value = GK.player.setName(nameInput.value);
     });
     el.querySelector('.mp-avatar').addEventListener('click', e => {
-      if (GK.figure.mine()) GK.toast('Deine Figur änderst du unter 📊 Statistiken → 🎨 Deine Figur.');
+      if (GK.figure.mine()) GK.toast(GK.t('Deine Figur änderst du unter 📊 Statistiken → 🎨 Deine Figur.'));
       else e.currentTarget.textContent = GK.player.nextAvatar();
     });
     const save = () => { nameInput.value = GK.player.setName(nameInput.value); };
@@ -1032,15 +1124,18 @@ GK.poker = GK.poker || {};
     const parsed = GK.parseAmount(input.value);
     const entry = Math.floor(parsed || 0);
     let reason = '';
-    if (!peerAvailable()) reason = 'Keine Verbindung zum Internet';
-    else if (!isFinite(parsed)) reason = 'Zahl nicht erkannt – z. B. 500k, 2,5M oder 1B';
-    else if (entry < MIN_ENTRY) reason = `Mindestens ${GK.formatNumber(MIN_ENTRY)} Dublonen`;
-    else if (!GK.canAfford(entry)) reason = 'Nicht genug Dublonen';
+    if (!peerAvailable()) reason = GK.t('Keine Verbindung zum Internet');
+    else if (!isFinite(parsed)) reason = GK.t('Zahl nicht erkannt – z. B. 500k, 2,5M oder 1B');
+    else if (entry < MIN_ENTRY) reason = GK.t('Mindestens {n} Dublonen', { n: GK.formatNumber(MIN_ENTRY) });
+    else if (!GK.canAfford(entry)) reason = GK.t('Nicht genug Dublonen');
     const ok = !reason;
     // Eingegebenen Betrag ausgeschrieben zeigen (z. B. bei „5M“)
-    if (ok) reason = `Eintritt ${GK.formatNumber(entry)} Dublonen · ` + (T().mode(store().lastMode).id === 'blitz'
-      ? `bei 6 Freunden teilen die besten 4 ${GK.formatNumber(entry * 6)} nach Chips`
-      : `bei 6 Freunden gewinnt Platz 1: ${GK.formatNumber(T().prize(1, entry, 6))}`);
+    if (ok) {
+      const detail = T().mode(store().lastMode).id === 'blitz'
+        ? GK.t('bei 6 Freunden teilen die besten 4 {pool} nach Chips', { pool: GK.formatNumber(entry * 6) })
+        : GK.t('bei 6 Freunden gewinnt Platz 1: {n}', { n: GK.formatNumber(T().prize(1, entry, 6)) });
+      reason = GK.t('Eintritt {n} Dublonen · {detail}', { n: GK.formatNumber(entry), detail });
+    }
     root.querySelector('.mp-create-reason').classList.toggle('ok', ok);
     root.querySelector('.mp-create').disabled = !ok;
     root.querySelector('.mp-create-reason').textContent = reason;
@@ -1070,44 +1165,44 @@ GK.poker = GK.poker || {};
     container.innerHTML = `
       <div class="mp-room">
         <div class="mp-code-box">
-          <div class="muted small">Raum-Code</div>
+          <div class="muted small">${GK.t('Raum-Code')}</div>
           <div class="mp-code">${s.code}</div>
           ${isHost ? `
             <div class="bet-row">
-              <button class="btn btn-small mp-copy-code">${ic('copy')}Code kopieren</button>
-              <button class="btn btn-small mp-copy-link">${ic('link')}Einladungs-Link kopieren</button>
+              <button class="btn btn-small mp-copy-code">${ic('copy')}${GK.t('Code kopieren')}</button>
+              <button class="btn btn-small mp-copy-link">${ic('link')}${GK.t('Einladungs-Link kopieren')}</button>
             </div>` : ''}
         </div>
-        ${tr ? `<p class="mp-tier-info">${tr.icon} <b>${tr.name}</b> · ${sessionModeLabel()} · Eintritt ${GK.formatMoneyHTML(tr.entry)}<br>Preise: ${prizes}</p>` : ''}
-        ${s.phase === 'connecting' ? '<p class="muted">Suche den Raum …</p>' : `
-          <h3>Spieler (${members.length}/${T().MAX_SEATS})</h3>
+        ${tr ? `<p class="mp-tier-info">${tr.icon} <b>${GK.t(tr.name)}</b> · ${sessionModeLabel()} · ${GK.t('Eintritt {n}', { n: GK.formatMoneyHTML(tr.entry) })}<br>${GK.t('Preise: {p}', { p: prizes })}</p>` : ''}
+        ${s.phase === 'connecting' ? `<p class="muted">${GK.t('Suche den Raum …')}</p>` : `
+          <h3>${GK.t('Spieler ({a}/{b})', { a: members.length, b: T().MAX_SEATS })}</h3>
           <ul class="mp-members">
             ${members.map(m => `<li class="${m.ready ? '' : 'not-ready'}">
               <span>${GK.cosmetics.nameTag(m)}</span>
-              ${m.ready ? '' : `<span class="mp-tag waiting">${ic('hourglass')} zahlt noch</span>`}
-              ${m.playerId === hostId ? `<span class="mp-tag">${ic('crown')} Gastgeber</span>` : ''}
-              ${m.playerId === store().playerId ? '<span class="mp-tag">Du</span>' : ''}
+              ${m.ready ? '' : `<span class="mp-tag waiting">${ic('hourglass')} ${GK.t('zahlt noch')}</span>`}
+              ${m.playerId === hostId ? `<span class="mp-tag">${ic('crown')} ${GK.t('Gastgeber')}</span>` : ''}
+              ${m.playerId === store().playerId ? `<span class="mp-tag">${GK.t('Du')}</span>` : ''}
             </li>`).join('')}
           </ul>
           ${mustConfirm ? `
             <div class="mp-confirm">
-              <p>Der Gastgeber hat den Eintritt auf <b>${GK.formatMoneyHTML(s.entry)}</b> festgelegt.</p>
-              <button class="btn btn-primary btn-big mp-confirm-btn" ${GK.canAfford(s.entry) ? '' : 'disabled'}>${ic('bag')}Eintritt bezahlen und mitspielen</button>
-              ${GK.canAfford(s.entry) ? '' : '<p class="loss small">Dafür hast du nicht genug Dublonen.</p>'}
+              <p>${GK.t('Der Gastgeber hat den Eintritt auf {n} festgelegt.', { n: `<b>${GK.formatMoneyHTML(s.entry)}</b>` })}</p>
+              <button class="btn btn-primary btn-big mp-confirm-btn" ${GK.canAfford(s.entry) ? '' : 'disabled'}>${ic('bag')}${GK.t('Eintritt bezahlen und mitspielen')}</button>
+              ${GK.canAfford(s.entry) ? '' : `<p class="loss small">${GK.t('Dafür hast du nicht genug Dublonen.')}</p>`}
             </div>` : ''}
           ${isHost ? `
-            <label class="mp-check"><input type="checkbox" class="mp-fill" ${s.fillBots ? 'checked' : ''}> Freie Plätze mit Computer-Gegnern auffüllen
-              <span class="muted small">(sie zahlen keinen Eintritt – gewinnen sie einen Preis, behält ihn das Casino)</span></label>
+            <label class="mp-check"><input type="checkbox" class="mp-fill" ${s.fillBots ? 'checked' : ''}> ${GK.t('Freie Plätze mit Computer-Gegnern auffüllen')}
+              <span class="muted small">${GK.t('(sie zahlen keinen Eintritt – gewinnen sie einen Preis, behält ihn das Casino)')}</span></label>
             <div class="game-actions">
-              <button class="btn btn-primary btn-big mp-start" ${readyCount < 2 ? 'disabled' : ''}>▶ Spiel starten</button>
+              <button class="btn btn-primary btn-big mp-start" ${readyCount < 2 ? 'disabled' : ''}>${GK.t('▶ Spiel starten')}</button>
             </div>
-            <p class="muted small">${readyCount < 2 ? 'Warte auf mindestens einen Mitspieler, der den Eintritt bezahlt hat …'
-              : readyCount < members.length ? 'Wer noch nicht bezahlt hat, spielt nicht mit.' : 'Alle da? Dann los!'}
-              Als Gastgeber leitest du den Tisch – lass das Spiel bitte geöffnet, bis das Turnier vorbei ist.</p>`
-            : s.paid ? '<p class="muted">Warte, bis der Gastgeber das Spiel startet …</p>' : ''}
+            <p class="muted small">${readyCount < 2 ? GK.t('Warte auf mindestens einen Mitspieler, der den Eintritt bezahlt hat …')
+              : readyCount < members.length ? GK.t('Wer noch nicht bezahlt hat, spielt nicht mit.') : GK.t('Alle da? Dann los!')}
+              ${GK.t('Als Gastgeber leitest du den Tisch – lass das Spiel bitte geöffnet, bis das Turnier vorbei ist.')}</p>`
+            : s.paid ? `<p class="muted">${GK.t('Warte, bis der Gastgeber das Spiel startet …')}</p>` : ''}
         `}
         <p>${statusLine()}</p>
-        <button class="btn btn-danger mp-leave">${isHost ? 'Raum schließen' : 'Raum verlassen'}</button>
+        <button class="btn btn-danger mp-leave">${isHost ? GK.t('Raum schließen') : GK.t('Raum verlassen')}</button>
       </div>`;
 
     container.querySelector('.mp-leave').addEventListener('click', () => (isHost ? hostLeave() : clientLeave()));
@@ -1118,16 +1213,16 @@ GK.poker = GK.poker || {};
         afterHostChange();
       });
       container.querySelector('.mp-start').addEventListener('click', startGame);
-      container.querySelector('.mp-copy-code').addEventListener('click', () => copyText(s.code, 'Code kopiert'));
-      container.querySelector('.mp-copy-link').addEventListener('click', () => copyText(inviteLink(s.code), 'Einladungs-Link kopiert'));
+      container.querySelector('.mp-copy-code').addEventListener('click', () => copyText(s.code, GK.t('Code kopiert')));
+      container.querySelector('.mp-copy-link').addEventListener('click', () => copyText(inviteLink(s.code), GK.t('Einladungs-Link kopiert')));
     }
   }
 
   function copyText(text, done) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(() => GK.toast(done + ' ✅'), () => prompt('Zum Kopieren:', text));
+      navigator.clipboard.writeText(text).then(() => GK.toast(done + ' ✅'), () => prompt(GK.t('Zum Kopieren:'), text));
     } else {
-      prompt('Zum Kopieren:', text);
+      prompt(GK.t('Zum Kopieren:'), text);
     }
   }
 
@@ -1148,26 +1243,35 @@ GK.poker = GK.poker || {};
     const notices = [];
     if (net.status !== 'online') notices.push(statusLine());
     if (s.result && !s.result.refunded && s.phase !== 'ended') {
-      notices.push(`Du bist ausgeschieden: <b>${s.result.place}. Platz</b>${s.result.prize ? ` – ${GK.formatMoneyHTML(s.result.prize)} gewonnen!` : '.'}` +
-        (isHost ? ' Du leitest den Tisch weiter, bis das Turnier vorbei ist.' : ' Du kannst weiter zuschauen.'));
+      const place = `<b>${GK.t('{place}. Platz', { place: s.result.place })}</b>`;
+      const base = s.result.prize
+        ? GK.t('Du bist ausgeschieden: {place} – {n} gewonnen!', { place, n: GK.formatMoneyHTML(s.result.prize) })
+        : GK.t('Du bist ausgeschieden: {place}.', { place });
+      notices.push(base + (isHost ? GK.t(' Du leitest den Tisch weiter, bis das Turnier vorbei ist.') : GK.t(' Du kannst weiter zuschauen.')));
     }
     const blitz = T().isBlitz(t);
     if (s.phase === 'ended') {
       const ranking = t.players.map((p, i) => ({ p, win: blitz ? mpPayout(t, i, tr.entry) : 0 }))
         .sort((a, b) => a.p.place - b.p.place)
         .map(({ p, win }) => `${p.place}. ${GK.cosmetics.nameTag(p)}${win ? ` +${GK.formatMoneyHTML(win)}` : ''}`).join(' · ');
-      notices.push(`${ic('flag')} Turnier vorbei! ${ranking}` + (s.result && !s.result.refunded
-        ? `<br>Dein Ergebnis: <b>${s.result.place}. Platz</b>${s.result.prize ? ` – ${GK.formatMoneyHTML(s.result.prize)} gewonnen!` : '.'}` : ''));
+      let mine = '';
+      if (s.result && !s.result.refunded) {
+        const place = `<b>${GK.t('{place}. Platz', { place: s.result.place })}</b>`;
+        mine = '<br>' + (s.result.prize
+          ? GK.t('Dein Ergebnis: {place} – {n} gewonnen!', { place, n: GK.formatMoneyHTML(s.result.prize) })
+          : GK.t('Dein Ergebnis: {place}.', { place }));
+      }
+      notices.push(`${ic('flag')} ${GK.t('Turnier vorbei! {ranking}', { ranking })}` + mine);
     }
 
     GK.poker.ui.render(container, t, {
       mySeat,
       info: [
-        `${ic('users')} Raum ${s.code}`,
+        `${ic('users')} ${GK.t('Raum {code}', { code: s.code })}`,
         sessionModeLabel(),
         `Blinds ${GK.formatNumber(sb)}/${GK.formatNumber(bb)}`,
-        ...(blitz ? [t.handNo >= t.maxHands ? `${ic('flame')} Letzte Hand (${t.maxHands}/${t.maxHands})` : `Hand ${t.handNo}/${t.maxHands}`] : []),
-        `Spieler: ${t.players.filter(p => !p.out).length}/${players}`,
+        ...(blitz ? [t.handNo >= t.maxHands ? `${ic('flame')} ${GK.t('Letzte Hand ({a}/{b})', { a: t.maxHands, b: t.maxHands })}` : GK.t('Hand {a}/{b}', { a: t.handNo, b: t.maxHands })] : []),
+        GK.t('Spieler: {a}/{b}', { a: t.players.filter(p => !p.out).length, b: players }),
         prizeText(tr.entry, players, blitz, humans(t)),
       ],
       onAction: myAction,
@@ -1175,7 +1279,7 @@ GK.poker = GK.poker || {};
       notice: notices.join('<br>'),
       deadline: t.phase === 'betting' && !t.players[t.toAct].isBot ? s.deadline : null,
       onLeave: isHost ? hostLeave : clientLeave,
-      leaveLabel: s.phase === 'ended' ? 'Zurück zur Lobby' : (me && me.out) || !me ? 'Raum verlassen' : 'Turnier verlassen',
+      leaveLabel: s.phase === 'ended' ? GK.t('Zurück zur Lobby') : (me && me.out) || !me ? GK.t('Raum verlassen') : GK.t('Turnier verlassen'),
     });
   }
 

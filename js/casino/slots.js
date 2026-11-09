@@ -2,6 +2,29 @@
 // Symbole, Gewinntabelle und Walzen kommen aus slot-machine.js (gemeinsam mit dem Side-Slot).
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Nicht genug Dublonen für diesen Einsatz.': 'Not enough Doubloons for this bet.',
+  '{text} – Gewinn: {amt}': '{text} – win: {amt}',
+  '{text} – Einsatz zurück': '{text} – bet back',
+  'Leider kein Gewinn.': 'No win this time.',
+  'Stopp ({n})': 'Stop ({n})',
+  'Auto ×{n}': 'Auto ×{n}',
+  '★ DUBLONEN-AUTOMAT ★': '★ DOUBLOON SLOT ★',
+  'Zieh am Hebel!': 'Pull the lever!',
+  'Gewinntabelle': 'Paytable',
+  'Symbol': 'Symbol',
+  '3 gleiche': '3 of a kind',
+  '2 gleiche': '2 of a kind',
+  'Gewinne als Vielfaches des Einsatzes (inklusive Einsatz).': 'Wins as a multiple of your bet (bet included).',
+  // Spiel-Name und -Beschreibung (für die Lobby)
+  'Slot-Maschine': 'Slot Machine',
+  'Drei gleiche Symbole gewinnen – bis zu ×777!': 'Three matching symbols win – up to ×777!',
+});
+
 (function () {
   const SM = () => GK.slotMachine;
   const MIN_BET = 10;
@@ -23,7 +46,7 @@ window.GK = window.GK || {};
     if (!GK.casino.bet(s.bet)) {
       autoLeft = 0;
       GK.sound.play('denied');
-      showMessage('Nicht genug Dublonen für diesen Einsatz.', 'loss');
+      showMessage(GK.t('Nicht genug Dublonen für diesen Einsatz.'), 'loss');
       updateButtons();
       return;
     }
@@ -56,16 +79,16 @@ window.GK = window.GK || {};
     reels.highlight(p.payout > 0 ? ev.win : []);
 
     if (p.payout > p.bet) {
-      showMessage(`${p.text} – Gewinn: ${GK.formatMoneyHTML(p.payout)}`, 'win');
+      showMessage(GK.t('{text} – Gewinn: {amt}', { text: p.text, amt: GK.formatMoneyHTML(p.payout) }), 'win');
       if (animated) {
         GK.fx.pulse(els.machine, 'slot-win');
         GK.fx.celebrate(p.payout, p.bet, { el: els.window, level: ev.jackpot ? 'jackpot' : undefined, subtitle: p.text });
       }
     } else if (p.payout === p.bet) {
-      showMessage(`${p.text} – Einsatz zurück`, '');
+      showMessage(GK.t('{text} – Einsatz zurück', { text: p.text }), '');
       if (animated) GK.sound.play('coin');
     } else {
-      showMessage('Leider kein Gewinn.', 'loss');
+      showMessage(GK.t('Leider kein Gewinn.'), 'loss');
     }
     // Automatik stoppt bei großen Gewinnen, damit man sie mitbekommt
     if (p.payout >= p.bet * 50) autoLeft = 0;
@@ -84,7 +107,7 @@ window.GK = window.GK || {};
   function updateButtons() {
     els.spin.disabled = spinning;
     els.auto.disabled = spinning && autoLeft === 0;
-    els.auto.textContent = autoLeft > 0 ? `Stopp (${autoLeft})` : `Auto ×${AUTO_SPINS}`;
+    els.auto.textContent = autoLeft > 0 ? GK.t('Stopp ({n})', { n: autoLeft }) : GK.t('Auto ×{n}', { n: AUTO_SPINS });
     betControl.setDisabled(spinning || autoLeft > 0);
   }
 
@@ -93,26 +116,26 @@ window.GK = window.GK || {};
       <div class="slots-layout">
         <div class="slot-machine">
           <div class="slot-lights"></div>
-          <div class="slot-title">★ DUBLONEN-AUTOMAT ★</div>
+          <div class="slot-title">${GK.t('★ DUBLONEN-AUTOMAT ★')}</div>
           <div class="slot-front">
             <div class="slot-window"></div>
           </div>
-          <div class="game-message">Zieh am Hebel!</div>
+          <div class="game-message">${GK.t('Zieh am Hebel!')}</div>
           <div class="slot-bet"></div>
           <div class="game-actions">
             <button class="btn slot-auto"></button>
           </div>
         </div>
         <div class="paytable">
-          <h3>Gewinntabelle</h3>
+          <h3>${GK.t('Gewinntabelle')}</h3>
           <table>
-            <thead><tr><th>Symbol</th><th>3 gleiche</th><th>2 gleiche</th></tr></thead>
+            <thead><tr><th>${GK.t('Symbol')}</th><th>${GK.t('3 gleiche')}</th><th>${GK.t('2 gleiche')}</th></tr></thead>
             <tbody>
               ${SM().SYMBOLS.slice().reverse().map(s => `
                 <tr><td class="paytable-icon">${s.icon}</td><td>×${s.three}</td><td>${s.two ? '×' + s.two : '–'}</td></tr>`).join('')}
             </tbody>
           </table>
-          <p class="muted small">Gewinne als Vielfaches des Einsatzes (inklusive Einsatz).</p>
+          <p class="muted small">${GK.t('Gewinne als Vielfaches des Einsatzes (inklusive Einsatz).')}</p>
         </div>
       </div>`;
 

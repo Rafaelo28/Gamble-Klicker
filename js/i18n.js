@@ -22,10 +22,16 @@ window.GK = window.GK || {};
 
   // Deutschen Quelltext übersetzen und Werte einsetzen.
   // de: der deutsche Text (mit {platzhaltern}); vars: { platzhalter: wert }
-  GK.t = function (de, vars) {
+  // ctx: optionaler Kontext, wenn dasselbe deutsche Wort je nach Spiel anders heißt
+  //      (z. B. „Karte" = „Hit" im Blackjack, „card" im Mau-Mau). Angemeldet als 'ctx\u0001wort'.
+  GK.t = function (de, vars, ctx) {
     de = String(de);
-    const en = currentLang() === 'en' && EN[de] != null ? EN[de] : de;
-    return interpolate(en, vars);
+    let s = de;
+    if (currentLang() === 'en') {
+      if (ctx != null && EN[ctx + '\u0001' + de] != null) s = EN[ctx + '\u0001' + de];
+      else if (EN[de] != null) s = EN[de];
+    }
+    return interpolate(s, vars);
   };
 
   // ---------- Statische Texte in index.html ----------
@@ -50,7 +56,10 @@ window.GK = window.GK || {};
       const p = n.parentElement;
       if (!p || SKIP_TAGS[p.tagName]) continue;
       if (p.closest('[data-i18n]')) continue; // wird als ganzes Element übersetzt
-      if (n.nodeValue && n.nodeValue.trim()) staticText.push({ node: n, de: n.nodeValue });
+      // Einzelzeichen (z. B. das Münz-Zeichen „D" im Logo) nicht übersetzen – sie sind Symbole,
+      // keine Wörter, und könnten sonst mit sehr kurzen Wörterbuch-Schlüsseln (Kartenwerte B/D …) kollidieren.
+      const core = n.nodeValue && n.nodeValue.trim();
+      if (core && core.length >= 2) staticText.push({ node: n, de: n.nodeValue });
     }
     document.querySelectorAll('[placeholder],[title],[aria-label]').forEach(el => {
       ATTRS.forEach(attr => {

@@ -5,6 +5,39 @@
 // Treffer je Fach und die Auszahlung (kompakt), die einzelnen Bahnen gibt es nur für die Animation.
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Münzfall': 'Coin Drop',
+  'Lass Münzen durch die Nägel fallen – bis zu 5.000 auf einmal!': 'Let coins fall through the nails – up to 5,000 at once!',
+  'Wenig Risiko': 'Low risk',
+  'Mittel': 'Medium',
+  'Viel Risiko': 'High risk',
+  'Nicht genug Dublonen für diesen Einsatz.': 'Not enough Doubloons for this bet.',
+  'Für {count} Münzen brauchst du {money}.': 'You need {money} for {count} coins.',
+  '{n} Münzen': '{n} coins',
+  '{label} · bestes Fach {mult}': '{label} · best slot {mult}',
+  '{label}: {money} – Gewinn {net}': '{label}: {money} – win {net}',
+  '{label}: {money} zurück': '{label}: {money} back',
+  '🪙 {landed} von {total} gelandet · {paid}': '🪙 {landed} of {total} landed · {paid}',
+  'Fach {mult}': 'Slot {mult}',
+  '{mult} – Gewinn: {money}': '{mult} – win: {money}',
+  '{mult} – {money} zurück': '{mult} – {money} back',
+  'Gesamteinsatz: <b>{money}</b>': 'Total bet: <b>{money}</b>',
+  '– nicht genug Dublonen': '– not enough Doubloons',
+  'Münze werfen': 'Drop coin',
+  '{n} Münzen werfen': 'Drop {n} coins',
+  'Risiko': 'Risk',
+  'Münzen pro Wurf': 'Coins per drop',
+  'Sofort auszahlen': 'Pay out now',
+  'Einsatz pro Münze': 'Bet per coin',
+  'Wirf eine Münze!': 'Drop a coin!',
+  'Die Münze springt an jedem Nagel nach links oder rechts. Je weiter sie nach außen fällt, desto mehr gewinnst du. Einzelne Münzen kannst du schnell nacheinander werfen – oder bis zu 5.000 auf einmal (der Einsatz gilt pro Münze).':
+    'The coin bounces left or right at every peg. The further out it falls, the more you win. You can drop single coins one after another – or up to 5,000 at once (the bet applies per coin).',
+});
+
 (function () {
   // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
@@ -109,7 +142,7 @@ window.GK = window.GK || {};
     if (s.mass || s.pending.length >= MAX_BALLS) return false;
     if (!GK.casino.bet(s.bet)) {
       GK.sound.play('denied');
-      showMessage('Nicht genug Dublonen für diesen Einsatz.', 'loss');
+      showMessage(GK.t('Nicht genug Dublonen für diesen Einsatz.'), 'loss');
       updateButtons();
       return false;
     }
@@ -139,7 +172,7 @@ window.GK = window.GK || {};
     const total = s.bet * count;
     if (!GK.casino.bet(total)) {
       GK.sound.play('denied');
-      showMessage(`Für ${GK.formatNumber(count)} Münzen brauchst du ${GK.formatMoneyHTML(total)}.`, 'loss');
+      showMessage(GK.t('Für {count} Münzen brauchst du {money}.', { count: GK.formatNumber(count), money: GK.formatMoneyHTML(total) }), 'loss');
       updateButtons();
       return false;
     }
@@ -173,12 +206,12 @@ window.GK = window.GK || {};
     shownHits = m.hits;
     GK.casino.payout(m.payout);
     if (m.best >= 24) GK.unlockAchievement('plinkoEdge');
-    const label = `${GK.formatNumber(m.count)} Münzen`;
-    GK.casino.record('plinko', m.total, m.payout, `${label} · bestes Fach ${multText(m.best)}`);
+    const label = GK.t('{n} Münzen', { n: GK.formatNumber(m.count) });
+    GK.casino.record('plinko', m.total, m.payout, GK.t('{label} · bestes Fach {mult}', { label, mult: multText(m.best) }));
     const net = m.payout - m.total;
     showMessage(net > 0
-      ? `${label}: ${GK.formatMoneyHTML(m.payout)} – Gewinn ${GK.formatMoneyHTML(net)}`
-      : `${label}: ${GK.formatMoneyHTML(m.payout)} zurück`, net > 0 ? 'win' : '');
+      ? GK.t('{label}: {money} – Gewinn {net}', { label, money: GK.formatMoneyHTML(m.payout), net: GK.formatMoneyHTML(net) })
+      : GK.t('{label}: {money} zurück', { label, money: GK.formatMoneyHTML(m.payout) }), net > 0 ? 'win' : '');
     if (animated) {
       // Hat man das Spiel inzwischen verlassen, feiert die Bildschirmmitte
       if (net > 0) GK.fx.celebrate(m.payout, m.total, { el: els.canvas.offsetParent ? els.canvas : null, subtitle: label });
@@ -230,7 +263,7 @@ window.GK = window.GK || {};
     if (flying) playLimited('plink', 70, 0.8 + Math.random() * 0.6);
     if (now - m.msgAt > 150) {
       m.msgAt = now;
-      showMessage(`🪙 ${GK.formatNumber(m.landed)} von ${GK.formatNumber(m.coins.length)} gelandet · ${GK.formatMoneyHTML(m.paid)}`, '');
+      showMessage(GK.t('🪙 {landed} von {total} gelandet · {paid}', { landed: GK.formatNumber(m.landed), total: GK.formatNumber(m.coins.length), paid: GK.formatMoneyHTML(m.paid) }), '');
     }
     if (m.next >= m.coins.length) finishMass(true);
   }
@@ -244,12 +277,12 @@ window.GK = window.GK || {};
     GK.casino.payout(ball.payout);
     if (ball.mult >= 24) GK.unlockAchievement('plinkoEdge');
     const mt = multText(ball.mult);
-    GK.casino.record('plinko', ball.bet, ball.payout, `Fach ${mt}`);
+    GK.casino.record('plinko', ball.bet, ball.payout, GK.t('Fach {mult}', { mult: mt }));
     if (!animated) return;
     binBounce.set(ball.bin, performance.now());
     const pos = binScreenPos(ball.bin);
     if (ball.mult >= 5) {
-      GK.fx.celebrate(ball.payout, ball.bet, { el: null, subtitle: `Fach ${mt}`, level: ball.mult >= 100 ? 'jackpot' : undefined });
+      GK.fx.celebrate(ball.payout, ball.bet, { el: null, subtitle: GK.t('Fach {mult}', { mult: mt }), level: ball.mult >= 100 ? 'jackpot' : undefined });
       GK.fx.burst(pos.x, pos.y, { count: 20, speed: 600, upward: true });
     } else if (ball.payout > ball.bet) {
       GK.sound.play('winSmall');
@@ -260,8 +293,8 @@ window.GK = window.GK || {};
       GK.sound.play('tick');
     }
     showMessage(ball.payout > ball.bet
-      ? `${mt} – Gewinn: ${GK.formatMoneyHTML(ball.payout)}`
-      : ball.payout > 0 ? `${mt} – ${GK.formatMoneyHTML(ball.payout)} zurück` : `${mt}`, ball.payout > ball.bet ? 'win' : '');
+      ? GK.t('{mult} – Gewinn: {money}', { mult: mt, money: GK.formatMoneyHTML(ball.payout) })
+      : ball.payout > 0 ? GK.t('{mult} – {money} zurück', { mult: mt, money: GK.formatMoneyHTML(ball.payout) }) : `${mt}`, ball.payout > ball.bet ? 'win' : '');
     updateButtons();
   }
 
@@ -453,8 +486,8 @@ window.GK = window.GK || {};
     const count = countOf(s);
     const total = s.bet * count;
     GK.setHTML(els.total, count > 1
-      ? `Gesamteinsatz: <b>${GK.formatMoneyHTML(total)}</b>` +
-        (GK.canAfford(total) || s.mass ? '' : ' <span class="bet-warning">– nicht genug Dublonen</span>')
+      ? GK.t('Gesamteinsatz: <b>{money}</b>', { money: GK.formatMoneyHTML(total) }) +
+        (GK.canAfford(total) || s.mass ? '' : ` <span class="bet-warning">${GK.t('– nicht genug Dublonen')}</span>`)
       : '');
   }
 
@@ -463,7 +496,7 @@ window.GK = window.GK || {};
     const count = countOf(s);
     const massRunning = !!s.mass;
     els.drop.disabled = massRunning || (count === 1 ? s.pending.length >= MAX_BALLS : s.pending.length > 0);
-    GK.setHTML(els.drop, count === 1 ? `${ic('coins')}Münze werfen` : `${ic('coins')}${GK.formatNumber(count)} Münzen werfen`);
+    GK.setHTML(els.drop, count === 1 ? `${ic('coins')}${GK.t('Münze werfen')}` : `${ic('coins')}${GK.t('{n} Münzen werfen', { n: GK.formatNumber(count) })}`);
     els.skip.hidden = !massRunning;
     els.counts.forEach(btn => {
       btn.classList.toggle('active', Number(btn.dataset.count) === count);
@@ -484,23 +517,21 @@ window.GK = window.GK || {};
           <canvas class="plinko-canvas" width="${W * SCALE}" height="${H * SCALE}"></canvas>
         </div>
         <div class="plinko-controls">
-          <div class="plinko-risks" role="group" aria-label="Risiko">
-            ${Object.entries(RISKS).map(([id, r]) => `<button type="button" class="btn btn-small plinko-risk" data-risk="${id}">${r.name}</button>`).join('')}
+          <div class="plinko-risks" role="group" aria-label="${GK.t('Risiko')}">
+            ${Object.entries(RISKS).map(([id, r]) => `<button type="button" class="btn btn-small plinko-risk" data-risk="${id}">${GK.t(r.name)}</button>`).join('')}
           </div>
           <div class="game-message">&nbsp;</div>
           <div class="plinko-bet"></div>
-          <div class="plinko-count-label muted small">Münzen pro Wurf</div>
-          <div class="plinko-counts" role="group" aria-label="Münzen pro Wurf">
+          <div class="plinko-count-label muted small">${GK.t('Münzen pro Wurf')}</div>
+          <div class="plinko-counts" role="group" aria-label="${GK.t('Münzen pro Wurf')}">
             ${COUNTS.map(n => `<button type="button" class="btn btn-small plinko-count" data-count="${n}">${GK.formatNumber(n)}</button>`).join('')}
           </div>
           <div class="plinko-total"></div>
           <div class="game-actions">
-            <button class="btn btn-primary btn-big plinko-drop">${ic('coins')}Münze werfen</button>
-            <button class="btn plinko-skip" hidden>${ic('forward')}Sofort auszahlen</button>
+            <button class="btn btn-primary btn-big plinko-drop">${ic('coins')}${GK.t('Münze werfen')}</button>
+            <button class="btn plinko-skip" hidden>${ic('forward')}${GK.t('Sofort auszahlen')}</button>
           </div>
-          <p class="muted small">Die Münze springt an jedem Nagel nach links oder rechts. Je weiter sie
-            nach außen fällt, desto mehr gewinnst du. Einzelne Münzen kannst du schnell nacheinander werfen –
-            oder bis zu 5.000 auf einmal (der Einsatz gilt pro Münze).</p>
+          <p class="muted small">${GK.t('Die Münze springt an jedem Nagel nach links oder rechts. Je weiter sie nach außen fällt, desto mehr gewinnst du. Einzelne Münzen kannst du schnell nacheinander werfen – oder bis zu 5.000 auf einmal (der Einsatz gilt pro Münze).')}</p>
         </div>
       </div>`;
     els = {
@@ -515,7 +546,7 @@ window.GK = window.GK || {};
     ctx = els.canvas.getContext('2d');
     betControl = GK.casino.createBetControl(body.querySelector('.plinko-bet'), {
       min: MIN_BET,
-      label: 'Einsatz pro Münze',
+      label: GK.t('Einsatz pro Münze'),
       get: () => state().bet,
       set: v => { state().bet = v; },
     });
@@ -555,7 +586,7 @@ window.GK = window.GK || {};
     shownHits = null;
     state().pending.slice().forEach(ball => settle(ball, false));
     if (state().mass) finishMass(false);
-    else showMessage('Wirf eine Münze!', '');
+    else showMessage(GK.t('Wirf eine Münze!'), '');
     draw();
     updateButtons();
   }

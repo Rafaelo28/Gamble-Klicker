@@ -4,6 +4,36 @@
 // oder Bank zurück. Die Hand steht beim Austeilen fest und wird gespeichert (Neuladen zahlt aus).
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Baccarat': 'Baccarat',
+  'Spieler oder Bank? Wer näher an 9 kommt, gewinnt.': 'Player or Banker? Whoever gets closer to 9 wins.',
+  'bac\u0001Spieler': 'Player',
+  'bac\u0001Bank': 'Banker',
+  'Unentschieden': 'Draw',
+  'Nicht genug Dublonen für diesen Einsatz.': 'Not enough Doubloons for this bet.',
+  'Einsatz auf <b>{side}</b> – die Karten kommen …': 'Bet on <b>{side}</b> – the cards are coming …',
+  '🤝 Unentschieden {a} zu {b}': '🤝 Draw {a} to {b}',
+  '{side} gewinnt {a} zu {b}': '{side} wins {a} to {b}',
+  '{text} · gesetzt: {side}': '{text} · bet on: {side}',
+  '{text}! Gewinn: {n}': '{text}! Win: {n}',
+  '{text} – du bekommst deinen Einsatz zurück.': '{text} – you get your bet back.',
+  '{text} – diesmal leider nicht.': '{text} – not this time.',
+  'Noch keine Hände.': 'No hands yet.',
+  'Spieler zahlt 1:1 · Bank zahlt 0,95:1 · Unentschieden zahlt 8:1': 'Player pays 1:1 · Banker pays 0.95:1 · Draw pays 8:1',
+  'Letzte Hände': 'Recent hands',
+  'Wette': 'Bet',
+  'zahlt 1:1': 'pays 1:1',
+  'zahlt 8:1': 'pays 8:1',
+  'zahlt 0,95:1': 'pays 0.95:1',
+  'Austeilen': 'Deal',
+  'Wer näher an 9 liegt, gewinnt – es zählt nur die Einerstelle (Bilder und Zehnen zählen 0,\n        Ass zählt 1). Ob eine dritte Karte kommt, bestimmen feste Regeln. Bei Unentschieden bekommst du Einsätze\n        auf Spieler oder Bank zurück.': 'Whoever is closer to 9 wins – only the ones digit counts (face cards and tens count 0,\n        ace counts 1). Whether a third card is dealt follows fixed rules. On a draw you get your bets\n        on Player or Banker back.',
+  'Spieler, Bank oder Unentschieden? Wähle deine Wette und teile aus.': 'Player, Banker or Draw? Choose your bet and deal.',
+});
+
 (function () {
   // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
@@ -84,7 +114,7 @@ window.GK = window.GK || {};
     if (s.pending || dealing) return;
     if (!GK.casino.bet(s.bet)) {
       GK.sound.play('denied');
-      showMessage('Nicht genug Dublonen für diesen Einsatz.', 'loss');
+      showMessage(GK.t('Nicht genug Dublonen für diesen Einsatz.'), 'loss');
       return;
     }
     const hand = playHand();
@@ -92,7 +122,7 @@ window.GK = window.GK || {};
     const p = Object.assign({ bet: s.bet, choice: s.choice, payout }, hand);
     s.pending = p;
     GK.save();
-    showMessage(`Einsatz auf <b>${NAMES[p.choice]}</b> – die Karten kommen …`, '');
+    showMessage(GK.t('Einsatz auf <b>{side}</b> – die Karten kommen …', { side: GK.t(NAMES[p.choice], null, 'bac') }), '');
     dealing = { shown: 0 };
     render();
     const fast = GK.state.settings.effects === 'reduced';
@@ -120,17 +150,17 @@ window.GK = window.GK || {};
     if (s.road.length > 36) s.road.splice(0, s.road.length - 36);
     const pt = total(p.player);
     const bt = total(p.banker);
-    const text = p.winner === 'tie' ? `🤝 Unentschieden ${pt} zu ${bt}`
-      : `${p.winner === 'player' ? '🔵' : '🔴'} ${NAMES[p.winner]} gewinnt ${Math.max(pt, bt)} zu ${Math.min(pt, bt)}`;
-    GK.casino.record('baccarat', p.bet, p.payout, `${text} · gesetzt: ${NAMES[p.choice]}`);
+    const text = p.winner === 'tie' ? GK.t('🤝 Unentschieden {a} zu {b}', { a: pt, b: bt })
+      : `${p.winner === 'player' ? '🔵' : '🔴'} ${GK.t('{side} gewinnt {a} zu {b}', { side: GK.t(NAMES[p.winner], null, 'bac'), a: Math.max(pt, bt), b: Math.min(pt, bt) })}`;
+    GK.casino.record('baccarat', p.bet, p.payout, GK.t('{text} · gesetzt: {side}', { text, side: GK.t(NAMES[p.choice], null, 'bac') }));
     if (p.choice === 'tie' && p.winner === 'tie') GK.unlockAchievement('baccaratTie');
     if (p.payout > p.bet) {
-      showMessage(`${text}! Gewinn: ${GK.formatMoneyHTML(p.payout)}`, 'win');
+      showMessage(GK.t('{text}! Gewinn: {n}', { text, n: GK.formatMoneyHTML(p.payout) }), 'win');
       if (animated) GK.fx.celebrate(p.payout, p.bet, { el: els.table, subtitle: text });
     } else if (p.payout === p.bet) {
-      showMessage(`${text} – du bekommst deinen Einsatz zurück.`, '');
+      showMessage(GK.t('{text} – du bekommst deinen Einsatz zurück.', { text }), '');
     } else {
-      showMessage(`${text} – diesmal leider nicht.`, 'loss');
+      showMessage(GK.t('{text} – diesmal leider nicht.', { text }), 'loss');
       if (animated) GK.sound.play('lose');
     }
     GK.save();
@@ -175,7 +205,7 @@ window.GK = window.GK || {};
     betControl.setDisabled(busy);
     els.road.innerHTML = s.road.length
       ? s.road.map(r => `<span class="bac-bead ${r}">${r === 'p' ? 'S' : r === 'b' ? 'B' : 'U'}</span>`).join('')
-      : '<span class="muted small">Noch keine Hände.</span>';
+      : `<span class="muted small">${GK.t('Noch keine Hände.')}</span>`;
   }
 
   function showMessage(html, cls) {
@@ -188,29 +218,27 @@ window.GK = window.GK || {};
     body.innerHTML = `
       <div class="bac-table">
         <div class="bac-side bac-player-side">
-          <div class="bac-label">${ic('dot', 'ic-blue')} Spieler <span class="bac-total bac-player-total"></span></div>
+          <div class="bac-label">${ic('dot', 'ic-blue')} ${GK.t('Spieler', null, 'bac')} <span class="bac-total bac-player-total"></span></div>
           <div class="bj-cards bac-player"></div>
         </div>
         <div class="bac-side bac-banker-side">
-          <div class="bac-label">${ic('dot', 'ic-red')} Bank <span class="bac-total bac-banker-total"></span></div>
+          <div class="bac-label">${ic('dot', 'ic-red')} ${GK.t('Bank', null, 'bac')} <span class="bac-total bac-banker-total"></span></div>
           <div class="bj-cards bac-banker"></div>
         </div>
-        <div class="bac-rules">Spieler zahlt 1:1 · Bank zahlt 0,95:1 · Unentschieden zahlt 8:1</div>
+        <div class="bac-rules">${GK.t('Spieler zahlt 1:1 · Bank zahlt 0,95:1 · Unentschieden zahlt 8:1')}</div>
       </div>
-      <div class="bac-road" aria-label="Letzte Hände"></div>
-      <div class="bac-choices" role="group" aria-label="Wette">
-        <button type="button" class="btn bac-choice player" data-choice="player">${ic('dot', 'ic-blue')}Spieler<small>zahlt 1:1</small></button>
-        <button type="button" class="btn bac-choice tie" data-choice="tie">${ic('handshake')}Unentschieden<small>zahlt 8:1</small></button>
-        <button type="button" class="btn bac-choice banker" data-choice="banker">${ic('dot', 'ic-red')}Bank<small>zahlt 0,95:1</small></button>
+      <div class="bac-road" aria-label="${GK.t('Letzte Hände')}"></div>
+      <div class="bac-choices" role="group" aria-label="${GK.t('Wette')}">
+        <button type="button" class="btn bac-choice player" data-choice="player">${ic('dot', 'ic-blue')}${GK.t('Spieler', null, 'bac')}<small>${GK.t('zahlt 1:1')}</small></button>
+        <button type="button" class="btn bac-choice tie" data-choice="tie">${ic('handshake')}${GK.t('Unentschieden')}<small>${GK.t('zahlt 8:1')}</small></button>
+        <button type="button" class="btn bac-choice banker" data-choice="banker">${ic('dot', 'ic-red')}${GK.t('Bank', null, 'bac')}<small>${GK.t('zahlt 0,95:1')}</small></button>
       </div>
       <div class="game-message">&nbsp;</div>
       <div class="bac-bet"></div>
       <div class="game-actions">
-        <button class="btn btn-primary btn-big bac-deal">${ic('cards')}Austeilen</button>
+        <button class="btn btn-primary btn-big bac-deal">${ic('cards')}${GK.t('Austeilen')}</button>
       </div>
-      <p class="muted small bac-help">Wer näher an 9 liegt, gewinnt – es zählt nur die Einerstelle (Bilder und Zehnen zählen 0,
-        Ass zählt 1). Ob eine dritte Karte kommt, bestimmen feste Regeln. Bei Unentschieden bekommst du Einsätze
-        auf Spieler oder Bank zurück.</p>`;
+      <p class="muted small bac-help">${GK.t('Wer näher an 9 liegt, gewinnt – es zählt nur die Einerstelle (Bilder und Zehnen zählen 0,\n        Ass zählt 1). Ob eine dritte Karte kommt, bestimmen feste Regeln. Bei Unentschieden bekommst du Einsätze\n        auf Spieler oder Bank zurück.')}</p>`;
     els = {
       table: body.querySelector('.bac-table'),
       player: body.querySelector('.bac-player'),
@@ -242,7 +270,7 @@ window.GK = window.GK || {};
     dealing = null;
     // Hand aus der letzten Sitzung: sofort abrechnen
     if (state().pending) settle(false);
-    else showMessage('Spieler, Bank oder Unentschieden? Wähle deine Wette und teile aus.', '');
+    else showMessage(GK.t('Spieler, Bank oder Unentschieden? Wähle deine Wette und teile aus.'), '');
     render();
   }
 
