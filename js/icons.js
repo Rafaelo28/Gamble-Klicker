@@ -200,9 +200,9 @@ window.GK = window.GK || {};
       `<ellipse cx="12" cy="12" rx="10" ry="3.6" transform="rotate(-20 12 12)"${AS}/>`,
     mirror: `<ellipse cx="12" cy="9.5" rx="5.5" ry="6.5"${T}/><ellipse cx="12" cy="9.5" rx="5.5" ry="6.5"/>` +
       `<path d="M9.5 8l2-2M9.6 11l4-4"${AS}/>` + '<path d="M12 16v4.5M8.5 21h7"/>',
-    galaxy: circ(12, 12, 1.7, A) +
-      '<path d="M12 12c0-3 2.6-5.5 5.5-4.5M12 12c0 3-2.6 5.5-5.5 4.5M12 12c3 0 5.5 2.6 4.5 5.5M12 12c-3 0-5.5-2.6-4.5-5.5"/>' +
-      circ(12, 12, 8.5, T) + circ(19.5, 4.5, 1, F) + circ(4.5, 19.5, 1, F),
+    // Ovale Galaxie mit heller Mitte und Sternen – bewusst OHNE gedrehte Spiralarme (die sahen aus wie ein Hakenkreuz)
+    galaxy: `<ellipse cx="12" cy="13" rx="10" ry="5"${T}/><ellipse cx="12" cy="13" rx="10" ry="5"/>` +
+      `<ellipse cx="12" cy="13" rx="4" ry="2.2"${A}/>` + circ(5.5, 4.5, 1, F) + circ(18.5, 3.5, 1.2, F) + circ(20, 21, 0.9, F),
     hand: duo('M7 11V6.5a1.5 1.5 0 0 1 3 0V10V4.5a1.5 1.5 0 0 1 3 0V10V5.5a1.5 1.5 0 0 1 3 0V11V8.5a1.5 1.5 0 0 1 3 0V15a7 7 0 0 1-7 7h-.5a6.5 6.5 0 0 1-5.2-2.6L3.6 15.3a1.5 1.5 0 0 1 2.3-2L7 14.5Z'),
     fist: duo(rr(5, 6.5, 14, 10.5, 3.5)) + '<path d="M9 6.8v3.7M12.5 6.6v3.9M16 6.8v3.7M5.3 12.5h5.2a1.8 1.8 0 0 1 0 3.5H8"/>' +
       duo(rr(7.5, 17, 9, 4.5, 1), A),
