@@ -501,7 +501,7 @@ GK.poker = GK.poker || {};
       if (T().handLimitReached(t)) T().finishByChips(t);
       const meSeat = t.players.findIndex(p => p.id === store().playerId);
       const me = t.players[meSeat];
-      if (t.result && t.result.hands && GK.poker.quadsOrBetter(t.result.hands[meSeat])) GK.unlockAchievement('pokerRoyal');
+      if (t.result && t.result.hands && GK.poker.fullHouseOrBetter(t.result.hands[meSeat])) GK.unlockAchievement('pokerRoyal');
       if (me.out || t.phase === 'finished') settle(me.place, t.players.length, mpPayout(t, meSeat, s.entry));
       if (t.phase === 'finished') s.phase = 'ended';
     }
@@ -740,7 +740,7 @@ GK.poker = GK.poker || {};
 
     const me = s.view && s.view.players[s.mySeat];
     if (me) {
-      if (s.view.result && s.view.result.hands && GK.poker.quadsOrBetter(s.view.result.hands[s.mySeat])) GK.unlockAchievement('pokerRoyal');
+      if (s.view.result && s.view.result.hands && GK.poker.fullHouseOrBetter(s.view.result.hands[s.mySeat])) GK.unlockAchievement('pokerRoyal');
       if (me.out || s.view.phase === 'finished') settle(me.place, s.view.players.length, mpPayout(s.view, s.mySeat, s.entry));
     }
     GK.save();

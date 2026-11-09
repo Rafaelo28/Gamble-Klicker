@@ -154,7 +154,7 @@ window.GK = window.GK || {};
     const t = state().table;
     // Blitz: Nach der letzten Hand ist Schluss, die Chips entscheiden
     if (t && T().handLimitReached(t)) T().finishByChips(t);
-    if (t && t.result && t.result.hands && GK.poker.quadsOrBetter(t.result.hands[HUMAN])) {
+    if (t && t.result && t.result.hands && GK.poker.fullHouseOrBetter(t.result.hands[HUMAN])) {
       GK.unlockAchievement('pokerRoyal');
     }
     GK.save();

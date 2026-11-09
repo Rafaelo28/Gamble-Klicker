@@ -83,7 +83,7 @@ window.GK = window.GK || {};
     { id: 'wheelFree',   icon: '🎁', name: 'Geschenkt!',            desc: 'Den täglichen Gratis-Dreh am Glücksrad genutzt.' },
     { id: 'plinkoEdge',  icon: '🪙', name: 'Randlage',              desc: 'Beim Münzfall ein Fach mit mindestens ×24 getroffen.' },
     { id: 'minesAll',    icon: '🏝️', name: 'Schatzkönig',           desc: 'Auf der Schatzinsel alle Schätze gefunden.' },
-    { id: 'stopwatchExact', icon: '⏱️', name: 'Auf die Hundertstel', desc: 'Bei der Stoppuhr genau die Zielzeit getroffen.' },
+    { id: 'stopwatchExact', icon: '⏱️', name: 'Gutes Timing',       desc: 'Bei der Stoppuhr höchstens 3 Hundertstel neben der Zielzeit gestoppt.' },
     { id: 'crash10',     icon: '💣', name: 'Kanonier',              desc: 'Bei der Kanonenkugel ab ×10 abkassiert.' },
     { id: 'chickenGoal', icon: '🐔', name: 'Über die Straße',       desc: 'Bei Chicken Road das Huhn über alle 20 Spuren ins Ziel gebracht.' },
     { id: 'hilo10',      icon: '🔮', name: 'Hellseher',             desc: 'Bei Höher oder tiefer 10-mal hintereinander richtig getippt.' },
@@ -125,7 +125,7 @@ window.GK = window.GK || {};
     { id: 'duelDirect',  icon: '🎯', name: 'Meisterschütze',        desc: 'Beim Kanonenduell das gegnerische Schiff direkt getroffen.' },
     { id: 'roomPlay',    icon: '🤝', name: 'Spielrunde',            desc: 'Ein Spiel mit Freunden online gespielt.' },
     { id: 'friends3',    icon: '👥', name: 'Freundeskreis',         desc: 'Drei Freunde in deiner Freundes-Rangliste.', check: s => Object.keys(s.friends || {}).length >= 3 },
-    { id: 'pokerRoyal',  icon: '4️⃣', name: 'Vierling!',             desc: 'Beim Poker einen Vierling oder besser aufgedeckt.' },
+    { id: 'pokerRoyal',  icon: '🃏', name: 'Full House!',           desc: 'Beim Poker ein Full House oder besser aufgedeckt.' },
     { id: 'pokerMpPlay', icon: '👥', name: 'Unter Freunden',        desc: 'Ein Poker-Turnier mit Freunden gespielt.' },
     { id: 'pokerMpWin',  icon: '🏅', name: 'Champion der Runde',    desc: 'Ein Poker-Turnier mit Freunden gewonnen.' },
     // Große Fahrt
