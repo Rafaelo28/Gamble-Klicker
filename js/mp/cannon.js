@@ -5,6 +5,27 @@
 // Der Gastgeber entscheidet, die anderen spielen den Schuss zur Anzeige nach.
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Kanonenduell': 'Cannon Duel',
+  'Zwei Schiffe, eine Insel, wechselnder Wind – wer versenkt zuerst?': 'Two ships, one island, shifting wind – who sinks first?',
+  '<p class="muted"><b>So geht\'s:</b> Abwechselnd feuert jeder eine Kanonenkugel ab. Zum Zielen aufs Bild tippen,\n      nach hinten ziehen und loslassen – je weiter du ziehst, desto kräftiger der Schuss. Der Wind ändert sich\n      jede Runde. Ein direkter Treffer kostet 40 Lebenspunkte, Einschläge in der Nähe weniger.</p>':
+    '<p class="muted"><b>How it works:</b> Taking turns, each fires a cannonball. To aim, tap the picture,\n      pull back and release – the further you pull, the more powerful the shot. The wind changes\n      every round. A direct hit costs 40 health points, nearby impacts less.</p>',
+  'Wind': 'Wind',
+  'still': 'calm',
+  'Kraft {pct} % · {deg}°': 'Power {pct} % · {deg}°',
+  ' (du)': ' (you)',
+  '{n} Treffer': '{n} hits',
+  'Das gegnerische Schiff sinkt – du gewinnst!': 'The enemy ship sinks – you win!',
+  '{name} gewinnt das Duell.': '{name} wins the duel.',
+  'Die Kugel fliegt …': 'The cannonball flies …',
+  'Du bist dran: aufs Bild tippen, nach hinten ziehen (wie eine Schleuder) und loslassen. Achte auf den Wind!': "You're up: tap the picture, pull back (like a slingshot) and release. Watch the wind!",
+  '{name} zielt …': '{name} is aiming …',
+});
+
 (function () {
   // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
@@ -350,7 +371,7 @@ window.GK = window.GK || {};
     g.fillStyle = '#fff';
     g.font = '700 17px system-ui, sans-serif';
     g.textAlign = 'center';
-    g.fillText(`💨 Wind ${wind === 0 ? 'still' : (wind > 0 ? '→ ' : '← ') + Math.abs(wind).toFixed(1).replace('.', ',')}`, W / 2, 40);
+    g.fillText(`💨 ${GK.t('Wind')} ${wind === 0 ? GK.t('still') : (wind > 0 ? '→ ' : '← ') + Math.abs(wind).toFixed(1).replace('.', ',')}`, W / 2, 40);
     if (wind) {
       g.strokeStyle = '#bfe3ff';
       g.lineWidth = 4;
@@ -463,7 +484,7 @@ window.GK = window.GK || {};
       g.fillStyle = '#fff';
       g.strokeStyle = 'rgba(0, 0, 0, 0.7)';
       g.lineWidth = 4;
-      const text = `Kraft ${Math.round(aim.power * 100)} % · ${deg}°`;
+      const text = GK.t('Kraft {pct} % · {deg}°', { pct: Math.round(aim.power * 100), deg });
       g.strokeText(text, m.x + aim.ux * len, m.y + aim.uy * len - 18);
       g.fillText(text, m.x + aim.ux * len, m.y + aim.uy * len - 18);
     }
@@ -543,16 +564,16 @@ window.GK = window.GK || {};
     container.querySelector('.duel-table').classList.toggle('my-turn', myTurn);
     setHtml(container.querySelector('.duel-players'), v.players.map((p, i) => `
       <div class="pool-player ${v.turn === i && v.phase === 'aim' ? 'active' : ''}">
-        <div class="pool-name"><span class="duel-flag" style="background:${COLORS[i]}"></span> ${GK.cosmetics.nameTag(p)}${i === ui.mySeat ? ' (du)' : ''}</div>
-        <div class="pool-group">${ic('heart')} ${p.hp} · ${ic('target')} ${p.hits} Treffer</div>
+        <div class="pool-name"><span class="duel-flag" style="background:${COLORS[i]}"></span> ${GK.cosmetics.nameTag(p)}${i === ui.mySeat ? GK.t(' (du)') : ''}</div>
+        <div class="pool-group">${ic('heart')} ${p.hp} · ${ic('target')} ${GK.t('{n} Treffer', { n: p.hits })}</div>
       </div>`).join('<span class="pool-vs">vs</span>'));
     let hint;
     if (v.phase === 'finished') {
       const w = v.players.findIndex(p => p.place === 1);
-      hint = w === ui.mySeat ? `${ic('trophy')} Das gegnerische Schiff sinkt – du gewinnst!` : `${ic('flag')} ${esc(v.players[w].name)} gewinnt das Duell.`;
-    } else if (v.phase === 'flying') hint = `${ic('burst')} Die Kugel fliegt …`;
-    else if (myTurn) hint = `${ic('tap')} Du bist dran: aufs Bild tippen, nach hinten ziehen (wie eine Schleuder) und loslassen. Achte auf den Wind!`;
-    else hint = `${esc(v.players[v.turn].name)} zielt …`;
+      hint = w === ui.mySeat ? `${ic('trophy')} ${GK.t('Das gegnerische Schiff sinkt – du gewinnst!')}` : `${ic('flag')} ${GK.t('{name} gewinnt das Duell.', { name: esc(v.players[w].name) })}`;
+    } else if (v.phase === 'flying') hint = `${ic('burst')} ${GK.t('Die Kugel fliegt …')}`;
+    else if (myTurn) hint = `${ic('tap')} ${GK.t('Du bist dran: aufs Bild tippen, nach hinten ziehen (wie eine Schleuder) und loslassen. Achte auf den Wind!')}`;
+    else hint = GK.t('{name} zielt …', { name: esc(v.players[v.turn].name) });
     setHtml(container.querySelector('.duel-hint'), hint);
     setHtml(container.querySelector('.duel-log'), v.log.slice(0, 2).map(l => `<div>${esc(l)}</div>`).join(''));
   }
@@ -562,9 +583,9 @@ window.GK = window.GK || {};
     name: 'Kanonenduell',
     icon: '💥',
     desc: 'Zwei Schiffe, eine Insel, wechselnder Wind – wer versenkt zuerst?',
-    intro: `<p class="muted"><b>So geht's:</b> Abwechselnd feuert jeder eine Kanonenkugel ab. Zum Zielen aufs Bild tippen,
+    intro: GK.t(`<p class="muted"><b>So geht's:</b> Abwechselnd feuert jeder eine Kanonenkugel ab. Zum Zielen aufs Bild tippen,
       nach hinten ziehen und loslassen – je weiter du ziehst, desto kräftiger der Schuss. Der Wind ändert sich
-      jede Runde. Ein direkter Treffer kostet 40 Lebenspunkte, Einschläge in der Nähe weniger.</p>`,
+      jede Runde. Ein direkter Treffer kostet 40 Lebenspunkte, Einschläge in der Nähe weniger.</p>`),
     minPlayers: 2,
     maxPlayers: 2,
     bots: true,

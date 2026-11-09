@@ -3,6 +3,116 @@
 // mit Dublonen UND einem Teil der Gebäude – damit es lange etwas zu sammeln gibt.
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  // Seltenheiten
+  'Standard': 'Standard',
+  'Selten': 'Rare',
+  'Episch': 'Epic',
+  'Legendär': 'Legendary',
+  // Kategorien
+  'Münz-Designs': 'Coin Designs',
+  'Klick-Effekte': 'Click Effects',
+  'Farbthemen': 'Color Themes',
+  'Profil für Spiele mit Freunden': 'Profile for games with friends',
+  'Casino-Look': 'Casino Look',
+  // Münz-Designs
+  'Golddublone': 'Gold Doubloon',
+  'Die klassische Dublone.': 'The classic doubloon.',
+  'Silbertaler': 'Silver Taler',
+  'Kühler Glanz aus der Silbermine.': 'A cool shine from the silver mine.',
+  'Rubin-Dublone': 'Ruby Doubloon',
+  'Ein geschliffener Rubin, in Gold gefasst.': 'A cut ruby, set in gold.',
+  'Piratenmünze': 'Pirate Coin',
+  'Verwittert und verflucht – vom Meeresgrund.': 'Weathered and cursed – from the seabed.',
+  'Kristallmünze': 'Crystal Coin',
+  'Klar wie Eis, funkelt bei jedem Klick.': 'Clear as ice, sparkles with every click.',
+  'Sternenmünze': 'Star Coin',
+  'Ein Stück Nachthimmel mit eigenem Sternbild.': 'A piece of night sky with its own constellation.',
+  // Klick-Effekte
+  'Dublonen': 'Doubloons',
+  'Münzen springen davon.': 'Coins leap away.',
+  'Funkenregen': 'Shower of Sparks',
+  'Goldene Funken sprühen in alle Richtungen.': 'Golden sparks spray in every direction.',
+  'Meeresblasen': 'Sea Bubbles',
+  'Blasen steigen auf wie unter Wasser.': 'Bubbles rise as if underwater.',
+  'Glücksklee': 'Lucky Clover',
+  'Vierblättriger Klee wirbelt durch die Luft.': 'Four-leaf clover whirls through the air.',
+  'Feuerschweif': 'Fire Trail',
+  'Jeder Klick lodert auf.': 'Every click bursts into flame.',
+  'Feuerwerk': 'Fireworks',
+  'Raketen steigen auf und zerplatzen bunt.': 'Rockets rise and burst in color.',
+  // Farbthemen
+  'Taverne': 'Tavern',
+  'Dunkles Grün wie ein Spieltisch.': 'Dark green like a gaming table.',
+  'Tiefsee': 'Deep Sea',
+  'Tiefes Blau, weit unter den Wellen.': 'Deep blue, far below the waves.',
+  'Vulkan': 'Volcano',
+  'Glühende Lava unter schwarzem Fels.': 'Glowing lava beneath black rock.',
+  'Mitternacht': 'Midnight',
+  'Violetter Himmel mit funkelnden Sternen.': 'Violet sky with sparkling stars.',
+  'Eispalast': 'Ice Palace',
+  'Frostiges Blau, leise rieselt der Schnee.': 'Frosty blue, snow softly trickling down.',
+  'Kaiserpalast': 'Imperial Palace',
+  'Schwarz und Gold – mit wanderndem Goldglanz.': 'Black and gold – with a roaming golden shimmer.',
+  // Profil / Namensschild (Name und Titel)
+  'Matrose': 'Sailor',
+  'Name und Bild – ganz schlicht.': 'Name and picture – nice and plain.',
+  'Steuermann': 'Helmsman',
+  'Silbernes Namensschild mit Titel.': 'Silver name tag with title.',
+  'Schatzjäger': 'Treasure Hunter',
+  'Grünes Schild mit gestricheltem Kartenrand.': 'Green badge with a dashed map border.',
+  'Kapitän': 'Captain',
+  'Leuchtet in Tiefblau und Violett.': 'Glows in deep blue and violet.',
+  'Krakenbändiger': 'Kraken Tamer',
+  'Dunkles Meeresgrün, das in Wellen glüht.': 'Dark sea green glowing in waves.',
+  'Großadmiral': 'Grand Admiral',
+  'Goldenes Schild mit wanderndem Glanz – alle am Tisch sehen es.': 'Golden badge with a roaming shine – everyone at the table sees it.',
+  // Casino-Look
+  'Grüner Filz': 'Green Felt',
+  'Der klassische Spieltisch.': 'The classic gaming table.',
+  'Blauer Samt': 'Blue Velvet',
+  'Tiefblauer Samt und blaue Kartenrücken.': 'Deep blue velvet and blue card backs.',
+  'Bordeaux': 'Bordeaux',
+  'Weinroter Filz, Karten mit goldenem Rand.': 'Wine-red felt, cards with a golden edge.',
+  'Ebenholz': 'Ebony',
+  'Schwarzer Filz, silberne Rauten auf den Karten.': 'Black felt, silver diamonds on the cards.',
+  'Schatzkarte': 'Treasure Map',
+  'Ein Tisch aus altem Kartenleder – ☠ auf jeder Karte.': 'A table of old map leather – ☠ on every card.',
+  'Kaisertisch': 'Emperor Table',
+  'Schwarz und Gold, goldene Bande und Kronen auf den Karten.': 'Black and gold, golden rails and crowns on the cards.',
+  // Kaufen / Benachrichtigungen
+  'Ab {n} Gebäuden': 'From {n} buildings',
+  'Zu wenig Dublonen': 'Not enough doubloons',
+  '{name} kaufen?': 'Buy {name}?',
+  'Du zahlst {price} Dublonen und gibst {share} deiner Gebäude ab ({lost} von {total}).':
+    'You pay {price} doubloons and give up {share} of your buildings ({lost} of {total}).',
+  'Dein Einkommen sinkt von {before} auf {after} pro Sekunde.': 'Your income drops from {before} to {after} per second.',
+  'Upgrades, Schatzkarten und Erfolge bleiben.': 'Upgrades, treasure maps and achievements stay.',
+  'gehört jetzt dir!': 'is now yours!',
+  // Glücksrad
+  'Glücksrad der großen Fahrt': 'Wheel of Fortune of the Great Voyage',
+  'Auf deiner Fahrt hast du ein paar Schätze entdeckt – dreh am Rad und hol dir einen davon!':
+    'On your voyage you discovered a few treasures – spin the wheel and grab one of them!',
+  'Flaute': 'Dead Calm',
+  'diesmal kein Fang': 'no catch this time',
+  'Drehen!': 'Spin!',
+  '– diesmal kein Fang.': '– no catch this time.',
+  'Viel Glück bei der nächsten großen Fahrt!': 'Good luck on the next great voyage!',
+  'Weiter': 'Continue',
+  'Gleich anlegen': 'Equip now',
+  'Später': 'Later',
+  // Schatzkammer-Kacheln
+  'Angelegt': 'Equipped',
+  'Anlegen': 'Equip',
+  'Kaufen': 'Buy',
+  'deiner Gebäude': 'of your buildings',
+  'Vorschau {name}': 'Preview {name}',
+});
+
 (function () {
   // Eigenes Symbol (js/icons.js); in den Tests ohne Browser gibt es keins
   const ic = name => (GK.icon ? GK.icon(name) : '');
@@ -170,7 +280,7 @@ window.GK = window.GK || {};
     const base = `${pic} ${escapeHtml(p.name)}${p.rank && GK.rank ? GK.rank.tag(p.rank) : ''}`.trim();
     const item = byId[validBadge(p.badge)];
     if (!item) return base;
-    return `<span class="nametag nt-${item.id}"><span class="nt-name">${base}</span><span class="nt-title">${item.title}</span></span>`;
+    return `<span class="nametag nt-${item.id}"><span class="nt-name">${base}</span><span class="nt-title">${GK.t(item.title)}</span></span>`;
   }
 
   // Spielweiter Name und Bild (für die Vorschau)
@@ -219,8 +329,8 @@ window.GK = window.GK || {};
   // Warum man (noch) nicht kaufen kann – leer, wenn es geht
   function buyBlocker(item) {
     const r = RARITIES[item.rarity];
-    if (totalBuildings() < r.minBuildings) return `Ab ${GK.formatNumber(r.minBuildings)} Gebäuden`;
-    if (!GK.canAfford(r.price)) return 'Zu wenig Dublonen';
+    if (totalBuildings() < r.minBuildings) return GK.t('Ab {n} Gebäuden', { n: GK.formatNumber(r.minBuildings) });
+    if (!GK.canAfford(r.price)) return GK.t('Zu wenig Dublonen');
     return '';
   }
 
@@ -229,11 +339,12 @@ window.GK = window.GK || {};
     if (!item || owns(id) || buyBlocker(item)) return;
     const r = RARITIES[item.rarity];
     const loss = buildingLoss(r.share);
-    const text = `${item.icon} ${item.name} kaufen?\n\n` +
-      `Du zahlst ${GK.formatNumber(r.price)} Dublonen und gibst ${r.shareText} deiner Gebäude ab ` +
-      `(${GK.formatNumber(loss.lost)} von ${GK.formatNumber(totalBuildings())}).\n` +
-      `Dein Einkommen sinkt von ${GK.formatNumber(loss.cpsBefore, true)} auf ${GK.formatNumber(loss.cpsAfter, true)} pro Sekunde.\n\n` +
-      'Upgrades, Schatzkarten und Erfolge bleiben.';
+    const text = `${item.icon} ${GK.t('{name} kaufen?', { name: GK.t(item.name) })}\n\n` +
+      GK.t('Du zahlst {price} Dublonen und gibst {share} deiner Gebäude ab ({lost} von {total}).',
+        { price: GK.formatNumber(r.price), share: r.shareText, lost: GK.formatNumber(loss.lost), total: GK.formatNumber(totalBuildings()) }) + '\n' +
+      GK.t('Dein Einkommen sinkt von {before} auf {after} pro Sekunde.',
+        { before: GK.formatNumber(loss.cpsBefore, true), after: GK.formatNumber(loss.cpsAfter, true) }) + '\n\n' +
+      GK.t('Upgrades, Schatzkarten und Erfolge bleiben.');
     if (!confirm(text)) return;
     if (!GK.spend(r.price)) return;
     GK.state.buildings = loss.after;
@@ -253,8 +364,8 @@ window.GK = window.GK || {};
     GK.sound.play(top ? 'jackpot' : 'powerup');
     GK.fx.confetti(top ? 200 : 110);
     if (top) GK.fx.coinRain(2, 40);
-    GK.notify(`<span class="notify-icon emoji-keep">${item.icon}</span><span><b>${item.name}</b> gehört jetzt dir!<br>` +
-      `${RARITIES[item.rarity].name} · ${item.desc}</span>`, 5000);
+    GK.notify(`<span class="notify-icon emoji-keep">${item.icon}</span><span><b>${GK.t(item.name)}</b> ${GK.t('gehört jetzt dir!')}<br>` +
+      `${GK.t(RARITIES[item.rarity].name)} · ${GK.t(item.desc)}</span>`, 5000);
   }
 
   // ---------- Glücksrad nach der großen Fahrt ----------
@@ -296,9 +407,9 @@ window.GK = window.GK || {};
     overlay = document.createElement('div');
     overlay.className = 'cos-overlay';
     overlay.innerHTML = `
-      <div class="cos-dialog" role="dialog" aria-modal="true" aria-label="Glücksrad der großen Fahrt">
-        <h2>${ic('wheel')}Glücksrad der großen Fahrt</h2>
-        <p class="muted">Auf deiner Fahrt hast du ein paar Schätze entdeckt – dreh am Rad und hol dir einen davon!</p>
+      <div class="cos-dialog" role="dialog" aria-modal="true" aria-label="${GK.t('Glücksrad der großen Fahrt')}">
+        <h2>${ic('wheel')}${GK.t('Glücksrad der großen Fahrt')}</h2>
+        <p class="muted">${GK.t('Auf deiner Fahrt hast du ein paar Schätze entdeckt – dreh am Rad und hol dir einen davon!')}</p>
         <div class="cos-wheel-wrap">
           <div class="cos-pointer">▼</div>
           <div class="cos-wheel" style="background: conic-gradient(${stops})">
@@ -311,12 +422,12 @@ window.GK = window.GK || {};
         </div>
         <ul class="cos-legend">
           ${[...new Set(wheel.segments.filter(Boolean))].map(id => `
-            <li class="cos-${byId[id].rarity}"><span>${byId[id].icon}</span> ${byId[id].name} <small>${RARITIES[byId[id].rarity].name}</small></li>`).join('')}
-          <li class="cos-none"><span>${FLAUTE_ICON}</span> Flaute <small>diesmal kein Fang</small></li>
+            <li class="cos-${byId[id].rarity}"><span>${byId[id].icon}</span> ${GK.t(byId[id].name)} <small>${GK.t(RARITIES[byId[id].rarity].name)}</small></li>`).join('')}
+          <li class="cos-none"><span>${FLAUTE_ICON}</span> ${GK.t('Flaute')} <small>${GK.t('diesmal kein Fang')}</small></li>
         </ul>
         <div class="cos-result" aria-live="polite"></div>
         <div class="game-actions cos-actions">
-          <button class="btn btn-primary btn-big cos-spin">${ic('wheel')}Drehen!</button>
+          <button class="btn btn-primary btn-big cos-spin">${ic('wheel')}${GK.t('Drehen!')}</button>
         </div>
       </div>`;
     document.body.appendChild(overlay);
@@ -356,15 +467,15 @@ window.GK = window.GK || {};
     const actions = overlay.querySelector('.cos-actions');
     if (!id) {
       GK.sound.play('lose');
-      result.innerHTML = `<div class="cos-won cos-none"><span class="cos-won-icon">${FLAUTE_ICON}</span><b>Flaute</b> – diesmal kein Fang.<br>` +
-        '<span class="muted">Viel Glück bei der nächsten großen Fahrt!</span></div>';
-      actions.innerHTML = '<button class="btn btn-primary cos-close">Weiter</button>';
+      result.innerHTML = `<div class="cos-won cos-none"><span class="cos-won-icon">${FLAUTE_ICON}</span><b>${GK.t('Flaute')}</b> ${GK.t('– diesmal kein Fang.')}<br>` +
+        `<span class="muted">${GK.t('Viel Glück bei der nächsten großen Fahrt!')}</span></div>`;
+      actions.innerHTML = `<button class="btn btn-primary cos-close">${GK.t('Weiter')}</button>`;
     } else {
       const item = byId[id];
       celebrate(item);
       result.innerHTML = `<div class="cos-won cos-${item.rarity}"><span class="cos-won-icon">${item.icon}</span>` +
-        `<b>${item.name}</b> <small>${RARITIES[item.rarity].name}</small><br><span class="muted">${item.desc}</span></div>`;
-      actions.innerHTML = '<button class="btn btn-primary cos-equip">Gleich anlegen</button><button class="btn cos-close">Später</button>';
+        `<b>${GK.t(item.name)}</b> <small>${GK.t(RARITIES[item.rarity].name)}</small><br><span class="muted">${GK.t(item.desc)}</span></div>`;
+      actions.innerHTML = `<button class="btn btn-primary cos-equip">${GK.t('Gleich anlegen')}</button><button class="btn cos-close">${GK.t('Später')}</button>`;
       actions.querySelector('.cos-equip').addEventListener('click', () => {
         equip(id);
         closeWheel();
@@ -395,19 +506,19 @@ window.GK = window.GK || {};
     const on = equipped(item.category) === item.id;
     const r = RARITIES[item.rarity];
     let action;
-    if (on) action = '<button class="btn btn-small cos-action" disabled>' + ic('check') + 'Angelegt</button>';
-    else if (own) action = `<button class="btn btn-small cos-action" data-equip="${item.id}">Anlegen</button>`;
+    if (on) action = '<button class="btn btn-small cos-action" disabled>' + ic('check') + GK.t('Angelegt') + '</button>';
+    else if (own) action = `<button class="btn btn-small cos-action" data-equip="${item.id}">${GK.t('Anlegen')}</button>`;
     else {
       const blocker = buyBlocker(item);
-      action = `<button class="btn btn-small btn-primary cos-action" data-buy="${item.id}" ${blocker ? 'disabled' : ''}>${blocker || ic('unlock') + 'Kaufen'}</button>
-        <span class="cos-price">${GK.formatMoneyHTML(r.price)} + ${r.shareText} deiner Gebäude</span>`;
+      action = `<button class="btn btn-small btn-primary cos-action" data-buy="${item.id}" ${blocker ? 'disabled' : ''}>${blocker || ic('unlock') + GK.t('Kaufen')}</button>
+        <span class="cos-price">${GK.formatMoneyHTML(r.price)} + ${r.shareText} ${GK.t('deiner Gebäude')}</span>`;
     }
     return `
       <div class="cos-tile cos-${item.rarity}${own ? ' owned' : ''}${on ? ' equipped' : ''}" data-id="${item.id}">
-        <button class="cos-preview" data-preview="${item.id}" aria-label="Vorschau ${item.name}">${preview(item)}</button>
-        <span class="cos-name">${item.name}${own ? '' : ' ' + ic('lock')}</span>
-        <span class="cos-rarity">${r.name}</span>
-        <span class="cos-desc">${item.desc}</span>
+        <button class="cos-preview" data-preview="${item.id}" aria-label="${GK.t('Vorschau {name}', { name: GK.t(item.name) })}">${preview(item)}</button>
+        <span class="cos-name">${GK.t(item.name)}${own ? '' : ' ' + ic('lock')}</span>
+        <span class="cos-rarity">${GK.t(r.name)}</span>
+        <span class="cos-desc">${GK.t(item.desc)}</span>
         ${action}
       </div>`;
   }
@@ -422,7 +533,7 @@ window.GK = window.GK || {};
     document.getElementById('cosmetic-count').textContent = `(${store().owned.length}/${COLLECTIBLE.length})`;
     el.innerHTML = CATEGORIES.map(cat => `
       <section class="cos-category">
-        <h3>${ic(cat.sym)}${cat.name}</h3>
+        <h3>${ic(cat.sym)}${GK.t(cat.name)}</h3>
         <div class="cos-grid">${cat.items.map(item => tile(byId[item.id])).join('')}</div>
       </section>`).join('');
   }

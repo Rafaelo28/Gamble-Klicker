@@ -4,6 +4,29 @@
 // Der Gastgeber rechnet jeden Schlag aus, alle anderen spielen ihn zur Anzeige nach.
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Minigolf': 'Mini Golf',
+  'Sechs Bahnen in der Piratenbucht – wer braucht die wenigsten Schläge?': 'Six holes in the pirate cove – who needs the fewest strokes?',
+  '<p class="muted"><b>So geht\'s:</b> Tippe auf die Bahn und ziehe zurück wie bei einer Schleuder – je weiter,\n      desto fester der Schlag. Bälle stören sich gegenseitig nicht. Wasser kostet einen Strafschlag, nach\n      {max} Schlägen ist Schluss (zählt {plus}). Wer am Ende die wenigsten Schläge hat, gewinnt.</p>':
+    '<p class="muted"><b>How it works:</b> Tap the hole and pull back like a slingshot – the further,\n      the harder the stroke. Balls do not get in each other\'s way. Water costs a penalty stroke, after\n      {max} strokes it is over (counts as {plus}). Whoever has the fewest strokes at the end wins.</p>',
+  'Anlegestelle': 'The Jetty', 'Kanonen-Kurve': 'Cannon Curve', 'Sandbank': 'Sandbank',
+  'Haifischbecken': 'Shark Pool', 'Schatzhügel': 'Treasure Hill', 'Totenkopf-Insel': 'Skull Island',
+  'Bahn {n}/{total}: {name}': 'Hole {n}/{total}: {name}',
+  'Alle Bahnen gespielt!': 'All holes played!',
+  'Bahn geschafft – gleich geht es weiter …': 'Hole done – continuing shortly …',
+  '{name} hat geschlagen …': '{name} has played …',
+  'Du bist dran! Tippe auf die Bahn und ziehe zurück – je weiter, desto fester. Loslassen = Schlag.': "You're up! Tap the hole and pull back – the further, the harder. Release = stroke.",
+  '{name} ist dran …': '{name} is up …',
+  ' (du)': ' (you)',
+  'Bahnen': 'Holes',
+  '{n} Bahnen': '{n} holes',
+  ' (kurz)': ' (short)',
+});
+
 (function () {
   // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
@@ -387,14 +410,14 @@ window.GK = window.GK || {};
     }
     const h = holeOf(v);
     const turnName = v.turn >= 0 ? v.players[v.turn].name : '';
-    setHtml(container.querySelector('.golf-head'), `<b>Bahn ${v.hole + 1}/${v.course.length}: ${h.name}</b> · Par ${h.par}`);
+    setHtml(container.querySelector('.golf-head'), `<b>${GK.t('Bahn {n}/{total}: {name}', { n: v.hole + 1, total: v.course.length, name: GK.t(h.name) })}</b> · Par ${h.par}`);
     const myTurn = v.phase === 'aim' && v.turn === ui.mySeat;
     let hint;
-    if (v.phase === 'finished') hint = `${ic('flag')} Alle Bahnen gespielt!`;
-    else if (v.phase === 'holeDone') hint = `${ic('flag')} Bahn geschafft – gleich geht es weiter …`;
-    else if (v.phase === 'rolling') hint = `${esc(v.players[v.lastShot.seat].name)} hat geschlagen …`;
-    else if (myTurn) hint = `${ic('tap')} Du bist dran! Tippe auf die Bahn und ziehe zurück – je weiter, desto fester. Loslassen = Schlag.`;
-    else hint = `${esc(turnName)} ist dran …`;
+    if (v.phase === 'finished') hint = `${ic('flag')} ${GK.t('Alle Bahnen gespielt!')}`;
+    else if (v.phase === 'holeDone') hint = `${ic('flag')} ${GK.t('Bahn geschafft – gleich geht es weiter …')}`;
+    else if (v.phase === 'rolling') hint = GK.t('{name} hat geschlagen …', { name: esc(v.players[v.lastShot.seat].name) });
+    else if (myTurn) hint = `${ic('tap')} ${GK.t('Du bist dran! Tippe auf die Bahn und ziehe zurück – je weiter, desto fester. Loslassen = Schlag.')}`;
+    else hint = GK.t('{name} ist dran …', { name: esc(turnName) });
     setHtml(container.querySelector('.golf-hint'), hint);
     container.querySelector('.golf-course').classList.toggle('my-turn', myTurn);
     setHtml(container.querySelector('.golf-score'), scoreTable(v, ui));
@@ -425,7 +448,7 @@ window.GK = window.GK || {};
     const rows = v.players.map((p, seat) => {
       const total = p.strokes.reduce((a, b) => a + (b || 0), 0);
       return `<tr class="${seat === v.turn && v.phase === 'aim' ? 'turn' : ''} ${p.out ? 'out' : ''}">
-        <td><span class="golf-dot" style="background:${p.color}"></span>${GK.cosmetics.nameTag(p)}${seat === ui.mySeat ? ' (du)' : ''}</td>
+        <td><span class="golf-dot" style="background:${p.color}"></span>${GK.cosmetics.nameTag(p)}${seat === ui.mySeat ? GK.t(' (du)') : ''}</td>
         ${holes.map((h, i) => {
           const n = p.strokes[i];
           const cls = n === undefined ? '' : n === 1 ? 'ace' : n < h.par ? 'under' : n > h.par ? 'over' : 'even';
@@ -722,16 +745,16 @@ window.GK = window.GK || {};
     name: 'Minigolf',
     icon: '⛳',
     desc: 'Sechs Bahnen in der Piratenbucht – wer braucht die wenigsten Schläge?',
-    intro: `<p class="muted"><b>So geht's:</b> Tippe auf die Bahn und ziehe zurück wie bei einer Schleuder – je weiter,
+    intro: GK.t(`<p class="muted"><b>So geht's:</b> Tippe auf die Bahn und ziehe zurück wie bei einer Schleuder – je weiter,
       desto fester der Schlag. Bälle stören sich gegenseitig nicht. Wasser kostet einen Strafschlag, nach
-      ${MAX_STROKES} Schlägen ist Schluss (zählt ${MAX_STROKES + 1}). Wer am Ende die wenigsten Schläge hat, gewinnt.</p>`,
+      {max} Schlägen ist Schluss (zählt {plus}). Wer am Ende die wenigsten Schläge hat, gewinnt.</p>`, { max: MAX_STROKES, plus: MAX_STROKES + 1 }),
     minPlayers: 2,
     maxPlayers: 4,
     bots: true,
     settings: {
       defaults: { holes: 6 },
-      html: s => `<div class="bet-label">Bahnen</div>
-        <div class="room-opts">${[3, 6].map(n => `<button type="button" class="btn btn-small room-opt ${s.holes === n ? 'active' : ''}" data-holes="${n}">${n} Bahnen${n === 3 ? ' (kurz)' : ''}</button>`).join('')}</div>`,
+      html: s => `<div class="bet-label">${GK.t('Bahnen')}</div>
+        <div class="room-opts">${[3, 6].map(n => `<button type="button" class="btn btn-small room-opt ${s.holes === n ? 'active' : ''}" data-holes="${n}">${GK.t('{n} Bahnen', { n })}${n === 3 ? GK.t(' (kurz)') : ''}</button>`).join('')}</div>`,
       bind: (el, changed) => el.querySelectorAll('.room-opt').forEach(btn => btn.addEventListener('click', () => {
         el.querySelectorAll('.room-opt').forEach(b => b.classList.toggle('active', b === btn));
         GK.sound.play('chip');
@@ -739,7 +762,7 @@ window.GK = window.GK || {};
       })),
       read: el => ({ holes: Number((el.querySelector('.room-opt.active') || {}).dataset?.holes) || 6 }),
     },
-    settingsText: s => `${s.holes} Bahnen`,
+    settingsText: s => GK.t('{n} Bahnen', { n: s.holes }),
     create,
     actor: st => (st.phase === 'aim' ? st.turn : -1),
     act,

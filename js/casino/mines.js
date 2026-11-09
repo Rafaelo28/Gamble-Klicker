@@ -3,6 +3,42 @@
 // Die Runde (auch die Lage der Totenköpfe) wird sofort gespeichert und übersteht das Neuladen.
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Schatzinsel': 'Treasure Island',
+  'Grab nach Schätzen, aber hüte dich vor den Totenköpfen!': 'Dig for treasures, but beware the skulls!',
+  'Nicht genug Dublonen für diesen Einsatz.': 'Not enough Doubloons for this bet.',
+  'Wo liegt der Schatz? Tippe auf ein Feld!': 'Where is the treasure? Tap a field!',
+  'Schatz': 'treasure',
+  'Schätze': 'treasures',
+  'Schätzen': 'treasures',
+  '☠️ nach {n} {word}': '☠️ after {n} {word}',
+  '☠️ Ein Totenkopf! Der Schatz ist verloren.': '☠️ A skull! The treasure is lost.',
+  '{n} {word} · ×{mult}': '{n} {word} · ×{mult}',
+  '🏝️ Alle Schätze gefunden! ': '🏝️ Found all treasures! ',
+  'Abkassiert: {money} (×{mult})': 'Cashed out: {money} (×{mult})',
+  '{n} Schätze': '{n} treasures',
+  '💰 Abkassieren: {money}': '💰 Cash out: {money}',
+  '💰 Erst einen Schatz finden': '💰 Find a treasure first',
+  'Gefunden: <b>{found}</b> · Jetzt: <b>×{now}</b> · Nächster Schatz: <b>×{next}</b>':
+    'Found: <b>{found}</b> · Now: <b>×{now}</b> · Next treasure: <b>×{next}</b>',
+  'Totenkopf': 'skull',
+  'Totenköpfen': 'skulls',
+  'Mit {skulls} {word}: 1. Schatz ×{m1} · 3. Schatz ×{m3}':
+    'With {skulls} {word}: 1st treasure ×{m1} · 3rd treasure ×{m3}',
+  'Totenköpfe auf der Insel': 'Skulls on the island',
+  'Totenköpfe': 'Skulls',
+  'Feld {n}': 'Field {n}',
+  'Schatzsuche starten': 'Start treasure hunt',
+  'Grabe Feld für Feld nach Schätzen. Jeder Fund erhöht deinen Gewinn – aber triffst du einen Totenkopf, ist alles weg. Mehr Totenköpfe = höhere Gewinne.':
+    'Dig field by field for treasures. Each find raises your win – but hit a skull and it is all gone. More skulls = bigger wins.',
+  'Deine Schatzsuche läuft noch – grab weiter!': 'Your treasure hunt is still on – keep digging!',
+  'Wähle Einsatz und Totenköpfe.': 'Choose bet and skulls.',
+});
+
 (function () {
   // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
@@ -43,7 +79,7 @@ window.GK = window.GK || {};
     if (s.round) return;
     if (!GK.casino.bet(s.bet)) {
       GK.sound.play('denied');
-      showMessage('Nicht genug Dublonen für diesen Einsatz.', 'loss');
+      showMessage(GK.t('Nicht genug Dublonen für diesen Einsatz.'), 'loss');
       return;
     }
     const spots = GK.rng.shuffle(Array.from({ length: FIELDS }, (_, i) => i));
@@ -51,7 +87,7 @@ window.GK = window.GK || {};
     s.last = null;
     GK.save();
     GK.sound.play('chip');
-    showMessage('Wo liegt der Schatz? Tippe auf ein Feld!', '');
+    showMessage(GK.t('Wo liegt der Schatz? Tippe auf ein Feld!'), '');
     render();
   }
 
@@ -64,14 +100,14 @@ window.GK = window.GK || {};
       // Totenkopf!
       s.round = null;
       s.last = { mines: r.mines, found: r.found, icons: r.icons, hit: index, bet: r.bet, payout: 0 };
-      GK.casino.record('mines', r.bet, 0, `☠️ nach ${r.found.length} ${r.found.length === 1 ? 'Schatz' : 'Schätzen'}`);
+      GK.casino.record('mines', r.bet, 0, GK.t('☠️ nach {n} {word}', { n: r.found.length, word: GK.t(r.found.length === 1 ? 'Schatz' : 'Schätzen') }));
       render();
       GK.sound.play('boom');
       GK.fx.shake('small');
       const pos = GK.fx.center(els.grid.children[index]);
       GK.fx.burst(pos.x, pos.y, { count: 18, kind: 'sparkle', speed: 500 });
       GK.fx.pulse(els.grid.children[index], 'mine-boom');
-      showMessage('☠️ Ein Totenkopf! Der Schatz ist verloren.', 'loss');
+      showMessage(GK.t('☠️ Ein Totenkopf! Der Schatz ist verloren.'), 'loss');
       return;
     }
     r.found.push(index);
@@ -97,10 +133,10 @@ window.GK = window.GK || {};
     GK.casino.payout(payout);
     const all = r.found.length === FIELDS - r.skulls;
     if (all) GK.unlockAchievement('minesAll');
-    GK.casino.record('mines', r.bet, payout, `${r.found.length} ${r.found.length === 1 ? 'Schatz' : 'Schätze'} · ×${formatMult(mult)}`);
+    GK.casino.record('mines', r.bet, payout, GK.t('{n} {word} · ×{mult}', { n: r.found.length, word: GK.t(r.found.length === 1 ? 'Schatz' : 'Schätze'), mult: formatMult(mult) }));
     render();
-    showMessage(`${all ? '🏝️ Alle Schätze gefunden! ' : ''}Abkassiert: ${GK.formatMoneyHTML(payout)} (×${formatMult(mult)})`, 'win');
-    GK.fx.celebrate(payout, r.bet, { el: els.grid, subtitle: `${r.found.length} Schätze` });
+    showMessage(`${all ? GK.t('🏝️ Alle Schätze gefunden! ') : ''}${GK.t('Abkassiert: {money} (×{mult})', { money: GK.formatMoneyHTML(payout), mult: formatMult(mult) })}`, 'win');
+    GK.fx.celebrate(payout, r.bet, { el: els.grid, subtitle: GK.t('{n} Schätze', { n: r.found.length }) });
   }
 
   // ---------- Darstellung ----------
@@ -146,12 +182,14 @@ window.GK = window.GK || {};
       const next = multiplier(r.skulls, r.found.length + 1);
       els.cash.disabled = !r.found.length;
       els.cash.innerHTML = r.found.length
-        ? `💰 Abkassieren: ${GK.formatMoneyHTML(Math.floor(r.bet * now))}`
-        : '💰 Erst einen Schatz finden';
-      els.info.innerHTML = `Gefunden: <b>${r.found.length}</b> · Jetzt: <b>×${formatMult(now)}</b> · Nächster Schatz: <b>×${formatMult(next)}</b>`;
+        ? GK.t('💰 Abkassieren: {money}', { money: GK.formatMoneyHTML(Math.floor(r.bet * now)) })
+        : GK.t('💰 Erst einen Schatz finden');
+      els.info.innerHTML = GK.t('Gefunden: <b>{found}</b> · Jetzt: <b>×{now}</b> · Nächster Schatz: <b>×{next}</b>', { found: r.found.length, now: formatMult(now), next: formatMult(next) });
     } else {
-      els.info.innerHTML = `Mit ${s.skulls} ${s.skulls === 1 ? 'Totenkopf' : 'Totenköpfen'}: 1. Schatz ×${formatMult(multiplier(s.skulls, 1))}` +
-        ` · 3. Schatz ×${formatMult(multiplier(s.skulls, Math.min(3, FIELDS - s.skulls)))}`;
+      els.info.innerHTML = GK.t('Mit {skulls} {word}: 1. Schatz ×{m1} · 3. Schatz ×{m3}', {
+        skulls: s.skulls, word: GK.t(s.skulls === 1 ? 'Totenkopf' : 'Totenköpfen'),
+        m1: formatMult(multiplier(s.skulls, 1)), m3: formatMult(multiplier(s.skulls, Math.min(3, FIELDS - s.skulls))),
+      });
     }
   }
 
@@ -165,22 +203,21 @@ window.GK = window.GK || {};
     body.innerHTML = `
       <div class="mines-layout">
         <div class="mines-island">
-          <div class="mines-grid">${Array.from({ length: FIELDS }, (_, i) => `<button class="mine-cell" data-i="${i}" aria-label="Feld ${i + 1}"></button>`).join('')}</div>
+          <div class="mines-grid">${Array.from({ length: FIELDS }, (_, i) => `<button class="mine-cell" data-i="${i}" aria-label="${GK.t('Feld {n}', { n: i + 1 })}"></button>`).join('')}</div>
         </div>
         <div class="mines-controls">
-          <div class="bet-label">Totenköpfe auf der Insel</div>
-          <div class="mines-skulls" role="group" aria-label="Totenköpfe">
+          <div class="bet-label">${GK.t('Totenköpfe auf der Insel')}</div>
+          <div class="mines-skulls" role="group" aria-label="${GK.t('Totenköpfe')}">
             ${SKULL_OPTIONS.map(n => `<button type="button" class="btn btn-small mines-skull" data-skulls="${n}">${ic('skull')}${n}</button>`).join('')}
           </div>
           <div class="mines-info"></div>
           <div class="game-message">&nbsp;</div>
           <div class="mines-bet"></div>
           <div class="game-actions">
-            <button class="btn btn-primary btn-big mines-start">${ic('island')}Schatzsuche starten</button>
+            <button class="btn btn-primary btn-big mines-start">${ic('island')}${GK.t('Schatzsuche starten')}</button>
             <button class="btn btn-primary btn-big mines-cash" hidden></button>
           </div>
-          <p class="muted small">Grabe Feld für Feld nach Schätzen. Jeder Fund erhöht deinen Gewinn –
-            aber triffst du einen Totenkopf, ist alles weg. Mehr Totenköpfe = höhere Gewinne.</p>
+          <p class="muted small">${GK.t('Grabe Feld für Feld nach Schätzen. Jeder Fund erhöht deinen Gewinn – aber triffst du einen Totenkopf, ist alles weg. Mehr Totenköpfe = höhere Gewinne.')}</p>
         </div>
       </div>`;
     els = {
@@ -214,7 +251,7 @@ window.GK = window.GK || {};
   }
 
   function refresh() {
-    showMessage(state().round ? 'Deine Schatzsuche läuft noch – grab weiter!' : 'Wähle Einsatz und Totenköpfe.', '');
+    showMessage(state().round ? GK.t('Deine Schatzsuche läuft noch – grab weiter!') : GK.t('Wähle Einsatz und Totenköpfe.'), '');
     render();
   }
 

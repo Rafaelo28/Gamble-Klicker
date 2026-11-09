@@ -5,6 +5,39 @@
 // Die Runde wird nach jedem Tipp sofort gespeichert – Neuladen kostet nichts und bringt nichts.
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Höher oder tiefer': 'Higher or Lower',
+  'Höher oder tiefer? Jeder richtige Tipp lässt den Gewinn wachsen.': 'Higher or lower? Every correct guess grows your win.',
+  'Nicht genug Dublonen für diesen Einsatz.': 'Not enough Doubloons for this bet.',
+  'Höher oder tiefer? Gleich zählt immer als richtig.': 'Higher or lower? Equal always counts as correct.',
+  '❌ Falsch getippt nach {n} Treffer': '❌ Wrong guess after {n} hit',
+  '❌ Falsch getippt nach {n} Treffern': '❌ Wrong guess after {n} hits',
+  'Richtig! Jetzt ×{m} – weiter oder auszahlen?': 'Correct! Now ×{m} – continue or cash out?',
+  '❌ Leider falsch – {card}. Der Einsatz ist weg.': '❌ Wrong – {card}. Your bet is gone.',
+  'Neue Karte – noch {n}× überspringen möglich.': 'New card – {n}× skip still possible.',
+  '💰 {n} Treffer · ×{m}': '💰 {n} hits · ×{m}',
+  '💰 Ausgezahlt: {n} (×{m})': '💰 Paid out: {n} (×{m})',
+  '{n} richtige Tipps': '{n} correct guesses',
+  'Höher oder gleich': 'Higher or equal',
+  'Tiefer oder gleich': 'Lower or equal',
+  'Überspringen ({n})': 'Skip ({n})',
+  'Auszahlen: {n}': 'Cash out: {n}',
+  'Erst richtig tippen': 'Guess correctly first',
+  'Richtige Tipps: <b>{n}</b> · Jetzt: <b>×{m}</b>': 'Correct guesses: <b>{n}</b> · Now: <b>×{m}</b>',
+  'Letzte Runde: {n} richtiger Tipp': 'Last round: {n} correct guess',
+  'Letzte Runde: {n} richtige Tipps': 'Last round: {n} correct guesses',
+  'Ass ist die höchste Karte, 2 die niedrigste.': 'Ace is the highest card, 2 the lowest.',
+  'Noch keine Runden.': 'No rounds yet.',
+  'Erste Karte ziehen': 'Draw the first card',
+  'Tippe, ob die nächste Karte höher oder tiefer ist – gleich zählt immer als richtig.\n            Je unwahrscheinlicher dein Tipp, desto stärker steigt der Gewinn. Auszahlen kannst du nach jedem\n            richtigen Tipp, ein falscher kostet den Einsatz. Dreimal pro Runde darfst du eine Karte überspringen.': 'Guess whether the next card is higher or lower – equal always counts as correct.\n            The less likely your guess, the more your win grows. You can cash out after every\n            correct guess; a wrong one costs your bet. Three times per round you may skip a card.',
+  'Deine Runde läuft noch – höher oder tiefer?': 'Your round is still going – higher or lower?',
+  'Wähle deinen Einsatz und zieh die erste Karte.': 'Choose your bet and draw the first card.',
+});
+
 (function () {
   // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
@@ -53,7 +86,7 @@ window.GK = window.GK || {};
     if (s.round || busy) return;
     if (!GK.casino.bet(s.bet)) {
       GK.sound.play('denied');
-      showMessage('Nicht genug Dublonen für diesen Einsatz.', 'loss');
+      showMessage(GK.t('Nicht genug Dublonen für diesen Einsatz.'), 'loss');
       return;
     }
     const card = randomCard();
@@ -61,7 +94,7 @@ window.GK = window.GK || {};
     s.last = null;
     GK.save();
     GK.sound.play('card');
-    showMessage('Höher oder tiefer? Gleich zählt immer als richtig.', '');
+    showMessage(GK.t('Höher oder tiefer? Gleich zählt immer als richtig.'), '');
     render(true);
   }
 
@@ -83,7 +116,7 @@ window.GK = window.GK || {};
       s.round = null;
       s.last = { bet: r.bet, cards: r.cards.concat({ card: next, how: dir, wrong: true }), steps: r.steps, payout: 0 };
       pushHistory(0);
-      GK.casino.record('hilo', r.bet, 0, `❌ Falsch getippt nach ${r.steps} ${r.steps === 1 ? 'Treffer' : 'Treffern'}`);
+      GK.casino.record('hilo', r.bet, 0, GK.t(r.steps === 1 ? '❌ Falsch getippt nach {n} Treffer' : '❌ Falsch getippt nach {n} Treffern', { n: r.steps }));
     }
     GK.save();
     GK.sound.play('flip');
@@ -95,11 +128,11 @@ window.GK = window.GK || {};
           cashOut();
           return;
         }
-        showMessage(`Richtig! Jetzt ×${fmt(multiplier(r.prob))} – weiter oder auszahlen?`, '');
+        showMessage(GK.t('Richtig! Jetzt ×{m} – weiter oder auszahlen?', { m: fmt(multiplier(r.prob)) }), '');
       } else {
         GK.sound.play('lose');
         GK.fx.shake('small');
-        showMessage(`❌ Leider falsch – ${GK.cards.label(next)}. Der Einsatz ist weg.`, 'loss');
+        showMessage(GK.t('❌ Leider falsch – {card}. Der Einsatz ist weg.', { card: GK.cards.label(next) }), 'loss');
       }
     });
   }
@@ -112,7 +145,7 @@ window.GK = window.GK || {};
     r.cards.push({ card: r.card, how: 'skip' });
     GK.save();
     GK.sound.play('card');
-    animate(() => showMessage(`Neue Karte – noch ${r.skips}× überspringen möglich.`, ''));
+    animate(() => showMessage(GK.t('Neue Karte – noch {n}× überspringen möglich.', { n: r.skips }), ''));
   }
 
   function cashOut() {
@@ -125,10 +158,10 @@ window.GK = window.GK || {};
     s.last = { bet: r.bet, cards: r.cards, steps: r.steps, payout };
     GK.casino.payout(payout);
     pushHistory(mult);
-    GK.casino.record('hilo', r.bet, payout, `💰 ${r.steps} Treffer · ×${fmt(mult)}`);
+    GK.casino.record('hilo', r.bet, payout, GK.t('💰 {n} Treffer · ×{m}', { n: r.steps, m: fmt(mult) }));
     GK.save();
-    showMessage(`💰 Ausgezahlt: ${GK.formatMoneyHTML(payout)} (×${fmt(mult)})`, 'win');
-    GK.fx.celebrate(payout, r.bet, { el: els.table, subtitle: `${r.steps} richtige Tipps` });
+    showMessage(GK.t('💰 Ausgezahlt: {n} (×{m})', { n: GK.formatMoneyHTML(payout), m: fmt(mult) }), 'win');
+    GK.fx.celebrate(payout, r.bet, { el: els.table, subtitle: GK.t('{n} richtige Tipps', { n: r.steps }) });
     render(false);
   }
 
@@ -169,23 +202,23 @@ window.GK = window.GK || {};
     const p = { hi: r ? chance(r.card, 'hi') : 0, lo: r ? chance(r.card, 'lo') : 0 };
     els.hi.disabled = !playing || p.hi >= 1;
     els.lo.disabled = !playing || p.lo >= 1;
-    GK.setHTML(els.hi, `${ic('up')}Höher oder gleich${r && p.hi < 1 ? `<small>×${fmt(multiplier(r.prob * p.hi))}</small>` : ''}`);
-    GK.setHTML(els.lo, `${ic('down')}Tiefer oder gleich${r && p.lo < 1 ? `<small>×${fmt(multiplier(r.prob * p.lo))}</small>` : ''}`);
+    GK.setHTML(els.hi, `${ic('up')}${GK.t('Höher oder gleich')}${r && p.hi < 1 ? `<small>×${fmt(multiplier(r.prob * p.hi))}</small>` : ''}`);
+    GK.setHTML(els.lo, `${ic('down')}${GK.t('Tiefer oder gleich')}${r && p.lo < 1 ? `<small>×${fmt(multiplier(r.prob * p.lo))}</small>` : ''}`);
     els.skip.hidden = !r;
     els.skip.disabled = !playing || r.skips <= 0;
-    GK.setHTML(els.skip, `${ic('forward')}Überspringen (${r ? r.skips : SKIPS})`);
+    GK.setHTML(els.skip, `${ic('forward')}${GK.t('Überspringen ({n})', { n: r ? r.skips : SKIPS })}`);
     els.start.hidden = !!r;
     els.start.disabled = busy;
     els.cash.hidden = !r;
     els.cash.disabled = !playing || r.steps < 1;
-    GK.setHTML(els.cash, r && r.steps >= 1 ? `${ic('bag')}Auszahlen: ${GK.formatMoneyHTML(Math.floor(r.bet * multiplier(r.prob)))}` : `${ic('bag')}Erst richtig tippen`);
+    GK.setHTML(els.cash, r && r.steps >= 1 ? `${ic('bag')}${GK.t('Auszahlen: {n}', { n: GK.formatMoneyHTML(Math.floor(r.bet * multiplier(r.prob))) })}` : `${ic('bag')}${GK.t('Erst richtig tippen')}`);
     els.info.innerHTML = r
-      ? `Richtige Tipps: <b>${r.steps}</b> · Jetzt: <b>×${fmt(multiplier(r.prob))}</b>`
-      : shown ? `Letzte Runde: ${shown.steps} richtige ${shown.steps === 1 ? 'Tipp' : 'Tipps'}` : 'Ass ist die höchste Karte, 2 die niedrigste.';
+      ? GK.t('Richtige Tipps: <b>{n}</b> · Jetzt: <b>×{m}</b>', { n: r.steps, m: fmt(multiplier(r.prob)) })
+      : shown ? GK.t(shown.steps === 1 ? 'Letzte Runde: {n} richtiger Tipp' : 'Letzte Runde: {n} richtige Tipps', { n: shown.steps }) : GK.t('Ass ist die höchste Karte, 2 die niedrigste.');
     betControl.setDisabled(!!r || busy);
     els.history.innerHTML = s.history.length
       ? s.history.map(m => (m > 0 ? `<span class="crash-chip high">×${fmt(m)}</span>` : `<span class="crash-chip low">${ic('close')}</span>`)).join('')
-      : '<span class="muted small">Noch keine Runden.</span>';
+      : `<span class="muted small">${GK.t('Noch keine Runden.')}</span>`;
   }
 
   function showMessage(html, cls) {
@@ -214,13 +247,11 @@ window.GK = window.GK || {};
           </div>
           <div class="hilo-bet"></div>
           <div class="game-actions">
-            <button class="btn btn-primary btn-big hilo-start">${ic('cards')}Erste Karte ziehen</button>
+            <button class="btn btn-primary btn-big hilo-start">${ic('cards')}${GK.t('Erste Karte ziehen')}</button>
             <button class="btn btn-primary btn-big hilo-cash" hidden></button>
             <button class="btn hilo-skip"></button>
           </div>
-          <p class="muted small">Tippe, ob die nächste Karte höher oder tiefer ist – gleich zählt immer als richtig.
-            Je unwahrscheinlicher dein Tipp, desto stärker steigt der Gewinn. Auszahlen kannst du nach jedem
-            richtigen Tipp, ein falscher kostet den Einsatz. Dreimal pro Runde darfst du eine Karte überspringen.</p>
+          <p class="muted small">${GK.t('Tippe, ob die nächste Karte höher oder tiefer ist – gleich zählt immer als richtig.\n            Je unwahrscheinlicher dein Tipp, desto stärker steigt der Gewinn. Auszahlen kannst du nach jedem\n            richtigen Tipp, ein falscher kostet den Einsatz. Dreimal pro Runde darfst du eine Karte überspringen.')}</p>
         </div>
       </div>`;
     els = {
@@ -251,7 +282,7 @@ window.GK = window.GK || {};
 
   function refresh() {
     busy = false;
-    showMessage(state().round ? 'Deine Runde läuft noch – höher oder tiefer?' : 'Wähle deinen Einsatz und zieh die erste Karte.', '');
+    showMessage(state().round ? GK.t('Deine Runde läuft noch – höher oder tiefer?') : GK.t('Wähle deinen Einsatz und zieh die erste Karte.'), '');
     render(false);
   }
 

@@ -8,6 +8,69 @@
 // zeigen: bei einem sicheren Schritt halten sie vor dem Huhn an, sonst kommt eines ungebremst angerast.
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Bring das Huhn über die Straße – Spur für Spur steigt der Gewinn!': 'Get the chicken across the road – the win grows lane by lane!',
+  'Nicht genug Dublonen für diesen Einsatz.': 'Not enough Doubloons for this bet.',
+  'Spur': 'lane',
+  'Spuren': 'lanes',
+  'Leicht': 'Easy',
+  'Normal': 'Normal',
+  'Schwer': 'Hard',
+  'Wahnsinn': 'Insane',
+  '💥 Erwischt nach {n} {word} ({diff})': '💥 Caught after {n} {word} ({diff})',
+  '🏁 Im Ziel': '🏁 Reached the goal',
+  '💰 Ausgezahlt': '💰 Cashed out',
+  '{result} nach {n} {word} · ×{mult} ({diff})': '{result} after {n} {word} · ×{mult} ({diff})',
+  '🐔 Hopp …': '🐔 Hop …',
+  '💰 Ausgezahlt: ×{mult}': '💰 Cashed out: ×{mult}',
+  '💰 Ausgezahlt: {money} (×{mult})': '💰 Cashed out: {money} (×{mult})',
+  '{n} {word} geschafft': '{n} {word} cleared',
+  'Neue Straße, neues Glück! Tippe auf „Schritt“.': 'New road, new luck! Tap "Step".',
+  'Geschafft! Jetzt ×{mult} – noch ein Schritt oder auszahlen?': 'Made it! Now ×{mult} – one more step or cash out?',
+  '🛡️ Sichere Zone – Abschnitt {n} von {total} wartet': '🛡️ Safe zone – section {n} of {total} awaits',
+  '🛡️ Sicher auf der Insel! Ab jetzt fährt der Verkehr schneller. Jetzt ×{mult}':
+    '🛡️ Safe on the island! From now on the traffic is faster. Now ×{mult}',
+  '🏁 Im Ziel! ×{mult}': '🏁 Goal reached! ×{mult}',
+  '🏁 Das Huhn hat es geschafft! Gewinn: {money} (×{mult})': '🏁 The chicken made it! Win: {money} (×{mult})',
+  'Alle 20 Spuren geschafft': 'All 20 lanes cleared',
+  '💥 Erwischt!': '💥 Caught!',
+  '💥 Erwischt! Der Einsatz ist weg.': '💥 Caught! Your bet is gone.',
+  'Sichere Zone': 'Safe zone',
+  'Abschnitt {n}': 'Section {n}',
+  'Ziel ×{mult}': 'Goal ×{mult}',
+  'Ziel erreicht!': 'Goal reached!',
+  'Abschnitt {sec} von {total} · noch {left} {word} bis {dest}':
+    'Section {sec} of {total} · {left} {word} left to {dest}',
+  'zum Ziel': 'the goal',
+  'zur sicheren Zone': 'the safe zone',
+  'Schritt': 'Step',
+  'Los! ({money})': 'Go! ({money})',
+  'Auszahlen: {money}': 'Cash out: {money}',
+  'Auszahlen': 'Cash out',
+  '1. Spur <b>×{m1}</b> · 5. Spur <b>×{m5}</b> · Ziel <b>×{goal}</b>':
+    '1st lane <b>×{m1}</b> · 5th lane <b>×{m5}</b> · Goal <b>×{goal}</b>',
+  'Noch keine Runden.': 'No rounds yet.',
+  'Einsatz': 'Bet',
+  'Multiplikator': 'Multiplier',
+  'Gewinn': 'Win',
+  'Schritte': 'Steps',
+  'Schwierigkeit': 'Difficulty',
+  'Neue Runde': 'New round',
+  'Straße mit Huhn': 'Road with chicken',
+  'Bring das Huhn Spur für Spur über die Straße. Jeder geschaffte Schritt erhöht den Multiplikator – auszahlen kannst du nach jedem Schritt. Erwischt dich ein Auto, ist der Einsatz weg. Nach jeweils fünf Spuren wartet eine sichere Insel, danach wird der Verkehr schneller.':
+    'Guide the chicken across the road lane by lane. Each cleared step raises the multiplier – you can cash out after every step. If a car catches you, your bet is gone. After every five lanes a safe island awaits, then the traffic gets faster.',
+  'Tastatur: Leertaste oder → = Schritt, Enter = Auszahlen, N = neue Runde.':
+    'Keyboard: space or → = step, Enter = cash out, N = new round.',
+  'Deine Runde läuft noch: {n} {word} geschafft. Weiter oder auszahlen?':
+    'Your round is still on: {n} {word} cleared. Continue or cash out?',
+  'Wähle Einsatz und Schwierigkeit – und dann los über die Straße!':
+    'Choose bet and difficulty – then off across the road!',
+});
+
 (function () {
   // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
@@ -310,7 +373,7 @@ window.GK = window.GK || {};
     if (s.round) return true;
     if (!GK.casino.bet(s.bet)) {
       GK.sound.play('denied');
-      showMessage('Nicht genug Dublonen für diesen Einsatz.', 'loss');
+      showMessage(GK.t('Nicht genug Dublonen für diesen Einsatz.'), 'loss');
       return false;
     }
     s.round = { bet: s.bet, diff: s.diff, steps: 0 };
@@ -334,7 +397,7 @@ window.GK = window.GK || {};
       s.round = null;
       s.last = { bet: r.bet, diff: r.diff, steps: r.steps, payout: 0, hit: true };
       pushHistory(0);
-      GK.casino.record('chicken', r.bet, 0, `💥 Erwischt nach ${r.steps} ${r.steps === 1 ? 'Spur' : 'Spuren'} (${DIFFICULTIES[r.diff].name})`);
+      GK.casino.record('chicken', r.bet, 0, GK.t('💥 Erwischt nach {n} {word} ({diff})', { n: r.steps, word: GK.t(r.steps === 1 ? 'Spur' : 'Spuren'), diff: GK.t(DIFFICULTIES[r.diff].name) }));
     }
     GK.save();
     return { lane, safe, done: !state().round, payout };
@@ -352,7 +415,7 @@ window.GK = window.GK || {};
     GK.casino.payout(payout);
     if (goal && GK.unlockAchievement) GK.unlockAchievement('chickenGoal');
     pushHistory(mult);
-    GK.casino.record('chicken', r.bet, payout, `${goal ? '🏁 Im Ziel' : '💰 Ausgezahlt'} nach ${r.steps} ${r.steps === 1 ? 'Spur' : 'Spuren'} · ×${fmt(mult)} (${DIFFICULTIES[r.diff].name})`);
+    GK.casino.record('chicken', r.bet, payout, GK.t('{result} nach {n} {word} · ×{mult} ({diff})', { result: GK.t(goal ? '🏁 Im Ziel' : '💰 Ausgezahlt'), n: r.steps, word: GK.t(r.steps === 1 ? 'Spur' : 'Spuren'), mult: fmt(mult), diff: GK.t(DIFFICULTIES[r.diff].name) }));
     GK.save();
     return payout;
   }
@@ -388,7 +451,7 @@ window.GK = window.GK || {};
     if (!res.safe) pendingHit = { lane: res.lane, deadline: world.time + plan.wait + HOP + HIT_DELAY + 0.6 };
     banner = null;
     GK.sound.play('flip');
-    showMessage('🐔 Hopp …', '');
+    showMessage(GK.t('🐔 Hopp …'), '');
     updateUI();
     ensureLoop();
   }
@@ -404,9 +467,9 @@ window.GK = window.GK || {};
     chicken.happyAt = world.time;
     chicken.shown.active = false;
     const mult = multiplierAt(r.diff, r.steps);
-    banner = { text: `💰 Ausgezahlt: ×${fmt(mult)}`, color: '#2fa866', at: world.time };
-    showMessage(`💰 Ausgezahlt: ${GK.formatMoneyHTML(payout)} (×${fmt(mult)})`, 'win');
-    GK.fx.celebrate(payout, r.bet, { el: els.canvas, subtitle: `${r.steps} ${r.steps === 1 ? 'Spur' : 'Spuren'} geschafft` });
+    banner = { text: GK.t('💰 Ausgezahlt: ×{mult}', { mult: fmt(mult) }), color: '#2fa866', at: world.time };
+    showMessage(GK.t('💰 Ausgezahlt: {money} (×{mult})', { money: GK.formatMoneyHTML(payout), mult: fmt(mult) }), 'win');
+    GK.fx.celebrate(payout, r.bet, { el: els.canvas, subtitle: GK.t('{n} {word} geschafft', { n: r.steps, word: GK.t(r.steps === 1 ? 'Spur' : 'Spuren') }) });
     updateUI();
   }
 
@@ -414,7 +477,7 @@ window.GK = window.GK || {};
     if (busy() || state().round) return;
     resetRoad();
     GK.sound.play('chip');
-    showMessage('Neue Straße, neues Glück! Tippe auf „Schritt“.', '');
+    showMessage(GK.t('Neue Straße, neues Glück! Tippe auf „Schritt“.'), '');
     updateUI();
   }
 
@@ -499,24 +562,24 @@ window.GK = window.GK || {};
       burst(col.center, MID, 'sparkle', 6);
       GK.sound.play('gem', 0.9 + Math.min(col.lane, 20) * 0.02);
       if (!chicken.queue.length) {
-        showMessage(`Geschafft! Jetzt ×${fmt(mult)} – noch ein Schritt oder auszahlen?`, '');
+        showMessage(GK.t('Geschafft! Jetzt ×{mult} – noch ein Schritt oder auszahlen?', { mult: fmt(mult) }), '');
       }
     } else if (col.kind === 'island') {
-      banner = { text: `🛡️ Sichere Zone – Abschnitt ${col.section + 1} von ${SECTIONS} wartet`, color: '#2f7fd8', at: t };
+      banner = { text: GK.t('🛡️ Sichere Zone – Abschnitt {n} von {total} wartet', { n: col.section + 1, total: SECTIONS }), color: '#2f7fd8', at: t };
       burst(col.center, MID, 'sparkle', 14);
       GK.sound.play('bonus');
-      showMessage(`🛡️ Sicher auf der Insel! Ab jetzt fährt der Verkehr schneller. Jetzt ×${fmt(multiplierAt(world.diff, chicken.shown.steps))}`, 'win');
+      showMessage(GK.t('🛡️ Sicher auf der Insel! Ab jetzt fährt der Verkehr schneller. Jetzt ×{mult}', { mult: fmt(multiplierAt(world.diff, chicken.shown.steps)) }), 'win');
     } else if (col.kind === 'goal') {
       finished = true;
       chicken.happyAt = t;
       chicken.shown.active = false;
       const last = state().last;
       const mult = multiplierAt(world.diff, LANES);
-      banner = { text: `🏁 Im Ziel! ×${fmt(mult)}`, color: '#2fa866', at: t };
+      banner = { text: GK.t('🏁 Im Ziel! ×{mult}', { mult: fmt(mult) }), color: '#2fa866', at: t };
       burst(col.center, MID, 'sparkle', 24);
       if (last && last.payout) {
-        showMessage(`🏁 Das Huhn hat es geschafft! Gewinn: ${GK.formatMoneyHTML(last.payout)} (×${fmt(mult)})`, 'win');
-        GK.fx.celebrate(last.payout, last.bet, { el: els.canvas, subtitle: 'Alle 20 Spuren geschafft' });
+        showMessage(GK.t('🏁 Das Huhn hat es geschafft! Gewinn: {money} (×{mult})', { money: GK.formatMoneyHTML(last.payout), mult: fmt(mult) }), 'win');
+        GK.fx.celebrate(last.payout, last.bet, { el: els.canvas, subtitle: GK.t('Alle 20 Spuren geschafft') });
       }
     }
     updateUI();
@@ -534,12 +597,12 @@ window.GK = window.GK || {};
     chicken.queue = [];
     burst(p.x, p.y, 'feather', 22);
     if (hit) hit.c.braking = true;
-    banner = { text: '💥 Erwischt!', color: '#c62828', at: world.time };
+    banner = { text: GK.t('💥 Erwischt!'), color: '#c62828', at: world.time };
     GK.sound.play('boom');
     GK.fx.shake('small');
     setTimeout(() => GK.sound.play('lose'), 250);
     const last = state().last;
-    showMessage(`💥 Erwischt! Der Einsatz ist weg.${last && last.steps ? ` (${last.steps} ${last.steps === 1 ? 'Spur' : 'Spuren'} geschafft)` : ''}`, 'loss');
+    showMessage(GK.t('💥 Erwischt! Der Einsatz ist weg.') + (last && last.steps ? ` (${GK.t('{n} {word} geschafft', { n: last.steps, word: GK.t(last.steps === 1 ? 'Spur' : 'Spuren') })})` : ''), 'loss');
     updateUI();
   }
 
@@ -712,10 +775,10 @@ window.GK = window.GK || {};
     ctx.fillText('🌼', c.center + 24, H - 110);
     ctx.font = '800 16px system-ui, sans-serif';
     ctx.fillStyle = '#fff';
-    ctx.fillText('Sichere Zone', c.center, 108);
+    ctx.fillText(GK.t('Sichere Zone'), c.center, 108);
     ctx.font = '700 14px system-ui, sans-serif';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-    ctx.fillText(`Abschnitt ${c.section + 1}`, c.center, 128);
+    ctx.fillText(GK.t('Abschnitt {n}', { n: c.section + 1 }), c.center, 128);
   }
 
   function drawStart(c) {
@@ -767,7 +830,7 @@ window.GK = window.GK || {};
     ctx.fillText('🌽', c.center - 40, H - 90);
     ctx.fillText('🌽', c.center + 50, H - 60);
     const mult = multiplierAt(world.diff, LANES);
-    const text = `Ziel ×${mult >= 1000 ? GK.formatNumber(Math.floor(mult)) : fmt(mult)}`;
+    const text = GK.t('Ziel ×{mult}', { mult: mult >= 1000 ? GK.formatNumber(Math.floor(mult)) : fmt(mult) });
     ctx.font = '900 20px system-ui, sans-serif';
     const w = ctx.measureText(text).width + 24;
     ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
@@ -1046,7 +1109,7 @@ window.GK = window.GK || {};
     setText('hudMult', `×${fmt(mult)}`);
     setText('hudWin', lost ? '<span class="loss">0</span>' : GK.formatMoneyHTML(steps ? Math.floor(bet * mult) : 0));
     setText('hudSteps', `${steps} / ${LANES}`);
-    setText('hudDiff', `${ic(DIFFICULTIES[diff].sym)} ${DIFFICULTIES[diff].name}`);
+    setText('hudDiff', `${ic(DIFFICULTIES[diff].sym)} ${GK.t(DIFFICULTIES[diff].name)}`);
     // Fortschritt: Spuren als Kästchen, Inseln als Schild
     const sec = Math.min(SECTIONS - 1, Math.floor(steps / LANES_PER_SECTION));
     const left = steps >= LANES ? 0 : LANES_PER_SECTION - (steps % LANES_PER_SECTION);
@@ -1060,8 +1123,8 @@ window.GK = window.GK || {};
       return cells + end;
     }).join('');
     setText('progress', progress);
-    setText('progressText', steps >= LANES ? `${ic('flag')} Ziel erreicht!`
-      : `Abschnitt ${sec + 1} von ${SECTIONS} · noch ${left} ${left === 1 ? 'Spur' : 'Spuren'} bis ${sec === SECTIONS - 1 ? 'zum Ziel' : 'zur sicheren Zone'}`);
+    setText('progressText', steps >= LANES ? `${ic('flag')} ${GK.t('Ziel erreicht!')}`
+      : GK.t('Abschnitt {sec} von {total} · noch {left} {word} bis {dest}', { sec: sec + 1, total: SECTIONS, left, word: GK.t(left === 1 ? 'Spur' : 'Spuren'), dest: GK.t(sec === SECTIONS - 1 ? 'zum Ziel' : 'zur sicheren Zone') }));
   }
 
   function updateUI() {
@@ -1071,11 +1134,11 @@ window.GK = window.GK || {};
     const v = chicken.shown;
     const b = busy();
     els.step.disabled = b;
-    GK.setHTML(els.step, v.active || b ? `${ic('step')}Schritt` : `${ic('step')}<span>Los! (${GK.formatMoneyHTML(s.bet)})</span>`);
+    GK.setHTML(els.step, v.active || b ? `${ic('step')}${GK.t('Schritt')}` : `${ic('step')}<span>${GK.t('Los! ({money})', { money: GK.formatMoneyHTML(s.bet) })}</span>`);
     els.cash.disabled = b || !r || r.steps < 1;
     GK.setHTML(els.cash, v.active && v.steps >= 1
-      ? `${ic('bag')}Auszahlen: ${GK.formatMoneyHTML(Math.floor(v.bet * multiplierAt(v.diff, v.steps)))}`
-      : `${ic('bag')}Auszahlen`);
+      ? `${ic('bag')}${GK.t('Auszahlen: {money}', { money: GK.formatMoneyHTML(Math.floor(v.bet * multiplierAt(v.diff, v.steps))) })}`
+      : `${ic('bag')}${GK.t('Auszahlen')}`);
     els.again.disabled = b || !!r || !finished;
     els.diffs.forEach(btn => {
       const active = btn.dataset.diff === (r ? r.diff : s.diff);
@@ -1085,7 +1148,7 @@ window.GK = window.GK || {};
     });
     betControl.setDisabled(!!r || b);
     const d = r ? r.diff : s.diff;
-    els.info.innerHTML = `1. Spur <b>×${fmt(multiplierAt(d, 1))}</b> · 5. Spur <b>×${fmt(multiplierAt(d, 5))}</b> · Ziel <b>×${GK.formatNumber(Math.floor(multiplierAt(d, LANES)))}</b>`;
+    els.info.innerHTML = GK.t('1. Spur <b>×{m1}</b> · 5. Spur <b>×{m5}</b> · Ziel <b>×{goal}</b>', { m1: fmt(multiplierAt(d, 1)), m5: fmt(multiplierAt(d, 5)), goal: GK.formatNumber(Math.floor(multiplierAt(d, LANES))) });
     drawHistory();
     updateHud();
   }
@@ -1094,7 +1157,7 @@ window.GK = window.GK || {};
     const h = state().history;
     const html = h.length
       ? h.map(m => (m > 0 ? `<span class="crash-chip high">×${fmt(m)}</span>` : `<span class="crash-chip low">${ic('close')}</span>`)).join('')
-      : '<span class="muted small">Noch keine Runden.</span>';
+      : `<span class="muted small">${GK.t('Noch keine Runden.')}</span>`;
     if (els.history.innerHTML !== html) els.history.innerHTML = html;
   }
 
@@ -1126,13 +1189,13 @@ window.GK = window.GK || {};
     body.innerHTML = `
       <div class="crash-layout">
         <div class="crash-scene chicken-scene">
-          <canvas class="chicken-canvas" width="${W * SCALE}" height="${H * SCALE}" aria-label="Straße mit Huhn"></canvas>
+          <canvas class="chicken-canvas" width="${W * SCALE}" height="${H * SCALE}" aria-label="${GK.t('Straße mit Huhn')}"></canvas>
           <div class="chicken-hud">
-            <div class="fh-stat"><span class="fh-label">Einsatz</span><b class="cr-bet"></b></div>
-            <div class="fh-stat"><span class="fh-label">Multiplikator</span><b class="cr-mult fh-mult"></b></div>
-            <div class="fh-stat"><span class="fh-label">Gewinn</span><b class="cr-win"></b></div>
-            <div class="fh-stat"><span class="fh-label">Schritte</span><b class="cr-steps"></b></div>
-            <div class="fh-stat"><span class="fh-label">Schwierigkeit</span><b class="cr-diff small-value"></b></div>
+            <div class="fh-stat"><span class="fh-label">${GK.t('Einsatz')}</span><b class="cr-bet"></b></div>
+            <div class="fh-stat"><span class="fh-label">${GK.t('Multiplikator')}</span><b class="cr-mult fh-mult"></b></div>
+            <div class="fh-stat"><span class="fh-label">${GK.t('Gewinn')}</span><b class="cr-win"></b></div>
+            <div class="fh-stat"><span class="fh-label">${GK.t('Schritte')}</span><b class="cr-steps"></b></div>
+            <div class="fh-stat"><span class="fh-label">${GK.t('Schwierigkeit')}</span><b class="cr-diff small-value"></b></div>
             <div class="cr-progress-wrap">
               <div class="cr-progress" aria-hidden="true"></div>
               <div class="cr-progress-text"></div>
@@ -1141,9 +1204,9 @@ window.GK = window.GK || {};
           <div class="crash-history chicken-history"></div>
         </div>
         <div class="crash-controls">
-          <div class="bet-label">Schwierigkeit</div>
-          <div class="plinko-risks chicken-diffs" role="group" aria-label="Schwierigkeit">
-            ${Object.entries(DIFFICULTIES).map(([id, d]) => `<button type="button" class="btn btn-small chicken-diff" data-diff="${id}">${ic(d.sym)}${d.name}</button>`).join('')}
+          <div class="bet-label">${GK.t('Schwierigkeit')}</div>
+          <div class="plinko-risks chicken-diffs" role="group" aria-label="${GK.t('Schwierigkeit')}">
+            ${Object.entries(DIFFICULTIES).map(([id, d]) => `<button type="button" class="btn btn-small chicken-diff" data-diff="${id}">${ic(d.sym)}${GK.t(d.name)}</button>`).join('')}
           </div>
           <div class="mines-info chicken-info"></div>
           <div class="game-message">&nbsp;</div>
@@ -1151,12 +1214,10 @@ window.GK = window.GK || {};
           <div class="game-actions chicken-actions">
             <button class="btn btn-primary btn-big chicken-step"></button>
             <button class="btn btn-primary btn-big chicken-cash"></button>
-            <button class="btn chicken-again">${ic('repeat')}Neue Runde</button>
+            <button class="btn chicken-again">${ic('repeat')}${GK.t('Neue Runde')}</button>
           </div>
-          <p class="muted small">Bring das Huhn Spur für Spur über die Straße. Jeder geschaffte Schritt erhöht den
-            Multiplikator – auszahlen kannst du nach jedem Schritt. Erwischt dich ein Auto, ist der Einsatz weg.
-            Nach jeweils fünf Spuren wartet eine sichere Insel, danach wird der Verkehr schneller.</p>
-          <p class="muted small chicken-keys">Tastatur: Leertaste oder → = Schritt, Enter = Auszahlen, N = neue Runde.</p>
+          <p class="muted small">${GK.t('Bring das Huhn Spur für Spur über die Straße. Jeder geschaffte Schritt erhöht den Multiplikator – auszahlen kannst du nach jedem Schritt. Erwischt dich ein Auto, ist der Einsatz weg. Nach jeweils fünf Spuren wartet eine sichere Insel, danach wird der Verkehr schneller.')}</p>
+          <p class="muted small chicken-keys">${GK.t('Tastatur: Leertaste oder → = Schritt, Enter = Auszahlen, N = neue Runde.')}</p>
         </div>
       </div>`;
     els = {
@@ -1206,8 +1267,8 @@ window.GK = window.GK || {};
   function refresh() {
     resetRoad();
     showMessage(state().round
-      ? `Deine Runde läuft noch: ${state().round.steps} ${state().round.steps === 1 ? 'Spur' : 'Spuren'} geschafft. Weiter oder auszahlen?`
-      : 'Wähle Einsatz und Schwierigkeit – und dann los über die Straße!', '');
+      ? GK.t('Deine Runde läuft noch: {n} {word} geschafft. Weiter oder auszahlen?', { n: state().round.steps, word: GK.t(state().round.steps === 1 ? 'Spur' : 'Spuren') })
+      : GK.t('Wähle Einsatz und Schwierigkeit – und dann los über die Straße!'), '');
     updateUI();
     draw();
     ensureLoop();

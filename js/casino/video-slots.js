@@ -6,6 +6,54 @@
 // überstehen das Neuladen. Die Themen (Aussehen) stehen unten in THEMES.
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  // Themen (Datentabelle bleibt deutsch, nur die Anzeige wird übersetzt)
+  'Schatz der Karibik': 'Caribbean Treasure',
+  'Tiefsee-Perlen': 'Deep Sea Pearls',
+  'Vulkan-Gold': 'Volcano Gold',
+  '5 Walzen, 20 Linien, Freispiele ×3 und Schatzkisten-Bonus.': '5 reels, 20 lines, free spins ×3 and treasure chest bonus.',
+  '5 Walzen, 20 Linien, 15 Freispiele ×2 und Muschel-Bonus.': '5 reels, 20 lines, 15 free spins ×2 and shell bonus.',
+  '5 Walzen, 20 Linien, heiße Freispiele ×5 und Götzen-Bonus.': '5 reels, 20 lines, hot free spins ×5 and idol bonus.',
+  'WILD': 'WILD',
+  'FREISPIELE': 'FREE SPINS',
+  'BONUS': 'BONUS',
+  'Schatzkisten': 'Treasure Chests',
+  'Perlenmuscheln': 'Pearl Shells',
+  'Steingötzen': 'Stone Idols',
+  'Öffne 3 Schatzkisten!': 'Open 3 treasure chests!',
+  'Öffne 3 Muscheln!': 'Open 3 shells!',
+  'Weck 3 Steingötzen!': 'Wake 3 stone idols!',
+  // Meldungen, Overlays und Beschriftungen
+  'Nicht genug Dublonen für diesen Einsatz.': 'Not enough Doubloons for this bet.',
+  '{text} – Gewinn: {amt}': '{text} – win: {amt}',
+  'Freispiele vorbei!': 'Free spins over!',
+  'aus {n} Freispielen': 'from {n} free spins',
+  'Weiter': 'Continue',
+  'Freispiele': 'Free spins',
+  '+ Weitere Freispiele!': '+ More free spins!',
+  'Deine Freispiele warten': 'Your free spins are waiting',
+  '{n} FREISPIELE!': '{n} FREE SPINS!',
+  '{left} Freispiele · alle Gewinne ×{mult}': '{left} free spins · all wins ×{mult}',
+  'Weiterspielen': 'Keep playing',
+  'Los geht’s!': "Let's go!",
+  '⭐ BONUS: {title} ⭐': '⭐ BONUS: {title} ⭐',
+  'Einsammeln': 'Collect',
+  'Bisher: <b>×{sum}</b> = {amt}': 'So far: <b>×{sum}</b> = {amt}',
+  'Freispiele: <b>{done}/{total}</b> · ×{mult} · Gewinn <b>{won}</b>': 'Free spins: <b>{done}/{total}</b> · ×{mult} · win <b>{won}</b>',
+  'Stopp ({n})': 'Stop ({n})',
+  'Auto ×{n}': 'Auto ×{n}',
+  'Zieh am Hebel!': 'Pull the lever!',
+  'Gewinne bei deinem Einsatz': 'Wins at your bet',
+  'ersetzt alle Symbole außer {s} und {b}.': 'replaces all symbols except {s} and {b}.',
+  '3, 4 oder 5 × {s} irgendwo: <b>{a}, {b} oder {c} Freispiele</b> mit allen Gewinnen ×{mult}.': '3, 4 or 5 × {s} anywhere: <b>{a}, {b} or {c} free spins</b> with all wins ×{mult}.',
+  'auf Walze 1, 3 und 5: <b>Bonusrunde</b> – {text}': 'on reels 1, 3 and 5: <b>Bonus round</b> – {text}',
+  '20 Gewinnlinien, gezählt von links. Beträge in Dublonen.': '20 win lines, counted from the left. Amounts in Doubloons.',
+});
+
 (function () {
   // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
@@ -235,7 +283,7 @@ window.GK = window.GK || {};
       const s = sym(id);
       const inner = s.letter
         ? `<span class="vs-letter vs-${id}">${s.letter}</span>`
-        : `<span class="vs-icon">${s.icon}</span>${s.label ? `<span class="vs-label">${s.label}</span>` : ''}`;
+        : `<span class="vs-icon">${s.icon}</span>${s.label ? `<span class="vs-label">${GK.t(s.label)}</span>` : ''}`;
       return `<div class="vs-cell vs-sym-${id} ${extra}">${inner}</div>`;
     }
 
@@ -350,7 +398,7 @@ window.GK = window.GK || {};
       } else if (!GK.casino.bet(bet)) {
         autoLeft = 0;
         GK.sound.play('denied');
-        showMessage('Nicht genug Dublonen für diesen Einsatz.', 'loss');
+        showMessage(GK.t('Nicht genug Dublonen für diesen Einsatz.'), 'loss');
         updateUi();
         return;
       }
@@ -398,9 +446,9 @@ window.GK = window.GK || {};
       if (animated) {
         showWins(grid, ev);
         if (ev.total > 0) {
-          els.win.innerHTML = `${winText(ev)} – Gewinn: ${GK.formatMoneyHTML(ev.total)}`;
+          els.win.innerHTML = GK.t('{text} – Gewinn: {amt}', { text: winText(ev), amt: GK.formatMoneyHTML(ev.total) });
           GK.fx.pulse(els.win, 'vs-win-pop');
-          if (ev.total >= p.bet * 5 || !p.free) GK.fx.celebrate(ev.total, p.bet, { el: els.window, subtitle: theme.name, quiet: true });
+          if (ev.total >= p.bet * 5 || !p.free) GK.fx.celebrate(ev.total, p.bet, { el: els.window, subtitle: GK.t(theme.name), quiet: true });
         } else {
           els.win.innerHTML = '&nbsp;';
         }
@@ -437,11 +485,11 @@ window.GK = window.GK || {};
       GK.casino.record(theme.id, 0, f.won, `Freispiele: ${f.total} Spiele`);
       GK.save();
       overlay(`
-        <div class="vs-ov-title">Freispiele vorbei!</div>
+        <div class="vs-ov-title">${GK.t('Freispiele vorbei!')}</div>
         <div class="vs-ov-big">${GK.formatMoneyHTML(f.won)}</div>
-        <div>aus ${f.total} Freispielen</div>
-        <button class="btn btn-primary btn-big vs-ov-btn">Weiter</button>`, () => closeOverlay());
-      if (f.won > 0) GK.fx.celebrate(f.won, f.bet, { el: els.window, subtitle: 'Freispiele' });
+        <div>${GK.t('aus {n} Freispielen', { n: f.total })}</div>
+        <button class="btn btn-primary btn-big vs-ov-btn">${GK.t('Weiter')}</button>`, () => closeOverlay());
+      if (f.won > 0) GK.fx.celebrate(f.won, f.bet, { el: els.window, subtitle: GK.t('Freispiele') });
       updateUi();
     }
 
@@ -449,12 +497,12 @@ window.GK = window.GK || {};
       const f = state().free;
       if (!f) return;
       GK.sound.play('bonus');
-      const title = kind === 'more' ? `+ Weitere Freispiele!` : kind === 'resume' ? 'Deine Freispiele warten' : `${f.total} FREISPIELE!`;
+      const title = kind === 'more' ? GK.t('+ Weitere Freispiele!') : kind === 'resume' ? GK.t('Deine Freispiele warten') : GK.t('{n} FREISPIELE!', { n: f.total });
       overlay(`
         <div class="vs-ov-title">${title}</div>
         <div class="vs-ov-big">${theme.symbols.S.icon} ×${theme.freeMult}</div>
-        <div>${f.left} Freispiele · alle Gewinne ×${theme.freeMult}</div>
-        <button class="btn btn-primary btn-big vs-ov-btn">${kind === 'resume' ? 'Weiterspielen' : 'Los geht’s!'}</button>`, () => {
+        <div>${GK.t('{left} Freispiele · alle Gewinne ×{mult}', { left: f.left, mult: theme.freeMult })}</div>
+        <button class="btn btn-primary btn-big vs-ov-btn">${GK.t(kind === 'resume' ? 'Weiterspielen' : 'Los geht’s!')}</button>`, () => {
         closeOverlay();
         state().free.started = true;
         GK.save();
@@ -476,12 +524,12 @@ window.GK = window.GK || {};
       GK.sound.play('bonus');
       const done = b.picks.length >= BONUS_PICKS;
       overlay(`
-        <div class="vs-ov-title">⭐ BONUS: ${theme.bonus.title} ⭐</div>
-        <div class="vs-ov-text">${theme.bonus.text} <span class="vs-bonus-sum"></span></div>
+        <div class="vs-ov-title">${GK.t('⭐ BONUS: {title} ⭐', { title: GK.t(theme.bonus.title) })}</div>
+        <div class="vs-ov-text">${GK.t(theme.bonus.text)} <span class="vs-bonus-sum"></span></div>
         <div class="vs-chests">
           ${b.values.map((v, i) => `<button class="vs-chest" data-i="${i}">${theme.bonus.chest}</button>`).join('')}
         </div>
-        <button class="btn btn-primary btn-big vs-ov-btn" ${done ? '' : 'hidden'}>Einsammeln</button>`, () => {
+        <button class="btn btn-primary btn-big vs-ov-btn" ${done ? '' : 'hidden'}>${GK.t('Einsammeln')}</button>`, () => {
         closeOverlay();
         continueAfterBonus();
       });
@@ -544,7 +592,7 @@ window.GK = window.GK || {};
       });
       const sum = b.picks.reduce((s, k) => s + b.values[k], 0);
       els.overlay.querySelector('.vs-bonus-sum').innerHTML = b.picks.length
-        ? `Bisher: <b>×${sum}</b> = ${GK.formatMoneyHTML(Math.floor(b.bet * sum))}` : '';
+        ? GK.t('Bisher: <b>×{sum}</b> = {amt}', { sum, amt: GK.formatMoneyHTML(Math.floor(b.bet * sum)) }) : '';
     }
 
     // ---------- Darstellung ----------
@@ -579,12 +627,12 @@ window.GK = window.GK || {};
       const freeMode = !!s.free;
       els.machine.classList.toggle('free-mode', freeMode);
       els.status.innerHTML = freeMode
-        ? `${ic('sparkle')} Freispiele: <b>${s.free.total - s.free.left}/${s.free.total}</b> · ×${theme.freeMult} · Gewinn <b>${GK.formatMoneyHTML(s.free.won)}</b>`
+        ? `${ic('sparkle')} ${GK.t('Freispiele: <b>{done}/{total}</b> · ×{mult} · Gewinn <b>{won}</b>', { done: s.free.total - s.free.left, total: s.free.total, mult: theme.freeMult, won: GK.formatMoneyHTML(s.free.won) })}`
         : '';
       const locked = busy || freeMode || !!s.bonus || !!s.pending;
       els.spin.disabled = locked;
       els.auto.disabled = (busy && autoLeft === 0) || freeMode || !!s.bonus;
-      els.auto.textContent = autoLeft > 0 ? `Stopp (${autoLeft})` : `Auto ×${AUTO_SPINS}`;
+      els.auto.textContent = autoLeft > 0 ? GK.t('Stopp ({n})', { n: autoLeft }) : GK.t('Auto ×{n}', { n: AUTO_SPINS });
       betControl.setDisabled(locked || autoLeft > 0);
       renderPaytable();
     }
@@ -606,7 +654,7 @@ window.GK = window.GK || {};
         <div class="vs-layout">
           <div class="vs-machine ${theme.cls}">
             <div class="vs-top">
-              <div class="vs-title">${theme.emoji} ${theme.name}</div>
+              <div class="vs-title">${theme.emoji} ${GK.t(theme.name)}</div>
               <div class="vs-status"></div>
             </div>
             <div class="vs-front">
@@ -616,20 +664,19 @@ window.GK = window.GK || {};
                 <div class="vs-overlay" hidden></div>
               </div>
             </div>
-            <div class="vs-win">Zieh am Hebel!</div>
+            <div class="vs-win">${GK.t('Zieh am Hebel!')}</div>
             <div class="vs-bet"></div>
             <div class="game-actions">
               <button class="btn vs-auto"></button>
             </div>
           </div>
           <div class="paytable vs-paytable">
-            <h3>Gewinne bei deinem Einsatz</h3>
+            <h3>${GK.t('Gewinne bei deinem Einsatz')}</h3>
             <div class="vs-pays"></div>
-            <p class="small">${cellHtml('W', 'mini')} ersetzt alle Symbole außer ${theme.symbols.S.icon} und ${theme.symbols.B.icon}.</p>
-            <p class="small">3, 4 oder 5 × ${theme.symbols.S.icon} irgendwo: <b>${theme.freeSpins[3]}, ${theme.freeSpins[4]} oder ${theme.freeSpins[5]} Freispiele</b>
-              mit allen Gewinnen ×${theme.freeMult}.</p>
-            <p class="small">${theme.symbols.B.icon} auf Walze 1, 3 und 5: <b>Bonusrunde</b> – ${theme.bonus.text}</p>
-            <p class="muted small">20 Gewinnlinien, gezählt von links. Beträge in Dublonen.</p>
+            <p class="small">${cellHtml('W', 'mini')} ${GK.t('ersetzt alle Symbole außer {s} und {b}.', { s: theme.symbols.S.icon, b: theme.symbols.B.icon })}</p>
+            <p class="small">${GK.t('3, 4 oder 5 × {s} irgendwo: <b>{a}, {b} oder {c} Freispiele</b> mit allen Gewinnen ×{mult}.', { s: theme.symbols.S.icon, a: theme.freeSpins[3], b: theme.freeSpins[4], c: theme.freeSpins[5], mult: theme.freeMult })}</p>
+            <p class="small">${theme.symbols.B.icon} ${GK.t('auf Walze 1, 3 und 5: <b>Bonusrunde</b> – {text}', { text: GK.t(theme.bonus.text) })}</p>
+            <p class="muted small">${GK.t('20 Gewinnlinien, gezählt von links. Beträge in Dublonen.')}</p>
           </div>
         </div>`;
       els = {

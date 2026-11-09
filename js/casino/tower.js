@@ -4,6 +4,46 @@
 // Welche Seile morsch sind, wird beim Start ausgelost und mit der Runde sofort gespeichert.
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Mast-Kletterei': 'Mast Climb',
+  'Klettere bis ins Krähennest – aber welches Seil hält?': 'Climb to the crow’s nest – but which rope holds?',
+  'Nicht genug Dublonen für diesen Einsatz.': 'Not enough Doubloons for this bet.',
+  'Leicht': 'Easy',
+  'Mittel': 'Medium',
+  'Schwer': 'Hard',
+  'Extrem': 'Extreme',
+  'Welches Seil hält? Tippe auf ein Seil der untersten Stufe.': 'Which rope holds? Tap a rope on the lowest level.',
+  '🌊 Abgestürzt auf Stufe {level} ({mode})': '🌊 Fell on level {level} ({mode})',
+  '🌊 Das Seil ist gerissen! Ab ins Wasser – der Einsatz ist weg.': '🌊 The rope snapped! Into the water – your bet is gone.',
+  'Hält! Stufe {level} geschafft – jetzt ×{mult}. Weiter oder auszahlen?':
+    'It holds! Level {level} cleared – now ×{mult}. Continue or cash out?',
+  '🔭 Krähennest': '🔭 Crow’s nest',
+  '💰 Stufe {level}': '💰 Level {level}',
+  '{result} · ×{mult} ({mode})': '{result} · ×{mult} ({mode})',
+  '🔭 Im Krähennest! ': '🔭 In the crow’s nest! ',
+  'Ausgezahlt: {money} (×{mult})': 'Cashed out: {money} (×{mult})',
+  'Ganz oben angekommen': 'Reached the very top',
+  'Stufe {level}': 'Level {level}',
+  'Krähennest · ×{mult}': 'Crow’s nest · ×{mult}',
+  'Stufe {level}, Seil {rope}': 'Level {level}, rope {rope}',
+  'Deck': 'Deck',
+  'Auszahlen: {money}': 'Cash out: {money}',
+  'Erst eine Stufe schaffen': 'Clear a level first',
+  '{ropes} Seile je Stufe, {brokenText} · 1. Stufe ×{m1}': '{ropes} ropes per level, {brokenText} · 1st level ×{m1}',
+  'eins reißt': 'one snaps',
+  '{n} reißen': '{n} snap',
+  'Schwierigkeit': 'Difficulty',
+  'Losklettern': 'Start climbing',
+  'Klettere Stufe für Stufe den Mast hinauf. Auf jeder Stufe wählst du ein Seil – hält es, steigt dein Gewinn, reißt es, fällst du ins Wasser und der Einsatz ist weg. Auszahlen kannst du nach jeder geschafften Stufe. Ganz oben im Krähennest wartet der Höchstgewinn.':
+    'Climb the mast level by level. On each level you pick a rope – if it holds, your win rises; if it snaps, you fall into the water and your bet is gone. You can cash out after each cleared level. At the very top in the crow’s nest the top prize awaits.',
+  'Deine Kletterpartie läuft noch – welches Seil hält?': 'Your climb is still on – which rope holds?',
+  'Wähle Einsatz und Schwierigkeit – dann los!': 'Choose bet and difficulty – then go!',
+});
+
 (function () {
   // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
@@ -52,14 +92,14 @@ window.GK = window.GK || {};
     if (s.round || busy) return;
     if (!GK.casino.bet(s.bet)) {
       GK.sound.play('denied');
-      showMessage('Nicht genug Dublonen für diesen Einsatz.', 'loss');
+      showMessage(GK.t('Nicht genug Dublonen für diesen Einsatz.'), 'loss');
       return;
     }
     s.round = { bet: s.bet, mode: s.mode, broken: makeMast(s.mode), picks: [], level: 0 };
     s.last = null;
     GK.save();
     GK.sound.play('chip');
-    showMessage('Welches Seil hält? Tippe auf ein Seil der untersten Stufe.', '');
+    showMessage(GK.t('Welches Seil hält? Tippe auf ein Seil der untersten Stufe.'), '');
     render();
   }
 
@@ -72,7 +112,7 @@ window.GK = window.GK || {};
     if (broke) {
       s.round = null;
       s.last = Object.assign({}, r, { fell: level });
-      GK.casino.record('tower', r.bet, 0, `🌊 Abgestürzt auf Stufe ${level + 1} (${MODES[r.mode].name})`);
+      GK.casino.record('tower', r.bet, 0, GK.t('🌊 Abgestürzt auf Stufe {level} ({mode})', { level: level + 1, mode: GK.t(MODES[r.mode].name) }));
     } else {
       r.level++;
     }
@@ -85,7 +125,7 @@ window.GK = window.GK || {};
       if (broke) {
         GK.fx.shake('small');
         GK.sound.play('lose');
-        showMessage(`🌊 Das Seil ist gerissen! Ab ins Wasser – der Einsatz ist weg.`, 'loss');
+        showMessage(GK.t('🌊 Das Seil ist gerissen! Ab ins Wasser – der Einsatz ist weg.'), 'loss');
       } else {
         GK.sound.play('gem', 0.9 + r.level * 0.06);
         const cell = els.mast.querySelector(`.tw-rope[data-level="${level}"][data-rope="${rope}"]`);
@@ -98,7 +138,7 @@ window.GK = window.GK || {};
           cashOut(true);
           return;
         }
-        showMessage(`Hält! Stufe ${r.level} geschafft – jetzt ×${fmt(multiplier(r.mode, r.level))}. Weiter oder auszahlen?`, '');
+        showMessage(GK.t('Hält! Stufe {level} geschafft – jetzt ×{mult}. Weiter oder auszahlen?', { level: r.level, mult: fmt(multiplier(r.mode, r.level)) }), '');
       }
       render();
     }, GK.state.settings.effects === 'reduced' ? 150 : 420);
@@ -113,10 +153,10 @@ window.GK = window.GK || {};
     s.round = null;
     s.last = Object.assign({}, r, { fell: null, payout });
     GK.casino.payout(payout);
-    GK.casino.record('tower', r.bet, payout, `${top === true ? '🔭 Krähennest' : `💰 Stufe ${r.level}`} · ×${fmt(mult)} (${MODES[r.mode].name})`);
+    GK.casino.record('tower', r.bet, payout, GK.t('{result} · ×{mult} ({mode})', { result: top === true ? GK.t('🔭 Krähennest') : GK.t('💰 Stufe {level}', { level: r.level }), mult: fmt(mult), mode: GK.t(MODES[r.mode].name) }));
     GK.save();
-    showMessage(`${top === true ? '🔭 Im Krähennest! ' : ''}Ausgezahlt: ${GK.formatMoneyHTML(payout)} (×${fmt(mult)})`, 'win');
-    GK.fx.celebrate(payout, r.bet, { el: els.mast, subtitle: top === true ? 'Ganz oben angekommen' : `Stufe ${r.level}` });
+    showMessage(`${top === true ? GK.t('🔭 Im Krähennest! ') : ''}${GK.t('Ausgezahlt: {money} (×{mult})', { money: GK.formatMoneyHTML(payout), mult: fmt(mult) })}`, 'win');
+    GK.fx.celebrate(payout, r.bet, { el: els.mast, subtitle: top === true ? GK.t('Ganz oben angekommen') : GK.t('Stufe {level}', { level: r.level }) });
     render();
   }
 
@@ -133,7 +173,7 @@ window.GK = window.GK || {};
     const mode = shown ? shown.mode : s.mode;
     const m = MODES[mode];
     // Stufen von oben (Krähennest) nach unten
-    let html = `<div class="tw-nest ${shown && !r && shown.fell == null && shown.level >= LEVELS ? 'reached' : ''}">${ic('eye')} Krähennest · ×${fmt(multiplier(mode, LEVELS))}</div>`;
+    let html = `<div class="tw-nest ${shown && !r && shown.fell == null && shown.level >= LEVELS ? 'reached' : ''}">${ic('eye')} ${GK.t('Krähennest · ×{mult}', { mult: fmt(multiplier(mode, LEVELS)) })}</div>`;
     for (let lv = LEVELS - 1; lv >= 0; lv--) {
       const current = r && lv === r.level;
       const done = shown && lv < (r ? r.level : shown.level);
@@ -157,14 +197,14 @@ window.GK = window.GK || {};
           }
         }
         if (current) cls += ' active';
-        return `<button type="button" class="${cls}" data-level="${lv}" data-rope="${i}" ${current && !busy ? '' : 'disabled'} aria-label="Stufe ${lv + 1}, Seil ${i + 1}">${icon}</button>`;
+        return `<button type="button" class="${cls}" data-level="${lv}" data-rope="${i}" ${current && !busy ? '' : 'disabled'} aria-label="${GK.t('Stufe {level}, Seil {rope}', { level: lv + 1, rope: i + 1 })}">${icon}</button>`;
       }).join('');
       html += `<div class="tw-level ${current ? 'current' : ''} ${done ? 'done' : ''}">
         <span class="tw-mult">×${fmt(multiplier(mode, lv + 1))}</span>
         <div class="tw-ropes" style="--ropes:${m.ropes}">${ropes}</div>
       </div>`;
     }
-    html += `<div class="tw-deck">${ic('ship')} Deck</div>`;
+    html += `<div class="tw-deck">${ic('ship')} ${GK.t('Deck')}</div>`;
     els.mast.innerHTML = html;
     els.mast.classList.toggle('fell', !!(shown && !r && shown.fell != null));
     const playing = !!r;
@@ -172,7 +212,7 @@ window.GK = window.GK || {};
     els.start.disabled = busy;
     els.cash.hidden = !playing;
     els.cash.disabled = busy || !r || r.level < 1;
-    GK.setHTML(els.cash, r && r.level >= 1 ? `${ic('bag')}Auszahlen: ${GK.formatMoneyHTML(Math.floor(r.bet * multiplier(r.mode, r.level)))}` : `${ic('bag')}Erst eine Stufe schaffen`);
+    GK.setHTML(els.cash, r && r.level >= 1 ? `${ic('bag')}${GK.t('Auszahlen: {money}', { money: GK.formatMoneyHTML(Math.floor(r.bet * multiplier(r.mode, r.level))) })}` : `${ic('bag')}${GK.t('Erst eine Stufe schaffen')}`);
     els.modes.forEach(b => {
       const active = b.dataset.mode === (r ? r.mode : s.mode);
       b.classList.toggle('active', active);
@@ -180,7 +220,7 @@ window.GK = window.GK || {};
       b.disabled = playing || busy;
     });
     betControl.setDisabled(playing || busy);
-    els.info.innerHTML = `${m.ropes} Seile je Stufe, ${m.broken === 1 ? 'eins reißt' : `${m.broken} reißen`} · 1. Stufe ×${fmt(multiplier(mode, 1))}`;
+    els.info.innerHTML = GK.t('{ropes} Seile je Stufe, {brokenText} · 1. Stufe ×{m1}', { ropes: m.ropes, brokenText: m.broken === 1 ? GK.t('eins reißt') : GK.t('{n} reißen', { n: m.broken }), m1: fmt(multiplier(mode, 1)) });
   }
 
   function showMessage(html, cls) {
@@ -195,20 +235,18 @@ window.GK = window.GK || {};
       <div class="mines-layout">
         <div class="tw-mast"></div>
         <div class="mines-controls">
-          <div class="bet-label">Schwierigkeit</div>
-          <div class="plinko-risks tower-modes" role="group" aria-label="Schwierigkeit">
-            ${Object.entries(MODES).map(([id, m]) => `<button type="button" class="btn btn-small tower-mode" data-mode="${id}">${ic(m.sym)}${m.name}</button>`).join('')}
+          <div class="bet-label">${GK.t('Schwierigkeit')}</div>
+          <div class="plinko-risks tower-modes" role="group" aria-label="${GK.t('Schwierigkeit')}">
+            ${Object.entries(MODES).map(([id, m]) => `<button type="button" class="btn btn-small tower-mode" data-mode="${id}">${ic(m.sym)}${GK.t(m.name)}</button>`).join('')}
           </div>
           <div class="mines-info tower-info"></div>
           <div class="game-message">&nbsp;</div>
           <div class="tower-bet"></div>
           <div class="game-actions">
-            <button class="btn btn-primary btn-big tower-start">${ic('up')}Losklettern</button>
+            <button class="btn btn-primary btn-big tower-start">${ic('up')}${GK.t('Losklettern')}</button>
             <button class="btn btn-primary btn-big tower-cash" hidden></button>
           </div>
-          <p class="muted small">Klettere Stufe für Stufe den Mast hinauf. Auf jeder Stufe wählst du ein Seil –
-            hält es, steigt dein Gewinn, reißt es, fällst du ins Wasser und der Einsatz ist weg. Auszahlen kannst
-            du nach jeder geschafften Stufe. Ganz oben im Krähennest wartet der Höchstgewinn.</p>
+          <p class="muted small">${GK.t('Klettere Stufe für Stufe den Mast hinauf. Auf jeder Stufe wählst du ein Seil – hält es, steigt dein Gewinn, reißt es, fällst du ins Wasser und der Einsatz ist weg. Auszahlen kannst du nach jeder geschafften Stufe. Ganz oben im Krähennest wartet der Höchstgewinn.')}</p>
         </div>
       </div>`;
     els = {
@@ -243,7 +281,7 @@ window.GK = window.GK || {};
 
   function refresh() {
     busy = false;
-    showMessage(state().round ? 'Deine Kletterpartie läuft noch – welches Seil hält?' : 'Wähle Einsatz und Schwierigkeit – dann los!', '');
+    showMessage(state().round ? GK.t('Deine Kletterpartie läuft noch – welches Seil hält?') : GK.t('Wähle Einsatz und Schwierigkeit – dann los!'), '');
     render();
   }
 

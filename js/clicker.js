@@ -2,6 +2,158 @@
 // Klicks können eine Combo aufbauen (schnell hintereinander) und kritisch treffen.
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  // Gebäude (Name + Beschreibung)
+  'Hilfsfinger': 'Helper Finger',
+  'Klickt ab und zu für dich.': 'Clicks for you now and then.',
+  'Sparschwein': 'Piggy Bank',
+  'Jeder Cent zählt.': 'Every cent counts.',
+  'Limonadenstand': 'Lemonade Stand',
+  'Sauer macht reich.': 'Sour makes you rich.',
+  'Kiosk': 'Kiosk',
+  'Rubbellose und Kaugummis.': 'Scratch cards and chewing gum.',
+  'Pfandhaus': 'Pawnshop',
+  'Kauft alles, was glänzt.': 'Buys anything that glitters.',
+  'Bank': 'Bank',
+  'Zinsen auf Spielgeld.': 'Interest on play money.',
+  'Goldmine': 'Gold Mine',
+  'Tief unten glitzert es.': 'Deep down it glitters.',
+  'Münzprägerei': 'Mint',
+  'Prägt Dublonen am laufenden Band.': 'Stamps out doubloons nonstop.',
+  'Handelsschiff': 'Merchant Ship',
+  'Bringt Gold aus fernen Häfen.': 'Brings gold from distant ports.',
+  'Alchemistenlabor': "Alchemist's Lab",
+  'Macht aus Blei pures Gold.': 'Turns lead into pure gold.',
+  'Piratenflotte': 'Pirate Fleet',
+  'Kapert Schatzschiffe auf allen Meeren.': 'Seizes treasure ships on every sea.',
+  'Schatzinsel': 'Treasure Island',
+  'X markiert die Stelle – jeden Tag aufs Neue.': 'X marks the spot – every day anew.',
+  'Drachenhort': 'Dragon Hoard',
+  'Ein Drache brütet auf Bergen von Gold.': 'A dragon broods on mountains of gold.',
+  'Zeitmaschine': 'Time Machine',
+  'Holt Dublonen aus der Zukunft.': 'Fetches doubloons from the future.',
+  'Glücksfabrik': 'Luck Factory',
+  'Stellt Glück am Fließband her.': 'Produces luck on an assembly line.',
+  'Sternenportal': 'Star Portal',
+  'Dublonen aus anderen Welten.': 'Doubloons from other worlds.',
+  'Poseidons Tempel': "Poseidon's Temple",
+  'Der Meeresgott zahlt Tribut.': 'The sea god pays tribute.',
+  'Geisterwerft': 'Ghost Shipyard',
+  'Untote Seeleute arbeiten ohne Pause.': 'Undead sailors work without pause.',
+  'Atlantis': 'Atlantis',
+  'Die versunkene Stadt voller Gold.': 'The sunken city full of gold.',
+  'Lava-Schmiede': 'Lava Forge',
+  'Gießt Dublonen aus flüssiger Lava.': 'Casts doubloons from molten lava.',
+  'Schwarzes Loch': 'Black Hole',
+  'Saugt Gold aus dem ganzen Universum.': 'Sucks gold from the entire universe.',
+  'Paralleluniversum': 'Parallel Universe',
+  'Ein zweites Du verdient mit.': 'A second you earns alongside you.',
+  'Galaxienbank': 'Galaxy Bank',
+  'Verwaltet die Schätze ganzer Galaxien.': 'Manages the treasures of whole galaxies.',
+  'Dublonen-Urknall': 'Doubloon Big Bang',
+  'Erschafft ein Universum nur aus Dublonen.': 'Creates a universe made only of doubloons.',
+  // Klick-Upgrades (Name + Beschreibung)
+  'Starker Finger': 'Strong Finger',
+  'Klickkraft ×2': 'Click power ×2',
+  'Goldener Finger': 'Golden Finger',
+  'Diamantfinger': 'Diamond Finger',
+  'Magische Hand': 'Magic Hand',
+  'Goldene Faust': 'Golden Fist',
+  'Klickkraft ×3 – auch der Anteil vom Einkommen': 'Click power ×3 – including the share from income',
+  'Hand des Midas': 'Hand of Midas',
+  'Sternenhand': 'Star Hand',
+  'Hand der Götter': 'Hand of the Gods',
+  'Klickkraft ×4 – auch der Anteil vom Einkommen': 'Click power ×4 – including the share from income',
+  'Klick-Investment': 'Click Investment',
+  'Jeder Klick bringt zusätzlich 1 % deines Einkommens pro Sekunde': 'Each click also gives 1% of your income per second',
+  'Klick-Dividende': 'Click Dividend',
+  'Jeder Klick bringt zusätzlich 2 % deines Einkommens pro Sekunde': 'Each click also gives 2% of your income per second',
+  'Klick-Imperium': 'Click Empire',
+  'Jeder Klick bringt zusätzlich 3 % deines Einkommens pro Sekunde': 'Each click also gives 3% of your income per second',
+  'Klick-Konzern': 'Click Corporation',
+  'Jeder Klick bringt zusätzlich 4 % deines Einkommens pro Sekunde': 'Each click also gives 4% of your income per second',
+  'Klick-Dynastie': 'Click Dynasty',
+  'Jeder Klick bringt zusätzlich 5 % deines Einkommens pro Sekunde': 'Each click also gives 5% of your income per second',
+  // Kritische Treffer
+  'Glückstreffer': 'Lucky Hit',
+  '3 % Chance auf einen kritischen Klick (×10)': '3% chance of a critical click (×10)',
+  'Adlerauge': 'Eagle Eye',
+  '+4 % Chance auf kritische Klicks': '+4% chance of critical clicks',
+  'Volltreffer-Hand': 'Bullseye Hand',
+  'Kritische Klicks bringen ×25 statt ×10': 'Critical clicks give ×25 instead of ×10',
+  'Glückspilz': 'Lucky Devil',
+  '+5 % Chance auf kritische Klicks': '+5% chance of critical clicks',
+  'Blitzschlag': 'Lightning Strike',
+  'Kritische Klicks bringen ×50': 'Critical clicks give ×50',
+  // Combo
+  'Combo-Meister': 'Combo Master',
+  'Combo bis +50 % statt +25 %': 'Combo up to +50% instead of +25%',
+  'Feuerhände': 'Fire Hands',
+  'Combo bis +100 % (doppelte Klickkraft)': 'Combo up to +100% (double click power)',
+  'Vulkanhände': 'Volcano Hands',
+  'Combo bis +200 % (dreifache Klickkraft)': 'Combo up to +200% (triple click power)',
+  // Upgrades für alle Gebäude
+  'Handelsvertrag': 'Trade Agreement',
+  'Alle Gebäude: Einkommen +10 %': 'All buildings: income +10%',
+  'Goldener Kompass': 'Golden Compass',
+  'Alle Gebäude: Einkommen +15 %': 'All buildings: income +15%',
+  'Kaiserliche Flotte': 'Imperial Fleet',
+  'Alle Gebäude: Einkommen +20 %': 'All buildings: income +20%',
+  'Goldenes Zeitalter': 'Golden Age',
+  'Alle Gebäude: Einkommen +25 %': 'All buildings: income +25%',
+  'Ewiger Reichtum': 'Eternal Wealth',
+  'Alle Gebäude: Einkommen +30 %': 'All buildings: income +30%',
+  'Herrschaft der Meere': 'Rule of the Seas',
+  'Alle Gebäude: Einkommen +35 %': 'All buildings: income +35%',
+  'Unendlicher Reichtum': 'Infinite Wealth',
+  'Alle Gebäude: Einkommen +40 %': 'All buildings: income +40%',
+  // Gebäude-Stufen
+  'Bronze': 'Bronze',
+  'Silber': 'Silver',
+  'Gold': 'Gold',
+  'Platin': 'Platinum',
+  'Diamant': 'Diamond',
+  'Legenden': 'Legendary',
+  'Mythos': 'Mythic',
+  'Sternen': 'Cosmic',
+  'Götter': 'Divine',
+  // Zusammengesetzte Vorlagen (Gebäude-Stufen und Synergien)
+  '{tier}-{name}': '{tier} {name}',
+  '{source} & {name}': '{source} & {name}',
+  '{name}: Einkommen ×{value}': '{name}: income ×{value}',
+  '{name}: +1 % Einkommen pro {source}': '{name}: +1% income per {source}',
+  // Klicken, Combo, Meilensteine
+  'KRITISCH! +{amount}': 'CRITICAL! +{amount}',
+  '🔥 COMBO ×{mult}!': '🔥 COMBO ×{mult}!',
+  '🏗️ {n}× {name}!': '🏗️ {n}× {name}!',
+  'Meilenstein: {n}× {name}!': 'Milestone: {n}× {name}!',
+  'Neues Upgrade verfügbar: {upg}': 'New upgrade available: {upg}',
+  '🤝 Synergie!': '🤝 Synergy!',
+  '⚡ ×{value}!': '⚡ ×{value}!',
+  'Combo {n}': 'Combo {n}',
+  // Passives Einkommen
+  '💰 Passives Einkommen läuft wieder.': '💰 Passive income is running again.',
+  '⏸️ Passives Einkommen ausgeschaltet – nur noch Klicks und Casino bringen Dublonen.':
+    '⏸️ Passive income switched off – only clicks and the casino bring doubloons now.',
+  // Gebäude- und Upgrade-Liste
+  'Noch unbekannt': 'Still unknown',
+  '+{x}/s pro Stück': '+{x}/s each',
+  ' · gesamt {x}/s': ' · total {x}/s',
+  ' · pausiert': ' · paused',
+  'Noch {n} bis zum {tier}-Upgrade (×{value})': 'Still {n} to the {tier} upgrade (×{value})',
+  'Alle Stufen freigeschaltet': 'All tiers unlocked',
+  'Preis: {cost} Dublonen': 'Price: {cost} doubloons',
+  '▲ Weniger anzeigen': '▲ Show less',
+  '▼ {n} weitere {word} anzeigen': '▼ Show {n} more {word}',
+  'Upgrade': 'upgrade',
+  'Upgrades': 'upgrades',
+  '+{x} pro Klick': '+{x} per click',
+});
+
 (function () {
   const COST_GROWTH = 1.15;
   const COMBO_WINDOW = 700;      // ms: so schnell muss der nächste Klick kommen, damit die Combo weiterläuft
@@ -344,7 +496,7 @@ window.GK = window.GK || {};
       GK.state.crits++;
       GK.sound.play('crit');
       bounceCoin(coin, true);
-      showFloatingText(local, `KRITISCH! +${GK.formatNumber(amount, true)}`, 'crit');
+      showFloatingText(local, GK.t('KRITISCH! +{amount}', { amount: GK.formatNumber(amount, true) }), 'crit');
       GK.cosmetics.clickBurst(pos.x, pos.y, { crit: true });
       GK.fx.burst(pos.x, pos.y, { count: 10, kind: 'sparkle', speed: 400 });
     } else {
@@ -358,7 +510,7 @@ window.GK = window.GK || {};
     if (COMBO_MILESTONES.includes(combo.count - 1) && combo.count - 1 <= comboCap()) {
       GK.sound.play('combo');
       const c = GK.fx.center(coin);
-      GK.fx.floatText(c.x, c.y - 30, `🔥 COMBO ×${formatFactor(comboMult())}!`, 'win big');
+      GK.fx.floatText(c.x, c.y - 30, GK.t('🔥 COMBO ×{mult}!', { mult: formatFactor(comboMult()) }), 'win big');
       GK.fx.burst(c.x, c.y, { count: 12, kind: 'sparkle', speed: 500 });
     }
     renderCombo();
@@ -407,10 +559,10 @@ window.GK = window.GK || {};
     if (milestone) {
       GK.sound.play('milestone');
       GK.fx.burst(pos.x, pos.y, { count: 24, speed: 650, upward: true, spread: 2.6 });
-      GK.fx.floatText(pos.x + 60, pos.y - 10, `🏗️ ${milestone}× ${building.name}!`, 'win big');
+      GK.fx.floatText(pos.x + 60, pos.y - 10, GK.t('🏗️ {n}× {name}!', { n: milestone, name: GK.t(building.name) }), 'win big');
       const tier = BUILDING_TIERS.find(t => t.owned === milestone);
-      GK.notify(`<span class="notify-icon">${ic(building.ic, building.icon)}</span><span><b>Meilenstein: ${milestone}× ${building.name}!</b>` +
-        `${tier ? `<br>Neues Upgrade verfügbar: ${tier.name}-${building.name}` : ''}</span>`, 4000);
+      GK.notify(`<span class="notify-icon">${ic(building.ic, building.icon)}</span><span><b>${GK.t('Meilenstein: {n}× {name}!', { n: milestone, name: GK.t(building.name) })}</b>` +
+        `${tier ? `<br>${GK.t('Neues Upgrade verfügbar: {upg}', { upg: GK.t('{tier}-{name}', { tier: GK.t(tier.name), name: GK.t(building.name) }) })}` : ''}</span>`, 4000);
     }
     render();
   }
@@ -432,11 +584,11 @@ window.GK = window.GK || {};
     if (target) {
       GK.fx.pulse(target.root, 'powered');
       const p = GK.fx.center(target.icon);
-      const label = upgrade.type === 'synergy' ? '🤝 Synergie!' : `⚡ ×${upgrade.value}!`;
+      const label = upgrade.type === 'synergy' ? GK.t('🤝 Synergie!') : GK.t('⚡ ×{value}!', { value: upgrade.value });
       GK.fx.floatText(p.x + 40, p.y, label, 'win big');
     } else {
       const c = GK.fx.center(document.getElementById('big-coin'));
-      GK.fx.floatText(c.x, c.y - 60, `${upgrade.icon} ${upgrade.name}!`, 'win big');
+      GK.fx.floatText(c.x, c.y - 60, `${upgrade.icon} ${upgradeName(upgrade)}!`, 'win big');
       // Upgrades für alle Gebäude: alle leuchten auf
       if (upgrade.type === 'globalMult') {
         Object.values(buildingEls).forEach(b => { if (!b.root.hidden) GK.fx.pulse(b.root, 'powered'); });
@@ -455,7 +607,7 @@ window.GK = window.GK || {};
     GK.state.passiveOff = !on;
     GK.save();
     GK.sound.play(on ? 'upgrade' : 'click');
-    GK.toast(on ? '💰 Passives Einkommen läuft wieder.' : '⏸️ Passives Einkommen ausgeschaltet – nur noch Klicks und Casino bringen Dublonen.');
+    GK.toast(on ? GK.t('💰 Passives Einkommen läuft wieder.') : GK.t('⏸️ Passives Einkommen ausgeschaltet – nur noch Klicks und Casino bringen Dublonen.'));
     render();
   }
 
@@ -512,7 +664,7 @@ window.GK = window.GK || {};
       return;
     }
     const cap = comboCap();
-    GK.setHTML(el.querySelector('.combo-count'), `${ic('flame')} Combo ${combo.count}`);
+    GK.setHTML(el.querySelector('.combo-count'), `${ic('flame')} ${GK.t('Combo {n}', { n: combo.count })}`);
     GK.setText(el.querySelector('.combo-mult'), `×${formatFactor(comboMult())}`);
     const width = (comboBonus() / cap * 100) + '%';
     const fill = el.querySelector('.combo-fill');
@@ -576,16 +728,16 @@ window.GK = window.GK || {};
       els.root.classList.toggle('mystery', mystery);
       els.root.disabled = !GK.canAfford(cost);
       GK.setHTML(els.icon, ic(mystery ? 'question' : b.ic));
-      const name = mystery ? '??? ' : b.name + ' ';
+      const name = mystery ? '??? ' : GK.t(b.name) + ' ';
       if (els.name.firstChild.data !== name) els.name.firstChild.data = name;
-      GK.setText(els.desc, mystery ? 'Noch unbekannt' : b.desc);
+      GK.setText(els.desc, mystery ? GK.t('Noch unbekannt') : GK.t(b.desc));
       GK.setHTML(els.cost, GK.COIN + ' ' + GK.formatNumber(cost));
       GK.setText(els.owned, count || '');
       GK.setText(els.meta, mystery
         ? ''
-        : `+${GK.formatNumber(buildingCps(b), true)}/s pro Stück` +
-          (count ? ` · gesamt ${GK.formatNumber(buildingCps(b) * count, true)}/s` : '') +
-          (passiveActive() ? '' : ' · pausiert'));
+        : GK.t('+{x}/s pro Stück', { x: GK.formatNumber(buildingCps(b), true) }) +
+          (count ? GK.t(' · gesamt {x}/s', { x: GK.formatNumber(buildingCps(b) * count, true) }) : '') +
+          (passiveActive() ? '' : GK.t(' · pausiert')));
 
       // Sterne für gekaufte Gebäude-Upgrades (Farbe je Stufe)
       const stars = BUILDING_TIERS.map((t, k) => (has(`${b.id}-${k + 1}`) ? `<i class="star rarity-${t.rarity}">★</i>` : '')).join('') +
@@ -605,12 +757,41 @@ window.GK = window.GK || {};
           const cls = `building-progress-fill rarity-${nextTier.rarity}`;
           if (els.fill.className !== cls) els.fill.className = cls;
           // Wie beim „Alle Stufen“-Text über GK.setHTML – sonst stimmt dessen Zwischenspeicher nicht mehr
-          GK.setHTML(els.next, `Noch ${nextTier.owned - count} bis zum ${nextTier.name}-Upgrade (×${nextTier.value})`);
+          GK.setHTML(els.next, GK.t('Noch {n} bis zum {tier}-Upgrade (×{value})', { n: nextTier.owned - count, tier: GK.t(nextTier.name), value: nextTier.value }));
         } else {
-          GK.setHTML(els.next, `${ic('sparkle')} Alle Stufen freigeschaltet`);
+          GK.setHTML(els.next, `${ic('sparkle')} ${GK.t('Alle Stufen freigeschaltet')}`);
         }
       }
     });
+  }
+
+  // Angezeigter Name/Beschreibung eines Upgrades. Die Datentabellen bleiben deutsch; hier wird
+  // nur für die Anzeige übersetzt. Gebäude-Stufen und Synergien werden aus den Vorlagen zusammengesetzt.
+  function upgradeName(u) {
+    if (u.type === 'buildingMult') {
+      const b = BUILDINGS.find(x => x.id === u.building);
+      const tier = BUILDING_TIERS[Number(u.id.slice(u.id.lastIndexOf('-') + 1)) - 1];
+      if (b && tier) return GK.t('{tier}-{name}', { tier: GK.t(tier.name), name: GK.t(b.name) });
+    }
+    if (u.type === 'synergy') {
+      const b = BUILDINGS.find(x => x.id === u.building);
+      const src = BUILDINGS.find(x => x.id === u.source);
+      if (b && src) return GK.t('{source} & {name}', { source: GK.t(src.name), name: GK.t(b.name) });
+    }
+    return GK.t(u.name);
+  }
+
+  function upgradeDesc(u) {
+    if (u.type === 'buildingMult') {
+      const b = BUILDINGS.find(x => x.id === u.building);
+      if (b) return GK.t('{name}: Einkommen ×{value}', { name: GK.t(b.name), value: u.value });
+    }
+    if (u.type === 'synergy') {
+      const b = BUILDINGS.find(x => x.id === u.building);
+      const src = BUILDINGS.find(x => x.id === u.source);
+      if (b && src) return GK.t('{name}: +1 % Einkommen pro {source}', { name: GK.t(b.name), source: GK.t(src.name) });
+    }
+    return GK.t(u.desc);
   }
 
   function renderUpgrades() {
@@ -627,11 +808,11 @@ window.GK = window.GK || {};
         const el = document.createElement('button');
         el.className = `upgrade rarity-${u.rarity}`;
         el.dataset.id = u.id;
-        el.title = `${u.name}\n${u.desc}\nPreis: ${GK.formatNumber(u.cost)} Dublonen`;
+        el.title = `${upgradeName(u)}\n${upgradeDesc(u)}\n${GK.t('Preis: {cost} Dublonen', { cost: GK.formatNumber(u.cost) })}`;
         el.innerHTML = `
           <span class="upgrade-icon">${ic(u.ic, u.icon)}</span>
-          <span class="upgrade-name">${u.name}</span>
-          <span class="upgrade-desc">${u.desc}</span>
+          <span class="upgrade-name">${upgradeName(u)}</span>
+          <span class="upgrade-desc">${upgradeDesc(u)}</span>
           <span class="upgrade-gain"></span>
           <span class="upgrade-cost">${GK.COIN} ${GK.formatNumber(u.cost)}</span>`;
         el.addEventListener('click', () => buyUpgrade(u, el));
@@ -641,7 +822,7 @@ window.GK = window.GK || {};
       const more = document.getElementById('upgrade-more');
       const hiddenCount = available.length - upgrades.length;
       more.hidden = available.length <= UPGRADES_SHOWN;
-      more.textContent = showAllUpgrades ? '▲ Weniger anzeigen' : `▼ ${hiddenCount} weitere ${hiddenCount === 1 ? 'Upgrade' : 'Upgrades'} anzeigen`;
+      more.textContent = showAllUpgrades ? GK.t('▲ Weniger anzeigen') : GK.t('▼ {n} weitere {word} anzeigen', { n: hiddenCount, word: GK.t(hiddenCount === 1 ? 'Upgrade' : 'Upgrades') });
     }
 
     list.querySelectorAll('.upgrade').forEach(el => {
@@ -650,7 +831,7 @@ window.GK = window.GK || {};
       const gain = upgradeGain(u);
       const clickGain = gain > 0 ? 0 : upgradeClickGain(u);
       GK.setText(el.querySelector('.upgrade-gain'), gain > 0 ? `+${GK.formatNumber(gain, true)}/s`
-        : clickGain > 0 ? `+${GK.formatNumber(clickGain, true)} pro Klick` : '');
+        : clickGain > 0 ? GK.t('+{x} pro Klick', { x: GK.formatNumber(clickGain, true) }) : '');
     });
   }
 

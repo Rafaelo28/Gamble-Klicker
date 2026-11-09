@@ -2,6 +2,15 @@
 // Symbole, Gewinntabelle und drehende Walzen.
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Am Hebel ziehen': 'Pull the lever',
+  'Am Hebel ziehen – drehen': 'Pull the lever – spin',
+});
+
 (function () {
   // Gewicht = wie oft das Symbol auf der Walze vorkommt (gleich für alle 3 Walzen).
   // three/two = Auszahlung als Vielfaches des Einsatzes. Auszahlungsquote: 96,2 %.
@@ -144,8 +153,8 @@ window.GK = window.GK || {};
     const lever = document.createElement('div');
     lever.setAttribute('role', 'button');
     lever.className = 'lever' + (options.small ? ' lever-small' : '') + (options.className ? ' ' + options.className : '');
-    lever.title = 'Am Hebel ziehen';
-    lever.setAttribute('aria-label', options.label || 'Am Hebel ziehen – drehen');
+    lever.title = GK.t('Am Hebel ziehen');
+    lever.setAttribute('aria-label', options.label || GK.t('Am Hebel ziehen – drehen'));
     lever.innerHTML = '<span class="lever-arm"></span><span class="lever-mount"></span><span class="lever-knob"></span>';
     const arm = lever.querySelector('.lever-arm');
     const knob = lever.querySelector('.lever-knob');

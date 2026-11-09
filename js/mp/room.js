@@ -19,6 +19,99 @@
 //   phaseDeadline(z) → gemeinsame Zeitgrenze (Zeitstempel), solange niemand Bestimmtes dran ist
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Beende zuerst dein Poker-Turnier.': 'Finish your poker tournament first.',
+  'Verlasse zuerst deinen Poker-Raum.': 'Leave your poker room first.',
+  'Du bist schon in einem Raum ({name}).': "You're already in a room ({name}).",
+  'Der Eintritt muss mindestens {amount} Dublonen betragen.': 'The entry fee must be at least {amount} doubloons.',
+  'Dein Limit sind {amount} Dublonen – eine bessere VIP-Karte erhöht es.': 'Your limit is {amount} doubloons – a better VIP card raises it.',
+  'Nicht genug Dublonen für den Eintritt.': 'Not enough doubloons for the entry fee.',
+  '{place}. Platz – {name}': 'Place {place} – {name}',
+  ' Dein Eintritt wurde erstattet.': ' Your entry fee has been refunded.',
+  'Spiel wirklich verlassen? Du belegst damit Platz {place}{rest}': 'Really leave the game? You then take place {place}{rest}',
+  ' und bekommst {amount} Dublonen.': ' and receive {amount} doubloons.',
+  ' und gehst leer aus.': ' and come away empty-handed.',
+  'Raum schließen? Alle bekommen ihren Eintritt zurück.': 'Close the room? Everyone gets their entry fee back.',
+  'Wenn du gehst, endet das Spiel für alle. Deine Mitspieler bekommen ihren Eintritt zurück.': 'If you leave, the game ends for everyone. Your fellow players get their entry fee back.',
+  'Du hast den Raum geschlossen.': 'You closed the room.',
+  'Spiel beendet.': 'Game finished.',
+  'Du hast das Spiel verlassen.': 'You left the game.',
+  'Der Raum-Code hat {n} Zeichen.': 'The room code has {n} characters.',
+  'Der Gastgeber ist nicht mehr erreichbar. Spiel abbrechen? Du bekommst deinen Eintritt zurück.': 'The host is no longer reachable. Abort the game? You get your entry fee back.',
+  'Spiel abgebrochen.': 'Game aborted.',
+  'Raum {code} nicht gefunden. Stimmt der Code?': 'Room {code} not found. Is the code correct?',
+  'Du hast den Raum verlassen.': 'You left the room.',
+  'Keine Verbindung zum Gastgeber – versuche es gleich noch einmal.': 'No connection to the host – try again in a moment.',
+  ' Online-Spiel nicht verfügbar – keine Internetverbindung?': ' Online play unavailable – no internet connection?',
+  ' Verbindung zum Server wird erneuert – wer schon im Raum ist, bleibt verbunden …': ' Reconnecting to the server – anyone already in the room stays connected …',
+  ' Raum ist online': ' Room is online',
+  ' Mit dem Gastgeber verbunden': ' Connected to the host',
+  ' Du kannst das Spiel auch verlassen – dann bekommst du deinen Eintritt zurück.': ' You can also leave the game – then you get your entry fee back.',
+  'Keine Verbindung': 'No connection',
+  ' zum Gastgeber (seit {s} s)': ' to the host (for {s} s)',
+  ' – versuche es erneut …': ' – trying again …',
+  ' Verbinde …': ' Connecting …',
+  ' Du hast den <b>{place}. Platz</b> belegt': ' You took <b>place {place}</b>',
+  ' und {money} gewonnen!': ' and won {money}!',
+  'Du bist gerade in einem Raum für {name}.': "You're currently in a room for {name}.",
+  'Dorthin wechseln': 'Switch to it',
+  'Gegen Computer': 'Vs. computer',
+  'Gegner': 'Opponents',
+  'Anzahl Gegner': 'Number of opponents',
+  'Spiel starten': 'Start game',
+  'Mit Freunden spielen': 'Play with friends',
+  'Online-Spiele brauchen eine Internetverbindung (PeerJS konnte nicht geladen werden).': 'Online games need an internet connection (PeerJS could not be loaded).',
+  'Dein Name am Tisch': 'Your name at the table',
+  'Anderes Bild': 'Different picture',
+  'Raum eröffnen – Eintritt pro Spieler': 'Open a room – entry fee per player',
+  'Eröffnen': 'Open',
+  'Raum beitreten': 'Join a room',
+  'Beitreten': 'Join',
+  'Einsatz (Eintritt)': 'Bet (entry fee)',
+  'Preise bei {n} Spielern: {prizes}': 'Prizes with {n} players: {prizes}',
+  'Deine Figur änderst du unter 📊 Statistiken → 🎨 Deine Figur.': 'You change your character under 📊 Statistics → 🎨 Your character.',
+  'Raum-Code ({name})': 'Room code ({name})',
+  'Code kopieren': 'Copy code',
+  'Einladungs-Link kopieren': 'Copy invite link',
+  'Eintritt': 'Entry',
+  'Preise:': 'Prizes:',
+  'Suche den Raum …': 'Looking for the room …',
+  'Spieler': 'Players',
+  'zahlt noch': 'still paying',
+  'Gastgeber': 'Host',
+  'Du': 'You',
+  'Der Gastgeber hat den Eintritt auf <b>{money}</b> festgelegt.': 'The host set the entry fee at <b>{money}</b>.',
+  'Eintritt bezahlen und mitspielen': 'Pay entry and join',
+  'Dafür hast du nicht genug Dublonen.': "You don't have enough doubloons for that.",
+  'Freie Plätze mit Computer-Gegnern auffüllen': 'Fill empty seats with computer opponents',
+  '(sie zahlen keinen Eintritt – gewinnen sie einen Preis, behält ihn das Casino)': '(they pay no entry fee – if they win a prize, the casino keeps it)',
+  'Warte auf mindestens einen Mitspieler, der den Eintritt bezahlt hat …': 'Waiting for at least one player who has paid the entry fee …',
+  'Wer noch nicht bezahlt hat, spielt nicht mit.': "Anyone who hasn't paid won't play.",
+  'Alle da? Dann los!': 'Everyone here? Then go!',
+  'Als Gastgeber leitest du das Spiel – lass es bitte geöffnet, bis es vorbei ist.': 'As host you run the game – please keep it open until it is over.',
+  'Warte, bis der Gastgeber das Spiel startet …': 'Wait for the host to start the game …',
+  'Raum schließen': 'Close room',
+  'Raum verlassen': 'Leave room',
+  'Raum': 'Room',
+  '{names} {verb} gerade nicht verbunden – wer länger als {secs} Sekunden weg ist, scheidet aus.': '{names} {verb} currently not connected – anyone away for more than {secs} seconds drops out.',
+  'sind': 'are',
+  'ist': 'is',
+  'Du bist raus: <b>{place}. Platz</b>': 'You are out: <b>place {place}</b>',
+  ' – {money} gewonnen!': ' – won {money}!',
+  ' Du leitest das Spiel weiter, bis es vorbei ist.': ' You keep running the game until it is over.',
+  ' Du kannst weiter zuschauen.': ' You can keep watching.',
+  'Spiel vorbei!': 'Game over!',
+  'Zurück zum Start': 'Back to start',
+  'Spiel verlassen': 'Leave game',
+  'Zum Kopieren:': 'To copy:',
+  'Code kopiert': 'Code copied',
+  'Einladungs-Link kopiert': 'Invite link copied',
+});
+
 (function () {
   // Eigenes Symbol (js/icons.js); in den Tests ohne Browser gibt es keins
   const ic = name => (GK.icon ? GK.icon(name) : '');
@@ -154,9 +247,9 @@ window.GK = window.GK || {};
 
   // Läuft gerade woanders ein Spiel, das diesen Raum ausschließt?
   function busyElsewhere() {
-    if (GK.poker && GK.poker.singleActive && GK.poker.singleActive()) return 'Beende zuerst dein Poker-Turnier.';
-    if (GK.poker && GK.poker.mp && GK.poker.mp.active()) return 'Verlasse zuerst deinen Poker-Raum.';
-    if (session()) return `Du bist schon in einem Raum (${games[session().game] ? games[session().game].name : ''}).`;
+    if (GK.poker && GK.poker.singleActive && GK.poker.singleActive()) return GK.t('Beende zuerst dein Poker-Turnier.');
+    if (GK.poker && GK.poker.mp && GK.poker.mp.active()) return GK.t('Verlasse zuerst deinen Poker-Raum.');
+    if (session()) return GK.t('Du bist schon in einem Raum ({name}).', { name: games[session().game] ? GK.t(games[session().game].name) : '' });
     return '';
   }
 
@@ -179,7 +272,7 @@ window.GK = window.GK || {};
       // Neue Rekorde an den Gastgeber (der Gastgeber schickt seine eigenen mit dem Spielende)
       if (s.role === 'client') send(net.hostConn, { type: 'records', records: GK.friends.myRecords() });
     }
-    setTimeout(() => GK.fx.celebrate(win, s.entry, { level: place === 1 ? 'mega' : undefined, subtitle: `${place}. Platz – ${d.name}` }), 600);
+    setTimeout(() => GK.fx.celebrate(win, s.entry, { level: place === 1 ? 'mega' : undefined, subtitle: GK.t('{place}. Platz – {name}', { place, name: GK.t(d.name) }) }), 600);
   }
 
   function refundEntry() {
@@ -194,7 +287,7 @@ window.GK = window.GK || {};
   function endSession(message, refund) {
     const s = session();
     if (!s) return;
-    if (refund && refundEntry()) message += ' Dein Eintritt wurde erstattet.';
+    if (refund && refundEntry()) message += GK.t(' Dein Eintritt wurde erstattet.');
     store().results[s.game] = { message, result: s.result || null };
     store().session = null;
     clearTimeout(hostTimer);
@@ -278,11 +371,11 @@ window.GK = window.GK || {};
   function createRoom(gameId, entry, settings, solo, bots) {
     entry = Math.floor(GK.parseAmount(entry) || 0);
     const d = games[gameId];
-    if (entry < MIN_ENTRY) return GK.toast(`Der Eintritt muss mindestens ${GK.formatNumber(MIN_ENTRY)} Dublonen betragen.`);
+    if (entry < MIN_ENTRY) return GK.toast(GK.t('Der Eintritt muss mindestens {amount} Dublonen betragen.', { amount: GK.formatNumber(MIN_ENTRY) }));
     const busy = busyElsewhere();
     if (busy) return GK.toast(busy);
-    if (solo && entry > GK.casino.maxBet()) return GK.toast(`Dein Limit sind ${GK.formatNumber(GK.casino.maxBet())} Dublonen – eine bessere VIP-Karte erhöht es.`);
-    if (!GK.casino.bet(entry)) return GK.toast('Nicht genug Dublonen für den Eintritt.');
+    if (solo && entry > GK.casino.maxBet()) return GK.toast(GK.t('Dein Limit sind {amount} Dublonen – eine bessere VIP-Karte erhöht es.', { amount: GK.formatNumber(GK.casino.maxBet()) }));
+    if (!GK.casino.bet(entry)) return GK.toast(GK.t('Nicht genug Dublonen für den Eintritt.'));
     const me = store();
     me.lastEntry = entry;
     me.settings[gameId] = settings;
@@ -615,12 +708,12 @@ window.GK = window.GK || {};
       if (s.phase === 'playing' && !d.placeOf(st, meSeat)) {
         const place = st.players.length - st.players.filter((p, i) => d.placeOf(st, i)).length;
         const win = prize(place, s.entry, st.players.length, true);
-        text = `Spiel wirklich verlassen? Du belegst damit Platz ${place}${win ? ` und bekommst ${GK.formatNumber(win)} Dublonen.` : ' und gehst leer aus.'}`;
+        text = GK.t('Spiel wirklich verlassen? Du belegst damit Platz {place}{rest}', { place, rest: win ? GK.t(' und bekommst {amount} Dublonen.', { amount: GK.formatNumber(win) }) : GK.t(' und gehst leer aus.') });
       }
     } else if (s.phase === 'lobby') {
-      text = 'Raum schließen? Alle bekommen ihren Eintritt zurück.';
+      text = GK.t('Raum schließen? Alle bekommen ihren Eintritt zurück.');
     } else if (s.phase === 'playing') {
-      text = 'Wenn du gehst, endet das Spiel für alle. Deine Mitspieler bekommen ihren Eintritt zurück.';
+      text = GK.t('Wenn du gehst, endet das Spiel für alle. Deine Mitspieler bekommen ihren Eintritt zurück.');
     }
     if (text && !confirm(text)) return;
     if (!s.solo) net.conns.forEach(conn => send(conn, { type: 'closed', reason: 'Der Gastgeber hat den Raum geschlossen.' }));
@@ -628,7 +721,7 @@ window.GK = window.GK || {};
       d.forfeit(st, meSeat);
       settle(d.placeOf(st, meSeat) || st.players.length, st, meSeat);
     }
-    const message = s.phase === 'lobby' ? 'Du hast den Raum geschlossen.' : s.phase === 'ended' ? 'Spiel beendet.' : 'Du hast das Spiel verlassen.';
+    const message = s.phase === 'lobby' ? GK.t('Du hast den Raum geschlossen.') : s.phase === 'ended' ? GK.t('Spiel beendet.') : GK.t('Du hast das Spiel verlassen.');
     setTimeout(() => endSession(message, s.phase === 'lobby'), s.solo ? 0 : 300);
   }
 
@@ -636,7 +729,7 @@ window.GK = window.GK || {};
 
   function joinRoom(gameId, code) {
     code = String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
-    if (code.length !== CODE_LENGTH) return GK.toast(`Der Raum-Code hat ${CODE_LENGTH} Zeichen.`);
+    if (code.length !== CODE_LENGTH) return GK.toast(GK.t('Der Raum-Code hat {n} Zeichen.', { n: CODE_LENGTH }));
     const busy = busyElsewhere();
     if (busy) return GK.toast(busy);
     store().session = {
@@ -662,7 +755,7 @@ window.GK = window.GK || {};
       if (net.peer !== peer) return;
       const s = session();
       if (err.type === 'peer-unavailable' && s && !s.joined) {
-        endSession(`Raum ${s.code} nicht gefunden. Stimmt der Code?`, true);
+        endSession(GK.t('Raum {code} nicht gefunden. Stimmt der Code?', { code: s.code }), true);
         return;
       }
       if (err.type === 'peer-unavailable') {
@@ -776,7 +869,7 @@ window.GK = window.GK || {};
     if (!s || s.paid || !s.entry) return;
     if (!GK.casino.bet(s.entry)) {
       GK.sound.play('denied');
-      GK.toast('Nicht genug Dublonen für den Eintritt.');
+      GK.toast(GK.t('Nicht genug Dublonen für den Eintritt.'));
       return;
     }
     s.paid = true;
@@ -792,24 +885,24 @@ window.GK = window.GK || {};
     const view = s.view;
     if (s.phase === 'connecting' || s.phase === 'lobby') {
       send(net.hostConn, { type: 'leave' });
-      endSession('Du hast den Raum verlassen.', true);
+      endSession(GK.t('Du hast den Raum verlassen.'), true);
       return;
     }
     if (s.phase === 'playing' && view && s.mySeat >= 0 && !d.placeOf(view, s.mySeat) && !s.settled) {
       const hostGone = net.status === 'lost' && Date.now() - net.lostSince >= ABANDON_AFTER;
       if (hostGone) {
-        if (!confirm('Der Gastgeber ist nicht mehr erreichbar. Spiel abbrechen? Du bekommst deinen Eintritt zurück.')) return;
-        endSession('Spiel abgebrochen.', true);
+        if (!confirm(GK.t('Der Gastgeber ist nicht mehr erreichbar. Spiel abbrechen? Du bekommst deinen Eintritt zurück.'))) return;
+        endSession(GK.t('Spiel abgebrochen.'), true);
         return;
       }
       const players = view.players.length;
       const place = players - view.players.filter((p, i) => d.placeOf(view, i)).length;
       const win = payoutFor(s, view, s.mySeat, place);
-      if (!confirm(`Spiel wirklich verlassen? Du belegst damit Platz ${place}${win ? ` und bekommst ${GK.formatNumber(win)} Dublonen.` : ' und gehst leer aus.'}`)) return;
+      if (!confirm(GK.t('Spiel wirklich verlassen? Du belegst damit Platz {place}{rest}', { place, rest: win ? GK.t(' und bekommst {amount} Dublonen.', { amount: GK.formatNumber(win) }) : GK.t(' und gehst leer aus.') }))) return;
       send(net.hostConn, { type: 'leave' });
       settle(place, view, s.mySeat);
     }
-    setTimeout(() => endSession('Du hast den Raum verlassen.', false), 300);
+    setTimeout(() => endSession(GK.t('Du hast den Raum verlassen.'), false), 300);
   }
 
   // ========== Gemeinsam ==========
@@ -891,7 +984,7 @@ window.GK = window.GK || {};
       return true;
     }
     if (!net.hostConn || !net.hostConn.open) {
-      GK.toast('Keine Verbindung zum Gastgeber – versuche es gleich noch einmal.');
+      GK.toast(GK.t('Keine Verbindung zum Gastgeber – versuche es gleich noch einmal.'));
       return false;
     }
     send(net.hostConn, { type: 'action', action });
@@ -950,21 +1043,21 @@ window.GK = window.GK || {};
   function statusLine() {
     const s = session();
     if (s.solo) return '';
-    if (!peerAvailable()) return '<span class="mp-status lost">' + ic('dot') + ' Online-Spiel nicht verfügbar – keine Internetverbindung?</span>';
+    if (!peerAvailable()) return '<span class="mp-status lost">' + ic('dot') + GK.t(' Online-Spiel nicht verfügbar – keine Internetverbindung?') + '</span>';
     if (net.status === 'online') {
       if (s.role === 'host' && net.peer && net.peer.disconnected && !net.peer.destroyed) {
-        return '<span class="mp-status connecting">' + ic('dot') + ' Verbindung zum Server wird erneuert – wer schon im Raum ist, bleibt verbunden …</span>';
+        return '<span class="mp-status connecting">' + ic('dot') + GK.t(' Verbindung zum Server wird erneuert – wer schon im Raum ist, bleibt verbunden …') + '</span>';
       }
-      return s.role === 'host' ? '<span class="mp-status online">' + ic('dot') + ' Raum ist online</span>' : '<span class="mp-status online">' + ic('dot') + ' Mit dem Gastgeber verbunden</span>';
+      return s.role === 'host' ? '<span class="mp-status online">' + ic('dot') + GK.t(' Raum ist online') + '</span>' : '<span class="mp-status online">' + ic('dot') + GK.t(' Mit dem Gastgeber verbunden') + '</span>';
     }
     if (net.status === 'lost') {
       const ms = net.lostSince ? Date.now() - net.lostSince : 0;
       // Nur wer noch mitspielt (nicht schon ausgeschieden und abgerechnet), bekommt den Eintritt zurück
       const gone = s.role === 'client' && s.phase === 'playing' && !s.settled && ms >= ABANDON_AFTER
-        ? ' Du kannst das Spiel auch verlassen – dann bekommst du deinen Eintritt zurück.' : '';
-      return `<span class="mp-status lost">${ic('dot')} Keine Verbindung${s.role === 'client' ? ` zum Gastgeber (seit ${Math.floor(ms / 1000)} s)` : ''} – versuche es erneut …${gone}</span>`;
+        ? GK.t(' Du kannst das Spiel auch verlassen – dann bekommst du deinen Eintritt zurück.') : '';
+      return `<span class="mp-status lost">${ic('dot')} ${GK.t('Keine Verbindung')}${s.role === 'client' ? GK.t(' zum Gastgeber (seit {s} s)', { s: Math.floor(ms / 1000) }) : ''}${GK.t(' – versuche es erneut …')}${gone}</span>`;
     }
-    return '<span class="mp-status connecting">' + ic('dot') + ' Verbinde …</span>';
+    return '<span class="mp-status connecting">' + ic('dot') + GK.t(' Verbinde …') + '</span>';
   }
 
   // Hauptfunktion für den Spielbereich: Startseite, Warteraum oder Spiel
@@ -992,43 +1085,43 @@ window.GK = window.GK || {};
     let resultHtml = '';
     if (r) {
       const res = r.result;
-      const extra = res && !res.refunded ? ` Du hast den <b>${res.place}. Platz</b> belegt${res.prize ? ` und ${GK.formatMoneyHTML(res.prize)} gewonnen!` : '.'}` : '';
+      const extra = res && !res.refunded ? GK.t(' Du hast den <b>{place}. Platz</b> belegt', { place: res.place }) + (res.prize ? GK.t(' und {money} gewonnen!', { money: GK.formatMoneyHTML(res.prize) }) : '.') : '';
       resultHtml = `<div class="poker-result ${res && res.prize ? 'win' : ''}">${esc(r.message)}${extra}</div>`;
     }
     const otherRoom = session() && session().game !== gameId
-      ? `<p class="warning">Du bist gerade in einem Raum für ${esc(games[session().game].name)}. <button class="btn btn-small room-goto">Dorthin wechseln</button></p>` : '';
+      ? `<p class="warning">${GK.t('Du bist gerade in einem Raum für {name}.', { name: esc(GK.t(games[session().game].name)) })} <button class="btn btn-small room-goto">${GK.t('Dorthin wechseln')}</button></p>` : '';
     const soloBots = me.soloBots[gameId] || Math.min(3, d.maxPlayers - 1);
     container.innerHTML = `
       ${resultHtml}
       ${otherRoom}
       <div class="room-intro">${d.intro || ''}</div>
       ${d.settings.html ? `<div class="room-settings">${d.settings.html(settings)}</div>` : ''}
-      <h3 class="poker-section-title">${ic('robot')}Gegen Computer</h3>
+      <h3 class="poker-section-title">${ic('robot')}${GK.t('Gegen Computer')}</h3>
       <div class="room-solo">
         ${d.maxPlayers > 2 ? `
-          <div class="bet-label">Gegner</div>
-          <div class="room-bots" role="group" aria-label="Anzahl Gegner">
+          <div class="bet-label">${GK.t('Gegner')}</div>
+          <div class="room-bots" role="group" aria-label="${GK.t('Anzahl Gegner')}">
             ${Array.from({ length: d.maxPlayers - 1 }, (_, i) => i + 1).map(n => `<button type="button" class="btn btn-small room-bot-count ${n === soloBots ? 'active' : ''}" data-n="${n}">${n}</button>`).join('')}
           </div>` : ''}
         <div class="room-solo-bet"></div>
         <div class="room-solo-prize small"></div>
-        <button class="btn btn-primary btn-big room-solo-start">${ic('play')}Spiel starten</button>
+        <button class="btn btn-primary btn-big room-solo-start">${ic('play')}${GK.t('Spiel starten')}</button>
       </div>
-      <h3 class="poker-section-title">${ic('users')}Mit Freunden spielen</h3>
-      ${peerAvailable() ? '' : '<p class="warning">Online-Spiele brauchen eine Internetverbindung (PeerJS konnte nicht geladen werden).</p>'}
+      <h3 class="poker-section-title">${ic('users')}${GK.t('Mit Freunden spielen')}</h3>
+      ${peerAvailable() ? '' : `<p class="warning">${GK.t('Online-Spiele brauchen eine Internetverbindung (PeerJS konnte nicht geladen werden).')}</p>`}
       <div class="mp-forms">
         <div class="mp-form">
-          <label class="bet-label">Dein Name am Tisch</label>
+          <label class="bet-label">${GK.t('Dein Name am Tisch')}</label>
           <div class="bet-row">
-            <button type="button" class="btn mp-avatar room-avatar" title="Anderes Bild">${GK.figure.avatarHTML()}</button>
+            <button type="button" class="btn mp-avatar room-avatar" title="${GK.t('Anderes Bild')}">${GK.figure.avatarHTML()}</button>
             <input class="bet-input mp-name room-name" maxlength="${MAX_NAME}" value="${esc(GK.player.name())}">
           </div>
         </div>
         <div class="mp-form">
-          <label class="bet-label">Raum eröffnen – Eintritt pro Spieler</label>
+          <label class="bet-label">${GK.t('Raum eröffnen – Eintritt pro Spieler')}</label>
           <div class="bet-row">
             <input class="bet-input mp-entry room-entry" ${GK.AMOUNT_INPUT} value="${GK.formatAmount(me.lastEntry)}">
-            <button type="button" class="btn btn-primary room-create">Eröffnen</button>
+            <button type="button" class="btn btn-primary room-create">${GK.t('Eröffnen')}</button>
           </div>
           <div class="small amount-preview room-entry-preview"></div>
           <div class="bet-row mp-presets">
@@ -1036,10 +1129,10 @@ window.GK = window.GK || {};
           </div>
         </div>
         <div class="mp-form">
-          <label class="bet-label">Raum beitreten</label>
+          <label class="bet-label">${GK.t('Raum beitreten')}</label>
           <div class="bet-row">
             <input class="bet-input mp-code-input room-code" maxlength="${CODE_LENGTH}" placeholder="CODE" value="${pending.game === gameId ? esc(pending.code) : ''}" autocomplete="off">
-            <button type="button" class="btn btn-primary room-join">Beitreten</button>
+            <button type="button" class="btn btn-primary room-join">${GK.t('Beitreten')}</button>
           </div>
         </div>
       </div>`;
@@ -1055,7 +1148,7 @@ window.GK = window.GK || {};
     // Gegen Computer
     let soloEntry = Math.max(MIN_ENTRY, me.lastEntry);
     const betControl = GK.casino.createBetControl(container.querySelector('.room-solo-bet'), {
-      label: 'Einsatz (Eintritt)',
+      label: GK.t('Einsatz (Eintritt)'),
       min: MIN_ENTRY,
       get: () => soloEntry,
       set: v => {
@@ -1066,7 +1159,7 @@ window.GK = window.GK || {};
     container._betControl = betControl;
     const updateSoloPrize = () => {
       const n = (me.soloBots[gameId] || soloBots) + 1;
-      container.querySelector('.room-solo-prize').innerHTML = `Preise bei ${n} Spielern: ${prizeText(soloEntry, n, true)}`;
+      container.querySelector('.room-solo-prize').innerHTML = GK.t('Preise bei {n} Spielern: {prizes}', { n, prizes: prizeText(soloEntry, n, true) });
     };
     updateSoloPrize();
     container.querySelectorAll('.room-bot-count').forEach(btn => btn.addEventListener('click', () => {
@@ -1086,7 +1179,7 @@ window.GK = window.GK || {};
     };
     nameInput.addEventListener('change', saveName);
     container.querySelector('.room-avatar').addEventListener('click', e => {
-      if (GK.figure.mine()) GK.toast('Deine Figur änderst du unter 📊 Statistiken → 🎨 Deine Figur.');
+      if (GK.figure.mine()) GK.toast(GK.t('Deine Figur änderst du unter 📊 Statistiken → 🎨 Deine Figur.'));
       else e.currentTarget.textContent = GK.player.nextAvatar();
     });
     const entryInput = container.querySelector('.room-entry');
@@ -1123,45 +1216,45 @@ window.GK = window.GK || {};
     container.innerHTML = `
       <div class="mp-room">
         <div class="mp-code-box">
-          <div class="muted small">Raum-Code (${esc(d.name)})</div>
+          <div class="muted small">${GK.t('Raum-Code ({name})', { name: esc(GK.t(d.name)) })}</div>
           <div class="mp-code">${s.code}</div>
           ${isHost ? `
             <div class="bet-row">
-              <button class="btn btn-small room-copy-code">${ic('copy')}Code kopieren</button>
-              <button class="btn btn-small room-copy-link">${ic('link')}Einladungs-Link kopieren</button>
+              <button class="btn btn-small room-copy-code">${ic('copy')}${GK.t('Code kopieren')}</button>
+              <button class="btn btn-small room-copy-link">${ic('link')}${GK.t('Einladungs-Link kopieren')}</button>
             </div>` : ''}
         </div>
-        ${s.entry ? `<p class="mp-tier-info">${d.icon} <b>${esc(d.name)}</b> · Eintritt ${GK.formatMoneyHTML(s.entry)}
-          ${d.settingsText && s.settings ? ` · ${d.settingsText(s.settings)}` : ''}<br>Preise: ${players ? prizeText(s.entry, players, false, paying) : ''}</p>` : ''}
-        ${s.phase === 'connecting' ? '<p class="muted">Suche den Raum …</p>' : `
-          <h3>Spieler (${members.length}/${d.maxPlayers})</h3>
+        ${s.entry ? `<p class="mp-tier-info">${d.icon} <b>${esc(GK.t(d.name))}</b> · ${GK.t('Eintritt')} ${GK.formatMoneyHTML(s.entry)}
+          ${d.settingsText && s.settings ? ` · ${d.settingsText(s.settings)}` : ''}<br>${GK.t('Preise:')} ${players ? prizeText(s.entry, players, false, paying) : ''}</p>` : ''}
+        ${s.phase === 'connecting' ? `<p class="muted">${GK.t('Suche den Raum …')}</p>` : `
+          <h3>${GK.t('Spieler')} (${members.length}/${d.maxPlayers})</h3>
           <ul class="mp-members">
             ${members.map(m => `<li class="${m.ready ? '' : 'not-ready'}">
               <span>${GK.cosmetics.nameTag(m)}</span>
-              ${m.ready ? '' : `<span class="mp-tag waiting">${ic('hourglass')} zahlt noch</span>`}
-              ${m.playerId === hostId ? `<span class="mp-tag">${ic('crown')} Gastgeber</span>` : ''}
-              ${m.playerId === store().playerId ? '<span class="mp-tag">Du</span>' : ''}
+              ${m.ready ? '' : `<span class="mp-tag waiting">${ic('hourglass')} ${GK.t('zahlt noch')}</span>`}
+              ${m.playerId === hostId ? `<span class="mp-tag">${ic('crown')} ${GK.t('Gastgeber')}</span>` : ''}
+              ${m.playerId === store().playerId ? `<span class="mp-tag">${GK.t('Du')}</span>` : ''}
             </li>`).join('')}
           </ul>
           ${mustConfirm ? `
             <div class="mp-confirm">
-              <p>Der Gastgeber hat den Eintritt auf <b>${GK.formatMoneyHTML(s.entry)}</b> festgelegt.</p>
-              <button class="btn btn-primary btn-big room-confirm" ${GK.canAfford(s.entry) ? '' : 'disabled'}>${ic('bag')}Eintritt bezahlen und mitspielen</button>
-              ${GK.canAfford(s.entry) ? '' : '<p class="loss small">Dafür hast du nicht genug Dublonen.</p>'}
+              <p>${GK.t('Der Gastgeber hat den Eintritt auf <b>{money}</b> festgelegt.', { money: GK.formatMoneyHTML(s.entry) })}</p>
+              <button class="btn btn-primary btn-big room-confirm" ${GK.canAfford(s.entry) ? '' : 'disabled'}>${ic('bag')}${GK.t('Eintritt bezahlen und mitspielen')}</button>
+              ${GK.canAfford(s.entry) ? '' : `<p class="loss small">${GK.t('Dafür hast du nicht genug Dublonen.')}</p>`}
             </div>` : ''}
           ${isHost ? `
-            ${d.bots ? `<label class="mp-check"><input type="checkbox" class="room-fill" ${s.fillBots ? 'checked' : ''}> Freie Plätze mit Computer-Gegnern auffüllen
-              <span class="muted small">(sie zahlen keinen Eintritt – gewinnen sie einen Preis, behält ihn das Casino)</span></label>` : ''}
+            ${d.bots ? `<label class="mp-check"><input type="checkbox" class="room-fill" ${s.fillBots ? 'checked' : ''}> ${GK.t('Freie Plätze mit Computer-Gegnern auffüllen')}
+              <span class="muted small">${GK.t('(sie zahlen keinen Eintritt – gewinnen sie einen Preis, behält ihn das Casino)')}</span></label>` : ''}
             <div class="game-actions">
-              <button class="btn btn-primary btn-big room-start" ${readyCount < 2 ? 'disabled' : ''}>▶ Spiel starten</button>
+              <button class="btn btn-primary btn-big room-start" ${readyCount < 2 ? 'disabled' : ''}>▶ ${GK.t('Spiel starten')}</button>
             </div>
-            <p class="muted small">${readyCount < 2 ? 'Warte auf mindestens einen Mitspieler, der den Eintritt bezahlt hat …'
-              : readyCount < members.length ? 'Wer noch nicht bezahlt hat, spielt nicht mit.' : 'Alle da? Dann los!'}
-              Als Gastgeber leitest du das Spiel – lass es bitte geöffnet, bis es vorbei ist.</p>`
-            : s.paid ? '<p class="muted">Warte, bis der Gastgeber das Spiel startet …</p>' : ''}
+            <p class="muted small">${readyCount < 2 ? GK.t('Warte auf mindestens einen Mitspieler, der den Eintritt bezahlt hat …')
+              : readyCount < members.length ? GK.t('Wer noch nicht bezahlt hat, spielt nicht mit.') : GK.t('Alle da? Dann los!')}
+              ${GK.t('Als Gastgeber leitest du das Spiel – lass es bitte geöffnet, bis es vorbei ist.')}</p>`
+            : s.paid ? `<p class="muted">${GK.t('Warte, bis der Gastgeber das Spiel startet …')}</p>` : ''}
         `}
         <p>${statusLine()}</p>
-        <button class="btn btn-danger room-leave">${isHost ? 'Raum schließen' : 'Raum verlassen'}</button>
+        <button class="btn btn-danger room-leave">${isHost ? GK.t('Raum schließen') : GK.t('Raum verlassen')}</button>
       </div>`;
     container.querySelector('.room-leave').addEventListener('click', () => (isHost ? hostLeave() : clientLeave()));
     const confirmBtn = container.querySelector('.room-confirm');
@@ -1173,16 +1266,16 @@ window.GK = window.GK || {};
         afterHostChange();
       });
       container.querySelector('.room-start').addEventListener('click', () => startGame());
-      container.querySelector('.room-copy-code').addEventListener('click', () => copyText(s.code, 'Code kopiert'));
-      container.querySelector('.room-copy-link').addEventListener('click', () => copyText(inviteLink(s), 'Einladungs-Link kopiert'));
+      container.querySelector('.room-copy-code').addEventListener('click', () => copyText(s.code, GK.t('Code kopiert')));
+      container.querySelector('.room-copy-link').addEventListener('click', () => copyText(inviteLink(s), GK.t('Einladungs-Link kopiert')));
     }
   }
 
   function copyText(text, done) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(() => GK.toast(done + ' ✅'), () => prompt('Zum Kopieren:', text));
+      navigator.clipboard.writeText(text).then(() => GK.toast(done + ' ✅'), () => prompt(GK.t('Zum Kopieren:'), text));
     } else {
-      prompt('Zum Kopieren:', text);
+      prompt(GK.t('Zum Kopieren:'), text);
     }
   }
 
@@ -1213,9 +1306,9 @@ window.GK = window.GK || {};
     const players = view.players.length;
     const myPlace = mySeat >= 0 ? d.placeOf(view, mySeat) : null;
     const info = [
-      s.solo ? `${ic('robot')} Gegen Computer` : `${ic('users')} Raum ${s.code}`,
+      s.solo ? `${ic('robot')} ${GK.t('Gegen Computer')}` : `${ic('users')} ${GK.t('Raum')} ${s.code}`,
       d.settingsText && s.settings ? d.settingsText(s.settings) : '',
-      `Eintritt ${GK.formatMoneyHTML(s.entry)}`,
+      `${GK.t('Eintritt')} ${GK.formatMoneyHTML(s.entry)}`,
       s.solo ? prizeText(s.entry, players, true)
         : prizeText(s.entry, players, false, humans(view.players)),
     ].filter(Boolean);
@@ -1227,22 +1320,22 @@ window.GK = window.GK || {};
       const online = id => (isHost ? id === store().playerId || net.conns.has(id) : (s.members.find(m => m.playerId === id) || {}).online !== false);
       const away = view.players.filter((p, i) => p.id && !p.isBot && !d.placeOf(view, i) && !online(p.id)).map(p => esc(p.name));
       if (away.length && (isHost || net.status === 'online')) {
-        notices.push(`${ic('warning')} ${away.join(', ')} ${away.length > 1 ? 'sind' : 'ist'} gerade nicht verbunden – wer länger als ${DROP_AFTER / 1000} Sekunden weg ist, scheidet aus.`);
+        notices.push(`${ic('warning')} ${GK.t('{names} {verb} gerade nicht verbunden – wer länger als {secs} Sekunden weg ist, scheidet aus.', { names: away.join(', '), verb: away.length > 1 ? GK.t('sind') : GK.t('ist'), secs: DROP_AFTER / 1000 })}`);
       }
     }
     if (s.result && !s.result.refunded && s.phase !== 'ended') {
-      notices.push(`Du bist raus: <b>${s.result.place}. Platz</b>${s.result.prize ? ` – ${GK.formatMoneyHTML(s.result.prize)} gewonnen!` : '.'}` +
-        (isHost && !s.solo ? ' Du leitest das Spiel weiter, bis es vorbei ist.' : ' Du kannst weiter zuschauen.'));
+      notices.push(GK.t('Du bist raus: <b>{place}. Platz</b>', { place: s.result.place }) + (s.result.prize ? GK.t(' – {money} gewonnen!', { money: GK.formatMoneyHTML(s.result.prize) }) : '.') +
+        (isHost && !s.solo ? GK.t(' Du leitest das Spiel weiter, bis es vorbei ist.') : GK.t(' Du kannst weiter zuschauen.')));
     }
     if (s.phase === 'ended') {
       const ranking = view.players.map((p, i) => ({ p, place: d.placeOf(view, i) })).sort((a, b) => a.place - b.place)
         .map(({ p, place }) => `${place}. ${GK.cosmetics.nameTag(p)}`).join(' · ');
-      notices.push(`${ic('flag')} Spiel vorbei! ${ranking}`);
+      notices.push(`${ic('flag')} ${GK.t('Spiel vorbei!')} ${ranking}`);
     }
     const notice = container.querySelector('.room-notice');
     setHtml(notice, notices.join('<br>'));
     notice.hidden = !notices.length;
-    const leaveLabel = s.phase === 'ended' ? 'Zurück zum Start' : myPlace || mySeat < 0 ? 'Raum verlassen' : 'Spiel verlassen';
+    const leaveLabel = s.phase === 'ended' ? GK.t('Zurück zum Start') : myPlace || mySeat < 0 ? GK.t('Raum verlassen') : GK.t('Spiel verlassen');
     setHtml(container.querySelector('.room-leave'), leaveLabel);
     d.draw(container.querySelector('.room-game'), view, {
       mySeat,
@@ -1272,9 +1365,9 @@ window.GK = window.GK || {};
     GK.casino.register({
       id: d.id,
       category: 'friends',
-      name: d.name,
+      name: GK.t(d.name),
       emoji: d.icon,
-      desc: d.desc,
+      desc: GK.t(d.desc),
       init: body => draw(body, d.id),
       refresh: () => containers[d.id] && draw(containers[d.id], d.id),
       onShow: () => {

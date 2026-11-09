@@ -4,6 +4,39 @@
 // Jede Aktion wird sofort gespeichert – eine angefangene Runde übersteht das Neuladen.
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Blackjack': 'Blackjack',
+  'Komm näher an 21 als der Dealer.': 'Get closer to 21 than the dealer.',
+  'Nicht genug Dublonen für diesen Einsatz.': 'Not enough Doubloons for this bet.',
+  'Überkauft': 'Bust',
+  'Blackjack!': 'Blackjack!',
+  'Dealer hat Blackjack': 'Dealer has blackjack',
+  'Dealer überkauft': 'Dealer bust',
+  'Gewonnen': 'Won',
+  'Unentschieden': 'Draw',
+  'Verloren': 'Lost',
+  'Wähle deinen Einsatz und klicke auf „Austeilen“.': 'Choose your bet and click “Deal”.',
+  'Hand {n}': 'Hand {n}',
+  '(verdoppelt)': '(doubled)',
+  'Gewinn: +{n}': 'Win: +{n}',
+  'Einsatz zurück.': 'Bet returned.',
+  'Verloren: −{n}': 'Lost: −{n}',
+  'Hand {a} von {n} ist dran: Karte oder bleiben?': 'Hand {a} of {n}: hit or stand?',
+  'Karte oder bleiben?': 'Hit or stand?',
+  'Karte für Hand {n}': 'Hit for hand {n}',
+  'bj\u0001Karte': 'Hit',
+  'Blackjack zahlt 3:2 · Dealer steht auf 17': 'Blackjack pays 3:2 · Dealer stands on 17',
+  'Deine Hand': 'Your hand',
+  'Austeilen': 'Deal',
+  'Bleiben': 'Stand',
+  'Verdoppeln': 'Double',
+  'Teilen': 'Split',
+});
+
 (function () {
   // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
@@ -75,7 +108,7 @@ window.GK = window.GK || {};
     const s = state();
     if (s.round && !s.round.finished) return;
     if (!GK.casino.bet(s.bet)) {
-      showMessage('Nicht genug Dublonen für diesen Einsatz.', 'loss');
+      showMessage(GK.t('Nicht genug Dublonen für diesen Einsatz.'), 'loss');
       return;
     }
     if (s.shoe.length < RESHUFFLE_AT) s.shoe = GK.cards.createDeck(DECKS);
@@ -200,7 +233,7 @@ window.GK = window.GK || {};
     if (round.hands.length > 1 && round.results.every(r => r.payout > 0 && r.text !== 'Unentschieden')) {
       GK.unlockAchievement('bjSplitWin');
     }
-    const summary = round.results.map(r => r.text).join(' / ');
+    const summary = round.results.map(r => GK.t(r.text)).join(' / ');
     GK.casino.record('blackjack', totalBet, totalPayout, summary);
     celebration = { payout: totalPayout, bet: totalBet, natural: playerNatural && !dealerHasBj, text: summary };
   }
@@ -209,7 +242,7 @@ window.GK = window.GK || {};
 
   function valueLabel(cards) {
     const v = handValue(cards);
-    if (isBlackjack(cards)) return 'Blackjack';
+    if (isBlackjack(cards)) return GK.t('Blackjack');
     return v.soft && v.total < 21 ? `${v.total - 10}/${v.total}` : String(v.total);
   }
 
@@ -220,7 +253,7 @@ window.GK = window.GK || {};
       els.dealer.innerHTML = '<div class="card-placeholder"></div><div class="card-placeholder"></div>';
       els.dealerValue.textContent = '';
       els.hands.innerHTML = '<div class="bj-hand"><div class="bj-cards"><div class="card-placeholder"></div><div class="card-placeholder"></div></div></div>';
-      showMessage('Wähle deinen Einsatz und klicke auf „Austeilen“.', '');
+      showMessage(GK.t('Wähle deinen Einsatz und klicke auf „Austeilen“.'), '');
       updateButtons();
       return;
     }
@@ -256,10 +289,10 @@ window.GK = window.GK || {};
       return `<div class="bj-hand ${active ? 'active' : ''} ${result ? 'done-' + (resultCls || 'push') : ''}">
         <div class="bj-cards">${handCards[i]}</div>
         <div class="bj-hand-info">
-          ${round.hands.length > 1 ? `<span class="bj-hand-no">Hand ${i + 1}</span>` : ''}
+          ${round.hands.length > 1 ? `<span class="bj-hand-no">${GK.t('Hand {n}', { n: i + 1 })}</span>` : ''}
           <span class="bj-value">${valueLabel(hand.cards)}</span>
-          <span class="bj-bet">${GK.formatMoneyHTML(hand.bet)}${hand.doubled ? ' (verdoppelt)' : ''}</span>
-          ${result ? `<span class="bj-result ${resultCls}" style="animation-delay: ${delay + 0.1}s">${result.text}</span>` : ''}
+          <span class="bj-bet">${GK.formatMoneyHTML(hand.bet)}${hand.doubled ? ' ' + GK.t('(verdoppelt)') : ''}</span>
+          ${result ? `<span class="bj-result ${resultCls}" style="animation-delay: ${delay + 0.1}s">${GK.t(result.text)}</span>` : ''}
         </div>
       </div>`;
     }).join('');
@@ -268,18 +301,18 @@ window.GK = window.GK || {};
       const c = celebration;
       celebration = null;
       setTimeout(() => GK.fx.celebrate(c.payout, c.bet, {
-        el: els.hands, level: c.natural ? 'big' : undefined, subtitle: c.natural ? 'Blackjack!' : c.text,
+        el: els.hands, level: c.natural ? 'big' : undefined, subtitle: c.natural ? GK.t('Blackjack!') : c.text,
       }), (delay + 0.25) * 1000);
     }
 
     if (round.finished) {
       const diff = round.totalPayout - round.totalBet;
-      if (diff > 0) showMessage(`Gewinn: +${GK.formatMoneyHTML(diff)}`, 'win');
-      else if (diff === 0) showMessage('Einsatz zurück.', '');
-      else showMessage(`Verloren: −${GK.formatMoneyHTML(-diff)}`, 'loss');
+      if (diff > 0) showMessage(GK.t('Gewinn: +{n}', { n: GK.formatMoneyHTML(diff) }), 'win');
+      else if (diff === 0) showMessage(GK.t('Einsatz zurück.'), '');
+      else showMessage(GK.t('Verloren: −{n}', { n: GK.formatMoneyHTML(-diff) }), 'loss');
     } else {
       showMessage(round.hands.length > 1
-        ? `Hand ${round.active + 1} von ${round.hands.length} ist dran: Karte oder bleiben?` : 'Karte oder bleiben?', '');
+        ? GK.t('Hand {a} von {n} ist dran: Karte oder bleiben?', { a: round.active + 1, n: round.hands.length }) : GK.t('Karte oder bleiben?'), '');
     }
     updateButtons();
   }
@@ -295,7 +328,7 @@ window.GK = window.GK || {};
     const hand = activeHand();
     els.deal.hidden = playing;
     els.playActions.hidden = !playing;
-    els.hit.textContent = round && round.hands.length > 1 && hand ? `Karte für Hand ${round.active + 1}` : 'Karte';
+    els.hit.textContent = round && round.hands.length > 1 && hand ? GK.t('Karte für Hand {n}', { n: round.active + 1 }) : GK.t('Karte', null, 'bj');
     els.double.disabled = !canDouble(hand);
     els.split.disabled = !canSplit(hand);
     betControl.setDisabled(playing);
@@ -308,21 +341,21 @@ window.GK = window.GK || {};
           <div class="bj-label">Dealer <span class="bj-dealer-value"></span></div>
           <div class="bj-cards bj-dealer"></div>
         </div>
-        <div class="bj-rules">Blackjack zahlt 3:2 · Dealer steht auf 17</div>
+        <div class="bj-rules">${GK.t('Blackjack zahlt 3:2 · Dealer steht auf 17')}</div>
         <div class="bj-area">
-          <div class="bj-label">Deine Hand</div>
+          <div class="bj-label">${GK.t('Deine Hand')}</div>
           <div class="bj-hands"></div>
         </div>
       </div>
       <div class="game-message">&nbsp;</div>
       <div class="bj-bet"></div>
       <div class="game-actions">
-        <button class="btn btn-primary bj-deal">${ic('cards')}Austeilen</button>
+        <button class="btn btn-primary bj-deal">${ic('cards')}${GK.t('Austeilen')}</button>
         <span class="bj-play-actions">
-          <button class="btn btn-primary bj-hit">Karte</button>
-          <button class="btn bj-stand">Bleiben</button>
-          <button class="btn bj-double">Verdoppeln</button>
-          <button class="btn bj-split">Teilen</button>
+          <button class="btn btn-primary bj-hit">${GK.t('Karte', null, 'bj')}</button>
+          <button class="btn bj-stand">${GK.t('Bleiben')}</button>
+          <button class="btn bj-double">${GK.t('Verdoppeln')}</button>
+          <button class="btn bj-split">${GK.t('Teilen')}</button>
         </span>
       </div>`;
     els = {

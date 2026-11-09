@@ -3,6 +3,39 @@
 // Das Ergebnis steht beim Start fest und wird gespeichert – Neuladen zahlt trotzdem aus.
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Schiffsrennen': 'Ship Race',
+  'Fünf Piratenschiffe, ein Sieger – setz auf deinen Favoriten!': 'Five pirate ships, one winner – bet on your favourite!',
+  'Schwarze Möwe': 'Black Gull',
+  'Rote Perle': 'Red Pearl',
+  'Goldener Hai': 'Golden Shark',
+  'Sturmvogel': 'Storm Petrel',
+  'Grüne Witwe': 'Green Widow',
+  'Dein Limit sind {limit} Dublonen pro Rennen – eine bessere VIP-Karte erhöht es.':
+    'Your limit is {limit} Doubloons per race – a better VIP card raises it.',
+  'Nicht genug Dublonen für diesen Chip.': 'Not enough Doubloons for this chip.',
+  'Setz zuerst Chips auf ein Schiff.': 'Place chips on a ship first.',
+  '📯 Leinen los!': '📯 Cast off!',
+  '🏁 {ship} (×{mult})': '🏁 {ship} (×{mult})',
+  '🏆 {ship} gewinnt! Du bekommst {money}': '🏆 {ship} wins! You get {money}',
+  '🏁 {ship} gewinnt – diesmal nicht dein Schiff.': '🏁 {ship} wins – not your ship this time.',
+  '🚩 {ship} übernimmt die Führung!': '🚩 {ship} takes the lead!',
+  '🏁 {ship} ist im Ziel!': '🏁 {ship} crosses the finish line!',
+  'Gesetzt: {money}': 'Bet: {money}',
+  '⚓ Die Schiffe liegen bereit.': '⚓ The ships are ready.',
+  '+ Chip': '+ Chip',
+  'Rennen starten': 'Start race',
+  'Wetten entfernen': 'Clear bets',
+  'Chip-Wert': 'Chip value',
+  'Auf welches Schiff setzt du?': 'Which ship do you bet on?',
+  'Setze Chips auf ein oder mehrere Schiffe. Gewinnt dein Schiff, bekommst du deinen Einsatz mal der angezeigten Zahl. Vor jedem Rennen gibt es neue Zahlen.':
+    'Place chips on one or more ships. If your ship wins, you get your bet times the number shown. Before each race there are new numbers.',
+});
+
 (function () {
   // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
@@ -74,12 +107,12 @@ window.GK = window.GK || {};
     const s = state();
     if (racing || s.pending) return;
     if (totalBets(s.bets) + s.chip > GK.casino.maxBet()) {
-      showMessage(`Dein Limit sind ${GK.formatNumber(GK.casino.maxBet())} Dublonen pro Rennen – eine bessere VIP-Karte erhöht es.`, 'loss');
+      showMessage(GK.t('Dein Limit sind {limit} Dublonen pro Rennen – eine bessere VIP-Karte erhöht es.', { limit: GK.formatNumber(GK.casino.maxBet()) }), 'loss');
       return;
     }
     if (!GK.casino.bet(s.chip)) {
       GK.sound.play('denied');
-      showMessage('Nicht genug Dublonen für diesen Chip.', 'loss');
+      showMessage(GK.t('Nicht genug Dublonen für diesen Chip.'), 'loss');
       return;
     }
     s.bets[ship] = (s.bets[ship] || 0) + s.chip;
@@ -103,7 +136,7 @@ window.GK = window.GK || {};
     if (racing || s.pending) return;
     const total = totalBets(s.bets);
     if (!total) {
-      showMessage('Setz zuerst Chips auf ein Schiff.', '');
+      showMessage(GK.t('Setz zuerst Chips auf ein Schiff.'), '');
       return;
     }
     const { probs, mults } = odds();
@@ -120,7 +153,7 @@ window.GK = window.GK || {};
     GK.save();
     racing = true;
     updateButtons();
-    showMessage('📯 Leinen los!', '');
+    showMessage(GK.t('📯 Leinen los!'), '');
     GK.sound.play('horn');
     animate(s.pending, () => settle(true));
   }
@@ -139,12 +172,12 @@ window.GK = window.GK || {};
     s.last = { order: p.order, mults: p.mults, bets: p.bets, payout: p.payout };
     GK.casino.payout(p.payout);
     if (p.payout > 0 && p.mults[winner] >= 6) GK.unlockAchievement('raceOutsider');
-    GK.casino.record('race', p.total, p.payout, `🏁 ${SHIPS[winner].name} (×${fmt(p.mults[winner])})`);
+    GK.casino.record('race', p.total, p.payout, GK.t('🏁 {ship} (×{mult})', { ship: GK.t(SHIPS[winner].name), mult: fmt(p.mults[winner]) }));
     if (p.payout > 0) {
-      showMessage(`🏆 ${SHIPS[winner].name} gewinnt! Du bekommst ${GK.formatMoneyHTML(p.payout)}`, 'win');
-      if (animated) GK.fx.celebrate(p.payout, p.total, { el: els.lanes.children[winner], subtitle: SHIPS[winner].name });
+      showMessage(GK.t('🏆 {ship} gewinnt! Du bekommst {money}', { ship: GK.t(SHIPS[winner].name), money: GK.formatMoneyHTML(p.payout) }), 'win');
+      if (animated) GK.fx.celebrate(p.payout, p.total, { el: els.lanes.children[winner], subtitle: GK.t(SHIPS[winner].name) });
     } else {
-      showMessage(`🏁 ${SHIPS[winner].name} gewinnt – diesmal nicht dein Schiff.`, 'loss');
+      showMessage(GK.t('🏁 {ship} gewinnt – diesmal nicht dein Schiff.', { ship: GK.t(SHIPS[winner].name) }), 'loss');
       if (animated) GK.sound.play('lose');
     }
     renderLanes();
@@ -190,12 +223,12 @@ window.GK = window.GK || {};
       if (now_leader !== leader && t > 1200 && now - lastComment > 900 && finished === 0) {
         leader = now_leader;
         lastComment = now;
-        els.comment.textContent = `🚩 ${SHIPS[leader].name} übernimmt die Führung!`;
+        els.comment.textContent = GK.t('🚩 {ship} übernimmt die Führung!', { ship: GK.t(SHIPS[leader].name) });
       }
       const done = p.order.filter(i => t >= p.finish[i]).length;
       if (done > finished) {
         if (finished === 0) {
-          els.comment.textContent = `🏁 ${SHIPS[p.order[0]].name} ist im Ziel!`;
+          els.comment.textContent = GK.t('🏁 {ship} ist im Ziel!', { ship: GK.t(SHIPS[p.order[0]].name) });
           GK.sound.play('cannon');
         }
         finished = done;
@@ -226,7 +259,7 @@ window.GK = window.GK || {};
         boat.style.transform = last ? `translateX(${track.clientWidth - boat.offsetWidth}px)` : 'translateX(0)';
       }
     });
-    els.total.innerHTML = 'Gesetzt: ' + GK.formatMoneyHTML(totalBets(bets));
+    els.total.innerHTML = GK.t('Gesetzt: {money}', { money: GK.formatMoneyHTML(totalBets(bets)) });
   }
 
   function showMessage(html, cls) {
@@ -246,16 +279,16 @@ window.GK = window.GK || {};
   function init(body) {
     body.innerHTML = `
       <div class="race-layout">
-        <div class="race-comment">⚓ Die Schiffe liegen bereit.</div>
+        <div class="race-comment">${GK.t('⚓ Die Schiffe liegen bereit.')}</div>
         <div class="race-lanes">
           ${SHIPS.map((ship, i) => `
             <div class="race-lane" style="--ship: ${ship.color}">
               <div class="race-info">
-                <span class="race-name">${ship.name}</span>
+                <span class="race-name">${GK.t(ship.name)}</span>
                 <span class="race-mult"></span>
                 <span class="race-stake"></span>
               </div>
-              <button class="btn btn-small race-bet" data-ship="${i}">+ Chip</button>
+              <button class="btn btn-small race-bet" data-ship="${i}">${GK.t('+ Chip')}</button>
               <div class="race-track">
                 <div class="race-ship"><span class="race-flag"></span>⛵</div>
                 <span class="race-place"></span>
@@ -266,11 +299,10 @@ window.GK = window.GK || {};
         <div class="game-message">&nbsp;</div>
         <div class="race-chip"></div>
         <div class="game-actions">
-          <button class="btn btn-primary btn-big race-start">${ic('flag')}Rennen starten</button>
-          <button class="btn race-clear">${ic('close')}Wetten entfernen</button>
+          <button class="btn btn-primary btn-big race-start">${ic('flag')}${GK.t('Rennen starten')}</button>
+          <button class="btn race-clear">${ic('close')}${GK.t('Wetten entfernen')}</button>
         </div>
-        <p class="muted small">Setze Chips auf ein oder mehrere Schiffe. Gewinnt dein Schiff, bekommst du
-          deinen Einsatz mal der angezeigten Zahl. Vor jedem Rennen gibt es neue Zahlen.</p>
+        <p class="muted small">${GK.t('Setze Chips auf ein oder mehrere Schiffe. Gewinnt dein Schiff, bekommst du deinen Einsatz mal der angezeigten Zahl. Vor jedem Rennen gibt es neue Zahlen.')}</p>
       </div>`;
     els = {
       lanes: body.querySelector('.race-lanes'),
@@ -281,7 +313,7 @@ window.GK = window.GK || {};
       clear: body.querySelector('.race-clear'),
     };
     chipControl = GK.casino.createBetControl(body.querySelector('.race-chip'), {
-      label: 'Chip-Wert',
+      label: GK.t('Chip-Wert'),
       min: MIN_CHIP,
       get: () => state().chip,
       set: v => { state().chip = v; },
@@ -298,7 +330,7 @@ window.GK = window.GK || {};
   function refresh() {
     racing = false;
     if (state().pending) settle(false);
-    else showMessage('Auf welches Schiff setzt du?', '');
+    else showMessage(GK.t('Auf welches Schiff setzt du?'), '');
     renderLanes();
     updateButtons();
   }

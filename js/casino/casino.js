@@ -2,6 +2,63 @@
 // Jedes Spiel meldet sich mit GK.casino.register() an und bekommt einen eigenen Bereich.
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Standard': 'Standard',
+  'Silber': 'Silver',
+  'Gold': 'Gold',
+  'Diamant': 'Diamond',
+  'Schwarze Perle': 'Black Pearl',
+  'Kaiserkrone': 'Emperor\'s Crown',
+  '{icon} {name}-Karte gekauft! Neues Einsatz-Limit: {limit}': '{icon} {name} card purchased! New bet limit: {limit}',
+  'unbegrenzt': 'unlimited',
+  '{n} Dublonen': '{n} Doubloons',
+  'Noch keine Runde gespielt – viel Glück! 🍀': 'No round played yet – good luck! 🍀',
+  'Runden': 'Rounds',
+  'Davon gewonnen': 'Of those won',
+  'Eingesetzt': 'Wagered',
+  'Ausgezahlt': 'Paid out',
+  'Bilanz': 'Balance',
+  'Größter Gewinn': 'Biggest win',
+  'Größter Verlust': 'Biggest loss',
+  'Bester Treffer': 'Best hit',
+  '×{m} Einsatz': '×{m} bet',
+  'Längste Glückssträhne': 'Longest lucky streak',
+  '{n} in Folge': '{n} in a row',
+  'Zuletzt gespielt': 'Last played',
+  'vor {d}': '{d} ago',
+  'Gezählt seit {date}.': 'Counted since {date}.',
+  'Deine Statistik': 'Your statistics',
+  'Seit dem Update noch keine Casino-Runde gespielt.': 'No casino round played since the update.',
+  'Noch keine Casino-Runden gespielt.': 'No casino rounds played yet.',
+  'Einsatz': 'Bet',
+  '– nicht genug Dublonen': '– not enough Doubloons',
+  '(Limit {n})': '(limit {n})',
+  'Zahl nicht erkannt – z. B. 500k, 2,5M oder 1B': 'Number not recognized – e.g. 500k, 2.5M or 1B',
+  'Automaten': 'Slots',
+  'Schnelle Spiele': 'Quick Games',
+  'Börse': 'Market',
+  'Tischspiele': 'Table Games',
+  'Mit Freunden': 'With Friends',
+  'Statistik': 'Statistics',
+  'Runden gespielt': 'Rounds played',
+  'Insgesamt gesetzt': 'Total wagered',
+  'Insgesamt ausgezahlt': 'Total paid out',
+  'Verlust in % vom Einkommen': 'Loss as % of income',
+  '{name}-Karte': '{name} card',
+  'Einsatz-Limit pro Runde:': 'Bet limit per round:',
+  'Nächste Stufe:': 'Next stage:',
+  'Limit {limit}': 'Limit {limit}',
+  ', schaltet den Poker-Tisch „{table}“ frei': ', unlocks the poker table “{table}”',
+  '{name}-Karte kaufen ({cost} Dublonen)': 'Buy {name} card ({cost} Doubloons)',
+  'Höchste Stufe erreicht – mehr Glanz gibt es nicht!': 'Highest stage reached – there\'s no more glamour!',
+  'Noch keine Runden gespielt.': 'No rounds played yet.',
+  '🍀 Glückssträhne +{n}': '🍀 Lucky streak +{n}',
+});
+
 (function () {
   // Eigene Symbole (js/icons.js); in den Tests ohne Browser gibt es keine – dann bleibt das Emoji
   const ic = name => (GK.icon ? GK.icon(name) : '');
@@ -93,12 +150,13 @@ window.GK = window.GK || {};
     GK.unlockAchievement(next.achievement);
     GK.save();
     renderLobbyInfo();
-    GK.toast(`${next.icon} ${next.name}-Karte gekauft! Neues Einsatz-Limit: ${formatLimit(next.maxBet)}`);
+    GK.toast(GK.t('{icon} {name}-Karte gekauft! Neues Einsatz-Limit: {limit}',
+      { icon: next.icon, name: GK.t(next.name), limit: formatLimit(next.maxBet) }));
     return true;
   }
 
   function formatLimit(limit) {
-    return limit === Infinity ? 'unbegrenzt' : GK.formatNumber(limit) + ' Dublonen';
+    return limit === Infinity ? GK.t('unbegrenzt') : GK.t('{n} Dublonen', { n: GK.formatNumber(limit) });
   }
 
   // Einsatz abbuchen. Gibt false zurück, wenn das Guthaben nicht reicht.
@@ -158,7 +216,7 @@ window.GK = window.GK || {};
     if (bonus <= 0) return 0;
     payout(bonus);
     if (GK.fx && GK.fx.floatText && typeof window.innerWidth === 'number') {
-      GK.fx.floatText(window.innerWidth / 2, window.innerHeight * 0.4, `🍀 Glückssträhne +${GK.formatMoneyHTML(bonus)}`, 'win big');
+      GK.fx.floatText(window.innerWidth / 2, window.innerHeight * 0.4, GK.t('🍀 Glückssträhne +{n}', { n: GK.formatMoneyHTML(bonus) }), 'win big');
     }
     if (GK.sound) GK.sound.play('bonus');
     return bonus;
@@ -195,25 +253,25 @@ window.GK = window.GK || {};
   // Werte eines Spiels als Liste (im Spiel und im Statistik-Tab)
   function statsHTML(gameId) {
     const st = gameStats(gameId);
-    if (!st.rounds) return '<p class="muted small">Noch keine Runde gespielt – viel Glück! 🍀</p>';
+    if (!st.rounds) return `<p class="muted small">${GK.t('Noch keine Runde gespielt – viel Glück! 🍀')}</p>`;
     return `<dl class="stats-list compact game-stats-list">
-      <dt>Runden</dt><dd>${GK.formatNumber(st.rounds)}</dd>
-      <dt>Davon gewonnen</dt><dd>${GK.formatNumber(st.wins)}</dd>
-      <dt>Eingesetzt</dt><dd>${GK.formatMoneyHTML(st.wagered)}</dd>
-      <dt>Ausgezahlt</dt><dd>${GK.formatMoneyHTML(st.won)}</dd>
-      <dt>Bilanz</dt><dd>${signed(st.won - st.wagered)}</dd>
-      <dt>Größter Gewinn</dt><dd>${GK.formatMoneyHTML(st.biggestWin)}</dd>
-      ${st.biggestLoss ? `<dt>Größter Verlust</dt><dd>${GK.formatMoneyHTML(st.biggestLoss)}</dd>` : ''}
-      ${st.bestMult > 1 ? `<dt>Bester Treffer</dt><dd>×${formatMult(st.bestMult)} Einsatz</dd>` : ''}
-      ${st.bestStreak > 1 ? `<dt>Längste Glückssträhne</dt><dd>${GK.formatNumber(st.bestStreak)} in Folge</dd>` : ''}
-      <dt>Zuletzt gespielt</dt><dd>vor ${GK.formatDuration((Date.now() - st.last) / 1000)}</dd>
+      <dt>${GK.t('Runden')}</dt><dd>${GK.formatNumber(st.rounds)}</dd>
+      <dt>${GK.t('Davon gewonnen')}</dt><dd>${GK.formatNumber(st.wins)}</dd>
+      <dt>${GK.t('Eingesetzt')}</dt><dd>${GK.formatMoneyHTML(st.wagered)}</dd>
+      <dt>${GK.t('Ausgezahlt')}</dt><dd>${GK.formatMoneyHTML(st.won)}</dd>
+      <dt>${GK.t('Bilanz')}</dt><dd>${signed(st.won - st.wagered)}</dd>
+      <dt>${GK.t('Größter Gewinn')}</dt><dd>${GK.formatMoneyHTML(st.biggestWin)}</dd>
+      ${st.biggestLoss ? `<dt>${GK.t('Größter Verlust')}</dt><dd>${GK.formatMoneyHTML(st.biggestLoss)}</dd>` : ''}
+      ${st.bestMult > 1 ? `<dt>${GK.t('Bester Treffer')}</dt><dd>${GK.t('×{m} Einsatz', { m: formatMult(st.bestMult) })}</dd>` : ''}
+      ${st.bestStreak > 1 ? `<dt>${GK.t('Längste Glückssträhne')}</dt><dd>${GK.t('{n} in Folge', { n: GK.formatNumber(st.bestStreak) })}</dd>` : ''}
+      <dt>${GK.t('Zuletzt gespielt')}</dt><dd>${GK.t('vor {d}', { d: GK.formatDuration((Date.now() - st.last) / 1000) })}</dd>
     </dl>`;
   }
 
   // Hinweis für ältere Spielstände: die Werte je Spiel zählen erst seit dem Update
   function statsSinceText() {
     const since = casino().statsSince;
-    return since ? `Gezählt seit ${new Date(since).toLocaleDateString('de-DE')}.` : '';
+    return since ? GK.t('Gezählt seit {date}.', { date: new Date(since).toLocaleDateString('de-DE') }) : '';
   }
 
   // Aufklappbare Statistik im Spiel neu zeichnen, falls sie offen ist
@@ -221,7 +279,7 @@ window.GK = window.GK || {};
     const game = games.find(g => g.id === gameId);
     const panel = game && game.root && game.root.querySelector('.game-stats');
     if (panel && !panel.hidden) {
-      panel.innerHTML = `<h3>${ic('chart')}Deine Statistik</h3>${statsHTML(gameId)}<p class="muted small">${statsSinceText()}</p>`;
+      panel.innerHTML = `<h3>${ic('chart')}${GK.t('Deine Statistik')}</h3>${statsHTML(gameId)}<p class="muted small">${statsSinceText()}</p>`;
     }
   }
 
@@ -231,8 +289,9 @@ window.GK = window.GK || {};
     const ids = Object.keys(casino().stats).filter(id => casino().stats[id].rounds > 0)
       .sort((a, b) => casino().stats[b].rounds - casino().stats[a].rounds);
     const html = ids.length
-      ? ids.map(id => `<div class="game-stats-card"><h3>${gameName(id)}</h3>${statsHTML(id).replace(/<dt>Zuletzt gespielt.*?<\/dd>/s, '')}</div>`).join('')
-      : `<p class="muted">${casino().statsSince ? 'Seit dem Update noch keine Casino-Runde gespielt.' : 'Noch keine Casino-Runden gespielt.'}</p>`;
+      // Die letzte Zeile (zuletzt gespielt) weglassen – sprachunabhängig am Listenende
+      ? ids.map(id => `<div class="game-stats-card"><h3>${gameName(id)}</h3>${statsHTML(id).replace(/<dt>[^<]*<\/dt><dd>[^<]*<\/dd>(\s*<\/dl>)/, '$1')}</div>`).join('')
+      : `<p class="muted">${casino().statsSince ? GK.t('Seit dem Update noch keine Casino-Runde gespielt.') : GK.t('Noch keine Casino-Runden gespielt.')}</p>`;
     const full = html + (statsSinceText() ? `<p class="muted small game-stats-note">${statsSinceText()}</p>` : '');
     if (full !== lastAllStats || !el.innerHTML) {
       lastAllStats = full;
@@ -248,7 +307,7 @@ window.GK = window.GK || {};
     const root = document.createElement('div');
     root.className = 'bet-control';
     root.innerHTML = `
-      <label class="bet-label">${options.label || 'Einsatz'}</label>
+      <label class="bet-label">${GK.t(options.label || 'Einsatz')}</label>
       <div class="bet-row">
         <input class="bet-input" ${GK.AMOUNT_INPUT}>
         <button type="button" class="btn btn-small" data-op="min">Min</button>
@@ -281,15 +340,15 @@ window.GK = window.GK || {};
       }
       if (document.activeElement !== input) input.value = GK.formatAmount(value);
       GK.setHTML(display, GK.formatMoneyHTML(value) +
-        (GK.canAfford(value) ? '' : ' <span class="bet-warning">– nicht genug Dublonen</span>') +
-        (maxBet() < Infinity ? ` <span class="bet-limit">(Limit ${GK.formatNumber(maxBet())})</span>` : ''));
+        (GK.canAfford(value) ? '' : ` <span class="bet-warning">${GK.t('– nicht genug Dublonen')}</span>`) +
+        (maxBet() < Infinity ? ` <span class="bet-limit">${GK.t('(Limit {n})', { n: GK.formatNumber(maxBet()) })}</span>` : ''));
     }
 
     // Eingabe wie „5M“ oder „2,5 Mrd.“: beim Tippen gleich übernehmen, Unbekanntes anmerken
     input.addEventListener('input', () => {
       const value = GK.parseAmount(input.value);
       if (isFinite(value)) apply(value);
-      else if (input.value.trim()) GK.setHTML(display, '<span class="bet-warning">Zahl nicht erkannt – z. B. 500k, 2,5M oder 1B</span>');
+      else if (input.value.trim()) GK.setHTML(display, `<span class="bet-warning">${GK.t('Zahl nicht erkannt – z. B. 500k, 2,5M oder 1B')}</span>`);
     });
     input.addEventListener('change', () => {
       if (isFinite(GK.parseAmount(input.value))) apply(input.value);
@@ -342,7 +401,7 @@ window.GK = window.GK || {};
 
   function gameName(id) {
     const game = games.find(g => g.id === id);
-    return game ? `${game.emoji} ${game.name}` : extraNames[id] || id;
+    return game ? `${game.emoji} ${GK.t(game.name)}` : GK.t(extraNames[id] || id);
   }
 
   function openGame(id) {
@@ -367,7 +426,7 @@ window.GK = window.GK || {};
       if (!games.some(g => (g.category || 'quick') === cat.id)) return;
       const section = document.createElement('section');
       section.className = 'casino-section';
-      section.innerHTML = `<h3 class="casino-section-title">${ic(cat.icon)}${cat.title}</h3><div class="casino-grid"></div>`;
+      section.innerHTML = `<h3 class="casino-section-title">${ic(cat.icon)}${GK.t(cat.title)}</h3><div class="casino-grid"></div>`;
       sections.appendChild(section);
       grids[cat.id] = section.querySelector('.casino-grid');
     });
@@ -375,7 +434,7 @@ window.GK = window.GK || {};
       const card = document.createElement('button');
       card.className = 'casino-card';
       card.dataset.game = game.id;
-      card.innerHTML = `<div class="casino-emoji">${gameIcon(game)}</div><h3>${game.name}</h3><p>${game.desc}</p>`;
+      card.innerHTML = `<div class="casino-emoji">${gameIcon(game)}</div><h3>${GK.t(game.name)}</h3><p>${GK.t(game.desc)}</p>`;
       card.addEventListener('click', () => openGame(game.id));
       grids[game.category || 'quick'].appendChild(card);
 
@@ -386,8 +445,8 @@ window.GK = window.GK || {};
       root.innerHTML = `
         <div class="game-header">
           <button class="btn back-btn">${ic('back')}Lobby</button>
-          <h2>${gameIcon(game)} ${game.name}</h2>
-          <button class="btn game-stats-btn" aria-expanded="false">${ic('chart')}Statistik</button>
+          <h2>${gameIcon(game)} ${GK.t(game.name)}</h2>
+          <button class="btn game-stats-btn" aria-expanded="false">${ic('chart')}${GK.t('Statistik')}</button>
         </div>
         <div class="game-stats casino-info-box" hidden></div>
         <div class="game-body"></div>`;
@@ -411,25 +470,25 @@ window.GK = window.GK || {};
     const c = casino();
     const net = c.won - c.wagered;
     document.getElementById('casino-stats').innerHTML = `
-      <dt>Runden gespielt</dt><dd>${GK.formatNumber(c.rounds)}</dd>
-      <dt>Insgesamt gesetzt</dt><dd>${GK.formatMoneyHTML(c.wagered)}</dd>
-      <dt>Insgesamt ausgezahlt</dt><dd>${GK.formatMoneyHTML(c.won)}</dd>
-      <dt>Bilanz</dt><dd class="${net >= 0 ? 'win' : 'loss'}">${net >= 0 ? '+' : '−'}${GK.formatMoneyHTML(Math.abs(net))}</dd>
-      <dt>Größter Gewinn</dt><dd>${GK.formatMoneyHTML(c.biggestWin)}</dd>
-      ${c.biggestLoss ? `<dt>Größter Verlust</dt><dd>${GK.formatMoneyHTML(c.biggestLoss)}</dd>` : ''}
-      ${c.biggestLossPct ? `<dt>Verlust in % vom Einkommen</dt><dd>${GK.formatNumber(c.biggestLossPct < 100 ? c.biggestLossPct : Math.round(c.biggestLossPct), true)} %</dd>` : ''}`;
+      <dt>${GK.t('Runden gespielt')}</dt><dd>${GK.formatNumber(c.rounds)}</dd>
+      <dt>${GK.t('Insgesamt gesetzt')}</dt><dd>${GK.formatMoneyHTML(c.wagered)}</dd>
+      <dt>${GK.t('Insgesamt ausgezahlt')}</dt><dd>${GK.formatMoneyHTML(c.won)}</dd>
+      <dt>${GK.t('Bilanz')}</dt><dd class="${net >= 0 ? 'win' : 'loss'}">${net >= 0 ? '+' : '−'}${GK.formatMoneyHTML(Math.abs(net))}</dd>
+      <dt>${GK.t('Größter Gewinn')}</dt><dd>${GK.formatMoneyHTML(c.biggestWin)}</dd>
+      ${c.biggestLoss ? `<dt>${GK.t('Größter Verlust')}</dt><dd>${GK.formatMoneyHTML(c.biggestLoss)}</dd>` : ''}
+      ${c.biggestLossPct ? `<dt>${GK.t('Verlust in % vom Einkommen')}</dt><dd>${GK.formatNumber(c.biggestLossPct < 100 ? c.biggestLossPct : Math.round(c.biggestLossPct), true)} %</dd>` : ''}`;
 
     const level = VIP_LEVELS[vipLevel()];
     const next = VIP_LEVELS[vipLevel() + 1];
     const nextTable = next && GK.poker.tournament.TIERS.find(t => t.vip === vipLevel() + 1);
     document.getElementById('casino-vip').innerHTML = `
-      <div class="vip-card vip-${vipLevel()}">${ic(level.ic)}${level.name}-Karte</div>
-      <p>Einsatz-Limit pro Runde: <b>${formatLimit(level.maxBet)}</b></p>
+      <div class="vip-card vip-${vipLevel()}">${ic(level.ic)}${GK.t('{name}-Karte', { name: GK.t(level.name) })}</div>
+      <p>${GK.t('Einsatz-Limit pro Runde:')} <b>${formatLimit(level.maxBet)}</b></p>
       ${next ? `
-        <p class="muted small">Nächste Stufe: ${ic(next.ic)} ${next.name} – Limit ${formatLimit(next.maxBet)}${
-          nextTable ? `, schaltet den Poker-Tisch „${nextTable.name}“ frei` : ''}.</p>
-        <button class="btn btn-primary vip-buy">${next.name}-Karte kaufen (${GK.formatNumber(next.cost)} Dublonen)</button>`
-        : `<p class="muted small">Höchste Stufe erreicht – mehr Glanz gibt es nicht! ${ic('crown')}</p>`}`;
+        <p class="muted small">${GK.t('Nächste Stufe:')} ${ic(next.ic)} ${GK.t(next.name)} – ${GK.t('Limit {limit}', { limit: formatLimit(next.maxBet) })}${
+          nextTable ? GK.t(', schaltet den Poker-Tisch „{table}“ frei', { table: GK.t(nextTable.name) }) : ''}.</p>
+        <button class="btn btn-primary vip-buy">${GK.t('{name}-Karte kaufen ({cost} Dublonen)', { name: GK.t(next.name), cost: GK.formatNumber(next.cost) })}</button>`
+        : `<p class="muted small">${GK.t('Höchste Stufe erreicht – mehr Glanz gibt es nicht!')} ${ic('crown')}</p>`}`;
     const buy = document.querySelector('.vip-buy');
     if (buy) {
       buy.disabled = !GK.canAfford(next.cost);
@@ -438,7 +497,7 @@ window.GK = window.GK || {};
 
     const list = document.getElementById('casino-history');
     if (!c.history.length) {
-      list.innerHTML = '<li class="muted">Noch keine Runden gespielt.</li>';
+      list.innerHTML = `<li class="muted">${GK.t('Noch keine Runden gespielt.')}</li>`;
       return;
     }
     list.innerHTML = c.history.map(h => {

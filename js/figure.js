@@ -5,6 +5,131 @@
 // Ein paar Teile sind Belohnungen und erst freigeschaltet, wenn man im Spiel weit genug ist.
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  // Köpfe
+  'Hell': 'Light',
+  'Mittel': 'Medium',
+  'Dunkel': 'Dark',
+  'Schwein': 'Pig',
+  'Skelett': 'Skeleton',
+  'Frosch': 'Frog',
+  'Katze': 'Cat',
+  'Affe': 'Monkey',
+  'Roboter': 'Robot',
+  'Alien': 'Alien',
+  'Zombie': 'Zombie',
+  'Geist': 'Ghost',
+  'Krake': 'Kraken',
+  // Hüte & Haare
+  'Ohne': 'None',
+  'Dreispitz': 'Tricorn',
+  'Kopftuch': 'Bandana',
+  'Kapitänsmütze': 'Captain\'s Cap',
+  'Krone': 'Crown',
+  'Zylinder': 'Top Hat',
+  'Schirmmütze': 'Peaked Cap',
+  'Wikingerhelm': 'Viking Helmet',
+  'Partyhut': 'Party Hat',
+  'Strubbelhaare': 'Messy Hair',
+  'Lange Haare': 'Long Hair',
+  'Admiralshut': 'Admiral\'s Hat',
+  'Heiligenschein': 'Halo',
+  'Korallenkrone': 'Coral Crown',
+  'Krakenhut': 'Kraken Hat',
+  // Augen
+  'Punkte': 'Dots',
+  'Augenklappe': 'Eyepatch',
+  'Sonnenbrille': 'Sunglasses',
+  'Monokel': 'Monocle',
+  'Herzaugen': 'Heart Eyes',
+  'Sternaugen': 'Star Eyes',
+  'Große Augen': 'Big Eyes',
+  'Brille': 'Glasses',
+  'Laseraugen': 'Laser Eyes',
+  // Mund
+  'Lächeln': 'Smile',
+  'Grinsen': 'Grin',
+  'Vollbart': 'Full Beard',
+  'Schnurrbart': 'Mustache',
+  'Goldzahn': 'Gold Tooth',
+  'Zunge': 'Tongue',
+  'Staunen': 'Astonishment',
+  // Kleidung
+  'Matrosenhemd': 'Sailor Shirt',
+  'Anzug': 'Suit',
+  'Piratenmantel': 'Pirate Coat',
+  'Hoodie': 'Hoodie',
+  'T-Shirt': 'T-Shirt',
+  'Rüstung': 'Armor',
+  'Königsmantel': 'Royal Cloak',
+  'Kapitänsuniform': 'Captain\'s Uniform',
+  'Drachenschuppen': 'Dragon Scales',
+  'Goldrüstung': 'Gold Armor',
+  // Farben
+  'Marine': 'Navy',
+  'Rot': 'Red',
+  'Grün': 'Green',
+  'Lila': 'Purple',
+  'Schwarz': 'Black',
+  'Grau': 'Gray',
+  'Gold': 'Gold',
+  'Pink': 'Pink',
+  'Türkis': 'Turquoise',
+  'Braun': 'Brown',
+  // Extra
+  'Papagei': 'Parrot',
+  'Goldkette': 'Gold Chain',
+  'Säbel': 'Saber',
+  'Handy': 'Phone',
+  'Fernrohr': 'Spyglass',
+  'Mini-Krake': 'Mini Kraken',
+  'Rose': 'Rose',
+  'Steuerrad': 'Ship\'s Wheel',
+  'Dreizack': 'Trident',
+  'Schatztruhe': 'Treasure Chest',
+  'Goldener Kompass': 'Golden Compass',
+  'Kanone': 'Cannon',
+  // Plätze
+  'Kopf': 'Head',
+  'Hut & Haare': 'Hat & Hair',
+  'Augen': 'Eyes',
+  'Mund': 'Mouth',
+  'Kleidung': 'Clothing',
+  'Farbe': 'Color',
+  'Extra': 'Extra',
+  // Vorlagen (Eigennamen wie „John Pork“ bleiben unübersetzt)
+  'Käpt’n': 'Capt’n',
+  'Skelett-Pirat': 'Skeleton Pirate',
+  'Frosch-Gentleman': 'Frog Gentleman',
+  // Freischalt-Hinweise
+  'Ab 100.000 Klicks': 'From 100,000 clicks',
+  'Ab 50 Erfolgen': 'From 50 achievements',
+  'Ab der VIP-Karte Gold': 'From the Gold VIP card',
+  'Nach 10 großen Fahrten': 'After 10 great voyages',
+  'Alle Schätze vom Korallenriff (⚓ Abenteuer)': 'All treasures from the Coral Reef (⚓ Adventure)',
+  'Erfolg „Eine Woche dabei“': 'Achievement “One Week On Board”',
+  '10 Kraken-Angriffe abgewehrt': '10 kraken attacks fended off',
+  'Ab 1.000 Schatzkarten': 'From 1,000 treasure maps',
+  'Alle Schätze der Drachenküste (⚓ Abenteuer)': 'All treasures of the Dragon Coast (⚓ Adventure)',
+  'Ab 1 Mio. Schatzkarten': 'From 1 million treasure maps',
+  'Einen Kraken-Angriff abgewehrt': 'One kraken attack fended off',
+  'Alle Schätze der Schmugglerinsel (⚓ Abenteuer)': 'All treasures of the Smuggler Island (⚓ Adventure)',
+  '100 Fahrten mit der Flotte (⚓ Abenteuer)': '100 voyages with the fleet (⚓ Adventure)',
+  'Ab Rang {rank}': 'From rank {rank}',
+  'Boss-Stufe {n} besiegen (⚓ Abenteuer)': 'Defeat boss level {n} (⚓ Adventure)',
+  // Baukasten
+  '{name} – 🔒 {hint}': '{name} – 🔒 {hint}',
+  'Figur statt Emoji zeigen': 'Show character instead of emoji',
+  'Zufall': 'Random',
+  'Deine Figur sehen die anderen bei Spielen mit Freunden, beim Poker und in der Rangliste.':
+    'Others see your character in games with friends, in poker and on the leaderboard.',
+  'Teile mit {lock} schaltest du im Spiel frei.': 'Parts marked with {lock} you unlock in the game.',
+});
+
 (function () {
   // Eigenes Symbol (js/icons.js); in den Tests ohne Browser gibt es keins
   const ic = name => (GK.icon ? GK.icon(name) : '');
@@ -143,11 +268,11 @@ window.GK = window.GK || {};
   SLOTS.forEach(slot => slot.parts.forEach(part => {
     if (part.boss != null) {
       part.unlock = s => !!s.boss && s.boss.level >= part.boss;
-      part.hint = `Boss-Stufe ${part.boss} besiegen (⚓ Abenteuer)`;
+      Object.defineProperty(part, 'hint', { get: () => GK.t('Boss-Stufe {n} besiegen (⚓ Abenteuer)', { n: part.boss }) });
     }
     if (part.rank == null) return;
     part.unlock = s => GK.rank.of(s.allTimeEarned) >= part.rank;
-    Object.defineProperty(part, 'hint', { get: () => `Ab Rang ${GK.rank.name(part.rank)}` });
+    Object.defineProperty(part, 'hint', { get: () => GK.t('Ab Rang {rank}', { rank: GK.rank.name(part.rank) }) });
   }));
 
   function unlocked(slot, part, s = GK.state) {
@@ -441,30 +566,30 @@ window.GK = window.GK || {};
     const options = (slot, i) => slot.parts.map((part, j) => {
       const locked = !unlocked(i, j);
       const active = parts[i] === j;
-      const title = locked ? `${part.name} – 🔒 ${part.hint}` : part.name;
+      const title = locked ? GK.t('{name} – 🔒 {hint}', { name: GK.t(part.name), hint: GK.t(part.hint) }) : GK.t(part.name);
       if (slot.id === 'color') {
         return `<button type="button" class="fig-color ${active ? 'active' : ''}" data-slot="${i}" data-part="${j}" title="${title}" aria-label="${title}" style="background:${part.value}"></button>`;
       }
       const preview = parts.slice();
       preview[i] = j;
       return `<button type="button" class="fig-opt ${active ? 'active' : ''} ${locked ? 'locked' : ''}" data-slot="${i}" data-part="${j}" title="${title}" aria-label="${title}">
-        ${svg(preview.join('.'))}${locked ? `<span class="fig-lock">${ic('lock')}</span>` : ''}<span class="fig-opt-name">${part.name}</span></button>`;
+        ${svg(preview.join('.'))}${locked ? `<span class="fig-lock">${ic('lock')}</span>` : ''}<span class="fig-opt-name">${GK.t(part.name)}</span></button>`;
     }).join('');
     box.innerHTML = `
       <div class="fig-top">
         <div class="fig-big">${svg(code)}</div>
         <div class="fig-side">
           <div class="fig-tag">${GK.cosmetics.nameTag({ name: GK.player.name(), avatar: GK.player.avatar(), fig: code, rank: GK.rank.mine(), badge: GK.cosmetics.myBadge() })}</div>
-          <label class="fig-on"><input type="checkbox" class="switch fig-toggle" ${me().figOn ? 'checked' : ''}> Figur statt Emoji zeigen</label>
+          <label class="fig-on"><input type="checkbox" class="switch fig-toggle" ${me().figOn ? 'checked' : ''}> ${GK.t('Figur statt Emoji zeigen')}</label>
           <div class="fig-presets">
-            ${PRESETS.map((p, k) => `<button type="button" class="btn btn-small fig-preset" data-preset="${k}">${p.name}</button>`).join('')}
-            <button type="button" class="btn btn-small fig-random">${ic('dice')}Zufall</button>
+            ${PRESETS.map((p, k) => `<button type="button" class="btn btn-small fig-preset" data-preset="${k}">${GK.t(p.name)}</button>`).join('')}
+            <button type="button" class="btn btn-small fig-random">${ic('dice')}${GK.t('Zufall')}</button>
           </div>
-          <p class="muted small">Deine Figur sehen die anderen bei Spielen mit Freunden, beim Poker und in der Rangliste.
-            Teile mit ${ic('lock')} schaltest du im Spiel frei.</p>
+          <p class="muted small">${GK.t('Deine Figur sehen die anderen bei Spielen mit Freunden, beim Poker und in der Rangliste.')}
+            ${GK.t('Teile mit {lock} schaltest du im Spiel frei.', { lock: ic('lock') })}</p>
         </div>
       </div>
-      ${SLOTS.map((slot, i) => `<div class="fig-slot"><div class="fig-slot-name">${slot.name}</div><div class="fig-options">${options(slot, i)}</div></div>`).join('')}`;
+      ${SLOTS.map((slot, i) => `<div class="fig-slot"><div class="fig-slot-name">${GK.t(slot.name)}</div><div class="fig-options">${options(slot, i)}</div></div>`).join('')}`;
     if (!box._bound) {
       box._bound = true;
       box.addEventListener('click', e => {
@@ -475,7 +600,7 @@ window.GK = window.GK || {};
           const part = Number(opt.dataset.part);
           if (!unlocked(slot, part)) {
             GK.sound.play('denied');
-            GK.toast(`🔒 ${SLOTS[slot].parts[part].name}: ${SLOTS[slot].parts[part].hint}`);
+            GK.toast(`🔒 ${GK.t(SLOTS[slot].parts[part].name)}: ${GK.t(SLOTS[slot].parts[part].hint)}`);
             return;
           }
           const p = parse(current());

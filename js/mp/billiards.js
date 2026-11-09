@@ -6,6 +6,28 @@
 // Grundrechenarten und Wurzel – jedes Gerät kommt auf dasselbe Ergebnis.
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Billard': 'Billiards',
+  '8-Ball zu zweit – versenk deine Kugeln und dann die 8!': '8-ball for two – sink your balls, then the 8!',
+  '<p class="muted"><b>So geht\'s:</b> Wer zuerst eine Kugel versenkt, spielt diese Farbe (Volle 1–7 oder\n      Halbe 9–15). Triff immer zuerst eine eigene Kugel. Sind alle eigenen weg, musst du die 8 versenken – fällt\n      sie vorher, hast du verloren. Bei einem Foul hat der Gegner „Ball in der Hand“ und darf die weiße Kugel frei\n      hinlegen. Zielen: auf den Tisch tippen und zurückziehen, loslassen = Stoß.</p>':
+    '<p class="muted"><b>How it works:</b> Whoever pots a ball first plays that group (solids 1–7 or\n      stripes 9–15). Always hit one of your own balls first. Once yours are all gone, you must pot the 8 – if it\n      falls earlier, you lose. On a foul the opponent has "ball in hand" and may place the cue ball freely.\n      Aiming: tap the table and pull back, release = shot.</p>',
+  'Spielverlauf': 'Game log',
+  ' (du)': ' (you)',
+  'Volle': 'Solids', 'Halbe': 'Stripes', 'Farbe noch offen': 'Group not set yet',
+  ' jetzt die 8!': ' now the 8!',
+  '{name} gewinnt!': '{name} wins!',
+  'Spiel vorbei': 'Game over',
+  'Die Kugeln rollen …': 'The balls are rolling …',
+  'Ball in der Hand: Ziehe die weiße Kugel an eine freie Stelle{side}, dann tippe auf den Tisch und ziehe zurück zum Stoßen.': 'Ball in hand: drag the cue ball to a free spot{side}, then tap the table and pull back to shoot.',
+  ' (links der Linie)': ' (left of the line)',
+  'Du bist dran! Tippe auf den Tisch und ziehe zurück – je weiter, desto fester. Loslassen = Stoß.': "You're up! Tap the table and pull back – the further, the harder. Release = shot.",
+  '{name} ist dran …': '{name} is up …',
+});
+
 (function () {
   // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
@@ -468,7 +490,7 @@ window.GK = window.GK || {};
           <div class="pool-players"></div>
           <div class="pool-table"><canvas class="pool-canvas"></canvas><div class="golf-power pool-power"><span></span></div></div>
           <div class="pool-hint"></div>
-          <details class="poker-log pool-log"><summary>Spielverlauf</summary><ul></ul></details>
+          <details class="poker-log pool-log"><summary>${GK.t('Spielverlauf')}</summary><ul></ul></details>
         </div>`;
       setupInput(container.querySelector('.pool-canvas'));
       container._shotNo = null;
@@ -477,19 +499,19 @@ window.GK = window.GK || {};
     setHtml(container.querySelector('.pool-players'), v.players.map((p, seat) => {
       const left = p.group ? (p.group === 'solid' ? SOLIDS : STRIPES).filter(n => v.balls.some(b => b.n === n && !b.potted)) : [];
       return `<div class="pool-player ${v.turn === seat && v.phase === 'aim' ? 'active' : ''}">
-        <div class="pool-name">${GK.cosmetics.nameTag(p)}${seat === ui.mySeat ? ' (du)' : ''}</div>
-        <div class="pool-group">${p.group ? (p.group === 'solid' ? 'Volle' : 'Halbe') : 'Farbe noch offen'}</div>
-        <div class="pool-left">${p.group ? (left.length ? left.map(n => ballChip(n)).join('') : ballChip(8) + ' jetzt die 8!') : ''}</div>
+        <div class="pool-name">${GK.cosmetics.nameTag(p)}${seat === ui.mySeat ? GK.t(' (du)') : ''}</div>
+        <div class="pool-group">${p.group ? (p.group === 'solid' ? GK.t('Volle') : GK.t('Halbe')) : GK.t('Farbe noch offen')}</div>
+        <div class="pool-left">${p.group ? (left.length ? left.map(n => ballChip(n)).join('') : ballChip(8) + GK.t(' jetzt die 8!')) : ''}</div>
       </div>`;
     }).join('<div class="pool-vs">vs</div>'));
     const myTurn = v.phase === 'aim' && v.turn === ui.mySeat;
     let hint;
-    if (v.phase === 'finished') hint = v.winner != null ? `${ic('trophy')} ${esc(v.players[v.winner].name)} gewinnt!` : 'Spiel vorbei';
-    else if (v.phase === 'rolling') hint = 'Die Kugeln rollen …';
+    if (v.phase === 'finished') hint = v.winner != null ? `${ic('trophy')} ${GK.t('{name} gewinnt!', { name: esc(v.players[v.winner].name) })}` : GK.t('Spiel vorbei');
+    else if (v.phase === 'rolling') hint = GK.t('Die Kugeln rollen …');
     else if (myTurn) hint = v.inHand
-      ? `${ic('hand')} Ball in der Hand: Ziehe die weiße Kugel an eine freie Stelle${v.kitchen ? ' (links der Linie)' : ''}, dann tippe auf den Tisch und ziehe zurück zum Stoßen.`
-      : `${ic('tap')} Du bist dran! Tippe auf den Tisch und ziehe zurück – je weiter, desto fester. Loslassen = Stoß.`;
-    else hint = `${esc(v.players[v.turn].name)} ist dran …`;
+      ? `${ic('hand')} ${GK.t('Ball in der Hand: Ziehe die weiße Kugel an eine freie Stelle{side}, dann tippe auf den Tisch und ziehe zurück zum Stoßen.', { side: v.kitchen ? GK.t(' (links der Linie)') : '' })}`
+      : `${ic('tap')} ${GK.t('Du bist dran! Tippe auf den Tisch und ziehe zurück – je weiter, desto fester. Loslassen = Stoß.')}`;
+    else hint = GK.t('{name} ist dran …', { name: esc(v.players[v.turn].name) });
     setHtml(container.querySelector('.pool-hint'), hint);
     container.querySelector('.pool-table').classList.toggle('my-turn', myTurn);
     setHtml(container.querySelector('.pool-log ul'), v.log.map(l => `<li>${esc(l)}</li>`).join(''));
@@ -796,10 +818,10 @@ window.GK = window.GK || {};
     name: 'Billard',
     icon: '🎱',
     desc: '8-Ball zu zweit – versenk deine Kugeln und dann die 8!',
-    intro: `<p class="muted"><b>So geht's:</b> Wer zuerst eine Kugel versenkt, spielt diese Farbe (Volle 1–7 oder
+    intro: GK.t(`<p class="muted"><b>So geht's:</b> Wer zuerst eine Kugel versenkt, spielt diese Farbe (Volle 1–7 oder
       Halbe 9–15). Triff immer zuerst eine eigene Kugel. Sind alle eigenen weg, musst du die 8 versenken – fällt
       sie vorher, hast du verloren. Bei einem Foul hat der Gegner „Ball in der Hand“ und darf die weiße Kugel frei
-      hinlegen. Zielen: auf den Tisch tippen und zurückziehen, loslassen = Stoß.</p>`,
+      hinlegen. Zielen: auf den Tisch tippen und zurückziehen, loslassen = Stoß.</p>`),
     minPlayers: 2,
     maxPlayers: 2,
     bots: true,

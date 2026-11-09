@@ -5,6 +5,85 @@
 // (so bleibt die Flotte auch nach einer großen Fahrt stark, wird dann aber auch nicht billiger).
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Schaluppe': 'Sloop',
+  'Brigg': 'Brig',
+  'Fregatte': 'Frigate',
+  'Galeone': 'Galleon',
+  'Geisterschiff': 'Ghost Ship',
+  'Nahe Bucht': 'Near Bay',
+  'Korallenriff': 'Coral Reef',
+  'Schmugglerinsel': 'Smuggler’s Island',
+  'Vulkaninsel': 'Volcano Island',
+  'Eismeer': 'Arctic Sea',
+  'Drachenküste': 'Dragon Coast',
+  'Perlmuschel': 'Pearl Oyster',
+  'Flaschenpost': 'Message in a Bottle',
+  'Seestern-Amulett': 'Starfish Amulet',
+  'Rote Koralle': 'Red Coral',
+  'Riesenperle': 'Giant Pearl',
+  'Meerjungfrauen-Kamm': 'Mermaid’s Comb',
+  'Gewürzkiste': 'Spice Crate',
+  'Schmugglerkarte': 'Smuggler’s Map',
+  'Antike Amphore': 'Ancient Amphora',
+  'Feuer-Opal': 'Fire Opal',
+  'Obsidian-Dolch': 'Obsidian Dagger',
+  'Lava-Kompass': 'Lava Compass',
+  'Eis-Diamant': 'Ice Diamond',
+  'Mammut-Stoßzahn': 'Mammoth Tusk',
+  'Nordlicht-Laterne': 'Northern Lights Lantern',
+  'Drachenei': 'Dragon Egg',
+  'Drachenschuppe': 'Dragon Scale',
+  'Drachengold': 'Dragon Gold',
+  'Sturm! Die halbe Ladung ging über Bord.': 'Storm! Half the cargo went overboard.',
+  'Gute Fahrt.': 'Smooth sailing.',
+  'Reicher Fang – doppelte Beute!': 'Rich catch – double loot!',
+  'Goldschatz entdeckt – fünffache Beute!': 'Gold treasure found – fivefold loot!',
+  '⛵ Die {ship} gehört jetzt dir!': '⛵ The {ship} is yours now!',
+  '{name} (doppelt, verkauft)': '{name} (duplicate, sold)',
+  'Neuer Schatz: <b>{name}</b>!': 'New treasure: <b>{name}</b>!',
+  '+{n} % Einkommen': '+{n} % income',
+  '+{n} % Beute': '+{n} % loot',
+  '−{n} % Fahrzeit': '−{n} % travel time',
+  'Laderaum ×{hold} · Tempo ×{speed}': 'Hold ×{hold} · Speed ×{speed}',
+  'Kaufen: {price}': 'Buy: {price}',
+  'Erst die {ship} kaufen': 'Buy the {ship} first',
+  'Ab Rang {rank}': 'From rank {rank}',
+  'ab {sym} {rank}': 'from {sym} {rank}',
+  'Zurück von: {icon} {name}!': 'Back from: {icon} {name}!',
+  'Beute abholen': 'Collect loot',
+  'Unterwegs: {icon} {name}': 'En route: {icon} {name}',
+  'Rückenwind ist gesetzt.': 'Tailwind is set.',
+  'Rückenwind (halbe Zeit): {price}': 'Tailwind (half the time): {price}',
+  'Stufe {lvl}': 'Level {lvl}',
+  'Ausbauen (+10 % Laderaum): {price}': 'Upgrade (+10 % hold): {price}',
+  'Voll ausgebaut': 'Fully upgraded',
+  '🔒 {name}: ab Rang {rank}': '🔒 {name}: from rank {rank}',
+  '{n} Schiffe entladen': '{n} ships unloaded',
+  '💎 Neue Schätze: {list}': '💎 New treasures: {list}',
+  'Schiffe': 'Ships',
+  'Auf See': 'At sea',
+  'Fahrten': 'Voyages',
+  'Beute insgesamt': 'Total loot',
+  'Schätze': 'Treasures',
+  'Bonus aus Schätzen': 'Bonus from treasures',
+  '{a} von {b}': '{a} of {b}',
+  '{n} zurück im Hafen': '{n} back in port',
+  '+{inc} % Einkommen · +{loot} % Beute · −{speed} % Fahrzeit': '+{inc} % income · +{loot} % loot · −{speed} % travel time',
+  'Alle {n} abholen': 'Collect all {n}',
+  'Alle abholen': 'Collect all',
+  'Noch keine Fahrten. Kauf dir eine Schaluppe und stich in See!': 'No voyages yet. Buy a sloop and set sail!',
+  '⛵ Die {ship} ist zurück – Beute im ⚓ Abenteuer-Tab abholen!': '⛵ The {ship} is back – collect loot in the ⚓ Adventure tab!',
+  '⚓ {ships} mit Beute im Hafen!': '⚓ {ships} with loot in port!',
+  'Ein Schiff wartet': 'One ship is waiting',
+  '{n} Schiffe warten': '{n} ships are waiting',
+  'noch {time}': '{time} left',
+});
+
 (function () {
   // Eigenes Symbol (js/icons.js); in den Tests ohne Browser gibt es keins
   const ic = name => (GK.icon ? GK.icon(name) : '');
@@ -142,7 +221,7 @@ window.GK = window.GK || {};
     data().ships[id] = 1;
     GK.save();
     GK.sound.play('buy');
-    GK.toast(`⛵ Die ${shipById[id].name} gehört jetzt dir!`);
+    GK.toast(GK.t('⛵ Die {ship} gehört jetzt dir!', { ship: GK.t(shipById[id].name) }));
     return true;
   }
 
@@ -261,9 +340,9 @@ window.GK = window.GK || {};
 
   // Dauer kurz: „2 Min.“, „1 Std.“, „1½ Std.“
   function short(seconds) {
-    if (seconds < 3600) return `${Math.max(1, Math.round(seconds / 60))} Min.`;
+    if (seconds < 3600) return `${Math.max(1, Math.round(seconds / 60))} ${GK.t('Min.')}`;
     const h = seconds / 3600;
-    return `${GK.formatDecimal(Math.round(h * 10) / 10, 0, 1)} Std.`;
+    return `${GK.formatDecimal(Math.round(h * 10) / 10, 0, 1)} ${GK.t('Std.')}`;
   }
 
   // Schiff als SVG (ohne IDs, beliebig oft auf einer Seite)
@@ -301,13 +380,13 @@ window.GK = window.GK || {};
   function outcomeLine(e) {
     const o = outcomeById[e.outcome] || OUTCOMES[1];
     const t = treasureById[e.treasure];
-    return `${o.icon} ${o.text}${t ? ` ${t.icon} ${e.duplicate ? `${t.name} (doppelt, verkauft)` : `Neuer Schatz: <b>${t.name}</b>!`}` : ''}`;
+    return `${o.icon} ${GK.t(o.text)}${t ? ` ${t.icon} ${e.duplicate ? GK.t('{name} (doppelt, verkauft)', { name: GK.t(t.name) }) : GK.t('Neuer Schatz: <b>{name}</b>!', { name: GK.t(t.name) })}` : ''}`;
   }
 
   function treasureEffect(t) {
-    if (t.income) return `+${t.income} % Einkommen`;
-    if (t.loot) return `+${t.loot} % Beute`;
-    return `−${t.speed} % Fahrzeit`;
+    if (t.income) return GK.t('+{n} % Einkommen', { n: t.income });
+    if (t.loot) return GK.t('+{n} % Beute', { n: t.loot });
+    return GK.t('−{n} % Fahrzeit', { n: t.speed });
   }
 
   // Karte eines Schiffs. Zeit und Balken werden in update() an Ort und Stelle geändert.
@@ -319,11 +398,11 @@ window.GK = window.GK || {};
       const price = buyPrice(x.id);
       return `<div class="fleet-ship locked" data-ship="${x.id}">
         <div class="fleet-pic">${shipSvg(x.id)}</div>
-        <div class="fleet-info"><div class="fleet-name">${x.name}</div>
-          <div class="muted small">Laderaum ×${GK.formatDecimal(x.hold, 0, 2)} · Tempo ×${GK.formatDecimal(x.speed, 0, 2)}</div></div>
+        <div class="fleet-info"><div class="fleet-name">${GK.t(x.name)}</div>
+          <div class="muted small">${GK.t('Laderaum ×{hold} · Tempo ×{speed}', { hold: GK.formatDecimal(x.hold, 0, 2), speed: GK.formatDecimal(x.speed, 0, 2) })}</div></div>
         ${open
-          ? `<button type="button" class="btn btn-primary fleet-btn" data-act="buy" ${GK.canAfford(price) ? '' : 'disabled'}>Kaufen: ${GK.formatMoneyHTML(price)}</button>`
-          : `<p class="muted small fleet-hint">${ic('lock')} Erst die ${SHIPS[i - 1].name} kaufen</p>`}
+          ? `<button type="button" class="btn btn-primary fleet-btn" data-act="buy" ${GK.canAfford(price) ? '' : 'disabled'}>${GK.t('Kaufen: {price}', { price: GK.formatMoneyHTML(price) })}</button>`
+          : `<p class="muted small fleet-hint">${ic('lock')} ${GK.t('Erst die {ship} kaufen', { ship: GK.t(SHIPS[i - 1].name) })}</p>`}
       </div>`;
     }
     const v = d.voyages[x.id];
@@ -331,35 +410,35 @@ window.GK = window.GK || {};
     if (!v) {
       body = `<div class="fleet-dests">${DESTS.map(dest => {
         if (!destOpen(dest)) {
-          return `<button type="button" class="fleet-dest locked" data-act="lockedDest" data-dest="${dest.id}" title="Ab Rang ${GK.rank.name(dest.rank)}">
-            <span class="fd-icon">${ic('lock')}</span><span class="fd-name">${dest.name}</span><span class="fd-meta">ab ${GK.rank.symbol(dest.rank)} ${GK.rank.name(dest.rank)}</span></button>`;
+          return `<button type="button" class="fleet-dest locked" data-act="lockedDest" data-dest="${dest.id}" title="${GK.t('Ab Rang {rank}', { rank: GK.rank.name(dest.rank) })}">
+            <span class="fd-icon">${ic('lock')}</span><span class="fd-name">${GK.t(dest.name)}</span><span class="fd-meta">${GK.t('ab {sym} {rank}', { sym: GK.rank.symbol(dest.rank), rank: GK.rank.name(dest.rank) })}</span></button>`;
         }
         return `<button type="button" class="fleet-dest ${d.last[x.id] === dest.id ? 'last' : ''}" data-act="send" data-dest="${dest.id}">
-          <span class="fd-icon">${dest.icon}</span><span class="fd-name">${dest.name}</span>
+          <span class="fd-icon">${dest.icon}</span><span class="fd-name">${GK.t(dest.name)}</span>
           <span class="fd-meta">${ic('hourglass')} ${short(durationOf(x.id, dest.id))} · ≈ ${GK.formatMoneyHTML(expectedLoot(x.id, dest.id))}</span></button>`;
       }).join('')}</div>`;
     } else if (now() >= v.end) {
       const dest = destById[v.dest] || DESTS[0];
-      body = `<div class="fleet-back">${ic('check')} Zurück von: ${dest.icon} ${dest.name}!</div>
-        <button type="button" class="btn btn-primary btn-big fleet-btn fleet-collect" data-act="collect">${ic('bag')}Beute abholen</button>`;
+      body = `<div class="fleet-back">${ic('check')} ${GK.t('Zurück von: {icon} {name}!', { icon: dest.icon, name: GK.t(dest.name) })}</div>
+        <button type="button" class="btn btn-primary btn-big fleet-btn fleet-collect" data-act="collect">${ic('bag')}${GK.t('Beute abholen')}</button>`;
     } else {
       const dest = destById[v.dest] || DESTS[0];
       const price = windPrice(x.id);
-      body = `<div class="fleet-sea">${ic('compass')} Unterwegs: ${dest.icon} ${dest.name}</div>
+      body = `<div class="fleet-sea">${ic('compass')} ${GK.t('Unterwegs: {icon} {name}', { icon: dest.icon, name: GK.t(dest.name) })}</div>
         <div class="fleet-bar"><div></div></div>
         <div class="fleet-time muted small"></div>
-        ${v.wind ? `<p class="muted small">${ic('wind')} Rückenwind ist gesetzt.</p>`
-          : `<button type="button" class="btn btn-small fleet-btn" data-act="wind" ${GK.canAfford(price) ? '' : 'disabled'}>${ic('wind')}Rückenwind (halbe Zeit): ${GK.formatMoneyHTML(price)}</button>`}`;
+        ${v.wind ? `<p class="muted small">${ic('wind')} ${GK.t('Rückenwind ist gesetzt.')}</p>`
+          : `<button type="button" class="btn btn-small fleet-btn" data-act="wind" ${GK.canAfford(price) ? '' : 'disabled'}>${ic('wind')}${GK.t('Rückenwind (halbe Zeit): {price}', { price: GK.formatMoneyHTML(price) })}</button>`}`;
     }
     const up = lvl < MAX_LEVEL ? upgradePrice(x.id) : 0;
     return `<div class="fleet-ship ${v ? (now() >= v.end ? 'is-back' : 'at-sea') : ''}" data-ship="${x.id}">
       <div class="fleet-pic">${shipSvg(x.id)}</div>
-      <div class="fleet-info"><div class="fleet-name">${x.name} <span class="fleet-level">Stufe ${lvl}</span></div>
-        <div class="muted small">Laderaum ×${GK.formatDecimal(holdOf(x.id), 0, 2)} · Tempo ×${GK.formatDecimal(x.speed, 0, 2)}</div></div>
+      <div class="fleet-info"><div class="fleet-name">${GK.t(x.name)} <span class="fleet-level">${GK.t('Stufe {lvl}', { lvl })}</span></div>
+        <div class="muted small">${GK.t('Laderaum ×{hold} · Tempo ×{speed}', { hold: GK.formatDecimal(holdOf(x.id), 0, 2), speed: GK.formatDecimal(x.speed, 0, 2) })}</div></div>
       ${body}
       ${lvl < MAX_LEVEL
-        ? `<button type="button" class="btn btn-small fleet-btn fleet-up" data-act="upgrade" ${GK.canAfford(up) ? '' : 'disabled'}>${ic('up')}Ausbauen (+10 % Laderaum): ${GK.formatMoneyHTML(up)}</button>`
-        : `<p class="muted small">${ic('star')} Voll ausgebaut</p>`}
+        ? `<button type="button" class="btn btn-small fleet-btn fleet-up" data-act="upgrade" ${GK.canAfford(up) ? '' : 'disabled'}>${ic('up')}${GK.t('Ausbauen (+10 % Laderaum): {price}', { price: GK.formatMoneyHTML(up) })}</button>`
+        : `<p class="muted small">${ic('star')} ${GK.t('Voll ausgebaut')}</p>`}
     </div>`;
   }
 
@@ -394,7 +473,7 @@ window.GK = window.GK || {};
       else if (act === 'lockedDest') {
         const dest = destById[btn.dataset.dest];
         GK.sound.play('denied');
-        GK.toast(`🔒 ${dest.name}: ab Rang ${GK.rank.name(dest.rank)}`);
+        GK.toast(GK.t('🔒 {name}: ab Rang {rank}', { name: GK.t(dest.name), rank: GK.rank.name(dest.rank) }));
         return;
       } else if (act === 'collect') {
         const r = collect(id);
@@ -414,8 +493,8 @@ window.GK = window.GK || {};
       GK.fx.floatText(r.left + r.width / 2, r.top, '+' + GK.formatMoneyHTML(total), 'win');
       if (fresh.length || best === 'gold') GK.fx.confetti(80);
     }
-    if (results.length === 1) GK.notify(`<span class="notify-icon">${shipSvg(results[0].ship)}</span><span><b>${shipById[results[0].ship].name}</b>: ${outcomeLine(results[0])}<br>+${GK.formatMoneyHTML(results[0].loot)}</span>`);
-    else GK.notify(`<span class="notify-icon">${ic('anchor')}</span><span><b>${results.length} Schiffe entladen</b>: +${GK.formatMoneyHTML(total)}${fresh.length ? `<br>💎 Neue Schätze: ${fresh.map(r => treasureById[r.treasure].name).join(', ')}` : ''}</span>`);
+    if (results.length === 1) GK.notify(`<span class="notify-icon">${shipSvg(results[0].ship)}</span><span><b>${GK.t(shipById[results[0].ship].name)}</b>: ${outcomeLine(results[0])}<br>+${GK.formatMoneyHTML(results[0].loot)}</span>`);
+    else GK.notify(`<span class="notify-icon">${ic('anchor')}</span><span><b>${GK.t('{n} Schiffe entladen', { n: results.length })}</b>: +${GK.formatMoneyHTML(total)}${fresh.length ? `<br>${GK.t('💎 Neue Schätze: {list}', { list: fresh.map(r => GK.t(treasureById[r.treasure].name)).join(', ') })}` : ''}</span>`);
   }
 
   let lastShips = '';
@@ -437,7 +516,7 @@ window.GK = window.GK || {};
       const v = d.voyages[card.dataset.ship];
       if (!v) return;
       const left = (v.end - now()) / 1000;
-      const text = `noch ${clock(left)}`;
+      const text = GK.t('noch {time}', { time: clock(left) });
       const time = card.querySelector('.fleet-time');
       if (time && time.textContent !== text) {
         GK.setText(time, text);
@@ -449,28 +528,28 @@ window.GK = window.GK || {};
     const atSea = Object.keys(d.voyages).length;
     const ready = readyCount();
     GK.setHTML($('fleet-summary'), `
-      <dt>Schiffe</dt><dd>${shipCount()} von ${SHIPS.length}</dd>
-      <dt>Auf See</dt><dd>${atSea - ready}${ready ? ` · ${ready} zurück im Hafen` : ''}</dd>
-      <dt>Fahrten</dt><dd>${GK.formatNumber(d.done)}</dd>
-      <dt>Beute insgesamt</dt><dd>${GK.formatMoneyHTML(d.earned)}</dd>
-      <dt>Schätze</dt><dd>${foundCount()} von ${TREASURES.length}</dd>
-      <dt>Bonus aus Schätzen</dt><dd>+${bonus('income')} % Einkommen · +${bonus('loot')} % Beute · −${bonus('speed')} % Fahrzeit</dd>`);
+      <dt>${GK.t('Schiffe')}</dt><dd>${GK.t('{a} von {b}', { a: shipCount(), b: SHIPS.length })}</dd>
+      <dt>${GK.t('Auf See')}</dt><dd>${atSea - ready}${ready ? ` · ${GK.t('{n} zurück im Hafen', { n: ready })}` : ''}</dd>
+      <dt>${GK.t('Fahrten')}</dt><dd>${GK.formatNumber(d.done)}</dd>
+      <dt>${GK.t('Beute insgesamt')}</dt><dd>${GK.formatMoneyHTML(d.earned)}</dd>
+      <dt>${GK.t('Schätze')}</dt><dd>${GK.t('{a} von {b}', { a: foundCount(), b: TREASURES.length })}</dd>
+      <dt>${GK.t('Bonus aus Schätzen')}</dt><dd>${GK.t('+{inc} % Einkommen · +{loot} % Beute · −{speed} % Fahrzeit', { inc: bonus('income'), loot: bonus('loot'), speed: bonus('speed') })}</dd>`);
     const collectBtn = $('fleet-collect-all');
     const sendBtn = $('fleet-send-all');
     if (collectBtn) {
       collectBtn.disabled = !ready;
-      GK.setHTML(collectBtn, `${ic('bag')}${ready > 1 ? `Alle ${ready} abholen` : 'Alle abholen'}`);
+      GK.setHTML(collectBtn, `${ic('bag')}${ready > 1 ? GK.t('Alle {n} abholen', { n: ready }) : GK.t('Alle abholen')}`);
     }
     if (sendBtn) sendBtn.disabled = !SHIPS.some(x => owns(x.id) && !d.voyages[x.id]);
     // Schätze
     const tSig = TREASURES.map(t => d.treasures[t.id] || 0).join();
     if (force || tSig !== lastTreasures) {
       lastTreasures = tSig;
-      GK.setText($('fleet-treasure-count'), `(${foundCount()} von ${TREASURES.length})`);
+      GK.setText($('fleet-treasure-count'), `(${GK.t('{a} von {b}', { a: foundCount(), b: TREASURES.length })})`);
       $('fleet-treasures').innerHTML = DESTS.map(dest => `<div class="fleet-tset">
-        <div class="fleet-tset-name">${dest.icon} ${dest.name}</div>
+        <div class="fleet-tset-name">${dest.icon} ${GK.t(dest.name)}</div>
         <div class="fleet-tlist">${TREASURES.filter(t => t.dest === dest.id).map(t => found(t.id)
-          ? `<div class="fleet-treasure"><span class="ft-icon">${t.icon}</span><span class="ft-name">${t.name}</span><span class="ft-eff">${treasureEffect(t)}</span></div>`
+          ? `<div class="fleet-treasure"><span class="ft-icon">${t.icon}</span><span class="ft-name">${GK.t(t.name)}</span><span class="ft-eff">${treasureEffect(t)}</span></div>`
           : `<div class="fleet-treasure unknown"><span class="ft-icon">${ic('question')}</span><span class="ft-name">???</span><span class="ft-eff">${treasureEffect(t)}</span></div>`).join('')}</div>
       </div>`).join('');
     }
@@ -479,9 +558,9 @@ window.GK = window.GK || {};
     if (force || lSig !== lastLog) {
       lastLog = lSig;
       $('fleet-log').innerHTML = d.log.length
-        ? d.log.map(e => `<li><span class="muted small">${shipById[e.ship] ? shipById[e.ship].name : ''} · ${destById[e.dest] ? destById[e.dest].name : ''}</span>
+        ? d.log.map(e => `<li><span class="muted small">${shipById[e.ship] ? GK.t(shipById[e.ship].name) : ''} · ${destById[e.dest] ? GK.t(destById[e.dest].name) : ''}</span>
           <span>${outcomeLine(e)}</span><span class="fleet-log-loot">+${GK.formatMoneyHTML(e.loot)}</span></li>`).join('')
-        : '<li class="muted">Noch keine Fahrten. Kauf dir eine Schaluppe und stich in See!</li>';
+        : `<li class="muted">${GK.t('Noch keine Fahrten. Kauf dir eine Schaluppe und stich in See!')}</li>`;
     }
   }
 
@@ -507,7 +586,7 @@ window.GK = window.GK || {};
       const key = `${id}:${v.start}`;
       if (now() >= v.end && !announced.has(key)) {
         announced.add(key);
-        if (shipById[id]) GK.toast(`⛵ Die ${shipById[id].name} ist zurück – Beute im ⚓ Abenteuer-Tab abholen!`);
+        if (shipById[id]) GK.toast(GK.t('⛵ Die {ship} ist zurück – Beute im ⚓ Abenteuer-Tab abholen!', { ship: GK.t(shipById[id].name) }));
       }
     });
     updateBadge();
@@ -525,7 +604,7 @@ window.GK = window.GK || {};
         back++;
       }
     });
-    if (back) setTimeout(() => GK.toast(`⚓ ${back === 1 ? 'Ein Schiff wartet' : `${back} Schiffe warten`} mit Beute im Hafen!`), 1500);
+    if (back) setTimeout(() => GK.toast(GK.t('⚓ {ships} mit Beute im Hafen!', { ships: back === 1 ? GK.t('Ein Schiff wartet') : GK.t('{n} Schiffe warten', { n: back }) })), 1500);
     const collectBtn = $('fleet-collect-all');
     const sendBtn = $('fleet-send-all');
     if (collectBtn) collectBtn.addEventListener('click', () => {

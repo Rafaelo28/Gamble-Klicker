@@ -2,6 +2,19 @@
 // Gleiche Symbole und Gewinntabelle wie die große Slot-Maschine (Auszahlungsquote 96,2 %).
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Zu wenig Dublonen': 'Too few doubloons',
+  'Einsatz zurück': 'Bet returned',
+  'Stopp': 'Stop',
+  'Auto': 'Auto',
+  'Einsatz verringern': 'Decrease bet',
+  'Einsatz erhöhen': 'Increase bet',
+});
+
 (function () {
   // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
@@ -39,7 +52,7 @@ window.GK = window.GK || {};
     if (!GK.casino.bet(s.bet)) {
       stopAuto();
       GK.sound.play('denied');
-      showMessage('Zu wenig Dublonen', 'loss');
+      showMessage(GK.t('Zu wenig Dublonen'), 'loss');
       return;
     }
     const result = [0, 1, 2].map(() => SM().randomSymbol());
@@ -75,7 +88,7 @@ window.GK = window.GK || {};
         if (level !== 'small') stopAuto(); // große Gewinne nicht im Automatik-Trubel untergehen lassen
       }
     } else if (p.payout === p.bet) {
-      showMessage('Einsatz zurück', '');
+      showMessage(GK.t('Einsatz zurück'), '');
       if (animated) GK.sound.play('coin');
     } else {
       showMessage(`−${GK.formatMoneyHTML(p.bet)}`, 'loss');
@@ -108,7 +121,7 @@ window.GK = window.GK || {};
     els.spin.disabled = spinning || auto;
     els.minus.disabled = auto || spinning;
     els.plus.disabled = auto || spinning;
-    GK.setHTML(els.auto, auto ? `${ic('stop')}Stopp` : `${ic('repeat')}Auto`);
+    GK.setHTML(els.auto, auto ? `${ic('stop')}${GK.t('Stopp')}` : `${ic('repeat')}${GK.t('Auto')}`);
     els.auto.classList.toggle('active', auto);
     els.spin.classList.toggle('cant-afford', !GK.canAfford(s.bet));
   }
@@ -124,9 +137,9 @@ window.GK = window.GK || {};
         <div class="side-slot-window"></div>
       </div>
       <div class="side-slot-controls">
-        <button class="btn btn-small side-minus" aria-label="Einsatz verringern">−</button>
+        <button class="btn btn-small side-minus" aria-label="${GK.t('Einsatz verringern')}">−</button>
         <span class="side-bet"></span>
-        <button class="btn btn-small side-plus" aria-label="Einsatz erhöhen">+</button>
+        <button class="btn btn-small side-plus" aria-label="${GK.t('Einsatz erhöhen')}">+</button>
         <button class="btn side-auto"></button>
       </div>`;
     els = {
