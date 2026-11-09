@@ -1,6 +1,31 @@
 // Einstiegspunkt: Spielschleife, Tabs, Statistiken und Autosave.
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
+GK.i18n.add({
+  'Spielstand gespeichert ✅': 'Game saved ✅',
+  'Speichern nicht möglich ⚠️': 'Saving not possible ⚠️',
+  'Ungültiger Spielstand-Code ⚠️': 'Invalid save code ⚠️',
+  'Spielstand geladen ✅': 'Game loaded ✅',
+  'Willst du wirklich deinen kompletten Spielstand löschen? Das kann nicht rückgängig gemacht werden.':
+    'Do you really want to delete your entire save? This cannot be undone.',
+  'Spielstand zurückgesetzt': 'Save reset',
+  '👤 Dein Name: {name}': '👤 Your name: {name}',
+  '{done} von {total}': '{done} of {total}',
+  ' <span class="muted">(ausgeschaltet)</span>': ' <span class="muted">(switched off)</span>',
+  '{money} Dublonen – Gamble Klicker': '{money} doubloons – Gamble Klicker',
+  '⚠️ Speichern nicht möglich – Details unter Statistiken': '⚠️ Saving not possible – see Statistics for details',
+  'vor {time}': '{time} ago',
+  'nicht möglich': 'not possible',
+  'Kopiere diesen Code und bewahre ihn auf. Mit „Importieren“ kannst du ihn später (auch auf einem anderen Gerät) wieder laden.':
+    'Copy this code and keep it safe. Use “Import” to load it again later (even on another device).',
+  'Füge hier deinen Spielstand-Code ein und klicke auf „Laden“. Dein aktueller Fortschritt wird dabei ersetzt.':
+    'Paste your save code here and click “Load”. Your current progress will be replaced.',
+});
+
 (function () {
   const AUTOSAVE_INTERVAL = 5000;  // ms
   const RENDER_INTERVAL = 100;     // ms
@@ -86,7 +111,7 @@ window.GK = window.GK || {};
 
   function setupStatsActions() {
     $('save-btn').addEventListener('click', () => {
-      GK.toast(GK.save() ? 'Spielstand gespeichert ✅' : 'Speichern nicht möglich ⚠️');
+      GK.toast(GK.save() ? GK.t('Spielstand gespeichert ✅') : GK.t('Speichern nicht möglich ⚠️'));
     });
     $('export-btn').addEventListener('click', () => {
       openTransferBox('export');
@@ -99,18 +124,18 @@ window.GK = window.GK || {};
     });
     $('transfer-confirm').addEventListener('click', () => {
       if (!GK.importSave($('transfer-text').value)) {
-        GK.toast('Ungültiger Spielstand-Code ⚠️');
+        GK.toast(GK.t('Ungültiger Spielstand-Code ⚠️'));
         return;
       }
       $('transfer-box').hidden = true;
       refreshAll();
-      GK.toast('Spielstand geladen ✅');
+      GK.toast(GK.t('Spielstand geladen ✅'));
     });
     $('reset-btn').addEventListener('click', () => {
-      if (!confirm('Willst du wirklich deinen kompletten Spielstand löschen? Das kann nicht rückgängig gemacht werden.')) return;
+      if (!confirm(GK.t('Willst du wirklich deinen kompletten Spielstand löschen? Das kann nicht rückgängig gemacht werden.'))) return;
       GK.resetSave();
       refreshAll();
-      GK.toast('Spielstand zurückgesetzt');
+      GK.toast(GK.t('Spielstand zurückgesetzt'));
     });
   }
 
@@ -130,6 +155,7 @@ window.GK = window.GK || {};
     $('set-volume').value = st.volume;
     $('set-volume').disabled = !st.sound;
     $('set-effects').value = st.effects;
+    $('set-lang').value = st.lang === 'en' ? 'en' : 'de';
     $('set-kraken').checked = st.kraken !== false;
     GK.setHTML($('sound-toggle'), GK.icon(st.sound ? 'sound' : 'mute'));
     $('sound-toggle').classList.toggle('off', !st.sound);
@@ -140,7 +166,12 @@ window.GK = window.GK || {};
     $('set-name').addEventListener('change', e => {
       e.target.value = GK.player.setName(e.target.value);
       GK.sound.play('coin');
-      GK.toast(`👤 Dein Name: ${e.target.value}`);
+      GK.toast(GK.t('👤 Dein Name: {name}', { name: e.target.value }));
+    });
+    $('set-lang').addEventListener('change', e => {
+      GK.i18n.set(e.target.value);
+      GK.sound.play('tick');
+      refreshAll();
     });
     $('set-name').addEventListener('keydown', e => { if (e.key === 'Enter') e.target.blur(); });
     $('set-avatar').addEventListener('click', () => {
@@ -182,8 +213,8 @@ window.GK = window.GK || {};
     $('transfer-box').hidden = false;
     $('transfer-confirm').hidden = isExport;
     $('transfer-hint').textContent = isExport
-      ? 'Kopiere diesen Code und bewahre ihn auf. Mit „Importieren“ kannst du ihn später (auch auf einem anderen Gerät) wieder laden.'
-      : 'Füge hier deinen Spielstand-Code ein und klicke auf „Laden“. Dein aktueller Fortschritt wird dabei ersetzt.';
+      ? GK.t('Kopiere diesen Code und bewahre ihn auf. Mit „Importieren“ kannst du ihn später (auch auf einem anderen Gerät) wieder laden.')
+      : GK.t('Füge hier deinen Spielstand-Code ein und klicke auf „Laden“. Dein aktueller Fortschritt wird dabei ersetzt.');
     $('transfer-text').value = isExport ? GK.exportSave() : '';
     $('transfer-text').readOnly = isExport;
     $('transfer-text').focus();
@@ -207,12 +238,12 @@ window.GK = window.GK || {};
     GK.setHTML($('stat-total'), GK.formatMoneyHTML(s.totalEarned));
     GK.setHTML($('stat-all-time'), GK.formatMoneyHTML(s.allTimeEarned));
     GK.setText($('stat-golden'), GK.formatNumber(s.goldenClicks));
-    GK.setText($('stat-achievements'), `${s.achievements.length} von ${GK.achievements.total}`);
+    GK.setText($('stat-achievements'), GK.t('{done} von {total}', { done: s.achievements.length, total: GK.achievements.total }));
     GK.setHTML($('stat-click-earned'), GK.formatMoneyHTML(s.clickEarned));
     GK.setText($('stat-clicks'), GK.formatNumber(s.totalClicks));
     GK.setText($('stat-crits'), GK.formatNumber(s.crits));
     GK.setText($('stat-combo'), GK.formatNumber(s.bestCombo));
-    GK.setHTML($('stat-cps'), GK.formatMoneyHTML(GK.clicker.getCps(), true) + (GK.clicker.passiveActive() ? '' : ' <span class="muted">(ausgeschaltet)</span>'));
+    GK.setHTML($('stat-cps'), GK.formatMoneyHTML(GK.clicker.getCps(), true) + (GK.clicker.passiveActive() ? '' : GK.t(' <span class="muted">(ausgeschaltet)</span>')));
     GK.setText($('stat-buildings'), GK.formatNumber(GK.clicker.totalBuildings()));
     GK.setText($('stat-upgrades'), GK.formatNumber(s.upgrades.length));
     GK.setText($('stat-playtime'), GK.formatDuration(s.playTime));
@@ -220,8 +251,8 @@ window.GK = window.GK || {};
     GK.friends.render();
     renderPlayer();
     GK.setText($('last-saved'), GK.storageAvailable
-      ? 'vor ' + GK.formatDuration((Date.now() - s.lastSaved) / 1000)
-      : 'nicht möglich');
+      ? GK.t('vor {time}', { time: GK.formatDuration((Date.now() - s.lastSaved) / 1000) })
+      : GK.t('nicht möglich'));
   }
 
   function render() {
@@ -230,7 +261,7 @@ window.GK = window.GK || {};
     GK.setText($('cps'), GK.formatNumber(GK.clicker.getCps(), true));
     $('cps-on').hidden = !GK.clicker.passiveActive();
     $('cps-off').hidden = GK.clicker.passiveActive();
-    const title = `${money} Dublonen – Gamble Klicker`;
+    const title = GK.t('{money} Dublonen – Gamble Klicker', { money });
     if (document.title !== title) document.title = title;
     GK.clicker.render();
     GK.sideSlot.render();
@@ -284,12 +315,13 @@ window.GK = window.GK || {};
 
   function init() {
     GK.load();
+    GK.i18n.init();
     GK.room.readInviteLink();
     GK.poker.mp.readInviteLink();
     GK.onSave = flashSaveIndicator;
     if (!GK.storageAvailable) {
       $('storage-warning').hidden = false;
-      GK.toast('⚠️ Speichern nicht möglich – Details unter Statistiken');
+      GK.toast(GK.t('⚠️ Speichern nicht möglich – Details unter Statistiken'));
     }
     setupTabs();
     setupStatsActions();

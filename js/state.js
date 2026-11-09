@@ -2,6 +2,10 @@
 // Klicker und alle Casino-Spiele greifen nur über diese Funktionen auf das Geld zu.
 window.GK = window.GK || {};
 
+// Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
+GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m)) : s; };
+GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
+
 (function () {
   const SAVE_KEY = 'gamble-klicker-save';
   const SAVE_VERSION = 1;
@@ -29,10 +33,17 @@ window.GK = window.GK || {};
     return { owned: [], equipped: { coin: 'gold', effect: 'coins', theme: 'tavern', profile: 'sailor', table: 'felt' }, wheel: null };
   }
 
-  // Einstellungen: Ton und Animationen (bei „Bewegung reduzieren“ im System automatisch ruhiger)
+  // Sprache: Deutsch ist die Quelle. Neue Spieler bekommen die Sprache ihres Browsers –
+  // alles außer Deutsch startet auf Englisch. Die gewählte Sprache wird gespeichert.
+  function detectLang() {
+    const nav = (typeof navigator !== 'undefined' && (navigator.language || (navigator.languages && navigator.languages[0]))) || 'de';
+    return String(nav).toLowerCase().startsWith('de') ? 'de' : 'en';
+  }
+
+  // Einstellungen: Sprache, Ton und Animationen (bei „Bewegung reduzieren“ im System automatisch ruhiger)
   function createDefaultSettings() {
     const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    return { sound: true, volume: 0.7, effects: reduceMotion ? 'reduced' : 'full', kraken: true };
+    return { lang: detectLang(), sound: true, volume: 0.7, effects: reduceMotion ? 'reduced' : 'full', kraken: true };
   }
 
   // Tägliche Aufgaben
