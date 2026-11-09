@@ -5,6 +5,8 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
+  const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
   // Namen kommen im Online-Spiel von anderen Spielern – immer als Text ausgeben
   const esc = text => String(text).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const PIPS = { 1: [5], 2: [1, 9], 3: [1, 5, 9], 4: [1, 3, 7, 9], 5: [1, 3, 5, 7, 9], 6: [1, 3, 4, 6, 7, 9] };
@@ -338,7 +340,7 @@ window.GK = window.GK || {};
     // Wer ist dran?
     const current = v.turn >= 0 ? v.players[v.turn] : null;
     setHtml(container.querySelector('.kf-turn'), v.phase === 'finished'
-      ? (() => { const w = v.players.find(p => p.place === 1); return w ? `🏆 ${GK.cosmetics.nameTag(w)} gewinnt mit ${totals(v, w).total} Punkten!` : 'Spiel vorbei'; })()
+      ? (() => { const w = v.players.find(p => p.place === 1); return w ? `${ic('trophy')} ${GK.cosmetics.nameTag(w)} gewinnt mit ${totals(v, w).total} Punkten!` : 'Spiel vorbei'; })()
       : myTurn ? `<b>Du bist dran!</b> ${v.rollsLeft === 3 ? 'Würfle los.' : v.rollsLeft ? `Noch ${v.rollsLeft}× würfeln – tippe Würfel an, um sie zu halten.` : 'Trag dein Ergebnis ein.'}`
         : `${GK.cosmetics.nameTag(current)} ist dran${v.rollsLeft < 3 ? ` (noch ${v.rollsLeft}× würfeln)` : ''} …`);
 
@@ -356,9 +358,9 @@ window.GK = window.GK || {};
     const pickPts = pick.cat ? score(v.dice, pick.cat) : 0;
     setHtml(container.querySelector('.kf-actions'), myTurn ? `
       <div class="game-actions">
-        <button class="btn btn-primary btn-big kf-roll" ${v.rollsLeft > 0 ? '' : 'disabled'}>🎲 Würfeln${v.rollsLeft < 3 ? ` (noch ${v.rollsLeft}×)` : ''}</button>
+        <button class="btn btn-primary btn-big kf-roll" ${v.rollsLeft > 0 ? '' : 'disabled'}>${ic('dice')}Würfeln${v.rollsLeft < 3 ? ` (noch ${v.rollsLeft}×)` : ''}</button>
         ${rolled ? `<button class="btn btn-big kf-write" ${pick.cat ? '' : 'disabled'}>${pick.cat
-          ? `✍️ ${CATS[pick.cat].name}: ${pickPts ? `${pickPts} Punkte` : 'streichen (0)'}` : '✍️ Feld im Block wählen'}</button>` : ''}
+          ? `${ic('pen')}${CATS[pick.cat].name}: ${pickPts ? `${pickPts} Punkte` : 'streichen (0)'}` : `${ic('pen')}Feld im Block wählen`}</button>` : ''}
       </div>` : '');
 
     // Spielblock

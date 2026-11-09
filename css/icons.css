@@ -1,0 +1,269 @@
+/* =====================================================================
+   Gamble Klicker – eigene Symbole (js/icons.js)
+   .ic = kleines Symbol (Linie in Textfarbe, blasse Fläche, Gold-Akzent)
+   .ic-game = farbiges Bild der Spielkarten in der Lobby
+   ===================================================================== */
+
+.ic {
+  --ica: var(--gold, #f5c542);
+  display: inline-block;
+  width: 1.15em;
+  height: 1.15em;
+  flex-shrink: 0;
+  vertical-align: -0.2em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* Größen */
+.ic-sm { width: 1em; height: 1em; vertical-align: -0.14em; }
+.ic-lg { width: 1.5em; height: 1.5em; vertical-align: -0.35em; }
+
+/* Abstand zum Text, wenn das Symbol vor einer Beschriftung steht */
+h2 > .ic:first-child,
+h3 > .ic:first-child,
+.btn > .ic:first-child,
+.setting > span > .ic:first-child,
+.setting > label > .ic:first-child,
+.buff > .ic:first-child,
+.vip-card > .ic:first-child,
+.wallet-cps .ic,
+.save-indicator .ic,
+.footer > .ic:first-child,
+dt > .ic:first-child {
+  margin-right: 0.3em;
+}
+
+/* Überschriften: Symbol in Gold, etwas kräftiger */
+h2 > .ic:first-child,
+h3 > .ic:first-child {
+  color: var(--gold, #f5c542);
+  --ica: var(--gold-light, #ffe58a);
+}
+
+/* Auf goldenem Grund (aktiver Tab, Hauptknöpfe, Boni, VIP-Karten): Akzent in Textfarbe, sonst verschwindet er */
+.tab.active .ic,
+.btn-primary .ic,
+.buff .ic,
+.vip-card .ic {
+  --ica: currentColor;
+}
+
+/* Tabs */
+.tab-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.tab-icon .ic {
+  width: 1.2em;
+  height: 1.2em;
+  vertical-align: 0;
+}
+
+/* Kopfzeile: Ton an/aus */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text, #f1f5f2);
+}
+
+.icon-btn .ic {
+  width: 1.25em;
+  height: 1.25em;
+  vertical-align: 0;
+}
+
+/* Gebäude & Upgrades: Symbol in der Textfarbe mit goldenem Akzent */
+.building-icon {
+  color: var(--text, #f1f5f2);
+}
+
+.building-icon .ic {
+  width: 0.95em;
+  height: 0.95em;
+  vertical-align: 0;
+}
+
+.building.mystery .building-icon {
+  color: var(--text-muted, #9fb8aa);
+}
+
+.upgrade-icon {
+  line-height: 1;
+  color: var(--text, #f1f5f2);
+}
+
+.upgrade-icon .ic {
+  width: 1.05em;
+  height: 1.05em;
+  vertical-align: 0;
+}
+
+/* Meldungen oben rechts */
+.notify-icon .ic {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.12em;
+}
+
+/* Casino-Lobby: farbige Spielbilder */
+.casino-emoji .ic-game {
+  width: 76px;
+  height: 76px;
+  vertical-align: top;
+  stroke: none;
+}
+
+.ic-game {
+  fill: none;
+  stroke: none;
+}
+
+/* Kleine Spielbilder (Kopf eines geöffneten Spiels) */
+.game-header h2 .ic-game {
+  width: 1.4em;
+  height: 1.4em;
+  vertical-align: -0.32em;
+  margin-right: 0.25em;
+}
+
+/* VIP-Stufen: eigene Akzentfarben */
+.ic.vip-ic-1 { --ica: #e4e7ea; }
+.ic.vip-ic-2 { --ica: #ffd34d; }
+
+/* Kraken-Hinweis und Warnungen */
+.warning .ic { color: var(--loss, #ff8a80); }
+
+@media (max-width: 600px) {
+  .casino-emoji .ic-game {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+/* Side-Slot im Klicker */
+.side-slot-title .ic {
+  margin-right: 0.3em;
+}
+
+/* ---------- Symbole in Spielen (Knöpfe, Chips, Anzeigen) ---------- */
+
+/* Verbindungs-Punkt (Farbe kommt aus .mp-status) und Baccarat-Seiten */
+.ic-dot { width: 0.8em; height: 0.8em; vertical-align: -0.04em; }
+.ic.ic-blue { color: #4a90e2; }
+.ic.ic-red { color: #e0524a; }
+
+/* Mitte der Glücksräder: Symbol auf Gold, daher dunkel */
+.fortune-hub .ic,
+.cos-hub .ic {
+  width: 1.1em;
+  height: 1.1em;
+  vertical-align: 0;
+  color: #4a2d05;
+  --ica: #4a2d05;
+}
+
+/* Gesperrt-Schloss auf großen Flächen (Erfolge, Figur, Ziele der Flotte) */
+.achievement-icon .ic,
+.fd-icon .ic,
+.ft-icon .ic,
+.fig-lock .ic {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.1em;
+}
+
+/* Kleine Symbole in Zeilen ohne eigenen Abstand */
+.cr-safe .ic,
+.hilo-step i .ic,
+.crash-chip .ic,
+.rank-reward .ic,
+.mp-tag .ic,
+.ticket-lock .ic,
+.kr-bar b .ic,
+.star .ic {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.14em;
+}
+
+/* Entfernen-Knopf in der Freundes-Rangliste */
+.fb-remove .ic {
+  width: 1.1em;
+  height: 1.1em;
+  vertical-align: -0.18em;
+}
+
+/* Baccarat und Höher/Tiefer: Knöpfe mit Symbol über der Schrift */
+.bac-choice .ic,
+.hilo-hi .ic,
+.hilo-lo .ic {
+  width: 1.35em;
+  height: 1.35em;
+  margin-right: 0;
+}
+
+/* Farbpunkt mit hellem Rand, damit er auch auf blauem/rotem Grund sichtbar bleibt */
+.bac-choice .ic-dot,
+.bac-label .ic-dot {
+  stroke: #fff;
+  stroke-width: 2.5;
+}
+
+/* ---------- Rang-Abzeichen (js/rank.js): Akzentfarbe = Stufe ---------- */
+.ic.rk-t1 { --ica: #d39256; }  /* Bronze: Landratte … Bootsmann */
+.ic.rk-t2 { --ica: #dfe5ea; }  /* Silber: Steuermann … Kapitän */
+.ic.rk-t3 { --ica: #ffd34d; }  /* Gold: Kommodore … Piratenkönig */
+.ic.rk-t4 { --ica: #5fd6e8; }  /* Meer: Herrscher der Meere */
+.ic.rk-t5 { --ica: #c890ff; }  /* Purpur: Legenden */
+
+.rank-big .ic {
+  width: 1.1em;
+  height: 1.1em;
+  vertical-align: 0;
+  color: var(--gold-light, #ffe58a);
+  stroke-width: 1.6;
+}
+
+.rank-ico .ic {
+  width: 1.05em;
+  height: 1.05em;
+  vertical-align: -0.16em;
+}
+
+/* Medaillen (🥇🥈🥉 als Symbol) */
+.ic.ic-gold { --ica: #ffd34d; }
+.ic.ic-silver { --ica: #dfe5ea; }
+.ic.ic-bronze { --ica: #d39256; }
+
+/* Tägliche Aufgaben, Erfolge, Meldungen: Symbol in Gold wie bei den Überschriften */
+.daily-icon .ic,
+.achievement.unlocked .achievement-icon .ic {
+  width: 1.1em;
+  height: 1.1em;
+  vertical-align: 0;
+}
+
+.daily-icon .ic,
+.achievement.unlocked .achievement-icon .ic,
+.notify-icon .ic:not(.rk),
+.toast .ic:not(.rk) {
+  color: var(--gold, #f5c542);
+  --ica: var(--gold-light, #ffe58a);
+}
+
+/* Toast: Symbol in Gold vor dem Text */
+.toast .ic {
+  width: 1.15em;
+  height: 1.15em;
+  vertical-align: -0.22em;
+}

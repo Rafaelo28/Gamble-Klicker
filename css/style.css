@@ -26,6 +26,28 @@
   --radius: 16px;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
   --font-display: 'Cinzel', Georgia, 'Times New Roman', serif;
+  /* Schriftgrößen-Stufen: Text nie kleiner als --fs-xs (Ausnahme: winzige Felder in Spielen) */
+  --fs-xs: 0.8rem;
+  --fs-sm: 0.875rem;
+  --fs-base: 1rem;
+  --fs-md: 1.125rem;
+  --fs-lg: 1.375rem;
+  --fs-xl: 1.625rem;
+  --fs-2xl: 2rem;
+  /* Wiederkehrende Farben */
+  --ink-on-gold: #2a1d00;       /* Schrift auf goldenen Flächen */
+  --cream: #fff3d6;             /* helle Schrift auf farbigen Automaten */
+  --focus-ring: #ffe58a;        /* Tastatur-Fokus */
+  --disabled-bg: #1c2621;       /* gesperrte Knöpfe: matt, nicht golden */
+  --disabled-border: #3a4a42;
+  --disabled-text: #a7b5ad;     /* ≥ 4,5:1 auf --disabled-bg */
+  /* Abstände */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
   --header-height: 120px; /* wird per JavaScript auf die echte Höhe gesetzt */
   /* Farbthema (Schatzkammer): Kopfzeile, Knöpfe und Hintergrund-Leuchten */
   --header-bg: rgba(4, 14, 9, 0.95);
@@ -108,17 +130,24 @@ body::before {
     var(--bg);
 }
 
+/* Überschriften: H2 in Cinzel (Gold), H3 in der Grundschrift – klar unterscheidbar */
 h2 {
-  margin: 0 0 12px;
+  margin: 0 0 var(--space-3);
   color: var(--gold);
   font-family: var(--font-display);
-  font-size: 1.3rem;
+  font-size: var(--fs-lg);
+  line-height: 1.25;
   letter-spacing: 0.5px;
+  text-wrap: balance;
 }
 
 h3 {
-  font-family: var(--font-display);
-  letter-spacing: 0.3px;
+  font-family: inherit;
+  font-size: var(--fs-md);
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0;
+  text-wrap: balance;
 }
 
 button {
@@ -138,7 +167,7 @@ textarea {
 }
 
 .small {
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
 }
 
 .win {
@@ -209,7 +238,7 @@ textarea {
   min-width: 0;
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: 1.4rem;
+  font-size: var(--fs-lg);
 }
 
 .logo-text {
@@ -233,8 +262,8 @@ textarea {
   border: 2px solid #8a6508;
   background: radial-gradient(circle at 35% 30%, #fff3b0 0%, var(--gold) 40%, var(--gold-dark) 100%);
   color: #7a5806;
-  font-family: Georgia, serif;
-  font-size: 1.1rem;
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
   animation: logo-spin 7s ease-in-out infinite;
 }
 
@@ -250,7 +279,7 @@ textarea {
   border-radius: 50%;
   border: 1px solid var(--border-soft);
   background: rgba(255, 255, 255, 0.06);
-  font-size: 1.2rem;
+  font-size: var(--fs-md);
   cursor: pointer;
 }
 
@@ -268,19 +297,19 @@ textarea {
   align-items: center;
   justify-content: flex-end;
   gap: 6px;
-  font-size: 1.7rem;
+  font-size: var(--fs-xl);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   text-shadow: 0 0 18px rgba(245, 197, 66, 0.35);
 }
 
 .wallet-cps {
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
 }
 
 .save-indicator {
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   opacity: 0;
   transition: opacity 0.4s;
@@ -325,7 +354,7 @@ textarea {
 }
 
 .tab-icon {
-  font-size: 1.15rem;
+  font-size: var(--fs-md);
 }
 
 main {
@@ -420,13 +449,13 @@ main {
 .btn-small {
   min-height: 34px;
   padding: 4px 10px;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
 }
 
 .btn-big {
   min-height: 52px;
   padding: 10px 28px;
-  font-size: 1.15rem;
+  font-size: var(--fs-md);
 }
 
 @media (hover: hover) {
@@ -525,6 +554,8 @@ main {
     inset 0 -10px 24px rgba(0, 0, 0, 0.25),
     inset 0 8px 18px rgba(255, 255, 255, 0.45);
   z-index: 1; /* vor dem Schein der Sternenmünze */
+  overflow: hidden; /* schneidet den Glanzstreifen rund ab */
+  isolation: isolate;
   cursor: pointer;
   animation: coin-float 3s ease-in-out infinite;
   -webkit-user-select: none;
@@ -551,16 +582,18 @@ main {
   right: 0;
   bottom: 0;
   left: 0;
-  border-radius: 50%;
-  background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.55) 48%, transparent 60%);
-  background-size: 250% 100%;
+  right: auto;
+  width: 45%;
+  background: linear-gradient(100deg, transparent 10%, rgba(255, 255, 255, 0.55) 50%, transparent 90%);
+  transform: translateX(-110%) skewX(-18deg);
   animation: coin-shine 4s ease-in-out infinite;
   pointer-events: none;
 }
 
+/* Glanzstreifen gleitet per transform über die Münze (die Münze schneidet ihn rund ab) */
 @keyframes coin-shine {
-  0%, 55% { background-position: 150% 0; }
-  100% { background-position: -100% 0; }
+  0%, 55% { transform: translateX(-110%) skewX(-18deg); }
+  100% { transform: translateX(240%) skewX(-18deg); }
 }
 
 /* Schweben über die eigene translate-Eigenschaft: Das Federn beim Tippen (transform, per JavaScript)
@@ -579,7 +612,7 @@ main {
 .big-coin-inner {
   position: relative;
   z-index: 1;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font-display);
   font-size: 6rem;
   font-weight: 900;
   color: var(--coin-letter);
@@ -588,7 +621,7 @@ main {
 
 .click-power {
   position: relative;
-  font-size: 1.05rem;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--gold-light);
 }
@@ -608,7 +641,7 @@ main {
 .float-text {
   position: absolute;
   font-weight: 900;
-  font-size: 1.5rem;
+  font-size: var(--fs-xl);
   color: var(--gold-light);
   text-shadow: 0 2px 0 #7a5806, 0 0 12px rgba(245, 197, 66, 0.8);
   animation: float-up 0.9s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
@@ -631,7 +664,7 @@ main {
 /* Kritischer Klick: groß, rot und wackelnd */
 .float-text.crit {
   z-index: 3;
-  font-size: 2.1rem;
+  font-size: var(--fs-2xl);
   color: #ff5a3c;
   text-shadow: 0 3px 0 #5c0d00, 0 0 18px rgba(255, 70, 30, 0.95), 0 0 4px #fff;
   animation: crit-up 1.25s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
@@ -688,7 +721,7 @@ main {
 .combo-count,
 .combo-mult {
   font-weight: 900;
-  font-size: 0.95rem;
+  font-size: var(--fs-base);
   color: #ffb347;
   white-space: nowrap;
   text-shadow: 0 0 8px rgba(255, 120, 40, 0.6);
@@ -765,13 +798,13 @@ main {
 .side-slot-title {
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: 0.95rem;
+  font-size: var(--fs-base);
   letter-spacing: 1px;
   color: var(--gold);
 }
 
 .side-slot-msg {
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
   font-weight: 800;
   white-space: nowrap;
 }
@@ -792,7 +825,7 @@ main {
 .side-minus,
 .side-plus {
   width: 38px;
-  font-size: 1.2rem;
+  font-size: var(--fs-md);
   font-weight: 900;
 }
 
@@ -938,7 +971,7 @@ main {
 }
 
 .upgrade-icon {
-  font-size: 1.6rem;
+  font-size: var(--fs-xl);
 }
 
 .upgrade-name {
@@ -946,7 +979,7 @@ main {
 }
 
 .upgrade-desc {
-  font-size: 0.8rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
 }
 
@@ -954,7 +987,7 @@ main {
   margin-top: 4px;
   font-weight: 700;
   color: var(--gold);
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
 }
 
 .upgrade-more {
@@ -964,7 +997,7 @@ main {
 }
 
 .upgrade-gain {
-  font-size: 0.8rem;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--win);
 }
@@ -1113,7 +1146,7 @@ main {
   height: 52px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.06);
-  font-size: 2rem;
+  font-size: var(--fs-2xl);
 }
 
 .building-info {
@@ -1129,7 +1162,7 @@ main {
 
 .building-desc,
 .building-meta {
-  font-size: 0.8rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
 }
 
@@ -1146,7 +1179,7 @@ main {
 }
 
 .building-owned {
-  font-size: 1.6rem;
+  font-size: var(--fs-xl);
   font-weight: 800;
   color: var(--gold-light);
   opacity: 0.85;
@@ -1162,7 +1195,7 @@ main {
 
 /* Sterne für gekaufte Upgrades des Gebäudes */
 .building-stars {
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   letter-spacing: 1px;
 }
 
@@ -1193,7 +1226,7 @@ main {
 
 .building-next {
   margin-top: 2px;
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
 }
 
@@ -1289,7 +1322,7 @@ main {
 }
 
 .daily-icon {
-  font-size: 2rem;
+  font-size: var(--fs-2xl);
   line-height: 1.2;
   text-align: center;
 }
@@ -1318,7 +1351,7 @@ main {
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 4px 8px;
-  font-size: 0.8rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
 }
 
@@ -1418,7 +1451,7 @@ main {
   left: 0;
   right: 0;
   z-index: 3;
-  font-size: 0.95rem;
+  font-size: var(--fs-base);
   font-weight: 800;
   text-align: center;
   color: #fff;
@@ -1664,7 +1697,7 @@ main {
   border-radius: 50%;
   background: transparent;
   color: var(--text-muted);
-  font-size: 1rem;
+  font-size: var(--fs-base);
   cursor: pointer;
 }
 
@@ -1677,11 +1710,10 @@ main {
 
 /* ---------- Casino: Lobby ---------- */
 .casino-section-title {
-  margin: 22px 0 0;
-  color: var(--gold);
-  font-family: var(--font-display);
-  font-size: 1.15rem;
-  letter-spacing: 0.5px;
+  margin: var(--space-6) 0 0;
+  color: var(--gold-light);
+  font-size: var(--fs-md);
+  font-weight: 700;
 }
 
 .casino-section .casino-grid {
@@ -1800,7 +1832,7 @@ button.casino-card:active {
 .casino-info-box h3 {
   margin: 0 0 10px;
   color: var(--gold);
-  font-size: 1rem;
+  font-size: var(--fs-base);
 }
 
 .stats-list.compact {
@@ -1823,7 +1855,7 @@ button.casino-card:active {
   list-style: none;
   margin: 0;
   padding: 0;
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
 }
 
 .casino-history li {
@@ -1929,7 +1961,7 @@ button.casino-card:active {
 .game-message {
   min-height: 1.6em;
   margin: 12px 0;
-  font-size: 1.1rem;
+  font-size: var(--fs-md);
   font-weight: 700;
   text-align: center;
 }
@@ -1960,7 +1992,7 @@ button.casino-card:active {
 
 .bet-label {
   color: var(--text-muted);
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
 }
 
 .bet-row {
@@ -2009,13 +2041,13 @@ button.casino-card:active {
 .bet-warning {
   color: var(--loss);
   font-weight: 400;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
 }
 
 .bet-limit {
   color: var(--text-muted);
   font-weight: 400;
-  font-size: 0.8rem;
+  font-size: var(--fs-xs);
 }
 
 /* ---------- Spielkarten ---------- */
@@ -2042,7 +2074,7 @@ button.casino-card:active {
   position: absolute;
   top: 4px;
   left: 6px;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   font-weight: 800;
   line-height: 1;
   text-align: center;
@@ -2057,7 +2089,7 @@ button.casino-card:active {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
+  font-size: var(--fs-2xl);
 }
 
 .card-back {
@@ -2073,12 +2105,12 @@ button.casino-card:active {
   left: 50%;
   transform: translate(-50%, -50%);
   color: var(--card-back-mark-color);
-  font-size: 1.5rem;
+  font-size: var(--fs-xl);
   line-height: 1;
 }
 
 .card-back.small::after {
-  font-size: 1rem;
+  font-size: var(--fs-base);
 }
 
 .card-placeholder {
@@ -2099,7 +2131,7 @@ button.casino-card:active {
 }
 
 .card.small .card-suit {
-  font-size: 1.2rem;
+  font-size: var(--fs-md);
   top: 12px;
 }
 
@@ -2206,7 +2238,7 @@ button.casino-card:active {
 }
 
 .seven {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-weight: 900;
   color: #c0392b;
   text-shadow: 1px 1px 0 var(--gold);
@@ -2431,11 +2463,11 @@ button.casino-card:active {
 .paytable th {
   color: var(--text-muted);
   font-weight: 400;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
 }
 
 .paytable-icon {
-  font-size: 1.4rem;
+  font-size: var(--fs-lg);
 }
 
 /* ---------- Rubbellose ---------- */
@@ -2473,7 +2505,7 @@ button.casino-card:active {
 .ticket-icon {
   grid-area: icon;
   align-self: center;
-  font-size: 2.2rem;
+  font-size: var(--fs-2xl);
 }
 
 .ticket-name {
@@ -2482,12 +2514,12 @@ button.casino-card:active {
 
 .ticket-cost {
   grid-area: cost;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
 }
 
 .ticket-lock {
   grid-area: lock;
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
 }
 
 .ticket-choice.active {
@@ -2511,16 +2543,31 @@ button.casino-card:active {
 
 .vip-card.vip-4 { background: linear-gradient(135deg, #3a3a46, #0d0d12 60%, #6a6a7a); color: #f1f1f8; border-color: #8a8a9a; }
 .vip-card.vip-5 {
+  position: relative;
+  overflow: hidden;
   background: linear-gradient(135deg, #fff3b0, #f5c542 35%, #b8860b 55%, #fff3b0 75%, #c38d12);
-  background-size: 200% 200%;
   color: #3a2a00;
   border-color: #fff3b0;
   box-shadow: 0 0 18px rgba(245, 197, 66, 0.6);
-  animation: vip-shine 3s ease-in-out infinite alternate;
+}
+
+/* Glanz wandert über die Karte – nur transform */
+.vip-card.vip-5::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  transform: translateX(-120%) skewX(-20deg);
+  animation: vip-shine 3s ease-in-out infinite;
+  pointer-events: none;
 }
 
 @keyframes vip-shine {
-  to { background-position: 100% 100%; }
+  0%, 40% { transform: translateX(-120%) skewX(-20deg); }
+  100% { transform: translateX(320%) skewX(-20deg); }
 }
 
 .scratch-main {
@@ -2562,18 +2609,18 @@ button.casino-card:active {
 .scratch-name {
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: 1.3rem;
+  font-size: var(--fs-lg);
 }
 
 .scratch-price {
-  font-size: 0.8rem;
+  font-size: var(--fs-xs);
   font-weight: 700;
   opacity: 0.85;
 }
 
 .scratch-rules {
   margin: 6px 0 12px;
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
   font-weight: 800;
 }
 
@@ -2606,11 +2653,11 @@ button.casino-card:active {
 }
 
 .scratch-icon {
-  font-size: 1.9rem;
+  font-size: var(--fs-2xl);
 }
 
 .scratch-amount {
-  font-size: 1.05rem;
+  font-size: var(--fs-base);
   font-variant-numeric: tabular-nums;
 }
 
@@ -2703,14 +2750,14 @@ button.casino-card:active {
 }
 
 .sb-icon {
-  font-size: 1.4rem;
+  font-size: var(--fs-lg);
   line-height: 1.2;
 }
 
 .sb-amount {
   max-width: 100%;
   overflow: hidden;
-  font-size: 0.8rem;
+  font-size: var(--fs-xs);
   font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2770,7 +2817,7 @@ button.casino-card:active {
 
 .wheel-pointer {
   color: var(--gold);
-  font-size: 1.6rem;
+  font-size: var(--fs-xl);
   line-height: 1;
   margin-bottom: -10px;
   z-index: 1;
@@ -2830,7 +2877,7 @@ button.casino-card:active {
   height: 28px;
   border-radius: 50%;
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   color: #fff;
 }
 
@@ -2879,13 +2926,15 @@ button.casino-card:active {
   background: transparent;
   color: #fff;
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   cursor: pointer;
   padding: 0;
 }
 
-.rb-cell:hover {
-  box-shadow: inset 0 0 0 2px var(--gold);
+@media (hover: hover) {
+  .rb-cell:hover {
+    box-shadow: inset 0 0 0 2px var(--gold);
+  }
 }
 
 .rb-cell.winner {
@@ -2953,7 +3002,7 @@ button.casino-card:active {
   color: var(--gold);
   opacity: 0.8;
   margin: 18px 0;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   letter-spacing: 1px;
   text-transform: uppercase;
 }
@@ -2991,7 +3040,7 @@ button.casino-card:active {
 }
 
 .bj-hand-no {
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: rgba(255, 255, 255, 0.7);
   text-transform: uppercase;
@@ -3002,12 +3051,12 @@ button.casino-card:active {
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
 }
 
 .bj-value {
   font-weight: 800;
-  font-size: 1rem;
+  font-size: var(--fs-base);
 }
 
 .bj-result {
@@ -3028,7 +3077,7 @@ button.casino-card:active {
   border-radius: var(--radius);
   border: 1px solid currentColor;
   margin-bottom: 12px;
-  font-size: 1.05rem;
+  font-size: var(--fs-base);
 }
 
 .poker-tier p + p {
@@ -3044,7 +3093,7 @@ button.casino-card:active {
   flex-wrap: wrap;
   gap: 6px 16px;
   justify-content: center;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
   margin-bottom: 12px;
 }
@@ -3087,7 +3136,7 @@ button.casino-card:active {
   min-height: 1.3em;
   max-width: 70%;
   text-align: center;
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
 }
 
 .poker-seat {
@@ -3123,7 +3172,7 @@ button.casino-card:active {
   border-radius: 10px;
   padding: 10px 6px 4px;
   text-align: center;
-  font-size: 0.8rem;
+  font-size: var(--fs-xs);
 }
 
 .seat-name {
@@ -3139,7 +3188,7 @@ button.casino-card:active {
 
 .seat-status {
   color: var(--text-muted);
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3164,7 +3213,7 @@ button.casino-card:active {
   border-radius: 10px;
   background: var(--gold);
   color: #1d1400;
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   font-weight: 700;
 }
 
@@ -3229,7 +3278,7 @@ button.casino-card:active {
 .poker-log {
   flex: 1;
   min-width: 240px;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
 }
 
 .poker-log summary {
@@ -3487,7 +3536,7 @@ button.casino-card:active {
   background: rgba(0, 0, 0, 0.3);
   color: var(--text);
   font-family: ui-monospace, monospace;
-  font-size: 0.8rem;
+  font-size: var(--fs-xs);
   word-break: break-all;
 }
 
@@ -3530,7 +3579,7 @@ button.casino-card:active {
   background: linear-gradient(90deg, var(--gold-dark), var(--gold));
   color: #1d1400;
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   border-radius: 999px;
   padding: 3px 12px;
   position: relative;
@@ -3564,8 +3613,8 @@ button.casino-card:active {
 }
 
 .golden-coin span {
-  font-family: Georgia, serif;
-  font-size: 2rem;
+  font-family: var(--font-display);
+  font-size: var(--fs-2xl);
   font-weight: 900;
   color: #8a6508;
 }
@@ -3599,7 +3648,7 @@ button.casino-card:active {
   border: 1px solid var(--gold-dark);
   border-radius: 12px;
   padding: 10px 14px;
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
   cursor: pointer;
   animation: notify-in 0.3s ease-out;
   transition: opacity 0.4s, transform 0.4s;
@@ -3611,7 +3660,7 @@ button.casino-card:active {
 }
 
 .notify-icon {
-  font-size: 1.8rem;
+  font-size: var(--fs-2xl);
 }
 
 @keyframes notify-in {
@@ -3660,7 +3709,7 @@ button.casino-card:active {
 }
 
 .achievement-icon {
-  font-size: 2rem;
+  font-size: var(--fs-2xl);
 }
 
 .achievement-name {
@@ -3669,14 +3718,14 @@ button.casino-card:active {
 }
 
 .achievement-desc {
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
 }
 
 .footer {
   padding: 24px 20px 32px;
   text-align: center;
-  font-size: 0.8rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   border-top: 1px solid var(--border);
   margin-top: 32px;
@@ -3746,7 +3795,7 @@ button.casino-card:active {
 }
 
 .poker-mode-desc {
-  font-size: 0.78rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
 }
 
@@ -3778,7 +3827,7 @@ button.casino-card:active {
   border-radius: 10px;
   background: rgba(0, 0, 0, 0.25);
   color: var(--text);
-  font-size: 1.05rem;
+  font-size: var(--fs-base);
   font-weight: 800;
   cursor: pointer;
 }
@@ -3892,7 +3941,7 @@ button.casino-card:active {
 }
 
 .mp-tag {
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   color: var(--gold);
 }
 
@@ -3917,7 +3966,7 @@ button.casino-card:active {
 
 .turn-timer {
   min-height: 1.2em;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--text-muted);
 }
@@ -3941,7 +3990,7 @@ button.casino-card:active {
   position: fixed;
   z-index: 76;
   font-weight: 900;
-  font-size: 1.5rem;
+  font-size: var(--fs-xl);
   white-space: nowrap;
   pointer-events: none;
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.85);
@@ -3953,7 +4002,7 @@ button.casino-card:active {
 }
 
 .fx-float.big {
-  font-size: 2rem;
+  font-size: var(--fs-2xl);
 }
 
 @keyframes fx-float {
@@ -4104,14 +4153,14 @@ main.fx-shake-big {
 
 .win-sub {
   margin-top: 8px;
-  font-size: 1.2rem;
+  font-size: var(--fs-md);
   font-weight: 700;
   color: var(--gold-light);
 }
 
 .win-hint {
   margin-top: 18px;
-  font-size: 0.8rem;
+  font-size: var(--fs-xs);
   color: rgba(255, 255, 255, 0.6);
 }
 
@@ -4148,9 +4197,13 @@ body.reduced-effects .coin-stage::before,
 body.reduced-effects .btn.btn-primary::after,
 body.reduced-effects .casino-emoji,
 body.reduced-effects .logo-coin,
-body.reduced-effects .race-track,
+body.reduced-effects .race-track::before,
 body.reduced-effects .vs-cell.win,
-body.reduced-effects .vs-reel.anticipation,
+body.reduced-effects .vs-reel.anticipation::after,
+body.reduced-effects .vip-card.vip-5::after,
+body.reduced-effects .tw-rope.active::after,
+body.reduced-effects .mm-flag.seven::after,
+body.reduced-effects .c4-cell.win::before,
 body.reduced-effects .wheel-free.ready,
 body.reduced-effects .upgrade,
 body.reduced-effects .upgrade::before,
@@ -4302,7 +4355,7 @@ body.reduced-effects .golden-coin {
   background: rgba(0, 0, 0, 0.35);
   border: 1px solid var(--border);
   font-weight: 800;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
 }
 
 .wheel-paytable {
@@ -4425,7 +4478,7 @@ body.reduced-effects .golden-coin {
 
 .stock-emoji {
   grid-area: emoji;
-  font-size: 1.6rem;
+  font-size: var(--fs-xl);
 }
 
 .stock-name {
@@ -4454,7 +4507,7 @@ body.reduced-effects .golden-coin {
 
 .stock-change {
   grid-area: change;
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   text-align: right;
@@ -4499,11 +4552,11 @@ body.reduced-effects .golden-coin {
 .stock-title {
   margin: 0;
   color: var(--gold);
-  font-size: 1.15rem;
+  font-size: var(--fs-md);
 }
 
 .stock-big-price {
-  font-size: 1.7rem;
+  font-size: var(--fs-xl);
   font-weight: 900;
   font-variant-numeric: tabular-nums;
 }
@@ -4545,7 +4598,7 @@ body.reduced-effects .golden-coin {
   gap: 10px;
   padding: 6px 0;
   border-bottom: 1px solid var(--border-soft);
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
 }
 
 .stock-news li b {
@@ -4748,7 +4801,7 @@ body.reduced-effects .golden-coin {
 
 .race-name {
   font-weight: 800;
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
 }
 
 .race-mult {
@@ -4757,7 +4810,7 @@ body.reduced-effects .golden-coin {
 }
 
 .race-stake {
-  font-size: 0.8rem;
+  font-size: var(--fs-xs);
   color: var(--win);
   min-height: 1em;
 }
@@ -4767,11 +4820,21 @@ body.reduced-effects .golden-coin {
   height: 52px;
   border-radius: 10px;
   overflow: hidden;
-  background:
-    repeating-linear-gradient(90deg, transparent 0 26px, rgba(255, 255, 255, 0.07) 26px 30px),
-    linear-gradient(180deg, #1b6e8a, #13506a);
-  background-size: 60px 100%, 100% 100%;
+  background: linear-gradient(180deg, #1b6e8a, #13506a);
+}
+
+/* Wellen: eigene Ebene, die per transform genau ein Muster weit wandert */
+.race-track::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: -60px;
+  background: repeating-linear-gradient(90deg, transparent 0 26px, rgba(255, 255, 255, 0.07) 26px 30px);
+  background-size: 60px 100%;
   animation: waves 1.6s linear infinite;
+  pointer-events: none;
 }
 
 /* Ziellinie */
@@ -4787,7 +4850,7 @@ body.reduced-effects .golden-coin {
 }
 
 @keyframes waves {
-  to { background-position: -60px 0, 0 0; }
+  to { transform: translateX(-60px); }
 }
 
 .race-ship {
@@ -4795,7 +4858,7 @@ body.reduced-effects .golden-coin {
   left: 0;
   top: 50%;
   margin-top: -22px;
-  font-size: 2.2rem;
+  font-size: var(--fs-2xl);
   line-height: 44px;
   will-change: transform;
 }
@@ -4816,7 +4879,7 @@ body.reduced-effects .golden-coin {
   right: 22px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 1.5rem;
+  font-size: var(--fs-xl);
   font-weight: 900;
 }
 
@@ -4879,7 +4942,7 @@ body.reduced-effects .golden-coin {
 .vs-title {
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: 1.3rem;
+  font-size: var(--fs-lg);
   color: var(--vs-frame);
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
 }
@@ -4918,11 +4981,24 @@ body.reduced-effects .golden-coin {
 
 .vs-reel.anticipation {
   box-shadow: 0 0 0 3px var(--gold-light), 0 0 26px var(--gold);
-  animation: anticipation 0.35s ease-in-out infinite alternate;
 }
 
-@keyframes anticipation {
-  to { box-shadow: 0 0 0 3px #fff, 0 0 40px var(--gold); }
+/* Spannung: heller Rahmen blinkt über der Walze – nur opacity */
+.vs-reel.anticipation::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 3px #fff, inset 0 0 24px rgba(255, 229, 138, 0.8);
+  opacity: 0;
+  animation: glow-fade 0.35s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+/* Gemeinsames Leuchten: ein Schatten auf eigener Ebene wird nur ein- und ausgeblendet */
+@keyframes glow-fade {
+  to { opacity: 1; }
 }
 
 .vs-strip {
@@ -5081,7 +5157,7 @@ body.reduced-effects .golden-coin {
 }
 
 .vs-chest b {
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
   color: #2a1d00;
 }
 
@@ -5123,7 +5199,7 @@ body.reduced-effects .golden-coin {
   align-items: center;
   gap: 8px;
   margin: 3px 0;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
 }
 
 .vs-pay-row b {
@@ -5139,11 +5215,11 @@ body.reduced-effects .golden-coin {
   vertical-align: middle;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.85);
-  font-size: 1.3rem;
+  font-size: var(--fs-lg);
 }
 
 .vs-cell.mini .vs-letter {
-  font-size: 1.3rem;
+  font-size: var(--fs-lg);
 }
 
 .vs-cell.mini .vs-label {
@@ -5262,11 +5338,11 @@ body.reduced-effects .golden-coin {
 
 .dice-name {
   font-weight: 800;
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
 }
 
 .dice-status {
-  font-size: 0.8rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   min-height: 1.2em;
 }
@@ -5286,12 +5362,12 @@ body.reduced-effects .golden-coin {
 }
 
 .dice-cup {
-  font-size: 1.8rem;
+  font-size: var(--fs-2xl);
 }
 
 .dice-count {
   font-weight: 900;
-  font-size: 1.2rem;
+  font-size: var(--fs-md);
   color: var(--gold-light);
 }
 
@@ -5357,7 +5433,7 @@ body.reduced-effects .golden-coin {
 }
 
 .dice-bid {
-  font-size: 1.25rem;
+  font-size: var(--fs-lg);
   font-weight: 800;
 }
 
@@ -5402,14 +5478,14 @@ body.reduced-effects .golden-coin {
 .dice-qty .btn {
   min-width: 48px;
   min-height: 48px;
-  font-size: 1.4rem;
+  font-size: var(--fs-lg);
   font-weight: 900;
 }
 
 .dice-q {
   min-width: 56px;
   text-align: center;
-  font-size: 1.6rem;
+  font-size: var(--fs-xl);
   font-weight: 900;
 }
 
@@ -5451,7 +5527,7 @@ body.reduced-effects .golden-coin {
 }
 
 .golf-head {
-  font-size: 1.05rem;
+  font-size: var(--fs-base);
   color: var(--gold-light);
 }
 
@@ -5511,7 +5587,7 @@ body.reduced-effects .golden-coin {
 
 .golf-table {
   border-collapse: collapse;
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
   background: rgba(0, 0, 0, 0.25);
   border-radius: 12px;
   overflow: hidden;
@@ -5535,7 +5611,7 @@ body.reduced-effects .golden-coin {
 
 .golf-table tr.par td {
   color: var(--text-muted);
-  font-size: 0.8rem;
+  font-size: var(--fs-xs);
 }
 
 .golf-table tr.turn td {
@@ -5602,7 +5678,7 @@ body.reduced-effects .golden-coin {
 }
 
 .pool-group {
-  font-size: 0.8rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
 }
 
@@ -5614,7 +5690,7 @@ body.reduced-effects .golden-coin {
   gap: 3px;
   min-height: 24px;
   margin-top: 4px;
-  font-size: 0.8rem;
+  font-size: var(--fs-xs);
 }
 
 .pool-vs {
@@ -5716,7 +5792,7 @@ body.reduced-effects .golden-coin {
 
 .fh-label {
   display: block;
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -5724,7 +5800,7 @@ body.reduced-effects .golden-coin {
 
 .fh-stat b,
 .fh-money b {
-  font-size: 1.2rem;
+  font-size: var(--fs-md);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -5770,7 +5846,7 @@ body.reduced-effects .golden-coin {
 }
 
 .fh-icon {
-  font-size: 1.4rem;
+  font-size: var(--fs-lg);
   line-height: 1.1;
 }
 
@@ -5863,12 +5939,12 @@ body.reduced-effects .golden-coin {
 .chicken-hud .fh-stat b {
   display: block;
   overflow: hidden;
-  font-size: 1.05rem;
+  font-size: var(--fs-base);
   text-overflow: ellipsis;
 }
 
 .chicken-hud .fh-stat b.small-value {
-  font-size: 0.92rem;
+  font-size: var(--fs-sm);
 }
 
 .cr-progress-wrap {
@@ -5902,7 +5978,7 @@ body.reduced-effects .golden-coin {
 }
 
 .cr-safe {
-  font-size: 0.95rem;
+  font-size: var(--fs-base);
   font-style: normal;
   opacity: 0.4;
 }
@@ -5913,7 +5989,7 @@ body.reduced-effects .golden-coin {
 
 .cr-progress-text {
   margin-top: 4px;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   text-align: center;
   color: var(--text-muted);
 }
@@ -5969,7 +6045,7 @@ body.reduced-effects .golden-coin {
 }
 
 .hilo-step i {
-  font-size: 0.8rem;
+  font-size: var(--fs-xs);
   font-style: normal;
   color: var(--gold-light);
 }
@@ -5988,7 +6064,7 @@ body.reduced-effects .golden-coin {
 .card.hilo-big .card-corner {
   top: 8px;
   left: 10px;
-  font-size: 1.3rem;
+  font-size: var(--fs-lg);
 }
 
 .card.hilo-big .card-suit {
@@ -6019,11 +6095,11 @@ body.reduced-effects .golden-coin {
   align-items: center;
   justify-content: center;
   min-height: 66px;
-  font-size: 1rem;
+  font-size: var(--fs-base);
 }
 
 .hilo-choices .btn small {
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
   opacity: 0.85;
 }
 
@@ -6078,7 +6154,7 @@ body.reduced-effects .golden-coin {
 }
 
 .tw-mult {
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   font-weight: 800;
   text-align: right;
   color: #12324a;
@@ -6086,7 +6162,7 @@ body.reduced-effects .golden-coin {
 
 .tw-level.current .tw-mult {
   color: #8a5a00;
-  font-size: 0.95rem;
+  font-size: var(--fs-base);
 }
 
 .tw-ropes {
@@ -6100,7 +6176,7 @@ body.reduced-effects .golden-coin {
   border: 2px solid rgba(90, 60, 30, 0.45);
   border-radius: 12px;
   background: rgba(255, 248, 230, 0.85);
-  font-size: 1.4rem;
+  font-size: var(--fs-lg);
   cursor: pointer;
   touch-action: manipulation;
 }
@@ -6110,10 +6186,21 @@ body.reduced-effects .golden-coin {
 }
 
 .tw-rope.active {
+  position: relative;
   border-color: var(--gold);
   background: #fff3c4;
   box-shadow: 0 0 10px rgba(245, 197, 66, 0.6);
+}
+
+.tw-rope.active::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  box-shadow: 0 0 18px rgba(245, 197, 66, 0.9);
+  opacity: 0;
   animation: tw-pulse 1.4s ease-in-out infinite;
+  pointer-events: none;
 }
 
 .tw-rope.held {
@@ -6136,7 +6223,7 @@ body.reduced-effects .golden-coin {
 }
 
 @keyframes tw-pulse {
-  50% { box-shadow: 0 0 18px rgba(245, 197, 66, 0.9); }
+  50% { opacity: 1; }
 }
 
 @keyframes tw-snap {
@@ -6188,7 +6275,7 @@ body.reduced-effects .golden-coin {
   top: 4px;
   left: 0;
   right: 0;
-  font-size: 0.8rem;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-align: center;
   color: #fff;
@@ -6202,7 +6289,7 @@ body.reduced-effects .golden-coin {
   align-items: center;
   justify-content: center;
   padding-top: 12px;
-  font-size: 1.4rem;
+  font-size: var(--fs-lg);
 }
 
 .kn-cell.picked {
@@ -6326,7 +6413,7 @@ body.reduced-effects .golden-coin {
 
 .bac-rules {
   grid-column: 1 / -1;
-  font-size: 0.8rem;
+  font-size: var(--fs-xs);
   letter-spacing: 1px;
   text-align: center;
   text-transform: uppercase;
@@ -6374,12 +6461,12 @@ body.reduced-effects .golden-coin {
   justify-content: center;
   min-height: 70px;
   border-width: 3px;
-  font-size: 1.05rem;
+  font-size: var(--fs-base);
   font-weight: 800;
 }
 
 .bac-choice small {
-  font-size: 0.8rem;
+  font-size: var(--fs-xs);
   font-weight: 600;
   opacity: 0.8;
 }
@@ -6510,7 +6597,7 @@ body.reduced-effects .golden-coin {
 .kf-sheet {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
 }
 
 .kf-sheet th,
@@ -6534,7 +6621,7 @@ body.reduced-effects .golden-coin {
 }
 
 .kf-sheet thead th {
-  font-size: 0.8rem;
+  font-size: var(--fs-xs);
   vertical-align: bottom;
 }
 
@@ -6586,7 +6673,7 @@ body.reduced-effects .golden-coin {
 
 .kf-sum.total th,
 .kf-sum.total td {
-  font-size: 1rem;
+  font-size: var(--fs-base);
   color: var(--gold-light);
 }
 
@@ -6657,7 +6744,7 @@ body.reduced-effects .golden-coin {
 }
 
 .mm-count {
-  font-size: 0.8rem;
+  font-size: var(--fs-xs);
   color: rgba(255, 255, 255, 0.8);
 }
 
@@ -6685,7 +6772,7 @@ body.reduced-effects .golden-coin {
   padding: 2px 8px;
   border-radius: 10px;
   background: rgba(0, 0, 0, 0.65);
-  font-size: 0.8rem;
+  font-size: var(--fs-xs);
   font-weight: 800;
 }
 
@@ -6697,7 +6784,7 @@ body.reduced-effects .golden-coin {
 }
 
 .card.mm-big .card-corner {
-  font-size: 1.05rem;
+  font-size: var(--fs-base);
 }
 
 .card.mm-big .card-suit {
@@ -6738,13 +6825,20 @@ body.reduced-effects .golden-coin {
 }
 
 .mm-flag.seven {
+  position: relative;
   background: #c62828;
   color: #fff;
-  animation: mm-blink 1s ease-in-out infinite alternate;
 }
 
-@keyframes mm-blink {
-  to { box-shadow: 0 0 16px rgba(255, 90, 60, 0.9); }
+.mm-flag.seven::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 16px rgba(255, 90, 60, 0.9);
+  opacity: 0;
+  animation: glow-fade 1s ease-in-out infinite alternate;
+  pointer-events: none;
 }
 
 .mm-status {
@@ -6755,7 +6849,7 @@ body.reduced-effects .golden-coin {
 
 .mm-hand-label {
   margin-bottom: 6px;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   text-align: center;
   color: rgba(255, 255, 255, 0.8);
 }
@@ -6783,11 +6877,11 @@ body.reduced-effects .golden-coin {
 }
 
 .mm-hand-card .card-corner {
-  font-size: 0.95rem;
+  font-size: var(--fs-base);
 }
 
 .mm-hand-card .card-suit {
-  font-size: 2.2rem;
+  font-size: var(--fs-2xl);
 }
 
 .mm-hand.myturn .mm-hand-card:not(.mm-play) .card {
@@ -6823,7 +6917,7 @@ body.reduced-effects .golden-coin {
 
 .mm-wish {
   min-height: 52px;
-  font-size: 1.05rem;
+  font-size: var(--fs-base);
   font-weight: 800;
 }
 
@@ -6939,12 +7033,20 @@ body.reduced-effects .golden-coin {
 }
 
 .c4-cell.win::after {
-  animation: c4-win 0.8s ease-in-out infinite alternate;
+  box-shadow: 0 0 0 2px #fff, 0 0 10px rgba(255, 255, 255, 0.6);
 }
 
-@keyframes c4-win {
-  from { box-shadow: 0 0 0 2px #fff, 0 0 10px rgba(255, 255, 255, 0.6); }
-  to   { box-shadow: 0 0 0 4px #ffd95e, 0 0 24px rgba(255, 217, 94, 0.95); }
+/* Gewinnreihe: goldener Ring auf eigener Ebene blendet ein und aus */
+.c4-cell.win::before {
+  content: '';
+  position: absolute;
+  inset: 6%;
+  z-index: 1;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px #ffd95e, 0 0 24px rgba(255, 217, 94, 0.95);
+  opacity: 0;
+  animation: glow-fade 0.8s ease-in-out infinite alternate;
+  pointer-events: none;
 }
 
 .c4-hint {
@@ -7216,13 +7318,13 @@ body.reduced-effects .golden-coin {
 
 .darts-last {
   color: var(--text-muted);
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
 }
 
 .darts-total {
   min-width: 48px;
   text-align: right;
-  font-size: 1.25rem;
+  font-size: var(--fs-lg);
   color: var(--gold-light);
 }
 
@@ -7338,7 +7440,7 @@ body.reduced-effects .golden-coin {
   .building-icon {
     width: 44px;
     height: 44px;
-    font-size: 1.7rem;
+    font-size: var(--fs-xl);
   }
 
   .tab {
@@ -7415,7 +7517,7 @@ body.reduced-effects .golden-coin {
   }
 
   .rb-cell {
-    font-size: 0.95rem;
+    font-size: var(--fs-base);
   }
 
   .raise-slider {
@@ -7707,11 +7809,13 @@ body.reduced-effects .golden-coin {
 
 /* Kristallmünze: der Buchstabe funkelt */
 .coin-skin-crystal .big-coin-inner {
+  text-shadow: 0 0 16px #ffffff, 0 0 30px #5ad8ff, 0 2px 0 rgba(30, 120, 160, 0.6);
   animation: crystal-glint 2.6s ease-in-out infinite;
 }
 
+/* Funkeln über opacity: der Schein liegt fest, nur die Deckkraft schwankt leicht */
 @keyframes crystal-glint {
-  50% { text-shadow: 0 0 22px #ffffff, 0 0 40px #5ad8ff, 0 2px 0 rgba(30, 120, 160, 0.6); }
+  50% { opacity: 0.82; }
 }
 
 /* Kleine Münze in der Schatzkammer */
@@ -7726,8 +7830,8 @@ body.reduced-effects .golden-coin {
   box-shadow: 0 0 0 3px var(--coin-rim), 0 0 0 5px var(--coin-rim-2), 0 0 16px var(--coin-glow);
   color: var(--coin-letter);
   text-shadow: var(--coin-letter-shadow);
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 1.9rem;
+  font-family: var(--font-display);
+  font-size: var(--fs-2xl);
   font-weight: 900;
   line-height: 1;
 }
@@ -8003,7 +8107,7 @@ body.reduced-effects .coin-skin-crystal .big-coin-inner {
 }
 
 .cos-rarity {
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   font-weight: 800;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -8012,7 +8116,7 @@ body.reduced-effects .coin-skin-crystal .big-coin-inner {
 
 .cos-desc {
   flex: 1;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
 }
 
@@ -8021,7 +8125,7 @@ body.reduced-effects .coin-skin-crystal .big-coin-inner {
 }
 
 .cos-price {
-  font-size: 0.8rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
 }
 
@@ -8066,7 +8170,7 @@ body.reduced-effects .coin-skin-crystal .big-coin-inner {
   z-index: 1;
   margin-bottom: -12px;
   color: var(--gold);
-  font-size: 2rem;
+  font-size: var(--fs-2xl);
   line-height: 1;
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
 }
@@ -8094,7 +8198,7 @@ body.reduced-effects .coin-skin-crystal .big-coin-inner {
 
 .cos-seg-icon {
   margin-top: 14%;
-  font-size: 1.9rem;
+  font-size: var(--fs-2xl);
   line-height: 1;
 }
 
@@ -8111,7 +8215,7 @@ body.reduced-effects .coin-skin-crystal .big-coin-inner {
   border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, #fff3b0 0%, var(--gold) 40%, var(--gold-dark) 100%);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-  font-size: 1.8rem;
+  font-size: var(--fs-2xl);
 }
 
 .cos-legend {
@@ -8129,7 +8233,7 @@ body.reduced-effects .coin-skin-crystal .big-coin-inner {
   border-radius: 99px;
   border: 1px solid var(--cos);
   background: rgba(0, 0, 0, 0.25);
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
 }
 
 .cos-legend small {
@@ -8331,7 +8435,7 @@ body.reduced-effects .coin-skin-crystal .big-coin-inner {
 
 .fig-tag {
   margin-bottom: 8px;
-  font-size: 1.1rem;
+  font-size: var(--fs-md);
   font-weight: 700;
 }
 
@@ -8411,7 +8515,7 @@ body.reduced-effects .coin-skin-crystal .big-coin-inner {
   top: 18px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 1.3rem;
+  font-size: var(--fs-lg);
 }
 
 .fig-color {
@@ -8476,28 +8580,50 @@ body.reduced-effects .coin-skin-crystal .big-coin-inner {
   --nt: #5ff0dc;
   --nt-bg: linear-gradient(90deg, rgba(0, 90, 100, 0.55), rgba(20, 40, 90, 0.55));
   --nt-glow: rgba(79, 209, 197, 0.45);
-  animation: kraken-glow 2.4s ease-in-out infinite alternate;
+  position: relative;
 }
 
-@keyframes kraken-glow {
-  to { box-shadow: 0 0 16px rgba(79, 209, 197, 0.85); }
+.nt-kraken::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  box-shadow: 0 0 16px rgba(79, 209, 197, 0.85);
+  opacity: 0;
+  animation: glow-fade 2.4s ease-in-out infinite alternate;
+  pointer-events: none;
 }
 
 .nt-admiral {
   --nt: #ffe58a;
   --nt-glow: rgba(245, 197, 66, 0.6);
   border-color: #f5c542;
-  background: linear-gradient(110deg, rgba(110, 72, 0, 0.6) 30%, rgba(255, 229, 138, 0.55) 50%, rgba(110, 72, 0, 0.6) 70%) 0 0 / 250% 100%;
+  position: relative;
+  overflow: hidden;
+  background: rgba(110, 72, 0, 0.6);
+}
+
+/* Glanzstreifen über dem Admirals-Schild – nur transform */
+.nt-admiral::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 50%;
+  background: linear-gradient(110deg, transparent, rgba(255, 229, 138, 0.55), transparent);
+  transform: translateX(-110%);
   animation: admiral-shine 3.2s linear infinite;
+  pointer-events: none;
 }
 
 @keyframes admiral-shine {
-  from { background-position: 125% 0; }
-  to { background-position: -125% 0; }
+  from { transform: translateX(-110%); }
+  to { transform: translateX(310%); }
 }
 
-body.reduced-effects .nt-kraken,
-body.reduced-effects .nt-admiral {
+body.reduced-effects .nt-kraken::after,
+body.reduced-effects .nt-admiral::after {
   animation: none;
 }
 
@@ -8549,7 +8675,7 @@ body.reduced-effects .nt-admiral {
 
 .rank-name {
   font-family: var(--font-display);
-  font-size: 1.3rem;
+  font-size: var(--fs-lg);
   color: var(--gold-light);
 }
 
@@ -8579,7 +8705,7 @@ body.reduced-effects .nt-admiral {
   border-radius: 999px;
   border: 1px solid var(--border);
   background: rgba(0, 0, 0, 0.2);
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
 }
 
 .rank-reward.done {
@@ -8666,12 +8792,12 @@ body.reduced-effects .nt-admiral {
 
 .fleet-name {
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: var(--fs-md);
 }
 
 .fleet-level {
   margin-left: 6px;
-  font-size: 0.8rem;
+  font-size: var(--fs-xs);
   color: var(--gold-light);
 }
 
@@ -8718,17 +8844,17 @@ body.reduced-effects .nt-admiral {
 
 .fd-icon {
   grid-row: span 2;
-  font-size: 1.4rem;
+  font-size: var(--fs-lg);
 }
 
 .fd-name {
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
   overflow-wrap: anywhere;
 }
 
 .fd-meta {
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
 }
 
@@ -8808,16 +8934,16 @@ body.reduced-effects .nt-admiral {
 
 .ft-icon {
   grid-row: span 2;
-  font-size: 1.5rem;
+  font-size: var(--fs-xl);
 }
 
 .ft-name {
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
 }
 
 .ft-eff {
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   color: var(--win);
 }
 
@@ -8895,7 +9021,7 @@ body.reduced-effects .nt-admiral {
 
 .boss-title {
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: var(--fs-md);
 }
 
 .boss-big {
@@ -8905,7 +9031,7 @@ body.reduced-effects .nt-admiral {
   border-radius: 999px;
   background: var(--red);
   color: #fff;
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   vertical-align: middle;
 }
 
@@ -8999,7 +9125,7 @@ body.reduced-effects .nt-admiral {
 
 .fx-float.boss-dmg {
   color: #ff8a80;
-  font-size: 1.3rem;
+  font-size: var(--fs-lg);
 }
 
 .fx-float.boss-dmg.cannon {
@@ -9070,7 +9196,7 @@ body.reduced-effects .nt-admiral {
 }
 
 .sw-target {
-  font-size: 1.05rem;
+  font-size: var(--fs-base);
   color: var(--gold-light);
 }
 
@@ -9083,7 +9209,7 @@ body.reduced-effects .nt-admiral {
 }
 
 .sw-status {
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
 }
 
 .sw-diff {
@@ -9106,7 +9232,7 @@ body.reduced-effects .nt-admiral {
   padding: 6px 12px;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.05);
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
 }
 
 .sw-best {
@@ -9121,4 +9247,1127 @@ body.reduced-effects .nt-admiral {
   .sw-face {
     width: min(100%, 300px);
   }
+}
+
+/* =====================================================================
+   Feinschliff: Grundgerüst, Schrift, Zustände, Tippflächen, Fokus, Bewegung
+   (steht bewusst am Ende, damit es ältere Regeln gezielt überschreibt)
+   ===================================================================== */
+
+/* ---------- Browser-Oberflächen im Spiel-Look ---------- */
+:root {
+  accent-color: var(--gold);
+  scrollbar-color: var(--border) var(--bg);
+}
+
+::selection {
+  background: rgba(245, 197, 66, 0.4);
+  color: #fff;
+}
+
+input,
+textarea,
+select {
+  caret-color: var(--gold);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
+a {
+  text-underline-offset: 3px;
+}
+
+/* ---------- Grundgerüst: Fußzeile immer unten, Hauptteil füllt die Höhe ---------- */
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  font-variant-numeric: tabular-nums;
+}
+
+main {
+  flex: 1 0 auto;
+  width: 100%;
+}
+
+.footer {
+  margin-top: var(--space-6);
+  line-height: 1.9;
+}
+
+/* Fußzeilen-Links: Tippfläche 44 px hoch, ohne die Zeilen auseinanderzuziehen */
+.footer a {
+  display: inline-block;
+  padding: 12px 4px;
+  margin: -12px -4px;
+}
+
+/* Lesbare Zeilenlänge für Erklärtexte */
+p {
+  line-height: 1.5;
+}
+
+.tab-panel > p,
+.panel > p,
+.fleet-head > p {
+  max-width: 70ch;
+}
+
+/* Hilfstexte nicht fett (auch wenn das Label darüber fett ist) */
+.muted {
+  font-weight: 400;
+}
+
+/* ---------- Gleichmäßiger Rhythmus der Überschriften und Kästen ---------- */
+.panel,
+.shop-section,
+.casino-info-box {
+  padding: var(--space-5);
+}
+
+.section-gap {
+  margin-top: var(--space-6);
+}
+
+/* Überschriften außerhalb von Kästen stehen auf derselben Linie wie die in Kästen */
+.tab-panel > h2,
+#casino-lobby > h2 {
+  margin-bottom: var(--space-3);
+}
+
+.tab-panel > h2 + .muted,
+#casino-lobby > h2 + .muted {
+  margin-top: 0;
+}
+
+.casino-info-box h3 {
+  font-size: var(--fs-base);
+}
+
+/* Statistik: volle Breite, quer zwei Spalten-Paare */
+#tab-stats > .stats-list {
+  max-width: none;
+  column-gap: var(--space-5);
+}
+
+@media (min-width: 901px) {
+  #tab-stats > .stats-list {
+    grid-template-columns: max-content minmax(0, 1fr) max-content minmax(0, 1fr);
+    column-gap: var(--space-6);
+  }
+}
+
+/* ---------- Casino-Lobby: gleichmäßige Kacheln, Symbol und Titel auf einer Linie ---------- */
+.casino-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 172px), 1fr));
+}
+
+button.casino-card,
+.casino-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--space-1);
+  padding: var(--space-5) var(--space-4);
+}
+
+.casino-card .casino-emoji {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 4rem;
+}
+
+.casino-card h3 {
+  margin: var(--space-2) 0 var(--space-1);
+  font-size: var(--fs-md);
+}
+
+.casino-card p {
+  font-size: var(--fs-sm);
+  line-height: 1.4;
+}
+
+/* Gesperrte Spiele: Text bleibt lesbar, nur das Bild wird grau */
+.casino-card.locked {
+  opacity: 1;
+  border-style: dashed;
+}
+
+.casino-card.locked .casino-emoji {
+  filter: grayscale(1);
+  opacity: 0.5;
+}
+
+/* ---------- Tägliche Aufgaben: „Offen“ ist ein Status, kein Knopf ---------- */
+.daily-task:not(.done) .daily-claim,
+.daily-task.claimed .daily-claim {
+  grid-column: 2;
+  justify-self: start;
+  min-height: 0;
+  padding: 3px 12px;
+  border: 1px solid var(--disabled-border);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.25);
+  box-shadow: none;
+  color: var(--disabled-text);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: default;
+}
+
+.daily-task:not(.done) .daily-claim::after,
+.daily-task.claimed .daily-claim::after {
+  display: none;
+}
+
+.daily-task.claimed .daily-claim {
+  border-color: rgba(111, 220, 140, 0.45);
+  color: var(--win);
+}
+
+/* Abgeholte Aufgaben ohne Transparenz absetzen (Text bleibt lesbar) */
+.daily-task.claimed {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.18);
+  border-style: dashed;
+}
+
+.daily-task.claimed .daily-icon {
+  filter: grayscale(0.7);
+  opacity: 0.7;
+}
+
+/* ---------- Upgrades: kompakter Leerzustand ---------- */
+.upgrade-list:empty {
+  display: none;
+}
+
+#upgrade-empty {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  font-size: var(--fs-sm);
+}
+
+/* ---------- Gesperrt/deaktiviert: echte Zustände statt Transparenz ---------- */
+.btn:disabled,
+.btn.btn-primary:disabled,
+.btn.btn-danger:disabled {
+  opacity: 1;
+  border-color: var(--disabled-border);
+  background: var(--disabled-bg);
+  box-shadow: none;
+  color: var(--disabled-text);
+  filter: none;
+  cursor: not-allowed;
+}
+
+.btn:disabled > *:not(.money):not(.dublone) {
+  opacity: 0.85;
+}
+
+/* Gebäude/Upgrades, die man sich noch nicht leisten kann: nur das Bild wird grau */
+.upgrade:disabled,
+.building:disabled {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.18);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.upgrade:disabled .upgrade-icon,
+.building:disabled .building-icon {
+  filter: grayscale(1);
+  opacity: 0.5;
+}
+
+.upgrade:disabled .upgrade-cost,
+.building:disabled .building-cost {
+  color: var(--text-muted);
+}
+
+.achievement.locked {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.2);
+  border-style: dashed;
+}
+
+.achievement.locked .achievement-icon {
+  filter: grayscale(1);
+  opacity: 0.45;
+}
+
+.achievement.locked .achievement-name {
+  color: var(--text-muted);
+}
+
+/* Sound aus: gestrichelter Rand, graues Symbol – nicht bloß blasser */
+.icon-btn.off {
+  opacity: 1;
+  border-style: dashed;
+  border-color: var(--disabled-border);
+  background: transparent;
+  color: var(--text-muted);
+  filter: grayscale(1);
+}
+
+/* Hinweis „nicht genug Dublonen“: auf dem roten Automaten hell und klar abgesetzt */
+.slot-machine .bet-warning,
+.side-slot .bet-warning {
+  display: inline-block;
+  padding: 1px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.5);
+  color: var(--cream);
+}
+
+.slot-machine .bet-limit {
+  color: rgba(255, 243, 214, 0.8);
+}
+
+/* ---------- Tippflächen: mindestens 44 × 44 px ---------- */
+.btn,
+.btn-small,
+.amount-btn,
+.bet-input {
+  min-height: 44px;
+}
+
+.btn-small,
+.amount-btn {
+  min-width: 44px;
+}
+
+.btn-small {
+  padding: 6px 12px;
+}
+
+/* Native Kästchen (Auto-Abkassieren, Plätze auffüllen): groß, golden, ganze Zeile tippbar */
+input[type="checkbox"]:not(.switch) {
+  -webkit-appearance: none;
+  appearance: none;
+  display: inline-grid;
+  place-content: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  margin: 0 6px 0 0;
+  vertical-align: middle;
+  border: 2px solid rgba(245, 197, 66, 0.7);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+input[type="checkbox"]:not(.switch)::before {
+  content: '';
+  width: 12px;
+  height: 7px;
+  border-left: 3px solid var(--ink-on-gold);
+  border-bottom: 3px solid var(--ink-on-gold);
+  transform: translateY(-2px) rotate(-45deg);
+  opacity: 0;
+}
+
+input[type="checkbox"]:not(.switch):checked {
+  border-color: var(--gold-light);
+  background: var(--gold-grad);
+}
+
+input[type="checkbox"]:not(.switch):checked::before {
+  opacity: 1;
+}
+
+.crash-auto,
+.mp-check {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.crash-auto input[type="checkbox"],
+.mp-check input[type="checkbox"] {
+  margin: 0;
+}
+
+/* ---------- Tastatur-Fokus: goldener Ring überall ---------- */
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.bet-input:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.tab:focus-visible,
+.btn:focus-visible,
+.casino-card:focus-visible {
+  outline-offset: 3px;
+}
+
+/* ---------- Gedrückt: goldene Knöpfe geben sichtbar nach ---------- */
+.btn.btn-primary:active:not(:disabled) {
+  transform: translateY(2px) scale(0.98);
+  box-shadow: 0 1px 0 #7a5806;
+  filter: brightness(0.94);
+}
+
+.amount-btn:active,
+.tab:active {
+  filter: brightness(0.92);
+}
+
+/* ---------- iPad quer: Kopfzeile in einer Reihe (mehr Platz für die Spiele) ---------- */
+@media (min-width: 901px) and (max-height: 860px) {
+  .app-header {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    column-gap: var(--space-3);
+    padding: calc(env(safe-area-inset-top) + 6px) max(16px, env(safe-area-inset-right)) 6px max(16px, env(safe-area-inset-left));
+  }
+
+  .topbar {
+    display: contents;
+  }
+
+  .logo {
+    grid-column: 1;
+    grid-row: 1;
+    flex: none;
+  }
+
+  .logo-text {
+    display: none;
+  }
+
+  .tabs {
+    grid-column: 2;
+    grid-row: 1;
+    gap: 6px;
+    padding: 0;
+  }
+
+  .tab {
+    gap: 6px;
+    padding: 6px 14px;
+  }
+
+  #sound-toggle {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .wallet {
+    position: relative;
+    grid-column: 4;
+    grid-row: 1;
+  }
+
+  .wallet-money {
+    font-size: var(--fs-xl);
+    line-height: 1.1;
+  }
+
+  .wallet-cps {
+    font-size: var(--fs-xs);
+    white-space: nowrap;
+  }
+
+  /* „gespeichert“ legt sich kurz über die Zeile „pro Sekunde“ – bleibt so in der Kopfzeile */
+  .save-indicator {
+    position: absolute;
+    bottom: -2px;
+    right: 0;
+    padding: 2px 0 2px 8px;
+    border-radius: 999px;
+    background: var(--header-bg);
+    white-space: nowrap;
+  }
+
+  /* Solange „gespeichert“ zu sehen ist, die Zeile darunter ausblenden */
+  .wallet-cps {
+    transition: opacity 0.3s;
+  }
+
+  .wallet:has(.save-indicator.show) .wallet-cps {
+    opacity: 0;
+  }
+
+  .buff-bar {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    padding: 0;
+  }
+
+  main {
+    padding-top: var(--space-4);
+  }
+}
+
+/* Breite Bildschirme quer: Platz für den Schriftzug */
+@media (min-width: 1240px) and (max-height: 860px) {
+  .logo-text {
+    display: inline;
+  }
+}
+
+/* ---------- Weniger Bewegung (System-Einstellung oder „Reduziert“ im Spiel) ----------
+   Dauerschleifen laufen nur einmal statt endlos. Kurze Effekte (Glücksrad, Walzen, Münzwurf)
+   bleiben, damit die Spiele funktionieren; das Wackeln endet sofort, damit fx.pulse die Klasse
+   über animationend wieder entfernen kann. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+
+  main.fx-shake,
+  main.fx-shake-big {
+    animation-duration: 1ms !important;
+  }
+
+  .tab-panel.active {
+    animation: none;
+  }
+}
+
+body.reduced-effects *,
+body.reduced-effects *::before,
+body.reduced-effects *::after {
+  animation-iteration-count: 1 !important;
+}
+
+/* Kein doppelter Abstand am unteren Rand der Kästen */
+.panel > :last-child,
+.shop-section > :last-child,
+.casino-info-box > :last-child {
+  margin-bottom: 0;
+}
+
+#rank-panel p,
+.daily-bonus-text {
+  max-width: 70ch;
+}
+
+/* Erklärtexte in den Spielen: lesbare Zeilenlänge */
+#casino-games p.muted {
+  max-width: 70ch;
+  margin-inline: auto;
+}
+
+/* =====================================================================
+   Feinschliff 2: Meldungen, Einsatzzeilen, Überschriften, Tippflächen, Bewegung
+   ===================================================================== */
+
+/* ---------- Meldungen: Erfolge oben rechts unter der Kopfzeile, kurze Hinweise unten mittig ----------
+   So liegen Toast und Meldungs-Karten nie übereinander – hoch wie quer. */
+.notify-stack {
+  top: calc(var(--header-height) + var(--space-3));
+  right: max(var(--space-4), env(safe-area-inset-right));
+  bottom: auto;
+  max-width: min(360px, calc(100vw - 32px));
+}
+
+.notify {
+  border-color: rgba(245, 197, 66, 0.55);
+  background: var(--bg-panel);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.35);
+  color: var(--text);
+  line-height: 1.35;
+}
+
+.toast {
+  bottom: calc(var(--space-5) + env(safe-area-inset-bottom));
+  background: var(--bg-panel);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.35);
+  text-align: center;
+}
+
+/* Während ein Spiel offen ist: nur die neueste Meldung, klein, an einer Stelle ohne Bedienelemente:
+   iPad hochkant über dem Schriftzug, iPad quer in der Titelzeile des Spiels, sonst unten rechts. */
+body:has(#tab-casino.active #casino-lobby[hidden]) .notify:not(:last-child) {
+  display: none;
+}
+
+body:has(#tab-casino.active #casino-lobby[hidden]) .notify-stack {
+  top: auto;
+  right: max(var(--space-3), env(safe-area-inset-right));
+  bottom: calc(var(--space-3) + env(safe-area-inset-bottom));
+  max-width: min(280px, calc(100vw - 32px));
+  transition: transform 0.2s ease-out;
+}
+
+body:has(#tab-casino.active #casino-lobby[hidden]) .notify {
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: var(--fs-xs);
+  line-height: 1.3;
+}
+
+body:has(#tab-casino.active #casino-lobby[hidden]) .notify-icon {
+  font-size: var(--fs-lg);
+}
+
+/* Kurzer Hinweis (unten mittig) gleichzeitig sichtbar: die Meldung rückt darüber, nichts liegt übereinander */
+body:has(#tab-casino.active #casino-lobby[hidden]):has(.toast.show) .notify-stack {
+  transform: translateY(-60px);
+}
+
+/* iPad hochkant: über dem Schriftzug in der Kopfzeile – dort liegt kein Bedienelement
+   (Ton-Knopf und Kontostand rechts, Tabs darunter bleiben frei) und das Spielfeld wird nie verdeckt */
+@media (orientation: portrait) and (min-width: 700px) {
+  body:has(#tab-casino.active #casino-lobby[hidden]) .notify-stack {
+    top: calc(6px + env(safe-area-inset-top));
+    right: auto;
+    bottom: auto;
+    left: max(var(--space-3), env(safe-area-inset-left));
+    max-width: min(540px, calc(100vw - 270px));
+  }
+
+  /* höchstens drei Zeilen, damit die Meldung in ihrem freien Streifen bleibt (lange Texte enden mit …) */
+  body:has(#tab-casino.active #casino-lobby[hidden]) .notify > span:last-child {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
+  }
+
+  body:has(#tab-casino.active #casino-lobby[hidden]):has(.toast.show) .notify-stack {
+    transform: none;
+  }
+}
+
+/* iPad quer: in der Titelzeile des Spiels zwischen Spielname und „Statistik“-Knopf – auch dort liegt nichts
+   Bedienbares. Auf größeren Bildschirmen bleibt es bei der Ecke unten rechts. */
+@media (orientation: landscape) and (min-width: 1000px) and (max-width: 1200px) {
+  body:has(#tab-casino.active #casino-lobby[hidden]) .notify-stack {
+    top: calc(var(--header-height) + 6px);
+    right: calc(157px + env(safe-area-inset-right));
+    bottom: auto;
+    max-width: min(440px, calc(100vw - 640px));
+  }
+
+  /* höchstens drei Zeilen, damit die Meldung in ihrem freien Streifen bleibt (lange Texte enden mit …) */
+  body:has(#tab-casino.active #casino-lobby[hidden]) .notify > span:last-child {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
+  }
+
+  body:has(#tab-casino.active #casino-lobby[hidden]):has(.toast.show) .notify-stack {
+    transform: none;
+  }
+}
+
+/* ---------- Logbuch: leerer Zustand ---------- */
+.fleet-log:empty::before {
+  content: 'Noch keine Fahrten. Kauf dir eine Schaluppe und stich in See!';
+  display: block;
+  padding: var(--space-3) var(--space-4);
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  color: var(--text-muted);
+}
+
+/* ---------- Klicker hochkant: das „???“-Gebäude behält seine zweite Zeile („Noch unbekannt“) ---------- */
+.building.mystery .building-desc {
+  display: block;
+}
+
+/* ---------- Einsatzzeile: Feld wird schmaler, die vier Knöpfe bleiben in einer Reihe ---------- */
+.bet-control .bet-row {
+  flex-wrap: nowrap;
+  width: 100%;
+}
+
+.bet-control .bet-row > .btn-small {
+  flex: none;
+  padding-inline: 10px;
+}
+
+.bet-control .bet-input {
+  flex: 1 1 96px;
+  width: 96px; /* Grundbreite klein genug, dass die Spalte neben dem Spielfeld nicht umbricht; wächst bis 140 px */
+  min-width: 56px;
+  max-width: 140px;
+}
+
+@media (max-width: 380px) {
+  .bet-control .bet-row {
+    flex-wrap: wrap;
+  }
+}
+
+/* Kanonenkugel: Kästchen, Text und Feld in einer Zeile (der Text bricht notfalls in sich um) */
+.crash-auto {
+  flex-wrap: nowrap;
+  justify-content: center;
+  max-width: 100%;
+  font-size: var(--fs-sm);
+  line-height: 1.3;
+  text-align: left;
+  gap: 6px;
+}
+
+.crash-auto .bet-input {
+  flex: none;
+  width: 60px;
+  padding-inline: 8px;
+}
+
+/* ---------- Raum eröffnen/beitreten: Feld und Knopf in einer Reihe, Beträge als Raster ---------- */
+.mp-form .bet-row {
+  flex-wrap: nowrap;
+}
+
+.mp-form .bet-row > .bet-input {
+  flex: 1 1 0;
+  width: 80px;
+  min-width: 0;
+}
+
+.mp-form .bet-row > .mp-code-input {
+  flex: 0 1 140px;
+}
+
+.mp-form .bet-row > .btn {
+  flex: none;
+}
+
+.mp-form .bet-row.mp-presets {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 6px;
+}
+
+.mp-form .bet-row.mp-presets > .btn {
+  justify-content: center;
+  white-space: nowrap;
+}
+
+/* ---------- Casino-Lobby: Beschreibungen immer vollständig; Kacheln einer Reihe gleich hoch,
+   Titel nehmen zwei Zeilen Platz ein, damit alle Beschreibungen auf derselben Höhe beginnen ---------- */
+.casino-grid {
+  align-items: stretch;
+}
+
+.casino-card h3 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(2 * 1.25em);
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+.casino-card p {
+  display: block;
+  overflow: visible;
+  text-wrap: pretty;
+}
+
+/* Video-Slots: Der Name steht schon in der Leiste über dem Spiel */
+.vs-title {
+  display: none;
+}
+
+.vs-top {
+  justify-content: center;
+}
+
+/* ---------- Überschriften: Cinzel nur für H2, alle Abschnitts-Titel (H3) einheitlich ---------- */
+.casino-section-title,
+.poker-section-title,
+.paytable h3,
+.casino-info-box h3,
+.game-stats h3,
+.cos-category h3,
+.mp-room h3 {
+  font-family: inherit;
+  font-size: var(--fs-md);
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--gold-light);
+}
+
+/* Schriftzug und Gewinn-Titel: volles Gold statt Verlauf in der Schrift */
+.logo-text {
+  background: none;
+  color: var(--gold);
+  text-shadow: 0 1px 0 #6b4a04, 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.win-title,
+.win-banner.mega .win-title {
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  filter: none;
+}
+
+.win-title {
+  color: #ffd84a;
+  text-shadow: 0 4px 0 #6b4a04, 0 6px 18px rgba(0, 0, 0, 0.55);
+}
+
+.win-banner.mega .win-title {
+  color: #ff8ad8;
+  text-shadow: 0 4px 0 #4a0d5e, 0 6px 18px rgba(0, 0, 0, 0.55);
+}
+
+.win-banner.jackpot .win-title {
+  font-size: clamp(3rem, 11vw, 6rem);
+}
+
+/* Erklärtexte gleicher Rolle (Bosskampf, Flotte) in derselben Größe */
+.boss-panel > p.muted,
+.fleet-head > p {
+  font-size: var(--fs-base);
+  line-height: 1.5;
+}
+
+/* ---------- Abkassieren: Gewinn-Grün aus der Palette, dunkle Schrift ---------- */
+.btn.btn-primary.crash-cash {
+  border-color: #b6f0c6;
+  background: var(--win);
+  box-shadow: 0 3px 0 #2f7a45, 0 6px 18px rgba(111, 220, 140, 0.25);
+  color: #0b2a16;
+}
+
+.btn.btn-primary.crash-cash:active:not(:disabled) {
+  box-shadow: 0 1px 0 #2f7a45;
+}
+
+/* ---------- Tippflächen: Schalter, Regler, kleiner Hebel ---------- */
+/* Durchsichtiger Rand: das Element selbst ist 68 × 44 px groß (messbar tippbar),
+   gezeichnet wird nur die 60 × 36 px große Schiene; negative Ränder halten das Layout gleich */
+.switch {
+  width: 68px;
+  height: 44px;
+  margin: -4px;
+  border: 4px solid transparent;
+  border-radius: 22px;
+  background-clip: padding-box;
+}
+
+.switch::after {
+  width: 30px;
+  height: 30px;
+}
+
+.switch:checked::after {
+  transform: translateX(24px);
+}
+
+.setting input[type="range"] {
+  width: 220px;
+  height: 44px;
+  margin: 0;
+  cursor: pointer;
+  touch-action: pan-y;
+}
+
+.lever-small {
+  flex-basis: 44px;
+  width: 44px;
+  min-width: 44px;
+}
+
+/* ---------- Lichtreflex: nur auf großen goldenen Knöpfen, selten und dezent ---------- */
+.btn.btn-primary::after {
+  display: none;
+}
+
+.btn.btn-big.btn-primary:not(:disabled)::after {
+  display: block;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shine-rare 9s ease-in-out 2s infinite;
+}
+
+@keyframes shine-rare {
+  0%, 84% { transform: translateX(0) skewX(-20deg); }
+  100% { transform: translateX(500%) skewX(-20deg); }
+}
+
+/* ---------- Weniger Bewegung: Status-Hervorhebungen bleiben als ruhiges Leuchten sichtbar ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .c4-cell.win::before,
+  .mm-flag.seven::after,
+  .vs-reel.anticipation::after,
+  .side-auto.active::after,
+  .combo-meter.maxed .combo-fill::after,
+  .buff::after {
+    animation: none !important;
+    opacity: 1;
+  }
+
+  .btn.btn-big.btn-primary:not(:disabled)::after {
+    display: none;
+  }
+}
+
+body.reduced-effects .c4-cell.win::before,
+body.reduced-effects .mm-flag.seven::after,
+body.reduced-effects .vs-reel.anticipation::after,
+body.reduced-effects .side-auto.active::after,
+body.reduced-effects .combo-meter.maxed .combo-fill::after,
+body.reduced-effects .buff::after {
+  animation: none !important;
+  opacity: 1;
+}
+
+body.reduced-effects .wheel-free.ready {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px var(--gold), 0 4px 14px rgba(245, 197, 66, 0.35);
+}
+
+.switch:checked {
+  background-clip: padding-box;
+}
+
+/* =====================================================================
+   Feinschliff 3: Lesbarkeit, Kontrast, Zustände, Tippflächen, Platz hochkant
+   ===================================================================== */
+
+/* ---------- Kästchen (Auto-Abkassieren, Plätze auffüllen): 44 × 44 px tippbar, 28 × 28 px gezeichnet ----------
+   Der durchsichtige Rand vergrößert die Fläche; der goldene Ring liegt als Innenschatten darin. */
+input[type="checkbox"]:not(.switch) {
+  width: 44px;
+  height: 44px;
+  margin: -8px;
+  border: 8px solid transparent;
+  border-radius: 14px;
+  background-clip: padding-box;
+  box-shadow: inset 0 0 0 2px rgba(245, 197, 66, 0.7);
+}
+
+input[type="checkbox"]:not(.switch):checked {
+  border-color: transparent;
+  background-clip: padding-box;
+  box-shadow: inset 0 0 0 2px var(--gold-light);
+}
+
+.crash-auto input[type="checkbox"],
+.mp-check input[type="checkbox"] {
+  margin: -8px -4px -8px -8px;
+}
+
+/* ---------- Chicken Road: lesbare Werte-Beschriftung, eine Zeile, Werte auf einer Linie ---------- */
+.chicken-hud {
+  gap: 6px;
+  padding: 10px;
+}
+
+.chicken-hud .fh-stat {
+  justify-content: flex-start;
+  gap: 2px;
+  padding: 6px 4px;
+}
+
+.chicken-hud .fh-label {
+  overflow: hidden;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.chicken-hud .fh-stat b,
+.chicken-hud .fh-stat b.small-value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 1.5rem;
+  font-size: var(--fs-base);
+  line-height: 1.5rem;
+}
+
+/* Schwierigkeit (Chicken Road, Mast-Kletterei): neben dem Spielfeld 2 × 2;
+   Chicken Road hochkant (Bedienung unter der Straße, volle Breite) alle vier in einer Reihe */
+.chicken-diffs,
+.tower-modes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+  max-width: 340px;
+}
+
+.chicken-diffs > .btn,
+.tower-modes > .btn {
+  justify-content: center;
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .chicken-diffs {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    max-width: 520px;
+  }
+}
+
+/* ---------- Roulette: Zahlen auf dem Kessel größer ---------- */
+.wheel-num span {
+  margin-top: 3px;
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Kontrast: Blackjack-Tisch und roter Automat ---------- */
+.bj-label {
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+.bj-rules {
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(6, 46, 26, 0.85); /* dunkler Filz: Gold darauf ≥ 7:1 */
+  color: var(--gold-light);
+  opacity: 1;
+}
+
+.slot-machine .bet-label,
+.vs-machine .bet-label,
+.vs-machine .bet-limit {
+  color: var(--cream);
+}
+
+/* ---------- Gesperrte Knöpfe: gestrichelter Rand, matte Fläche – klar anders als bedienbare ---------- */
+.btn:disabled,
+.btn.btn-primary:disabled,
+.btn.btn-danger:disabled,
+.btn.btn-small:disabled {
+  border-style: dashed;
+  border-color: var(--disabled-border);
+  background: var(--disabled-bg);
+  box-shadow: none;
+  color: var(--disabled-text);
+}
+
+.btn:disabled .ic,
+.btn:disabled svg {
+  opacity: 0.7;
+}
+
+/* ---------- Hinweis „Du bist gerade in einem Raum …“: neutrale Info statt Fehler-Rot ---------- */
+.warning:has(.room-goto) {
+  border-color: var(--border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+}
+
+/* ---------- Kanonenkugel hochkant: Szene über die ganze Breite, Bedienung darunter ---------- */
+@media (max-width: 900px) {
+  #game-crash .crash-scene {
+    flex-basis: 100%;
+    max-width: none;
+  }
+
+  #game-crash .crash-controls {
+    max-width: 520px;
+  }
+
+  #game-crash .crash-history {
+    align-self: center;
+    max-width: none;
+  }
+}
+
+/* ---------- Kontrast in weiteren Spielen ---------- */
+/* Schatzkarten-Keno: Nummer auf dunklem Schildchen statt Weiß auf hellem Gras */
+.kn-num {
+  top: 3px;
+  right: auto;
+  left: 50%;
+  min-width: 1.6em;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: rgba(10, 32, 16, 0.72);
+  line-height: 1.35;
+  transform: translateX(-50%);
+  text-shadow: none;
+}
+
+/* Baccarat: Regel-Zeile wie beim Blackjack, Wahlknöpfe in satteren Farben (weiße Schrift ≥ 4,5:1) */
+.bac-rules {
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(6, 46, 26, 0.85); /* dunkler Filz: Gold darauf ≥ 7:1 */
+  color: var(--gold-light);
+  opacity: 1;
+}
+
+.bac-choice small {
+  opacity: 1;
+}
+
+.bac-choice.player.active {
+  background: linear-gradient(180deg, #2563eb, #1e40af);
+}
+
+.bac-choice.banker.active {
+  background: linear-gradient(180deg, #c62828, #8e1616);
+}
+
+.bac-choice.tie.active {
+  background: linear-gradient(180deg, #15803d, #0d5a2a);
+}
+
+/* Höher oder tiefer: Hinweis auf dem Filz in vollem Weiß */
+.hilo-info {
+  color: #ffffff;
+}
+
+/* Hafenbörse: Verlust-Rot aus der Palette (heller, ≥ 4,5:1 auf den Tafeln) */
+.stock-change.down,
+.stock-big-change.down,
+.stock-news li.down b {
+  color: var(--loss);
+}
+
+/* „gespeichert“ in der Kopfzeile: voll lesbar, solange es angezeigt wird */
+.save-indicator.show {
+  opacity: 1;
+}
+
+/* Mast-Kletterei: Multiplikator auf hellem Schildchen, auch unten am dunkleren Himmel gut lesbar */
+.tw-mult {
+  justify-self: end;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.6);
 }

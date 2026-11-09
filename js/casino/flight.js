@@ -7,6 +7,8 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
+  const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
   const MIN_BET = 10;
   const RTP = 0.97;
   const START = 1;   // Multiplikator beim Abflug
@@ -17,10 +19,10 @@ window.GK = window.GK || {};
     { type: 'cut', weight: 50, values: [[2, 1]] },
   ];
   const MODES = {
-    slow:   { name: 'Gemütlich', icon: '🐢', events: [3, 5],   step: 1050 },
-    normal: { name: 'Normal',    icon: '🏃', events: [5, 8],   step: 850 },
-    fast:   { name: 'Schnell',   icon: '🐇', events: [7, 11],  step: 650 },
-    turbo:  { name: 'Turbo',     icon: '⚡', events: [10, 15], step: 480 },
+    slow:   { name: 'Gemütlich', icon: '🐢', sym: 'hourglass', events: [3, 5],   step: 1050 },
+    normal: { name: 'Normal',    icon: '🏃', sym: 'play', events: [5, 8],   step: 850 },
+    fast:   { name: 'Schnell',   icon: '🐇', sym: 'forward', events: [7, 11],  step: 650 },
+    turbo:  { name: 'Turbo',     icon: '⚡', sym: 'bolt', events: [10, 15], step: 480 },
   };
   const W = 900;
   const H = 480;
@@ -812,13 +814,14 @@ window.GK = window.GK || {};
   function drawHistory() {
     const h = state().history;
     els.history.innerHTML = h.length
-      ? h.map(m => (m > 0 ? `<span class="crash-chip high">🛬 ×${fmt(m)}</span>` : '<span class="crash-chip low">🌊</span>')).join('')
+      ? h.map(m => (m > 0 ? `<span class="crash-chip high">×${fmt(m)}</span>` : `<span class="crash-chip low">${ic('close')}</span>`)).join('')
       : '<span class="muted small">Noch keine Flüge.</span>';
   }
 
   function showMessage(html, cls) {
     els.message.className = 'game-message ' + (cls || '');
     els.message.innerHTML = html;
+    if (GK.iconifyLead) GK.iconifyLead(els.message); // Emoji vorn → eigenes Symbol
   }
 
   function updateButtons() {
@@ -846,7 +849,7 @@ window.GK = window.GK || {};
             </div>
             <div class="fh-money"><span class="fh-label">Guthaben</span><b class="fh-balance"></b></div>
             <div class="fh-speeds" role="group" aria-label="Fluggeschwindigkeit">
-              ${Object.entries(MODES).map(([id, m]) => `<button type="button" class="fh-speed flight-mode" data-mode="${id}" title="${m.name}" aria-label="${m.name}"><span class="fh-icon">${m.icon}</span><span class="fh-name">${m.name}</span></button>`).join('')}
+              ${Object.entries(MODES).map(([id, m]) => `<button type="button" class="fh-speed flight-mode" data-mode="${id}" title="${m.name}" aria-label="${m.name}"><span class="fh-icon">${ic(m.sym)}</span><span class="fh-name">${m.name}</span></button>`).join('')}
             </div>
             <div class="fh-money right"><span class="fh-label">Gesamteinsatz</span><b class="fh-total"></b></div>
           </div>
@@ -856,7 +859,7 @@ window.GK = window.GK || {};
           <div class="game-message">&nbsp;</div>
           <div class="flight-bet"></div>
           <div class="game-actions">
-            <button class="btn btn-primary btn-big flight-start">✈️ Abheben!</button>
+            <button class="btn btn-primary btn-big flight-start">${ic('plane')}Abheben!</button>
           </div>
           <p class="muted small">Dein Flugzeug startet mit ×1. Unterwegs erhöhen +1, +2, +5 und +10 den
             Multiplikator, ×2 bis ×5 vervielfachen ihn – und geben Auftrieb. ÷2 und Raketen halbieren ihn und
@@ -918,7 +921,7 @@ window.GK = window.GK || {};
     category: 'quick',
     name: 'Flugkapitän',
     emoji: '✈️',
-    desc: 'Sammle Multiplikatoren, weich Raketen aus und lande auf dem Flugzeugträger!',
+    desc: 'Sammle Multiplikatoren, weich Raketen aus, lande auf dem Träger!',
     init,
     refresh,
     onShow: () => { if (!flying) draw(); },

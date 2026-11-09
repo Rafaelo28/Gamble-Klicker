@@ -4,6 +4,8 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
+  const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
   const MAX_FRIENDS = 60;
   const MAX_GAMES = 80;
   const ID_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -177,7 +179,7 @@ window.GK = window.GK || {};
 
   function formatValue(v, b) {
     if (v == null) return '–';
-    if (b.rank) return `${GK.rank.icon(v)} ${GK.rank.name(v)}`;
+    if (b.rank) return `${GK.rank.symbol(v)} ${GK.rank.name(v)}`;
     if (b.pct) return v > 0 ? `${GK.formatNumber(v < 100 ? v : Math.round(v), true)} %` : '–';
     if (b.mult) return v > 0 ? `×${v >= 100 ? GK.formatNumber(Math.floor(v)) : new Intl.NumberFormat('de-DE', { maximumFractionDigits: 2 }).format(v)}` : '–';
     if (b.money) return `${b.signed && v > 0 ? '+' : b.signed && v < 0 ? '−' : ''}${GK.formatMoneyHTML(Math.abs(v))}`;
@@ -230,7 +232,7 @@ window.GK = window.GK || {};
         <span class="fb-name">${GK.cosmetics.nameTag(r)}${r.me ? ' <span class="mp-tag">Du</span>' : ''}
           ${r.me ? '' : `<span class="muted small fb-seen">Stand: ${ago(r.t)}</span>`}</span>
         <span class="fb-value">${formatValue(v, b)}</span>
-        ${r.me ? '<span class="fb-remove"></span>' : `<button type="button" class="fb-remove" data-id="${r.id}" aria-label="Entfernen" title="Aus der Rangliste entfernen">✕</button>`}
+        ${r.me ? '<span class="fb-remove"></span>' : `<button type="button" class="fb-remove" data-id="${r.id}" aria-label="Entfernen" title="Aus der Rangliste entfernen">${ic('close')}</button>`}
       </li>`;
     }).join('');
   }

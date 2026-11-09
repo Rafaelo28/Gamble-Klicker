@@ -6,6 +6,8 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
+  const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
   const MIN_BET = 10;
   const RTP = 0.97;
   const SKIPS = 3;
@@ -162,27 +164,27 @@ window.GK = window.GK || {};
     els.card.innerHTML = current ? GK.cards.html(current.card, false, `hilo-big ${animateLast ? 'deal-in' : ''} ${current.wrong ? 'wrong' : ''}`) : GK.cards.html(null, true, 'hilo-big');
     // Bisherige Karten (die letzte liegt groß in der Mitte)
     els.trail.innerHTML = cards.slice(-9, -1).map(c => `<span class="hilo-step ${c.how}">${GK.cards.html(c.card, false, 'small')}
-      <i>${c.how === 'hi' ? '⬆' : c.how === 'lo' ? '⬇' : c.how === 'skip' ? '⏭' : ''}</i></span>`).join('');
+      <i>${c.how === 'hi' ? ic('up') : c.how === 'lo' ? ic('down') : c.how === 'skip' ? ic('forward') : ''}</i></span>`).join('');
     const playing = !!r && !busy;
     const p = { hi: r ? chance(r.card, 'hi') : 0, lo: r ? chance(r.card, 'lo') : 0 };
     els.hi.disabled = !playing || p.hi >= 1;
     els.lo.disabled = !playing || p.lo >= 1;
-    els.hi.innerHTML = `⬆ Höher oder gleich${r && p.hi < 1 ? `<small>×${fmt(multiplier(r.prob * p.hi))}</small>` : ''}`;
-    els.lo.innerHTML = `⬇ Tiefer oder gleich${r && p.lo < 1 ? `<small>×${fmt(multiplier(r.prob * p.lo))}</small>` : ''}`;
+    GK.setHTML(els.hi, `${ic('up')}Höher oder gleich${r && p.hi < 1 ? `<small>×${fmt(multiplier(r.prob * p.hi))}</small>` : ''}`);
+    GK.setHTML(els.lo, `${ic('down')}Tiefer oder gleich${r && p.lo < 1 ? `<small>×${fmt(multiplier(r.prob * p.lo))}</small>` : ''}`);
     els.skip.hidden = !r;
     els.skip.disabled = !playing || r.skips <= 0;
-    els.skip.textContent = `⏭ Überspringen (${r ? r.skips : SKIPS})`;
+    GK.setHTML(els.skip, `${ic('forward')}Überspringen (${r ? r.skips : SKIPS})`);
     els.start.hidden = !!r;
     els.start.disabled = busy;
     els.cash.hidden = !r;
     els.cash.disabled = !playing || r.steps < 1;
-    els.cash.innerHTML = r && r.steps >= 1 ? `💰 Auszahlen: ${GK.formatMoneyHTML(Math.floor(r.bet * multiplier(r.prob)))}` : '💰 Erst richtig tippen';
+    GK.setHTML(els.cash, r && r.steps >= 1 ? `${ic('bag')}Auszahlen: ${GK.formatMoneyHTML(Math.floor(r.bet * multiplier(r.prob)))}` : `${ic('bag')}Erst richtig tippen`);
     els.info.innerHTML = r
       ? `Richtige Tipps: <b>${r.steps}</b> · Jetzt: <b>×${fmt(multiplier(r.prob))}</b>`
       : shown ? `Letzte Runde: ${shown.steps} richtige ${shown.steps === 1 ? 'Tipp' : 'Tipps'}` : 'Ass ist die höchste Karte, 2 die niedrigste.';
     betControl.setDisabled(!!r || busy);
     els.history.innerHTML = s.history.length
-      ? s.history.map(m => (m > 0 ? `<span class="crash-chip high">×${fmt(m)}</span>` : '<span class="crash-chip low">❌</span>')).join('')
+      ? s.history.map(m => (m > 0 ? `<span class="crash-chip high">×${fmt(m)}</span>` : `<span class="crash-chip low">${ic('close')}</span>`)).join('')
       : '<span class="muted small">Noch keine Runden.</span>';
   }
 
@@ -190,6 +192,7 @@ window.GK = window.GK || {};
     if (!els.message) return;
     els.message.className = 'game-message ' + (cls || '');
     els.message.innerHTML = html;
+    if (GK.iconifyLead) GK.iconifyLead(els.message); // Emoji vorn → eigenes Symbol
   }
 
   function init(body) {
@@ -211,7 +214,7 @@ window.GK = window.GK || {};
           </div>
           <div class="hilo-bet"></div>
           <div class="game-actions">
-            <button class="btn btn-primary btn-big hilo-start">🃏 Erste Karte ziehen</button>
+            <button class="btn btn-primary btn-big hilo-start">${ic('cards')}Erste Karte ziehen</button>
             <button class="btn btn-primary btn-big hilo-cash" hidden></button>
             <button class="btn hilo-skip"></button>
           </div>

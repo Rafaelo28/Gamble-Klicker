@@ -11,107 +11,110 @@ window.GK = window.GK || {};
   const BUILDING_MILESTONES = [10, 25, 50, 100, 150, 200, 250, 300];
   const UPGRADES_SHOWN = 8;      // so viele Upgrades sind sichtbar, der Rest ist eingeklappt
 
+  // Eigenes Symbol (js/icons.js); ohne Symbolnamen bleibt das Emoji, in den Tests ohne Browser gibt es keins
+  const ic = (name, emoji) => (GK.icon && name ? GK.icon(name) : emoji || '');
+
   const BUILDINGS = [
-    { id: 'finger',    icon: '👆', name: 'Hilfsfinger',      baseCost: 15,     baseCps: 0.1,   desc: 'Klickt ab und zu für dich.' },
-    { id: 'piggy',     icon: '🐷', name: 'Sparschwein',      baseCost: 100,    baseCps: 1,     desc: 'Jeder Cent zählt.' },
-    { id: 'lemonade',  icon: '🍋', name: 'Limonadenstand',   baseCost: 1100,   baseCps: 8,     desc: 'Sauer macht reich.' },
-    { id: 'kiosk',     icon: '🏪', name: 'Kiosk',            baseCost: 12000,  baseCps: 47,    desc: 'Rubbellose und Kaugummis.' },
-    { id: 'pawnshop',  icon: '💍', name: 'Pfandhaus',        baseCost: 130000, baseCps: 260,   desc: 'Kauft alles, was glänzt.' },
-    { id: 'bank',      icon: '🏦', name: 'Bank',             baseCost: 1.4e6,  baseCps: 1400,  desc: 'Zinsen auf Spielgeld.' },
-    { id: 'goldmine',  icon: '⛏️', name: 'Goldmine',         baseCost: 2e7,    baseCps: 7800,  desc: 'Tief unten glitzert es.' },
-    { id: 'mint',      icon: '🏛️', name: 'Münzprägerei',     baseCost: 3.3e8,  baseCps: 44000, desc: 'Prägt Dublonen am laufenden Band.' },
-    { id: 'ship',      icon: '🚢', name: 'Handelsschiff',    baseCost: 5.1e9,  baseCps: 2.6e5, desc: 'Bringt Gold aus fernen Häfen.' },
-    { id: 'alchemy',   icon: '🧪', name: 'Alchemistenlabor', baseCost: 7.5e10, baseCps: 1.6e6, desc: 'Macht aus Blei pures Gold.' },
-    { id: 'fleet',     icon: '🏴‍☠️', name: 'Piratenflotte',   baseCost: 1e12,   baseCps: 1e7,   desc: 'Kapert Schatzschiffe auf allen Meeren.' },
-    { id: 'island',    icon: '🏝️', name: 'Schatzinsel',      baseCost: 1.4e13, baseCps: 6.5e7, desc: 'X markiert die Stelle – jeden Tag aufs Neue.' },
-    { id: 'dragon',    icon: '🐉', name: 'Drachenhort',      baseCost: 1.7e14, baseCps: 4.3e8, desc: 'Ein Drache brütet auf Bergen von Gold.' },
-    { id: 'timemachine', icon: '🔮', name: 'Zeitmaschine',   baseCost: 2.1e15, baseCps: 2.9e9, desc: 'Holt Dublonen aus der Zukunft.' },
-    { id: 'luck',      icon: '🍀', name: 'Glücksfabrik',     baseCost: 2.6e16, baseCps: 2.1e10, desc: 'Stellt Glück am Fließband her.' },
-    { id: 'portal',    icon: '🌌', name: 'Sternenportal',    baseCost: 3.1e17, baseCps: 1.5e11, desc: 'Dublonen aus anderen Welten.' },
+    { id: 'finger',    icon: '👆', ic: 'tap', name: 'Hilfsfinger',      baseCost: 15,     baseCps: 0.1,   desc: 'Klickt ab und zu für dich.' },
+    { id: 'piggy',     icon: '🐷', ic: 'piggy', name: 'Sparschwein',      baseCost: 100,    baseCps: 1,     desc: 'Jeder Cent zählt.' },
+    { id: 'lemonade',  icon: '🍋', ic: 'lemon', name: 'Limonadenstand',   baseCost: 1100,   baseCps: 8,     desc: 'Sauer macht reich.' },
+    { id: 'kiosk',     icon: '🏪', ic: 'kiosk', name: 'Kiosk',            baseCost: 12000,  baseCps: 47,    desc: 'Rubbellose und Kaugummis.' },
+    { id: 'pawnshop',  icon: '💍', ic: 'ring', name: 'Pfandhaus',        baseCost: 130000, baseCps: 260,   desc: 'Kauft alles, was glänzt.' },
+    { id: 'bank',      icon: '🏦', ic: 'bank', name: 'Bank',             baseCost: 1.4e6,  baseCps: 1400,  desc: 'Zinsen auf Spielgeld.' },
+    { id: 'goldmine',  icon: '⛏️', ic: 'pickaxe', name: 'Goldmine',         baseCost: 2e7,    baseCps: 7800,  desc: 'Tief unten glitzert es.' },
+    { id: 'mint',      icon: '🏛️', ic: 'coins', name: 'Münzprägerei',     baseCost: 3.3e8,  baseCps: 44000, desc: 'Prägt Dublonen am laufenden Band.' },
+    { id: 'ship',      icon: '🚢', ic: 'ship', name: 'Handelsschiff',    baseCost: 5.1e9,  baseCps: 2.6e5, desc: 'Bringt Gold aus fernen Häfen.' },
+    { id: 'alchemy',   icon: '🧪', ic: 'flask', name: 'Alchemistenlabor', baseCost: 7.5e10, baseCps: 1.6e6, desc: 'Macht aus Blei pures Gold.' },
+    { id: 'fleet',     icon: '🏴‍☠️', ic: 'skull', name: 'Piratenflotte',   baseCost: 1e12,   baseCps: 1e7,   desc: 'Kapert Schatzschiffe auf allen Meeren.' },
+    { id: 'island',    icon: '🏝️', ic: 'island', name: 'Schatzinsel',      baseCost: 1.4e13, baseCps: 6.5e7, desc: 'X markiert die Stelle – jeden Tag aufs Neue.' },
+    { id: 'dragon',    icon: '🐉', ic: 'dragon', name: 'Drachenhort',      baseCost: 1.7e14, baseCps: 4.3e8, desc: 'Ein Drache brütet auf Bergen von Gold.' },
+    { id: 'timemachine', icon: '🔮', ic: 'hourglass', name: 'Zeitmaschine',   baseCost: 2.1e15, baseCps: 2.9e9, desc: 'Holt Dublonen aus der Zukunft.' },
+    { id: 'luck',      icon: '🍀', ic: 'clover', name: 'Glücksfabrik',     baseCost: 2.6e16, baseCps: 2.1e10, desc: 'Stellt Glück am Fließband her.' },
+    { id: 'portal',    icon: '🌌', ic: 'portal', name: 'Sternenportal',    baseCost: 3.1e17, baseCps: 1.5e11, desc: 'Dublonen aus anderen Welten.' },
     // Nach dem Sternenportal: für alle, die das Spiel schon „durchgespielt“ haben
-    { id: 'poseidon',  icon: '🔱', name: 'Poseidons Tempel', baseCost: 3.7e18, baseCps: 1.05e12, desc: 'Der Meeresgott zahlt Tribut.' },
-    { id: 'ghostyard', icon: '👻', name: 'Geisterwerft',     baseCost: 4.4e19, baseCps: 7.4e12, desc: 'Untote Seeleute arbeiten ohne Pause.' },
-    { id: 'atlantis',  icon: '🏛️', name: 'Atlantis',         baseCost: 5.3e20, baseCps: 5.2e13, desc: 'Die versunkene Stadt voller Gold.' },
-    { id: 'lavaforge', icon: '🌋', name: 'Lava-Schmiede',    baseCost: 6.4e21, baseCps: 3.6e14, desc: 'Gießt Dublonen aus flüssiger Lava.' },
-    { id: 'blackhole', icon: '🕳️', name: 'Schwarzes Loch',   baseCost: 7.7e22, baseCps: 2.5e15, desc: 'Saugt Gold aus dem ganzen Universum.' },
-    { id: 'parallel',  icon: '🪞', name: 'Paralleluniversum', baseCost: 9.2e23, baseCps: 1.8e16, desc: 'Ein zweites Du verdient mit.' },
-    { id: 'galaxy',    icon: '💫', name: 'Galaxienbank',     baseCost: 1.1e25, baseCps: 1.25e17, desc: 'Verwaltet die Schätze ganzer Galaxien.' },
-    { id: 'bigbang',   icon: '💥', name: 'Dublonen-Urknall', baseCost: 1.3e26, baseCps: 8.8e17, desc: 'Erschafft ein Universum nur aus Dublonen.' },
+    { id: 'poseidon',  icon: '🔱', ic: 'trident', name: 'Poseidons Tempel', baseCost: 3.7e18, baseCps: 1.05e12, desc: 'Der Meeresgott zahlt Tribut.' },
+    { id: 'ghostyard', icon: '👻', ic: 'ghost', name: 'Geisterwerft',     baseCost: 4.4e19, baseCps: 7.4e12, desc: 'Untote Seeleute arbeiten ohne Pause.' },
+    { id: 'atlantis',  icon: '🏛️', ic: 'atlantis', name: 'Atlantis',         baseCost: 5.3e20, baseCps: 5.2e13, desc: 'Die versunkene Stadt voller Gold.' },
+    { id: 'lavaforge', icon: '🌋', ic: 'volcano', name: 'Lava-Schmiede',    baseCost: 6.4e21, baseCps: 3.6e14, desc: 'Gießt Dublonen aus flüssiger Lava.' },
+    { id: 'blackhole', icon: '🕳️', ic: 'blackhole', name: 'Schwarzes Loch',   baseCost: 7.7e22, baseCps: 2.5e15, desc: 'Saugt Gold aus dem ganzen Universum.' },
+    { id: 'parallel',  icon: '🪞', ic: 'mirror', name: 'Paralleluniversum', baseCost: 9.2e23, baseCps: 1.8e16, desc: 'Ein zweites Du verdient mit.' },
+    { id: 'galaxy',    icon: '💫', ic: 'galaxy', name: 'Galaxienbank',     baseCost: 1.1e25, baseCps: 1.25e17, desc: 'Verwaltet die Schätze ganzer Galaxien.' },
+    { id: 'bigbang',   icon: '💥', ic: 'burst', name: 'Dublonen-Urknall', baseCost: 1.3e26, baseCps: 8.8e17, desc: 'Erschafft ein Universum nur aus Dublonen.' },
   ];
 
   // Upgrades für Klicks. rarity bestimmt Farbe und Effekt der Kachel.
   const UPGRADES = [
-    { id: 'click1', icon: '💪', name: 'Starker Finger',  cost: 100,  type: 'clickMult', value: 2, rarity: 'click', desc: 'Klickkraft ×2',
+    { id: 'click1', icon: '💪', ic: 'fist', name: 'Starker Finger',  cost: 100,  type: 'clickMult', value: 2, rarity: 'click', desc: 'Klickkraft ×2',
       unlocked: s => s.totalClicks >= 10 },
-    { id: 'click2', icon: '🥇', name: 'Goldener Finger', cost: 1000, type: 'clickMult', value: 2, rarity: 'click', desc: 'Klickkraft ×2',
+    { id: 'click2', icon: '🥇', ic: 'tap', name: 'Goldener Finger', cost: 1000, type: 'clickMult', value: 2, rarity: 'click', desc: 'Klickkraft ×2',
       unlocked: s => has('click1') && s.totalClicks >= 100 },
-    { id: 'click3', icon: '💎', name: 'Diamantfinger',   cost: 50000, type: 'clickMult', value: 2, rarity: 'click', desc: 'Klickkraft ×2',
+    { id: 'click3', icon: '💎', ic: 'gem', name: 'Diamantfinger',   cost: 50000, type: 'clickMult', value: 2, rarity: 'click', desc: 'Klickkraft ×2',
       unlocked: s => has('click2') && s.totalClicks >= 500 },
-    { id: 'click4', icon: '✨', name: 'Magische Hand',   cost: 5e6,  type: 'clickMult', value: 2, rarity: 'click', desc: 'Klickkraft ×2',
+    { id: 'click4', icon: '✨', ic: 'sparkle', name: 'Magische Hand',   cost: 5e6,  type: 'clickMult', value: 2, rarity: 'click', desc: 'Klickkraft ×2',
       unlocked: s => has('click3') && s.totalClicks >= 1500 },
-    { id: 'click5', icon: '👊', name: 'Goldene Faust',   cost: 5e8,  type: 'clickMult', value: 3, all: true, rarity: 'click', desc: 'Klickkraft ×3 – auch der Anteil vom Einkommen',
+    { id: 'click5', icon: '👊', ic: 'fist', name: 'Goldene Faust',   cost: 5e8,  type: 'clickMult', value: 3, all: true, rarity: 'click', desc: 'Klickkraft ×3 – auch der Anteil vom Einkommen',
       unlocked: s => has('click4') && s.totalClicks >= 3000 },
-    { id: 'click6', icon: '🤴', name: 'Hand des Midas',  cost: 5e10, type: 'clickMult', value: 3, all: true, rarity: 'click', desc: 'Klickkraft ×3 – auch der Anteil vom Einkommen',
+    { id: 'click6', icon: '🤴', ic: 'crown', name: 'Hand des Midas',  cost: 5e10, type: 'clickMult', value: 3, all: true, rarity: 'click', desc: 'Klickkraft ×3 – auch der Anteil vom Einkommen',
       unlocked: s => has('click5') && s.totalClicks >= 6000 },
-    { id: 'click7', icon: '🌟', name: 'Sternenhand',     cost: 5e12, type: 'clickMult', value: 3, all: true, rarity: 'click', desc: 'Klickkraft ×3 – auch der Anteil vom Einkommen',
+    { id: 'click7', icon: '🌟', ic: 'star', name: 'Sternenhand',     cost: 5e12, type: 'clickMult', value: 3, all: true, rarity: 'click', desc: 'Klickkraft ×3 – auch der Anteil vom Einkommen',
       unlocked: s => has('click6') && s.totalClicks >= 10000 },
-    { id: 'click8', icon: '🪐', name: 'Hand der Götter', cost: 5e14, type: 'clickMult', value: 4, all: true, rarity: 'click', desc: 'Klickkraft ×4 – auch der Anteil vom Einkommen',
+    { id: 'click8', icon: '🪐', ic: 'planet', name: 'Hand der Götter', cost: 5e14, type: 'clickMult', value: 4, all: true, rarity: 'click', desc: 'Klickkraft ×4 – auch der Anteil vom Einkommen',
       unlocked: s => has('click7') && s.totalClicks >= 20000 },
-    { id: 'cpsClick1', icon: '📈', name: 'Klick-Investment', cost: 25000, type: 'clickCps', value: 0.01, rarity: 'click',
+    { id: 'cpsClick1', icon: '📈', ic: 'trend', name: 'Klick-Investment', cost: 25000, type: 'clickCps', value: 0.01, rarity: 'click',
       desc: 'Jeder Klick bringt zusätzlich 1 % deines Einkommens pro Sekunde',
       unlocked: () => getCps() >= 20 },
-    { id: 'cpsClick2', icon: '📊', name: 'Klick-Dividende', cost: 2.5e6, type: 'clickCps', value: 0.02, rarity: 'click',
+    { id: 'cpsClick2', icon: '📊', ic: 'chart', name: 'Klick-Dividende', cost: 2.5e6, type: 'clickCps', value: 0.02, rarity: 'click',
       desc: 'Jeder Klick bringt zusätzlich 2 % deines Einkommens pro Sekunde',
       unlocked: () => has('cpsClick1') && getCps() >= 1000 },
-    { id: 'cpsClick3', icon: '💹', name: 'Klick-Imperium', cost: 2.5e8, type: 'clickCps', value: 0.03, rarity: 'click',
+    { id: 'cpsClick3', icon: '💹', ic: 'trend', name: 'Klick-Imperium', cost: 2.5e8, type: 'clickCps', value: 0.03, rarity: 'click',
       desc: 'Jeder Klick bringt zusätzlich 3 % deines Einkommens pro Sekunde',
       unlocked: () => has('cpsClick2') && getCps() >= 100000 },
-    { id: 'cpsClick4', icon: '🏦', name: 'Klick-Konzern', cost: 2.5e10, type: 'clickCps', value: 0.04, rarity: 'click',
+    { id: 'cpsClick4', icon: '🏦', ic: 'bank', name: 'Klick-Konzern', cost: 2.5e10, type: 'clickCps', value: 0.04, rarity: 'click',
       desc: 'Jeder Klick bringt zusätzlich 4 % deines Einkommens pro Sekunde',
       unlocked: () => has('cpsClick3') && getCps() >= 1e7 },
-    { id: 'cpsClick5', icon: '👑', name: 'Klick-Dynastie', cost: 2.5e12, type: 'clickCps', value: 0.05, rarity: 'click',
+    { id: 'cpsClick5', icon: '👑', ic: 'crown', name: 'Klick-Dynastie', cost: 2.5e12, type: 'clickCps', value: 0.05, rarity: 'click',
       desc: 'Jeder Klick bringt zusätzlich 5 % deines Einkommens pro Sekunde',
       unlocked: () => has('cpsClick4') && getCps() >= 1e9 },
     // Kritische Treffer
-    { id: 'crit1', icon: '🎯', name: 'Glückstreffer', cost: 5000, type: 'critChance', value: 0.03, rarity: 'crit',
+    { id: 'crit1', icon: '🎯', ic: 'target', name: 'Glückstreffer', cost: 5000, type: 'critChance', value: 0.03, rarity: 'crit',
       desc: '3 % Chance auf einen kritischen Klick (×10)',
       unlocked: s => s.totalClicks >= 250 },
-    { id: 'crit2', icon: '🦅', name: 'Adlerauge', cost: 5e5, type: 'critChance', value: 0.04, rarity: 'crit',
+    { id: 'crit2', icon: '🦅', ic: 'eye', name: 'Adlerauge', cost: 5e5, type: 'critChance', value: 0.04, rarity: 'crit',
       desc: '+4 % Chance auf kritische Klicks',
       unlocked: s => has('crit1') && s.totalClicks >= 1000 },
-    { id: 'crit3', icon: '💥', name: 'Volltreffer-Hand', cost: 5e7, type: 'critMult', value: 25, rarity: 'crit',
+    { id: 'crit3', icon: '💥', ic: 'burst', name: 'Volltreffer-Hand', cost: 5e7, type: 'critMult', value: 25, rarity: 'crit',
       desc: 'Kritische Klicks bringen ×25 statt ×10',
       unlocked: s => has('crit2') && s.totalClicks >= 2500 },
-    { id: 'crit4', icon: '🍀', name: 'Glückspilz', cost: 5e9, type: 'critChance', value: 0.05, rarity: 'crit',
+    { id: 'crit4', icon: '🍀', ic: 'clover', name: 'Glückspilz', cost: 5e9, type: 'critChance', value: 0.05, rarity: 'crit',
       desc: '+5 % Chance auf kritische Klicks',
       unlocked: s => has('crit3') && s.totalClicks >= 5000 },
-    { id: 'crit5', icon: '⚡', name: 'Blitzschlag', cost: 5e11, type: 'critMult', value: 50, rarity: 'crit',
+    { id: 'crit5', icon: '⚡', ic: 'bolt', name: 'Blitzschlag', cost: 5e11, type: 'critMult', value: 50, rarity: 'crit',
       desc: 'Kritische Klicks bringen ×50',
       unlocked: s => has('crit4') && s.totalClicks >= 8000 },
     // Combo
-    { id: 'combo1', icon: '🔥', name: 'Combo-Meister', cost: 2000, type: 'comboCap', value: 50, rarity: 'combo',
+    { id: 'combo1', icon: '🔥', ic: 'flame', name: 'Combo-Meister', cost: 2000, type: 'comboCap', value: 50, rarity: 'combo',
       desc: 'Combo bis +50 % statt +25 %',
       unlocked: s => s.totalClicks >= 150 },
-    { id: 'combo2', icon: '☄️', name: 'Feuerhände', cost: 2e6, type: 'comboCap', value: 100, rarity: 'combo',
+    { id: 'combo2', icon: '☄️', ic: 'comet', name: 'Feuerhände', cost: 2e6, type: 'comboCap', value: 100, rarity: 'combo',
       desc: 'Combo bis +100 % (doppelte Klickkraft)',
       unlocked: s => has('combo1') && s.totalClicks >= 1200 },
-    { id: 'combo3', icon: '🌋', name: 'Vulkanhände', cost: 2e9, type: 'comboCap', value: 200, rarity: 'combo',
+    { id: 'combo3', icon: '🌋', ic: 'volcano', name: 'Vulkanhände', cost: 2e9, type: 'comboCap', value: 200, rarity: 'combo',
       desc: 'Combo bis +200 % (dreifache Klickkraft)',
       unlocked: s => has('combo2') && s.totalClicks >= 4000 },
     // Für alle Gebäude zusammen, je nachdem, wie viele man insgesamt besitzt
-    { id: 'global1', icon: '📜', name: 'Handelsvertrag', cost: 2e5, type: 'globalMult', value: 1.1, rarity: 'empire',
+    { id: 'global1', icon: '📜', ic: 'scroll', name: 'Handelsvertrag', cost: 2e5, type: 'globalMult', value: 1.1, rarity: 'empire',
       desc: 'Alle Gebäude: Einkommen +10 %', unlocked: () => totalBuildings() >= 50 },
-    { id: 'global2', icon: '🧭', name: 'Goldener Kompass', cost: 1e8, type: 'globalMult', value: 1.15, rarity: 'empire',
+    { id: 'global2', icon: '🧭', ic: 'compass', name: 'Goldener Kompass', cost: 1e8, type: 'globalMult', value: 1.15, rarity: 'empire',
       desc: 'Alle Gebäude: Einkommen +15 %', unlocked: () => totalBuildings() >= 150 },
-    { id: 'global3', icon: '⚓', name: 'Kaiserliche Flotte', cost: 5e10, type: 'globalMult', value: 1.2, rarity: 'empire',
+    { id: 'global3', icon: '⚓', ic: 'anchor', name: 'Kaiserliche Flotte', cost: 5e10, type: 'globalMult', value: 1.2, rarity: 'empire',
       desc: 'Alle Gebäude: Einkommen +20 %', unlocked: () => totalBuildings() >= 300 },
-    { id: 'global4', icon: '🏛️', name: 'Goldenes Zeitalter', cost: 5e13, type: 'globalMult', value: 1.25, rarity: 'empire',
+    { id: 'global4', icon: '🏛️', ic: 'temple', name: 'Goldenes Zeitalter', cost: 5e13, type: 'globalMult', value: 1.25, rarity: 'empire',
       desc: 'Alle Gebäude: Einkommen +25 %', unlocked: () => totalBuildings() >= 500 },
-    { id: 'global5', icon: '🌠', name: 'Ewiger Reichtum', cost: 5e16, type: 'globalMult', value: 1.3, rarity: 'empire',
+    { id: 'global5', icon: '🌠', ic: 'comet', name: 'Ewiger Reichtum', cost: 5e16, type: 'globalMult', value: 1.3, rarity: 'empire',
       desc: 'Alle Gebäude: Einkommen +30 %', unlocked: () => totalBuildings() >= 800 },
-    { id: 'global6', icon: '🔱', name: 'Herrschaft der Meere', cost: 5e22, type: 'globalMult', value: 1.35, rarity: 'empire',
+    { id: 'global6', icon: '🔱', ic: 'trident', name: 'Herrschaft der Meere', cost: 5e22, type: 'globalMult', value: 1.35, rarity: 'empire',
       desc: 'Alle Gebäude: Einkommen +35 %', unlocked: () => totalBuildings() >= 1200 },
-    { id: 'global7', icon: '💥', name: 'Unendlicher Reichtum', cost: 5e27, type: 'globalMult', value: 1.4, rarity: 'empire',
+    { id: 'global7', icon: '💥', ic: 'burst', name: 'Unendlicher Reichtum', cost: 5e27, type: 'globalMult', value: 1.4, rarity: 'empire',
       desc: 'Alle Gebäude: Einkommen +40 %', unlocked: () => totalBuildings() >= 1600 },
   ];
 
@@ -132,6 +135,7 @@ window.GK = window.GK || {};
       UPGRADES.push({
         id: `${b.id}-${i + 1}`,
         icon: b.icon,
+        ic: b.ic,
         name: `${tier.name}-${b.name}`,
         cost: b.baseCost * tier.costFactor,
         type: 'buildingMult',
@@ -151,6 +155,7 @@ window.GK = window.GK || {};
     UPGRADES.push({
       id: `syn-${b.id}`,
       icon: '🤝',
+      ic: 'handshake',
       name: `${source.name} & ${b.name}`,
       cost: b.baseCost * 200,
       type: 'synergy',
@@ -404,7 +409,7 @@ window.GK = window.GK || {};
       GK.fx.burst(pos.x, pos.y, { count: 24, speed: 650, upward: true, spread: 2.6 });
       GK.fx.floatText(pos.x + 60, pos.y - 10, `🏗️ ${milestone}× ${building.name}!`, 'win big');
       const tier = BUILDING_TIERS.find(t => t.owned === milestone);
-      GK.notify(`<span class="notify-icon">${building.icon}</span><span><b>Meilenstein: ${milestone}× ${building.name}!</b>` +
+      GK.notify(`<span class="notify-icon">${ic(building.ic, building.icon)}</span><span><b>Meilenstein: ${milestone}× ${building.name}!</b>` +
         `${tier ? `<br>Neues Upgrade verfügbar: ${tier.name}-${building.name}` : ''}</span>`, 4000);
     }
     render();
@@ -507,7 +512,7 @@ window.GK = window.GK || {};
       return;
     }
     const cap = comboCap();
-    GK.setText(el.querySelector('.combo-count'), `🔥 Combo ${combo.count}`);
+    GK.setHTML(el.querySelector('.combo-count'), `${ic('flame')} Combo ${combo.count}`);
     GK.setText(el.querySelector('.combo-mult'), `×${formatFactor(comboMult())}`);
     const width = (comboBonus() / cap * 100) + '%';
     const fill = el.querySelector('.combo-fill');
@@ -522,7 +527,7 @@ window.GK = window.GK || {};
       const el = document.createElement('button');
       el.className = 'building';
       el.innerHTML = `
-        <span class="building-icon">${b.icon}</span>
+        <span class="building-icon">${ic(b.ic)}</span>
         <span class="building-info">
           <span class="building-name">${b.name} <span class="building-stars"></span></span>
           <span class="building-desc">${b.desc}</span>
@@ -570,7 +575,7 @@ window.GK = window.GK || {};
       const cost = buildingCost(b, count, buyAmount);
       els.root.classList.toggle('mystery', mystery);
       els.root.disabled = !GK.canAfford(cost);
-      GK.setText(els.icon, mystery ? '❓' : b.icon);
+      GK.setHTML(els.icon, ic(mystery ? 'question' : b.ic));
       const name = mystery ? '??? ' : b.name + ' ';
       if (els.name.firstChild.data !== name) els.name.firstChild.data = name;
       GK.setText(els.desc, mystery ? 'Noch unbekannt' : b.desc);
@@ -584,7 +589,7 @@ window.GK = window.GK || {};
 
       // Sterne für gekaufte Gebäude-Upgrades (Farbe je Stufe)
       const stars = BUILDING_TIERS.map((t, k) => (has(`${b.id}-${k + 1}`) ? `<i class="star rarity-${t.rarity}">★</i>` : '')).join('') +
-        (has(`syn-${b.id}`) ? '<i class="star rarity-synergy">🤝</i>' : '');
+        (has(`syn-${b.id}`) ? `<i class="star rarity-synergy">${ic('handshake')}</i>` : '');
       if (els.stars.innerHTML !== stars) els.stars.innerHTML = stars;
 
       // Fortschritt bis zum nächsten Upgrade
@@ -601,7 +606,7 @@ window.GK = window.GK || {};
           if (els.fill.className !== cls) els.fill.className = cls;
           GK.setText(els.next, `Noch ${nextTier.owned - count} bis zum ${nextTier.name}-Upgrade (×${nextTier.value})`);
         } else {
-          GK.setText(els.next, '✨ Alle Stufen freigeschaltet');
+          GK.setHTML(els.next, `${ic('sparkle')} Alle Stufen freigeschaltet`);
         }
       }
     });
@@ -623,7 +628,7 @@ window.GK = window.GK || {};
         el.dataset.id = u.id;
         el.title = `${u.name}\n${u.desc}\nPreis: ${GK.formatNumber(u.cost)} Dublonen`;
         el.innerHTML = `
-          <span class="upgrade-icon">${u.icon}</span>
+          <span class="upgrade-icon">${ic(u.ic, u.icon)}</span>
           <span class="upgrade-name">${u.name}</span>
           <span class="upgrade-desc">${u.desc}</span>
           <span class="upgrade-gain"></span>

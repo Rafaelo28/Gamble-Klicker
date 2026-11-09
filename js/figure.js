@@ -6,6 +6,9 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (js/icons.js); in den Tests ohne Browser gibt es keins
+  const ic = name => (GK.icon ? GK.icon(name) : '');
+
   const LINE = 'rgba(0,0,0,.55)';
 
   // ---------- Teile ----------
@@ -445,7 +448,7 @@ window.GK = window.GK || {};
       const preview = parts.slice();
       preview[i] = j;
       return `<button type="button" class="fig-opt ${active ? 'active' : ''} ${locked ? 'locked' : ''}" data-slot="${i}" data-part="${j}" title="${title}" aria-label="${title}">
-        ${svg(preview.join('.'))}${locked ? '<span class="fig-lock">🔒</span>' : ''}<span class="fig-opt-name">${part.name}</span></button>`;
+        ${svg(preview.join('.'))}${locked ? `<span class="fig-lock">${ic('lock')}</span>` : ''}<span class="fig-opt-name">${part.name}</span></button>`;
     }).join('');
     box.innerHTML = `
       <div class="fig-top">
@@ -455,10 +458,10 @@ window.GK = window.GK || {};
           <label class="fig-on"><input type="checkbox" class="switch fig-toggle" ${me().figOn ? 'checked' : ''}> Figur statt Emoji zeigen</label>
           <div class="fig-presets">
             ${PRESETS.map((p, k) => `<button type="button" class="btn btn-small fig-preset" data-preset="${k}">${p.name}</button>`).join('')}
-            <button type="button" class="btn btn-small fig-random">🎲 Zufall</button>
+            <button type="button" class="btn btn-small fig-random">${ic('dice')}Zufall</button>
           </div>
           <p class="muted small">Deine Figur sehen die anderen bei Spielen mit Freunden, beim Poker und in der Rangliste.
-            Teile mit 🔒 schaltest du im Spiel frei.</p>
+            Teile mit ${ic('lock')} schaltest du im Spiel frei.</p>
         </div>
       </div>
       ${SLOTS.map((slot, i) => `<div class="fig-slot"><div class="fig-slot-name">${slot.name}</div><div class="fig-options">${options(slot, i)}</div></div>`).join('')}`;

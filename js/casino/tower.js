@@ -5,15 +5,17 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
+  const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
   const MIN_BET = 10;
   const RTP = 0.97;
   const LEVELS = 9;
   // Seile je Stufe und wie viele davon reißen
   const MODES = {
-    easy:    { name: 'Leicht',  icon: '🪢', ropes: 4, broken: 1 },
-    medium:  { name: 'Mittel',  icon: '⛵', ropes: 3, broken: 1 },
-    hard:    { name: 'Schwer',  icon: '🌊', ropes: 2, broken: 1 },
-    extreme: { name: 'Extrem',  icon: '⚡', ropes: 3, broken: 2 },
+    easy:    { name: 'Leicht',  icon: '🪢', sym: 'shield', ropes: 4, broken: 1 },
+    medium:  { name: 'Mittel',  icon: '⛵', sym: 'sailboat', ropes: 3, broken: 1 },
+    hard:    { name: 'Schwer',  icon: '🌊', sym: 'wave', ropes: 2, broken: 1 },
+    extreme: { name: 'Extrem',  icon: '⚡', sym: 'bolt', ropes: 3, broken: 2 },
   };
 
   let els = {};
@@ -131,7 +133,7 @@ window.GK = window.GK || {};
     const mode = shown ? shown.mode : s.mode;
     const m = MODES[mode];
     // Stufen von oben (Krähennest) nach unten
-    let html = `<div class="tw-nest ${shown && !r && shown.fell == null && shown.level >= LEVELS ? 'reached' : ''}">🔭 Krähennest · ×${fmt(multiplier(mode, LEVELS))}</div>`;
+    let html = `<div class="tw-nest ${shown && !r && shown.fell == null && shown.level >= LEVELS ? 'reached' : ''}">${ic('eye')} Krähennest · ×${fmt(multiplier(mode, LEVELS))}</div>`;
     for (let lv = LEVELS - 1; lv >= 0; lv--) {
       const current = r && lv === r.level;
       const done = shown && lv < (r ? r.level : shown.level);
@@ -162,7 +164,7 @@ window.GK = window.GK || {};
         <div class="tw-ropes" style="--ropes:${m.ropes}">${ropes}</div>
       </div>`;
     }
-    html += '<div class="tw-deck">🚢 Deck</div>';
+    html += `<div class="tw-deck">${ic('ship')} Deck</div>`;
     els.mast.innerHTML = html;
     els.mast.classList.toggle('fell', !!(shown && !r && shown.fell != null));
     const playing = !!r;
@@ -170,7 +172,7 @@ window.GK = window.GK || {};
     els.start.disabled = busy;
     els.cash.hidden = !playing;
     els.cash.disabled = busy || !r || r.level < 1;
-    els.cash.innerHTML = r && r.level >= 1 ? `💰 Auszahlen: ${GK.formatMoneyHTML(Math.floor(r.bet * multiplier(r.mode, r.level)))}` : '💰 Erst eine Stufe schaffen';
+    GK.setHTML(els.cash, r && r.level >= 1 ? `${ic('bag')}Auszahlen: ${GK.formatMoneyHTML(Math.floor(r.bet * multiplier(r.mode, r.level)))}` : `${ic('bag')}Erst eine Stufe schaffen`);
     els.modes.forEach(b => {
       const active = b.dataset.mode === (r ? r.mode : s.mode);
       b.classList.toggle('active', active);
@@ -185,6 +187,7 @@ window.GK = window.GK || {};
     if (!els.message) return;
     els.message.className = 'game-message ' + (cls || '');
     els.message.innerHTML = html;
+    if (GK.iconifyLead) GK.iconifyLead(els.message); // Emoji vorn → eigenes Symbol
   }
 
   function init(body) {
@@ -194,13 +197,13 @@ window.GK = window.GK || {};
         <div class="mines-controls">
           <div class="bet-label">Schwierigkeit</div>
           <div class="plinko-risks tower-modes" role="group" aria-label="Schwierigkeit">
-            ${Object.entries(MODES).map(([id, m]) => `<button type="button" class="btn btn-small tower-mode" data-mode="${id}">${m.icon} ${m.name}</button>`).join('')}
+            ${Object.entries(MODES).map(([id, m]) => `<button type="button" class="btn btn-small tower-mode" data-mode="${id}">${ic(m.sym)}${m.name}</button>`).join('')}
           </div>
           <div class="mines-info tower-info"></div>
           <div class="game-message">&nbsp;</div>
           <div class="tower-bet"></div>
           <div class="game-actions">
-            <button class="btn btn-primary btn-big tower-start">🧗 Losklettern</button>
+            <button class="btn btn-primary btn-big tower-start">${ic('up')}Losklettern</button>
             <button class="btn btn-primary btn-big tower-cash" hidden></button>
           </div>
           <p class="muted small">Klettere Stufe für Stufe den Mast hinauf. Auf jeder Stufe wählst du ein Seil –

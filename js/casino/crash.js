@@ -5,6 +5,8 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
+  const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
   const MIN_BET = 10;
   const GROWTH = 0.11;      // Multiplikator = e^(GROWTH · Sekunden)
   const EDGE = 0.97;        // P(Explosion erst ab x) = EDGE / x
@@ -308,6 +310,7 @@ window.GK = window.GK || {};
   function showMessage(html, cls) {
     els.message.className = 'game-message ' + (cls || '');
     els.message.innerHTML = html;
+    if (GK.iconifyLead) GK.iconifyLead(els.message); // Emoji vorn → eigenes Symbol
   }
 
   function init(body) {
@@ -326,8 +329,8 @@ window.GK = window.GK || {};
             <input type="number" class="bet-input crash-auto-at" min="1.01" step="0.1" inputmode="decimal">
           </label>
           <div class="game-actions">
-            <button class="btn btn-primary btn-big crash-fire">💣 Feuer!</button>
-            <button class="btn btn-primary btn-big crash-cash" hidden>💰 Abkassieren: <span class="crash-cash-value"></span></button>
+            <button class="btn btn-primary btn-big crash-fire">${ic('bomb')}Feuer!</button>
+            <button class="btn btn-primary btn-big crash-cash" hidden>${ic('bag')}Abkassieren: <span class="crash-cash-value"></span></button>
           </div>
           <p class="muted small">Der Multiplikator steigt, solange die Kugel fliegt. Kassiere rechtzeitig ab –
             explodiert sie vorher, ist der Einsatz weg.</p>

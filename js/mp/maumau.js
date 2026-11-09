@@ -7,6 +7,8 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
+  const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
   // Namen kommen im Online-Spiel von anderen Spielern – immer als Text ausgeben
   const esc = text => String(text).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const RANKS = ['7', '8', '9', 'T', 'J', 'Q', 'K', 'A'];
@@ -365,7 +367,7 @@ window.GK = window.GK || {};
         : Array.from({ length: Math.min(p.count, 8) }, () => GK.cards.html(null, true, 'small mm-back')).join('');
       return `<div class="${cls.join(' ')}">
         <div class="mm-name">${GK.cosmetics.nameTag(p)}</div>
-        <div class="mm-fan">${p.out ? `☠️ ${p.place}. Platz` : backs}</div>
+        <div class="mm-fan">${p.out ? `${ic('skull')} ${p.place}. Platz` : backs}</div>
         <div class="mm-count">${p.out ? '' : `${p.count} ${p.count === 1 ? 'Karte' : 'Karten'}${p.count === 1 && v.phase === 'play' ? ' · <b class="mm-mau">Mau!</b>' : ''}`}${p.place && !p.out ? ` · ${p.place}. Platz` : ''}</div>
       </div>`;
     }).join(''));
@@ -389,7 +391,7 @@ window.GK = window.GK || {};
     // Wer ist dran?
     const cur = v.turn >= 0 ? v.players[v.turn] : null;
     setHtml(container.querySelector('.mm-status'), v.phase === 'finished'
-      ? (() => { const w = v.players.find(p => p.place === 1); return w ? `🎉 Mau-Mau! ${GK.cosmetics.nameTag(w)} gewinnt!` : 'Spiel vorbei'; })()
+      ? (() => { const w = v.players.find(p => p.place === 1); return w ? `${ic('sparkle')} Mau-Mau! ${GK.cosmetics.nameTag(w)} gewinnt!` : 'Spiel vorbei'; })()
       : myTurn ? `<b>Du bist dran!</b> ${v.pending7 ? `Leg eine 7 drauf oder zieh ${v.pending7} Karten.` : v.drawn ? 'Leg die gezogene Karte (oder eine andere passende) – oder passe.' : 'Leg eine passende Karte oder zieh eine.'}`
         : `${GK.cosmetics.nameTag(cur)} ist dran …`);
 
@@ -411,9 +413,9 @@ window.GK = window.GK || {};
         <button type="button" class="btn btn-small mm-cancel">Doch nicht</button></div>`;
     } else if (myTurn) {
       actions = `<div class="game-actions">
-        ${v.pending7 ? `<button class="btn btn-danger btn-big mm-draw">🃏 ${v.pending7} Karten ziehen</button>`
-          : v.drawn ? '<button class="btn btn-big mm-pass">➡️ Passen</button>'
-          : '<button class="btn btn-primary btn-big mm-draw">🃏 Karte ziehen</button>'}
+        ${v.pending7 ? `<button class="btn btn-danger btn-big mm-draw">${ic('cards')}${v.pending7} Karten ziehen</button>`
+          : v.drawn ? `<button class="btn btn-big mm-pass">${ic('forward')}Passen</button>`
+          : `<button class="btn btn-primary btn-big mm-draw">${ic('cards')}Karte ziehen</button>`}
       </div>`;
     }
     setHtml(container.querySelector('.mm-actions'), actions);

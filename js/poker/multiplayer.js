@@ -22,6 +22,7 @@ GK.poker = GK.poker || {};
   const RETRY_DELAY = 3000;
   const CONNECT_TIMEOUT = 10000;
   const ABANDON_AFTER = 30000;     // so lange muss der Gastgeber weg sein, bis man mit Erstattung gehen darf
+  const ic = name => (GK.icon ? GK.icon(name) : '');
   const DROP_AFTER = 90000;        // so lange ohne Verbindung am Tisch → scheidet aus
   const HEARTBEAT = 2000;          // Lebenszeichen alle 2 Sekunden …
   const HEARTBEAT_TIMEOUT = 8000;  // … bleibt es so lange aus, gilt die Verbindung als getrennt
@@ -903,23 +904,23 @@ GK.poker = GK.poker || {};
 
   function statusLine() {
     const s = session();
-    if (!peerAvailable()) return '<span class="mp-status lost">🔴 Multiplayer nicht verfügbar – keine Internetverbindung?</span>';
+    if (!peerAvailable()) return '<span class="mp-status lost">' + ic('dot') + ' Multiplayer nicht verfügbar – keine Internetverbindung?</span>';
     if (net.status === 'online') {
       if (s.role === 'host' && net.peer && net.peer.disconnected && !net.peer.destroyed) {
-        return '<span class="mp-status connecting">🟡 Verbindung zum Server wird erneuert – wer schon am Tisch sitzt, bleibt verbunden …</span>';
+        return '<span class="mp-status connecting">' + ic('dot') + ' Verbindung zum Server wird erneuert – wer schon am Tisch sitzt, bleibt verbunden …</span>';
       }
       return s.role === 'host'
-        ? '<span class="mp-status online">🟢 Raum ist online</span>'
-        : '<span class="mp-status online">🟢 Mit dem Gastgeber verbunden</span>';
+        ? '<span class="mp-status online">' + ic('dot') + ' Raum ist online</span>'
+        : '<span class="mp-status online">' + ic('dot') + ' Mit dem Gastgeber verbunden</span>';
     }
     if (net.status === 'lost') {
       const ms = net.lostSince ? Date.now() - net.lostSince : 0;
       // Nur wer noch mitspielt (nicht schon ausgeschieden und abgerechnet), bekommt den Eintritt zurück
       const gone = s.role === 'client' && s.phase === 'playing' && !s.settled && ms >= ABANDON_AFTER
         ? ' Du kannst das Turnier auch verlassen – dann bekommst du deinen Eintritt zurück.' : '';
-      return `<span class="mp-status lost">🔴 Keine Verbindung${s.role === 'client' ? ` zum Gastgeber (seit ${Math.floor(ms / 1000)} s)` : ''} – versuche es erneut …${gone}</span>`;
+      return `<span class="mp-status lost">${ic('dot')} Keine Verbindung${s.role === 'client' ? ` zum Gastgeber (seit ${Math.floor(ms / 1000)} s)` : ''} – versuche es erneut …${gone}</span>`;
     }
-    return '<span class="mp-status connecting">🟡 Verbinde …</span>';
+    return '<span class="mp-status connecting">' + ic('dot') + ' Verbinde …</span>';
   }
 
   // Formular in der Poker-Lobby: Name, Raum eröffnen, Raum beitreten
@@ -1073,8 +1074,8 @@ GK.poker = GK.poker || {};
           <div class="mp-code">${s.code}</div>
           ${isHost ? `
             <div class="bet-row">
-              <button class="btn btn-small mp-copy-code">📋 Code kopieren</button>
-              <button class="btn btn-small mp-copy-link">🔗 Einladungs-Link kopieren</button>
+              <button class="btn btn-small mp-copy-code">${ic('copy')}Code kopieren</button>
+              <button class="btn btn-small mp-copy-link">${ic('link')}Einladungs-Link kopieren</button>
             </div>` : ''}
         </div>
         ${tr ? `<p class="mp-tier-info">${tr.icon} <b>${tr.name}</b> · ${sessionModeLabel()} · Eintritt ${GK.formatMoneyHTML(tr.entry)}<br>Preise: ${prizes}</p>` : ''}
@@ -1083,15 +1084,15 @@ GK.poker = GK.poker || {};
           <ul class="mp-members">
             ${members.map(m => `<li class="${m.ready ? '' : 'not-ready'}">
               <span>${GK.cosmetics.nameTag(m)}</span>
-              ${m.ready ? '' : '<span class="mp-tag waiting">⏳ zahlt noch</span>'}
-              ${m.playerId === hostId ? '<span class="mp-tag">👑 Gastgeber</span>' : ''}
+              ${m.ready ? '' : `<span class="mp-tag waiting">${ic('hourglass')} zahlt noch</span>`}
+              ${m.playerId === hostId ? `<span class="mp-tag">${ic('crown')} Gastgeber</span>` : ''}
               ${m.playerId === store().playerId ? '<span class="mp-tag">Du</span>' : ''}
             </li>`).join('')}
           </ul>
           ${mustConfirm ? `
             <div class="mp-confirm">
               <p>Der Gastgeber hat den Eintritt auf <b>${GK.formatMoneyHTML(s.entry)}</b> festgelegt.</p>
-              <button class="btn btn-primary btn-big mp-confirm-btn" ${GK.canAfford(s.entry) ? '' : 'disabled'}>💰 Eintritt bezahlen und mitspielen</button>
+              <button class="btn btn-primary btn-big mp-confirm-btn" ${GK.canAfford(s.entry) ? '' : 'disabled'}>${ic('bag')}Eintritt bezahlen und mitspielen</button>
               ${GK.canAfford(s.entry) ? '' : '<p class="loss small">Dafür hast du nicht genug Dublonen.</p>'}
             </div>` : ''}
           ${isHost ? `
@@ -1155,17 +1156,17 @@ GK.poker = GK.poker || {};
       const ranking = t.players.map((p, i) => ({ p, win: blitz ? mpPayout(t, i, tr.entry) : 0 }))
         .sort((a, b) => a.p.place - b.p.place)
         .map(({ p, win }) => `${p.place}. ${GK.cosmetics.nameTag(p)}${win ? ` +${GK.formatMoneyHTML(win)}` : ''}`).join(' · ');
-      notices.push(`🏁 Turnier vorbei! ${ranking}` + (s.result && !s.result.refunded
+      notices.push(`${ic('flag')} Turnier vorbei! ${ranking}` + (s.result && !s.result.refunded
         ? `<br>Dein Ergebnis: <b>${s.result.place}. Platz</b>${s.result.prize ? ` – ${GK.formatMoneyHTML(s.result.prize)} gewonnen!` : '.'}` : ''));
     }
 
     GK.poker.ui.render(container, t, {
       mySeat,
       info: [
-        `👥 Raum ${s.code}`,
+        `${ic('users')} Raum ${s.code}`,
         sessionModeLabel(),
         `Blinds ${GK.formatNumber(sb)}/${GK.formatNumber(bb)}`,
-        ...(blitz ? [t.handNo >= t.maxHands ? `🔥 Letzte Hand (${t.maxHands}/${t.maxHands})` : `Hand ${t.handNo}/${t.maxHands}`] : []),
+        ...(blitz ? [t.handNo >= t.maxHands ? `${ic('flame')} Letzte Hand (${t.maxHands}/${t.maxHands})` : `Hand ${t.handNo}/${t.maxHands}`] : []),
         `Spieler: ${t.players.filter(p => !p.out).length}/${players}`,
         prizeText(tr.entry, players, blitz, humans(t)),
       ],

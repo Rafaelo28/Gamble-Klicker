@@ -3,6 +3,8 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
+  const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
   const SM = () => GK.slotMachine;
   // Einsatz-Stufen für die − / + Knöpfe
   const STEPS = [10, 50, 100, 500, 1e3, 5e3, 1e4, 5e4, 1e5, 5e5, 1e6, 5e6, 1e7, 5e7, 1e8, 1e9, 1e10, 1e11, 1e12];
@@ -106,7 +108,7 @@ window.GK = window.GK || {};
     els.spin.disabled = spinning || auto;
     els.minus.disabled = auto || spinning;
     els.plus.disabled = auto || spinning;
-    GK.setText(els.auto, auto ? '⏹ Stopp' : '🔁 Auto');
+    GK.setHTML(els.auto, auto ? `${ic('stop')}Stopp` : `${ic('repeat')}Auto`);
     els.auto.classList.toggle('active', auto);
     els.spin.classList.toggle('cant-afford', !GK.canAfford(s.bet));
   }
@@ -115,7 +117,7 @@ window.GK = window.GK || {};
     root = document.getElementById('side-slot');
     root.innerHTML = `
       <div class="side-slot-head">
-        <span class="side-slot-title">🎰 Side-Slot</span>
+        <span class="side-slot-title">${GK.icon ? GK.icon('slot') : ''}Side-Slot</span>
         <span class="side-slot-msg">&nbsp;</span>
       </div>
       <div class="side-slot-front">

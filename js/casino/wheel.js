@@ -4,6 +4,8 @@
 window.GK = window.GK || {};
 
 (function () {
+  // Eigenes Symbol (in Node-Tests ohne icons.js bleibt es leer)
+  const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
   const MIN_BET = 10;
   const SPIN_TIME = 5200;
   const BONUS_SPIN_TIME = 4200;
@@ -305,6 +307,7 @@ window.GK = window.GK || {};
   function showMessage(html, cls) {
     els.message.className = 'game-message ' + (cls || '');
     els.message.innerHTML = html;
+    if (GK.iconifyLead) GK.iconifyLead(els.message); // Emoji vorn → eigenes Symbol
   }
 
   function updateButtons() {
@@ -313,7 +316,7 @@ window.GK = window.GK || {};
     betControl.setDisabled(busy);
     const free = freeAvailable();
     els.free.disabled = busy || !free;
-    const html = free ? `<span>🎁 Gratis-Dreh (Wert ${GK.formatMoneyHTML(freeValue())})</span>` : '🎁 Gratis-Dreh: morgen wieder';
+    const html = free ? `${ic('gift')}<span>Gratis-Dreh (Wert ${GK.formatMoneyHTML(freeValue())})</span>` : `${ic('gift')}Gratis-Dreh: morgen wieder`;
     if (els.free._html !== html) {
       els.free._html = html;
       els.free.innerHTML = html;
@@ -328,7 +331,7 @@ window.GK = window.GK || {};
           <div class="fortune-wrap">
             <div class="fortune-pointer"></div>
             <canvas class="fortune-wheel" width="680" height="680"></canvas>
-            <div class="fortune-hub">🍀</div>
+            <div class="fortune-hub">${ic('clover')}</div>
           </div>
           <div class="wheel-results"></div>
         </div>
@@ -336,7 +339,7 @@ window.GK = window.GK || {};
           <div class="game-message">&nbsp;</div>
           <div class="wheel-bet"></div>
           <div class="game-actions">
-            <button class="btn btn-primary btn-big wheel-spin">🍀 Drehen</button>
+            <button class="btn btn-primary btn-big wheel-spin">${ic('wheel')}Drehen</button>
           </div>
           <div class="game-actions">
             <button class="btn wheel-free"></button>
@@ -347,8 +350,8 @@ window.GK = window.GK || {};
               <span class="wheel-chip" style="background:${COLORS[1.5]}">1,5×</span>
               <span class="wheel-chip" style="background:${COLORS[2]}">2×</span>
               <span class="wheel-chip" style="background:${COLORS[3]}">3×</span></p>
-            <p><span class="wheel-chip gold">⭐</span> Bonusrad: ${BONUS.slice().sort((a, b) => a - b).map(m => m + '×').join(' · ')}</p>
-            <p class="muted small">☠️ = leider nichts. Größere Felder werden öfter getroffen.
+            <p><span class="wheel-chip gold">${ic('star')}</span> Bonusrad: ${BONUS.slice().sort((a, b) => a - b).map(m => m + '×').join(' · ')}</p>
+            <p class="muted small">${ic('skull')} = leider nichts. Größere Felder werden öfter getroffen.
               Einmal am Tag gibt es einen Gratis-Dreh – ohne Einsatz.</p>
           </div>
         </div>
@@ -395,7 +398,7 @@ window.GK = window.GK || {};
     category: 'quick',
     name: 'Glücksrad',
     emoji: '🍀',
-    desc: 'Dreh das Rad – das ⭐ startet das Bonusrad. Täglich ein Gratis-Dreh!',
+    desc: 'Dreh das Rad – der Stern startet das Bonusrad. Täglich gratis!',
     init,
     refresh,
     render: () => {

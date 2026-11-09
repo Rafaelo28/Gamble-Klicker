@@ -16,11 +16,14 @@ window.GK = window.GK || {};
   const GOLDEN_LIFETIME = 13;       // so lange bleibt sie sichtbar
 
   const BUFFS = {
-    goldrush:   { name: 'Goldrausch',    icon: '⚡', type: 'income', mult: 7,  seconds: 60, desc: 'Einkommen ×7' },
-    clickfever: { name: 'Klickfieber',   icon: '🔥', type: 'click',  mult: 25, seconds: 20, desc: 'Klickkraft ×25' },
+    goldrush:   { name: 'Goldrausch',    icon: '⚡', ic: 'bolt', type: 'income', mult: 7,  seconds: 60, desc: 'Einkommen ×7' },
+    clickfever: { name: 'Klickfieber',   icon: '🔥', ic: 'flame', type: 'click',  mult: 25, seconds: 20, desc: 'Klickkraft ×25' },
     // Glückssträhne: Gewinne im Casino zählen 30–50 % mehr (wird beim Auslösen zufällig festgelegt)
-    luck:       { name: 'Glückssträhne', icon: '🍀', type: 'luck',   mult: 1.4, seconds: 30, desc: 'Casino-Gewinne' },
+    luck:       { name: 'Glückssträhne', icon: '🍀', ic: 'clover', type: 'luck',   mult: 1.4, seconds: 30, desc: 'Casino-Gewinne' },
   };
+
+  // Eigenes Symbol (js/icons.js); in den Tests ohne Browser gibt es keins
+  const ic = name => (GK.icon ? GK.icon(name) : '');
 
   let golden = null;        // { el, expires }
   let nextGoldenAt = Infinity; // wird in init() gesetzt
@@ -131,7 +134,7 @@ window.GK = window.GK || {};
     GK.sound.play('jackpot');
     GK.fx.confetti(200);
     GK.fx.coinRain(2, 40);
-    GK.notify(`<span class="notify-icon">⛵</span><span><b>Leinen los!</b><br>${gain} neue Schatzkarte${gain === 1 ? '' : 'n'} – dein Einkommen ist jetzt dauerhaft ×${formatMult(prestigeMult())}.</span>`);
+    GK.notify(`<span class="notify-icon">${ic('sailboat')}</span><span><b>Leinen los!</b><br>${gain} neue Schatzkarte${gain === 1 ? '' : 'n'} – dein Einkommen ist jetzt dauerhaft ×${formatMult(prestigeMult())}.</span>`);
     GK.cosmetics.journeyReward();
   }
 
@@ -149,7 +152,7 @@ window.GK = window.GK || {};
     const amount = GK.clicker.getCpsPermanent() * counted * OFFLINE_RATE;
     if (amount < 1) return;
     GK.earn(amount, 'passive');
-    GK.notify(`<span class="notify-icon">🌙</span><span><b>Willkommen zurück!</b><br>Während du ${GK.formatDuration(seconds)} weg warst, ` +
+    GK.notify(`<span class="notify-icon">${ic('moon')}</span><span><b>Willkommen zurück!</b><br>Während du ${GK.formatDuration(seconds)} weg warst, ` +
       `haben deine Gebäude ${GK.formatMoneyHTML(amount)} verdient` +
       `${seconds > OFFLINE_MAX ? ' (höchstens 8 Stunden)' : ''}.</span>`, 8000);
   }
@@ -214,7 +217,7 @@ window.GK = window.GK || {};
         ? `<b>${b.icon} ${b.name}!</b><br>Casino-Gewinne +${Math.round((mult - 1) * 100)} % für ${b.seconds} Sekunden`
         : `<b>${b.icon} ${b.name}!</b><br>${b.desc} für ${b.seconds} Sekunden`;
     }
-    GK.notify(`<span class="notify-icon">✨</span><span>${text}</span>`);
+    GK.notify(`<span class="notify-icon">${ic('sparkle')}</span><span>${text}</span>`);
     GK.save();
   }
 
@@ -233,7 +236,7 @@ window.GK = window.GK || {};
     }
     buffs.forEach((b, i) => {
       const def = BUFFS[b.id];
-      GK.setText(bar.children[i], `${def.icon} ${def.name} ${buffEffect(b)} · ${Math.ceil((b.until - now) / 1000)} s`);
+      GK.setHTML(bar.children[i], `${ic(def.ic)}${def.name} ${buffEffect(b)} · ${Math.ceil((b.until - now) / 1000)} s`);
     });
   }
 
@@ -242,24 +245,24 @@ window.GK = window.GK || {};
     const gain = pendingPoints();
     const blocker = prestigeBlocker();
     GK.setHTML(document.getElementById('prestige-stats'), `
-      <dt>Schatzkarten</dt><dd>🗺️ ${GK.formatNumber(s.prestige.points)}</dd>
+      <dt>Schatzkarten</dt><dd>${ic('map')} ${GK.formatNumber(s.prestige.points)}</dd>
       <dt>Bonus durch Schatzkarten</dt><dd>+${GK.formatNumber(s.prestige.points * PRESTIGE_BONUS * 100)} %</dd>
       <dt>Große Fahrten</dt><dd>${GK.formatNumber(s.prestige.journeys)}</dd>
       <dt>Insgesamt verdient</dt><dd>${GK.formatMoneyHTML(s.allTimeEarned)}</dd>
       <dt>Nächste Schatzkarte ab</dt><dd>${GK.formatMoneyHTML(nextPointAt())}</dd>`);
     const btn = document.getElementById('prestige-btn');
     btn.disabled = gain < 1 || !!blocker;
-    GK.setText(btn, gain >= 1 ? `⛵ Auf große Fahrt gehen (+${gain} Schatzkarte${gain === 1 ? '' : 'n'})` : '⛵ Auf große Fahrt gehen');
+    GK.setHTML(btn, ic('sailboat') + (gain >= 1 ? `Auf große Fahrt gehen (+${gain} Schatzkarte${gain === 1 ? '' : 'n'})` : 'Auf große Fahrt gehen'));
     GK.setText(document.getElementById('prestige-hint'), gain < 1
       ? 'Verdiene insgesamt mehr Dublonen, um deine erste bzw. nächste Schatzkarte zu bekommen.'
       : blocker);
 
     const buffs = activeBuffs();
     GK.setHTML(document.getElementById('bonus-stats'), `
-      <dt>🗺️ Schatzkarten</dt><dd>×${formatMult(prestigeMult())}</dd>
-      <dt>🏆 Erfolge (${s.achievements.length})</dt><dd>×${formatMult(achievementMult())}</dd>
-      ${fleetMult() > 1 ? `<dt>💎 Schätze der Flotte</dt><dd>×${formatMult(fleetMult())}</dd>` : ''}
-      ${buffs.map(b => `<dt>${BUFFS[b.id].icon} ${BUFFS[b.id].name}</dt><dd>${buffEffect(b)} (${{ click: 'Klicks', income: 'Einkommen', luck: 'Casino-Gewinne' }[b.type]})</dd>`).join('')}
+      <dt>${ic('map')}Schatzkarten</dt><dd>×${formatMult(prestigeMult())}</dd>
+      <dt>${ic('trophy')}Erfolge (${s.achievements.length})</dt><dd>×${formatMult(achievementMult())}</dd>
+      ${fleetMult() > 1 ? `<dt>${ic('gem')}Schätze der Flotte</dt><dd>×${formatMult(fleetMult())}</dd>` : ''}
+      ${buffs.map(b => `<dt>${ic(BUFFS[b.id].ic)}${BUFFS[b.id].name}</dt><dd>${buffEffect(b)} (${{ click: 'Klicks', income: 'Einkommen', luck: 'Casino-Gewinne' }[b.type]})</dd>`).join('')}
       <dt>Gesamt-Bonus Einkommen</dt><dd>×${formatMult(permanentMult() * buffMult('income'))}</dd>
       <dt>Offline-Einnahmen</dt><dd>${OFFLINE_RATE * 100} %, max. 8 Std.</dd>`);
     if (GK.rank) GK.rank.render();
