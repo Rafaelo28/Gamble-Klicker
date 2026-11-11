@@ -23,6 +23,8 @@ Schatztruhe voll ist, wartet das Casino:
 - 📈 **Hafenbörse** – Anteile an Hafen-Firmen kaufen und verkaufen: Kurse in Echtzeit, Nachrichten, Pleiten
 - 🔼 **Höher oder tiefer** – ist die nächste Karte höher oder tiefer? Jeder richtige Tipp lässt den Gewinn wachsen
 - ⏱️ **Stoppuhr** – eine Zielzeit bis 10 Sekunden wird vorgegeben: stoppe die Uhr auf die Hundertstel genau
+- 🗝️ **Geheime Parole** – errate das Wort des Kapitäns (fünf Buchstaben, sechs Versuche): Gold sitzt richtig,
+  Blau steht woanders – je früher geknackt, desto mehr Gewinn. Wörter auf Deutsch oder Englisch, je nach Sprache
 - 🎴 **Baccarat** – Spieler, Bank oder Unentschieden: wer näher an 9 kommt, gewinnt
 - 🎡 **Roulette** – Rot oder Schwarz? Oder alles auf die 17?
 - 🃏 **Blackjack** – schlag den Dealer, ohne über 21 zu kommen; nach dem Teilen so viele Karten, wie du willst
@@ -139,7 +141,7 @@ Den Fahrplan mit allen Phasen findest du in [PROJEKTPLAN.md](PROJEKTPLAN.md).
 - 👆 Klicker mit Gebäuden, Upgrades, Side-Slot, Statistiken und sicherem Speichern
 - 🎰 Slot-Maschine · 🎟️ Rubbellose · 🎡 Roulette · 🃏 Blackjack
 - 🍀 Glücksrad · 🪙 Münzfall · 🏝️ Schatzinsel · 💣 Kanonenkugel · ⛵ Schiffsrennen · ✈️ Flugkapitän · 🐔 Chicken Road
-  · 🧗 Mast-Kletterei · 🗺️ Schatzkarten-Keno · 🔼 Höher oder tiefer · 🎴 Baccarat · ⏱️ Stoppuhr
+  · 🧗 Mast-Kletterei · 🗺️ Schatzkarten-Keno · 🔼 Höher oder tiefer · 🎴 Baccarat · ⏱️ Stoppuhr · 🗝️ Geheime Parole
 - 🏴‍☠️ 🐙 🌋 Drei Video-Slots mit Freispielen und Bonusrunde
 - 🎲 Lügenwürfel, 📝 Kniffel, 🃏 Mau-Mau, ⛳ Minigolf, 🎱 Billard, 🔴 Vier gewinnt, ⚓ Seeschlacht, 🎯 Darts und 💥 Kanonenduell gegen Computer und online mit Freunden
 - ♠️ Poker als Turnier gegen Computer-Gegner und online mit Freunden

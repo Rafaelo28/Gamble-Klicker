@@ -27,6 +27,7 @@ GK.i18n.add({
   'Beende zuerst dein Spiel mit Freunden bzw. gegen Computer.': 'Finish your game with friends or vs. the computer first.',
   'Beende zuerst deine Schatzsuche.': 'Finish your treasure hunt first.',
   'Halte zuerst deine Stoppuhr an.': 'Stop your stopwatch first.',
+  'Rate zuerst deine Parole zu Ende.': 'Finish guessing your password first.',
   'Warte, bis die Kanonenkugel gelandet ist.': 'Wait until the cannonball has landed.',
   'Warte, bis deine Runde vorbei ist.': 'Wait until your round is over.',
   'Warte, bis dein Flugzeug gelandet ist.': 'Wait until your plane has landed.',
@@ -160,6 +161,7 @@ GK.i18n.add({
     if (g.room && g.room.session) return GK.t('Beende zuerst dein Spiel mit Freunden bzw. gegen Computer.');
     if (g.mines && g.mines.round) return GK.t('Beende zuerst deine Schatzsuche.');
     if (g.stopwatch && g.stopwatch.round) return GK.t('Halte zuerst deine Stoppuhr an.');
+    if (g.parole && g.parole.round) return GK.t('Rate zuerst deine Parole zu Ende.');
     if (g.crash && g.crash.round && !g.crash.round.cashed) return GK.t('Warte, bis die Kanonenkugel gelandet ist.');
     if ((g.wheel && g.wheel.pending) || (g.race && (g.race.pending || Object.keys(g.race.bets || {}).length))) return GK.t('Warte, bis deine Runde vorbei ist.');
     if (g.flight && g.flight.pending) return GK.t('Warte, bis dein Flugzeug gelandet ist.');
