@@ -6237,6 +6237,229 @@ body.reduced-effects .golden-coin {
   }
 }
 
+/* ---------- Geheime Parole ---------- */
+.casino-card[data-game="parole"] { --accent: rgba(47, 134, 201, 0.45); }
+
+.pa-area {
+  flex: 1 1 500px; /* iPad hochkant: Tastatur über die ganze Breite, Bedienung darunter */
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.pa-board {
+  width: 100%;
+  max-width: 310px; /* mit Tastatur zusammen auch quer (810 hoch) ohne Scrollen sichtbar */
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px;
+  border: 3px solid #4d2c10;
+  border-radius: 24px;
+  background: linear-gradient(180deg, #8a5a2c 0%, #6b4220 100%);
+  box-shadow: var(--shadow);
+}
+
+.pa-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+
+/* Münze: rund, damit sie nach Dublone aussieht */
+.pa-coin {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid rgba(0, 0, 0, 0.35);
+  border-radius: 50%;
+  background: rgba(20, 12, 4, 0.45);
+  color: var(--cream);
+  font-family: var(--font-display);
+  font-size: var(--fs-xl);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.pa-coin.pa-typed {
+  border-color: var(--cream);
+  background: rgba(20, 12, 4, 0.7);
+}
+
+.pa-coin.pa-next {
+  border-color: var(--gold);
+}
+
+.pa-hit {
+  border-color: var(--gold-dark);
+  background: var(--gold-grad);
+  color: var(--ink-on-gold);
+}
+
+.pa-near {
+  border: 3px dashed var(--cream);
+  background: #2f86c9;
+  color: #fff;
+}
+
+.pa-miss {
+  border-color: #10171a;
+  background: #26323a;
+  color: #9aa9b0;
+}
+
+.pa-reveal {
+  animation: pa-flip 0.35s ease-out backwards;
+  animation-delay: calc(var(--i) * 90ms);
+}
+
+@keyframes pa-flip {
+  from { transform: rotateY(90deg) scale(0.8); opacity: 0; }
+}
+
+body.reduced-effects .pa-reveal {
+  animation: none;
+}
+
+.pa-board.lost .pa-row {
+  opacity: 0.8;
+}
+
+.pa-keys {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pa-keyrow {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+}
+
+.pa-key {
+  flex: 1 1 0;
+  max-width: 48px;
+  min-width: 0;
+  min-height: 52px;
+  padding: 0;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-panel);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-md);
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.pa-key.pa-wide {
+  flex: 1.7 1 0;
+  max-width: 84px;
+  font-size: var(--fs-sm);
+}
+
+.pa-key.pa-enter {
+  border-color: var(--gold);
+  color: var(--gold-light);
+}
+
+.pa-key.pa-hit {
+  border-color: var(--gold-dark);
+  background: var(--gold-grad);
+  color: var(--ink-on-gold);
+}
+
+.pa-key.pa-near {
+  border: 2px dashed var(--cream);
+  background: #2f86c9;
+  color: #fff;
+}
+
+.pa-key.pa-miss {
+  border-color: #10171a;
+  background: #161d21;
+  color: #7f8d93;
+}
+
+.pa-key:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.pa-key:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+@media (hover: hover) {
+  .pa-key:hover:not(:disabled) {
+    border-color: var(--gold);
+  }
+}
+
+.pa-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 14px;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}
+
+.pa-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pa-dot {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: 50%;
+}
+
+.pa-dot.pa-near {
+  border-width: 2px;
+}
+
+.pa-ladder {
+  width: 100%;
+  max-width: 300px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.pa-ladder li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-panel);
+  font-size: var(--fs-sm);
+}
+
+.pa-ladder li.current {
+  border-color: var(--gold);
+  color: var(--gold-light);
+}
+
+.pa-ladder li.gone {
+  opacity: 0.45;
+}
+
 /* ---------- Schatzkarten-Keno ---------- */
 .casino-card[data-game="keno"] { --accent: rgba(210, 170, 90, 0.5); }
 
