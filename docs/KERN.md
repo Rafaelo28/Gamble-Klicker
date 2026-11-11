@@ -360,7 +360,7 @@ Spieler-IDs, Beträge oder Spielstände in `path` oder `title` einbauen.
    `GK.t(def.name)` aufrufen (so machen es `casino.js` und `progress.js`).
 5. **Importierte Daten sind ungeprüft.** `applyData` prüft nur `money`; alles andere wird übernommen. Alte
    Base64-Codes haben keine Prüfsumme und lassen sich frei bearbeiten. Texte aus dem Spielstand (Namen, Verlauf …)
-   nie ungeschützt in `innerHTML` setzen. Siehe `docs/EXPLOITS.md` (Prüfbericht, falls vorhanden).
+   nie ungeschützt in `innerHTML` setzen. Siehe [`EXPLOITS.md`](EXPLOITS.md), Befund 1.
 6. **`'casino'` als Quelle ist kein „verdient“**: Wer eine Belohnung mit `GK.earn(x, 'casino')` bucht, erhöht weder
    `totalEarned` noch `allTimeEarned` (Ränge, Schatzkarten). Umgekehrt zählt ein Casino-Gewinn ohne `'casino'`
    fälschlich als verdient. Casino-Spiele gehen immer über `GK.casino.bet/payout/refund/record`.

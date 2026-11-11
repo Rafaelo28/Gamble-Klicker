@@ -54,8 +54,8 @@ Danach Tests noch einmal laufen lassen – `main` kann auch Code geändert haben
 
 ## Fremde Dateien im Arbeitsverzeichnis
 
-Im Arbeitsverzeichnis können Dateien auftauchen, die nicht von dir sind (z. B. lag während der Arbeit an der
-„Geheimen Parole“ plötzlich `docs/EXPLOITS.md` unversioniert da). `git add -A` nimmt sie mit in den Commit.
+Im Arbeitsverzeichnis können Dateien auftauchen, die nicht von dir sind (z. B. ein Bericht, den jemand anderes
+gerade schreibt und noch nicht eingecheckt hat). `git add -A` nimmt sie mit in den Commit.
 
 - Vor dem Commit `git status --short` ansehen und nur eigene Pfade hinzufügen.
 - Eine fremde Datei weder löschen noch committen; im Abschlussbericht erwähnen.

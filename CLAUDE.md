@@ -6,9 +6,20 @@ Online über GitHub Pages aus `main`: https://rafaelo28.github.io/Gamble-Klicker
 
 ## Ausführliche Doku
 
-Unter [`docs/`](docs/README.md) steht für jeden Bereich, wie er aufgebaut ist, mit Rezepten und Stolperfallen:
-Kern und Spielstand, Oberfläche, Casino, Spiele mit Freunden, Poker, Klicker/Fortschritt/Abenteuer, Testen,
-Arbeitsweise. Vor einer Änderung die passende Datei lesen; ändert sich eine Schnittstelle, die Doku mit anpassen.
+Unter [`docs/`](docs/README.md) steht für jeden Bereich, wie er aufgebaut ist, mit Rezepten und Stolperfallen.
+Vor einer Änderung die passende Datei lesen; ändert sich eine Schnittstelle, die Doku mit anpassen.
+
+- [`docs/README.md`](docs/README.md) – Einstieg: wo steht was, Prüfliste vor dem Commit
+- [`docs/KERN.md`](docs/KERN.md) – Ladereihenfolge, Spielschleife, Geld, Spielstand, Spielstand-Code, Zahlenformate
+- [`docs/OBERFLAECHE.md`](docs/OBERFLAECHE.md) – Sprache, Symbole, Effekte, Ton, CSS, iPad
+- [`docs/CASINO.md`](docs/CASINO.md) – `GK.casino`, Geldfluss einer Runde, neues Casino-Spiel, alle Spiele
+- [`docs/MEHRSPIELER.md`](docs/MEHRSPIELER.md) – Spielräume (`js/mp/room.js`), Nachrichten, Physik, alle Spiele mit Freunden
+- [`docs/POKER.md`](docs/POKER.md) – Poker (Engine, Turnier, Computer-Gegner, online) und Freundes-Rangliste
+- [`docs/KLICKER.md`](docs/KLICKER.md) – Klicker, Boni, große Fahrt, Erfolge, Aufgaben, Ränge, Schatzkammer, Figur, Flotte, Boss, Kraken
+- [`docs/TESTEN.md`](docs/TESTEN.md) – Node-Tests und Browser-Tests
+- [`docs/ARBEITSWEISE.md`](docs/ARBEITSWEISE.md) – Branch, Versionsnummer, Pull Request, Fork und Original
+- [`docs/EXPLOITS.md`](docs/EXPLOITS.md) – Prüfbericht: Schwachstellen und Mogel-Möglichkeiten (Stand 10.11.2026) mit
+  Vorschlägen zum Beheben. Vor Änderungen an Spielstand, Import, Räumen oder Belohnungen lesen.
 
 ## Arbeitsweise (mit Rafaelo28 abgesprochen)
 

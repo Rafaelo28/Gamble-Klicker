@@ -22,8 +22,10 @@ zuerst den lesen. Stimmt die Doku nicht mehr mit dem Code, die Doku im selben Pu
 | Klicker, Boni, große Fahrt, Erfolge, Tagesaufgaben, Ränge, Schatzkammer, Figur, Flotte, Boss, Kraken | [`KLICKER.md`](KLICKER.md) |
 | testen (Node und Browser) | [`TESTEN.md`](TESTEN.md) |
 | Branch, Versionsnummer, Pull Request, Veröffentlichung | [`ARBEITSWEISE.md`](ARBEITSWEISE.md) |
+| wissen, welche Schwachstellen und Mogel-Möglichkeiten bekannt sind und wie man sie behebt | [`EXPLOITS.md`](EXPLOITS.md) |
 
-`EXPLOITS.md` (falls vorhanden) ist ein eigener Prüfbericht zu Schwachstellen und gehört nicht zu dieser Reihe.
+[`EXPLOITS.md`](EXPLOITS.md) ist ein Prüfbericht mit festem Stand (10.11.2026), keine Beschreibung des Aufbaus:
+Zeilennummern dort können veraltet sein. Wer einen Befund behebt, vermerkt das dort.
 
 ## Das Projekt in zehn Sätzen
 
