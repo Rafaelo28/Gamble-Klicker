@@ -584,6 +584,22 @@ Wunsch: Ein Freund hat 7 Mio. Schatzkarten und das Spiel „durchgespielt“ –
 - Stoppuhr: „Auf die Hundertstel“ (genau getroffen) → **„Gutes Timing“** (höchstens 3 Hundertstel daneben).
 - Die IDs (`pokerRoyal`, `stopwatchExact`) bleiben gleich: Wer einen der Erfolge schon hat, behält ihn.
 
+### Erweiterung: Geheime Parole ✅
+- Neues schnelles Casino-Spiel **🗝️ Geheime Parole** (`js/casino/parole.js`): ein Wort mit fünf Buchstaben raten,
+  sechs Versuche. Nach jedem Versuch zeigen runde Münzen den Stand je Buchstabe: Gold = richtige Stelle, Blau
+  (gestrichelter Rand) = kommt vor, andere Stelle, dunkel = kommt nicht vor. Doppelte Buchstaben zählen nur so oft,
+  wie sie in der Parole stehen. Jede Buchstabenfolge darf geraten werden (keine Wörterbuch-Prüfung).
+- Gewinn je Versuch: ×8 · ×1,5 · ×0,8 · ×0,4 · ×0,2 · ×0,1, nicht geknackt = Einsatz weg (ursprünglich ×12 · ×3 · ×1,5 ·
+  ×1 · ×0,5 · ×0,2 – beim Mergen gesenkt, siehe unten).
+- Wörter: 330 deutsche (ohne Umlaute/ß) und 263 englische; die Sprache der Parole richtet sich nach der Spielsprache
+  beim Start der Runde. Eingabe über die eigene Bildschirmtastatur (QWERTZ bzw. QWERTY, färbt sich mit) oder die
+  Tastatur am Rechner (Buchstaben, Eingabe, Rücktaste).
+- Ausgewogen: Die Wortliste ist klein und steht im Quelltext. Mit den ursprünglichen Stufen kam ein geschickter Löser
+  mit Listenkenntnis auf ×1,8–1,9 (Gelddrucker). Jetzt: geschickter Löser ×0,91 (Deutsch) bzw. ×0,97 (Englisch),
+  zufällig passend ratend ×0,77–0,84, wer die Liste nicht kennt (meist 4 Versuche) deutlich darunter.
+- Parole und Versuche werden mit der Runde sofort gespeichert (Neuladen kostet nichts); die große Fahrt ist während
+  einer Runde gesperrt.
+
 ## Entscheidungen
 
 ### Multiplayer: Wie spielen die Freunde zusammen? → **Variante A**

@@ -426,6 +426,10 @@ window.GK = window.GK || {};
       p('M24 8V3l8 2.5-8 2.5', RED) + p('M14 44 22.5 19M34 44 25.5 19', 'none', ` stroke="#d6b98a" stroke-width="1.4"`) +
       p('M17 37h14M18.5 32h11M20 27h8', 'none', ` stroke="#d6b98a" stroke-width="1.2"`) + p('M9 30h10M8.5 26 19 22', 'none', ` stroke="#d6b98a" stroke-width="1"`) +
       glint(36, 10, 2.4),
+    parole: R(4, 9, 40, 20, 5, WOOD) + o(12.5, 19, 6, GOLD) + o(24, 19, 6, SEA) + o(35.5, 19, 6, '#3b4a44') +
+      p('M10.5 21.5v-5h2.2a1.6 1.6 0 0 1 0 3.2h-2.2', 'none', ' stroke-width="1.4"') + glint(22, 16.5, 1.8) +
+      p('M18 39h20M33 39v4.5M38 39v3.5', 'none', ' stroke-width="4.6"') + p('M18 39h20M33 39v4.5M38 39v3.5', 'none', ' stroke="#f5c542" stroke-width="2.6"') +
+      o(13, 39, 5.5, GOLD) + o(13, 39, 2, WOOD_D),
     keno: p('M6 10c3-2 6-2 9 0s6 2 9 0 6-2 9 0 6 2 9 0v28c-3 2-6 2-9 0s-6-2-9 0-6 2-9 0-6-2-9 0Z', '#ecd6a4') +
       p('M10 33c4-2 6-8 11-9s6 4 10 2', 'none', ` stroke="${RED_D}" stroke-width="1.6" stroke-dasharray="2 2.4"`) +
       p('M32 22l5 5M37 22l-5 5', 'none', ` stroke="${RED}" stroke-width="2.6"`) +
