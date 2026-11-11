@@ -205,9 +205,34 @@ GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' 
     return true;
   };
 
+  // ---------- Daten von außen entschärfen ----------
+  // Ein Spielstand-Code (Import) und Nachrichten anderer Geräte (Spiele mit Freunden, Poker) können beliebigen
+  // Inhalt haben. Viele Werte landen später in innerHTML – ein präparierter Wert wie '<img onerror=…>' würde
+  // dann fremden Code ausführen. Darum werden in allen Texten und Schlüsseln die Zeichen ersetzt, mit denen
+  // man HTML einschleusen kann, durch gleich aussehende harmlose Zeichen (< > " ' `). Das Spiel selbst speichert
+  // und verschickt nie HTML, es geht also nichts verloren. Schlüssel wie __proto__ fallen weg.
+  const UNSAFE = /[<>"'`]/g;
+  const SAFE = { '<': '‹', '>': '›', '"': '”', "'": '’', '`': 'ˋ' };
+  const BAD_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+  function cleanData(value, depth = 0) {
+    if (typeof value === 'string') return value.replace(UNSAFE, c => SAFE[c]);
+    if (value === null || typeof value !== 'object') return typeof value === 'function' || typeof value === 'symbol' ? undefined : value;
+    if (depth > 60) return null;
+    if (Array.isArray(value)) return value.map(v => cleanData(v, depth + 1));
+    const out = {};
+    Object.keys(value).forEach(k => {
+      if (BAD_KEYS.has(k)) return;
+      out[cleanData(k)] = cleanData(value[k], depth + 1);
+    });
+    return out;
+  }
+  GK.cleanData = cleanData;
+
   // Übernimmt geladene Daten; fehlende Felder (z. B. aus älteren Versionen) bekommen Standardwerte
   function applyData(data) {
-    if (!data || typeof data !== 'object' || typeof data.money !== 'number' || !isFinite(data.money)) {
+    if (!data || typeof data !== 'object' || Array.isArray(data)) return false;
+    data = cleanData(data);
+    if (typeof data.money !== 'number' || !isFinite(data.money)) {
       return false;
     }
     const defaults = createDefaultState();
