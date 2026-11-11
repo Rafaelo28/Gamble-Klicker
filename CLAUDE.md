@@ -4,6 +4,12 @@ Browser-Spiel (Cookie Clicker + Casino) von **Rafaelo28**. Reines HTML, CSS und 
 ohne Framework und ohne Build-Schritt – `index.html` im Browser öffnen genügt.
 Online über GitHub Pages aus `main`: https://rafaelo28.github.io/Gamble-Klicker/
 
+## Ausführliche Doku
+
+Unter [`docs/`](docs/README.md) steht für jeden Bereich, wie er aufgebaut ist, mit Rezepten und Stolperfallen:
+Kern und Spielstand, Oberfläche, Casino, Spiele mit Freunden, Poker, Klicker/Fortschritt/Abenteuer, Testen,
+Arbeitsweise. Vor einer Änderung die passende Datei lesen; ändert sich eine Schnittstelle, die Doku mit anpassen.
+
 ## Arbeitsweise (mit Rafaelo28 abgesprochen)
 
 - Auf dem Arbeits-Branch entwickeln, einen **Pull Request nach `main`** erstellen und ihn
