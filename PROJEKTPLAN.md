@@ -600,6 +600,19 @@ Wunsch: Ein Freund hat 7 Mio. Schatzkarten und das Spiel „durchgespielt“ –
 - Parole und Versuche werden mit der Runde sofort gespeichert (Neuladen kostet nichts); die große Fahrt ist während
   einer Runde gesperrt.
 
+### Pflege: Sicherheitslücken geschlossen ✅
+Gefunden im Prüfbericht von johannSo (PR #52, `docs/EXPLOITS.md`), Befund 1 im Browser nachgestellt:
+- **Befund 1 – präparierter Spielstand-Code führte fremden Code aus.** Viele Werte aus dem Spielstand landen in
+  `innerHTML`; ein Code mit z. B. `mult: '<img onerror=…>'` lief beim Import (und bei jedem Start erneut).
+- **Befund 2 – manipulierter Gastgeber führte Code bei Gästen aus** (Einstellungen, Avatare, Namen).
+- **Behoben:** `GK.cleanData` (`js/state.js`) entschärft alles, was von außen kommt: In Texten und Schlüsseln werden
+  `< > " ' \`` durch gleich aussehende harmlose Zeichen ersetzt, `__proto__`/`constructor`/`prototype` fallen weg.
+  Angewendet in `applyData` (Import und Laden – ein schon „verseuchter“ Spielstand wird beim nächsten Start
+  bereinigt) und in `unpack` aller Netzwerk-Nachrichten (Räume und Poker, beide Richtungen). Das Spiel selbst
+  speichert und verschickt nie HTML, es geht nichts verloren.
+- Test: `tests/security.test.js`; im Browser: Import-Code und „böser Gastgeber“ führen keinen Code mehr aus.
+- Noch offen aus dem Bericht: Befund 3 (Platz eines anderen Gastes übernehmen) und die weiteren Mogel-Befunde.
+
 ## Entscheidungen
 
 ### Multiplayer: Wie spielen die Freunde zusammen? → **Variante A**

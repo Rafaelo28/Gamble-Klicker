@@ -357,13 +357,17 @@ GK.i18n.add({
     }
   }
 
+  // Jede Nachricht eines anderen Geräts wird entschärft (GK.cleanData, js/state.js): Ein manipuliertes Gerät
+  // kann so keine HTML-Schnipsel einschleusen, die bei uns in innerHTML landen
   function unpack(msg) {
-    if (!msg || msg.type !== 'json' || typeof msg.data !== 'string') return msg;
-    try {
-      return JSON.parse(msg.data);
-    } catch (e) {
-      return null;
+    if (msg && msg.type === 'json' && typeof msg.data === 'string') {
+      try {
+        msg = JSON.parse(msg.data);
+      } catch (e) {
+        return null;
+      }
     }
+    return GK.cleanData(msg);
   }
 
   // ========== Gastgeber ==========

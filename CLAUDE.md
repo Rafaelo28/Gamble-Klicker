@@ -30,6 +30,8 @@ Online über GitHub Pages aus `main`: https://rafaelo28.github.io/Gamble-Klicker
   (`createDefaultState` / `applyData`), damit alte Spielstände weiter laden.
 - **Spiele mit Freunden** (außer Poker) bauen auf `js/mp/room.js` auf: Raum, Eintritt, Verbindung,
   Abrechnung und „gegen Computer“ kommen von dort, das Spiel liefert nur Regeln und Darstellung.
+- **Daten von außen** (Spielstand-Code, Nachrichten anderer Geräte) laufen durch `GK.cleanData` (`js/state.js`):
+  in `applyData` und in `unpack` (`js/mp/room.js`, `js/poker/multiplayer.js`). Neue Wege für fremde Daten genauso absichern.
 - **Dublonen** nur über `GK.earn` / `GK.spend` bzw. im Casino über `GK.casino.bet`,
   `payout`, `refund` und `record` bewegen. Spielzustände über `GK.casino.data(id)` lesen,
   laufende Runden sofort speichern (Neuladen darf keinen Einsatz kosten).
@@ -62,6 +64,7 @@ Online über GitHub Pages aus `main`: https://rafaelo28.github.io/Gamble-Klicker
 - `node tests/darts.test.js` – Darts: Wertung, Ablauf mit 2–4 Spielern, Stechen, Aufgeben.
 - `node tests/cannon.test.js` – Kanonenduell: Flugbahn (muss überall gleich rechnen), Schaden, Regeln, Partien.
 - `node tests/format.test.js` – Beträge mit Abkürzungen eingeben (500k, 2,5M, 1B, 3 Mio.).
+- `node tests/security.test.js` – Daten von außen: präparierter Spielstand-Code und Nachrichten anderer Geräte bringen kein HTML (keinen fremden Code) ins Spiel, `__proto__` wird verworfen.
 - `node tests/savecode.test.js` – Spielstand-Code: SHA-256 (bekannte Prüfwerte), Hin-und-zurück, Verschleierung, Fälschung wird abgewiesen, alte reine Base64-Codes laden weiter.
 - `node tests/cosmetics.test.js` – Schatzkammer: Katalog, Preise, Glücksrad nach der großen Fahrt.
 - `node tests/chicken.test.js` – Chicken Road: Multiplikatoren, Verkehr (Zusammenstöße, sichere Zonen), Ablauf einer Runde.
