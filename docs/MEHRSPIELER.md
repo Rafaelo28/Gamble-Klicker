@@ -36,8 +36,8 @@ Ein Spiel liefert nur **Regeln** (reine Funktionen auf einem JSON-Zustand) und *
 | Einladungs-Link | `…?raum=CODE&spiel=ID` (`inviteLink`); `readInviteLink` (Aufruf in `main.js:init`) öffnet das Spiel, trägt den Code vor und entfernt die Parameter aus der Adresse |
 | Ohne PeerJS | `peerAvailable()` ist falsch → Knöpfe „Eröffnen“/„Beitreten“ gesperrt, „Gegen Computer“ geht weiter |
 
-Konstanten (`room.js`, Kopf): `PROTOCOL = 2` (seit dem Platz-Token), `HEARTBEAT = 2000`, `HEARTBEAT_TIMEOUT = 8000`,
-`RETRY_DELAY = 3000`, `CONNECT_TIMEOUT = 10000`, `OFFLINE_TURN_TIME = 5000`, `ABANDON_AFTER = 30000`,
+Konstanten (`room.js`, Kopf): `PROTOCOL = 3` (2: Platz-Token, 3: bestätigte Plätze), `HEARTBEAT = 2000`, `HEARTBEAT_TIMEOUT = 8000`,
+`RETRY_DELAY = 3000`, `CONNECT_TIMEOUT = 10000`, `ABANDON_AFTER = 30000`,
 `DROP_AFTER = 90000`, `MIN_ENTRY = 100`.
 
 Laufzeit-Verbindungsdaten stehen in `net` (nicht im Spielstand): `peer`, `conns` (Gastgeber:
@@ -58,7 +58,8 @@ und wird beim Empfang von `unpack` wieder ausgepackt (`room.js:send`, `unpack`).
 | `join` | – | Eintritt bezahlt → `member.ready = true` (nur in Phase `lobby`) |
 | `action` | `action` (Objekt, spielspezifisch) | `playerAction(platz, action)` (nur in Phase `playing`) |
 | `records` | `records` | Neue Rekorde nach der Abrechnung (Freundes-Rangliste) |
-| `leave` | – | `playerLeft`: im Warteraum Mitglied entfernen, im Spiel `def.forfeit` |
+| `leave` | – | `playerLeft`: im Warteraum Mitglied entfernen, im Spiel `def.forfeit`; der Platz gilt als abgerechnet (`s.left`), auf ihn wird nicht gewartet |
+| `ack` | `step` | Der Gast hat den Spielstand bis zu diesem Schritt gesehen (`conn.ackStep`). Erst wenn alle noch nicht abgerechneten Menschen einen Platz gesehen haben, wird er ausgezahlt – siehe „Bestätigte Plätze“ in 1.5 |
 | `ping` | – | Herzschlag, aktualisiert nur `conn.lastSeen` |
 
 Vor einem gültigen `hello` (also ohne `conn.playerId`) wird alles andere verworfen.
@@ -67,11 +68,11 @@ Vor einem gültigen `hello` (also ohne `conn.playerId`) wird alles andere verwor
 
 | `type` | Felder | Wirkung |
 |---|---|---|
-| `state` | `v`, `game`, `code`, `entry`, `settings`, `phase`, `hostId`, `fillBots`, `members`, und sobald das Spiel läuft: `view`, `mySeat`, `turnLeft` (ms oder `null`) | Vollständiger Stand für genau diesen Gast (`stateMessage`). Es gibt keine Teil-Updates |
+| `state` | `v`, `game`, `code`, `entry`, `settings`, `phase`, `hostId`, `fillBots`, `members`, und sobald das Spiel läuft: `view`, `mySeat`, `step`, `settleOk`, `turnLeft` (ms oder `null`) | Vollständiger Stand für genau diesen Gast (`stateMessage`). Es gibt keine Teil-Updates |
 | `error` | `fatal`, `message` | `fatal` → `endSession(message, true)` (Eintritt zurück), sonst Hinweis. Fälle: anderes Spiel, andere Protokollversion, Spiel läuft schon, Raum voll, ohne Bezahlung gestartet, Platz gehört jemand anderem, entfernt. Der Gast zeigt `message`/`reason` über `GK.t` (deutsche Schlüssel, in `room.js` angemeldet) |
 | `secret` | `secret` | Platz-Token, nur an diesen Gast; er speichert es in der Sitzung und schickt es mit jedem `hello` |
 | `kicked` | – | Gastgeber hat den Gast im Warteraum entfernt (Knopf „Entfernen“, `kickMember`) → Eintritt zurück |
-| `closed` | `reason`, `forfeit` | Gastgeber hat den Raum geschlossen → `endSession(reason, true)`. `forfeit: true` (Gastgeber gibt mitten im Spiel auf): Eintritt zurück plus Anteil an seinem Eintritt (`hostForfeited`) |
+| `closed` | `reason`, `forfeit` | Gastgeber hat den Raum geschlossen → `endSession(reason, true)`. `forfeit: true` (Gastgeber gibt mitten im Spiel auf, er geht leer aus): Die Gäste teilen sich den Rest des Topfs (`hostForfeited`, `potLeft`) |
 | `ping` | – | Herzschlag |
 
 `members[]` in `state`: `{ playerId, name, avatar, fig, rank, badge, ready, online, records? }`
@@ -118,7 +119,9 @@ Raum sperren das Eröffnen/Beitreten. Umgekehrt fragen `js/poker/poker.js` und
 | Gast lädt neu | `connectClient` → `hello` mit `paid` aus der Sitzung. Bekannter `playerId` darf auch im laufenden Spiel wieder herein; ein unbekannter bekommt „Spiel läuft schon“ |
 | Nur der Vermittlungsserver ist weg | `reconnectServer`: `peer.reconnect()` mit derselben ID; die direkten Verbindungen laufen weiter |
 | Herzschlag | alle 2 s `ping`; 8 s ohne Nachricht → Verbindung gilt als tot (`heartbeat`) |
-| Gast im laufenden Spiel offline | Ist er am Zug, hat er nur 5 s Bedenkzeit (`OFFLINE_TURN_TIME`), danach greift `def.timeout`. Nach 90 s ohne Verbindung bricht der Gastgeber das Spiel **für alle mit Erstattung** ab (`dropAbsentPlayers` → `abortForAll`) – passend zur Erstattung des Gastes nach 30 s ohne Gastgeber (sonst entstünde Geld aus dem Nichts). Ist der Gastgeber selbst offline (`hostOnline()` falsch) oder war seine Seite eingeschlafen, passiert nichts |
+| Gast im laufenden Spiel offline | **Das Spiel wartet** (`someoneAway`): keine Züge (auch nicht vom Gastgeber oder von Computer-Gegnern), keine Bedenkzeit; kommt der Gast zurück, beginnt die Bedenkzeit neu. Ist jemand **insgesamt** 90 s weg (`awayMs`, zählt über das ganze Spiel zusammen), bricht der Gastgeber das Spiel **für alle mit Erstattung** ab (`dropAbsentPlayers` → `abortForAll`) – passend zur Erstattung des Gastes nach 30 s ohne Gastgeber. Ist der Gastgeber selbst offline (`hostOnline()` falsch) oder war seine Seite eingeschlafen, zählt die Zeit nicht |
+| Bestätigte Plätze | Ein Preis fließt erst, wenn alle noch nicht abgerechneten Menschen den Spielstand mit diesem Platz gesehen haben: Der Gastgeber merkt sich je Platz den Schritt (`s.placedAt`), die Gäste antworten auf jeden `state` mit `ack`, `s.confirmed` ist der kleinste bestätigte Schritt. `placeConfirmed` steuert die eigene Abrechnung des Gastgebers, `settleOk` im `state` die des Gastes; `phase = 'ended'` erst, wenn auch das Ende bestätigt ist. Ohne das könnte jemand die Verbindung trennen, sich selbst erstatten – und der Sieger bekäme trotzdem den Topf |
+| Erstattung nach ausgezahlten Preisen | `refundEntry` gibt höchstens den Anteil am Rest des Topfs zurück (`potLeft`: echte Eintritte minus schon ausgezahlte Preise, geteilt durch die noch nicht Abgerechneten). Der Gastgeber zählt bestätigte Plätze, ein Gast vorsichtig jeden fremden Platz in seiner Ansicht |
 | Gast verlässt Warteraum | `leave` + `endSession(…, true)` → Eintritt zurück |
 | Gast verlässt laufendes Spiel | Rückfrage, dann `leave` und lokale Abrechnung mit dem Platz „Anzahl Spieler − schon Platzierte“ (`clientLeave`) |
 | Gastgeber nicht erreichbar | Gast versucht alle 3 s neu (`hostLost`). Nach 30 s (`ABANDON_AFTER`) darf er abbrechen und bekommt den Eintritt zurück |

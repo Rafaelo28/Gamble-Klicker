@@ -86,6 +86,7 @@ Was das für den Spielcode bedeutet:
 | Gleiche Rechnung auf jedem Gerät (Physik) | `tests/cannon.test.js`, `tests/minigolf.test.js`, `tests/billiards.test.js` |
 | Alte Spielstände laden weiter | `tests/figure.test.js`, `tests/fleet.test.js`, `tests/savecode.test.js` |
 | Geld: Eintritt, Preise, Rückgabe | `tests/payouts.test.js` |
+| Gastgeber und Gäste über ein nachgebautes Netz (eigener Spielstand je Gerät, Verbindungsabbrüche, nachgebaute Uhr) | `tests/room-net.test.js` |
 
 Bei Simulationen mit Zufall die Grenzen so weit wählen, dass der Test nicht gelegentlich zufällig fehlschlägt
 (viele Durchläufe, großzügige Schranken), und die gemessene Zahl in die Fehlermeldung schreiben.

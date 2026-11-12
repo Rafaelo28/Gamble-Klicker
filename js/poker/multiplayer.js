@@ -22,6 +22,11 @@ GK.i18n.add({
   'Der Raum-Code hat {n} Zeichen.': 'The room code has {n} characters.',
   'Raum {code} nicht gefunden. Stimmt der Code?': 'Room {code} not found. Is the code correct?',
   ' Dein Eintritt wurde erstattet.': ' Your entry was refunded.',
+  ' Du bekommst {money} zurück – ein Teil des Topfs war schon ausgezahlt.': ' You get {money} back – part of the pot had already been paid out.',
+  ' Der Rest des Topfs wird unter den Gästen geteilt, du bekommst {money}.': ' The rest of the pot is shared among the guests, you get {money}.',
+  'Dein Platz wird gerade bestätigt – einen Moment noch.': 'Your place is being confirmed – just a moment.',
+  'Das Spiel wartet, bis alle wieder verbunden sind.': 'The game is waiting until everyone is connected again.',
+  'Spiel abgebrochen': 'Game cancelled',
   'Raum schließen? Alle bekommen ihren Eintritt zurück.': 'Close the room? Everyone gets their entry back.',
   'Wenn du gehst, endet das Turnier für alle. Deine Mitspieler bekommen ihren Eintritt zurück.': 'If you leave, the tournament ends for everyone. Your fellow players get their entry back.',
   'Wenn du gehst, gibst du auf und das Turnier endet für alle. Deine Mitspieler bekommen ihren Eintritt zurück und teilen sich deinen, du belegst Platz {n}.': 'If you leave, you give up and the tournament ends for everyone. Your fellow players get their entry back and share yours, and you finish in place {n}.',
@@ -106,11 +111,10 @@ GK.i18n.add({
 GK.poker = GK.poker || {};
 
 (function () {
-  const PROTOCOL = 4; // 3: Blitz-Modus (Auszahlung nach Chips) · 4: geheimes Token je Platz
+  const PROTOCOL = 5; // 3: Blitz-Modus (Auszahlung nach Chips) · 4: geheimes Token je Platz · 5: Plätze werden bestätigt (ack)
   const ID_PREFIX = 'gamble-klicker-';
   const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // ohne leicht verwechselbare Zeichen (0/O, 1/I)
   const CODE_LENGTH = 5;
-  const OFFLINE_TURN_TIME = 5000;  // Bedenkzeit, wenn die Verbindung des Spielers weg ist
   const RETRY_DELAY = 3000;
   const CONNECT_TIMEOUT = 10000;
   const ABANDON_AFTER = 30000;     // so lange muss der Gastgeber weg sein, bis man mit Erstattung gehen darf
@@ -141,7 +145,7 @@ GK.poker = GK.poker || {};
   };
   let hostTimer = null;
   let pendingCode = '';
-  const offlineSince = new Map(); // Gastgeber: playerId → seit wann ohne Verbindung
+  const awayMs = new Map(); // Gastgeber: playerId → wie lange insgesamt ohne Verbindung (nur im laufenden Turnier)
 
   // ---------- Gespeicherte Daten ----------
 
@@ -236,14 +240,87 @@ GK.poker = GK.poker || {};
     setTimeout(() => GK.fx.celebrate(win, tr.entry, { level: place === 1 ? 'mega' : undefined, subtitle: `${place}. Platz – Freundesrunde` }), 600);
   }
 
-  // Gibt true zurück, wenn tatsächlich etwas erstattet wurde
+  // ---------- Bestätigte Plätze (wie in js/mp/room.js) ----------
+  // Ein Preis fließt erst, wenn alle, die noch nicht abgerechnet sind, den Tisch mit diesem Platz gesehen haben
+  // (sie antworten auf jeden Stand mit { type: 'ack', step }). Sonst könnte jemand die Verbindung trennen, sich
+  // nach 30 Sekunden den Eintritt erstatten lassen – und der Sieger bekäme trotzdem den vollen Topf.
+  const seatDone = (t, seat) => !!t.players[seat] && (t.players[seat].out || t.phase === 'finished');
+
+  function placeConfirmed(s, seat) {
+    // Wer selbst gegangen ist (aufgegeben), hat sich schon abgerechnet – auf ihn wartet niemand
+    if (s.left && s.left[seat]) return true;
+    const at = s.placedAt ? s.placedAt[seat] : null;
+    return at != null && at <= (typeof s.confirmed === 'number' ? s.confirmed : -1);
+  }
+
+  // Gastgeber: menschliche Mitspieler, deren Platz noch nicht bestätigt ist (auf sie wird gewartet)
+  function waitingFor(s) {
+    if (!s || s.role !== 'host' || !s.table) return [];
+    return s.table.players.filter((p, seat) => !p.isBot && p.id !== store().playerId && !placeConfirmed(s, seat));
+  }
+
+  // Gastgeber: Fehlt gerade jemand, auf den gewartet wird? Dann steht das Turnier (keine Züge, keine Bedenkzeit).
+  function someoneAway(s) {
+    return !!s && s.phase === 'playing' && waitingFor(s).some(p => !net.conns.has(p.id));
+  }
+
+  // Gastgeber: neue Plätze vormerken und nachsehen, bis zu welchem Schritt alle bestätigt haben.
+  // Gibt true zurück, wenn dadurch ein Platz (oder das Turnierende) neu bestätigt wurde.
+  function updateConfirmed(s) {
+    const t = s.table;
+    const step = s.step || 0;
+    s.placedAt = s.placedAt || {};
+    t.players.forEach((p, seat) => {
+      if (seatDone(t, seat) && s.placedAt[seat] == null) s.placedAt[seat] = step;
+    });
+    if (s.finishedAt == null && t.phase === 'finished') s.finishedAt = step;
+    const before = typeof s.confirmed === 'number' ? s.confirmed : -1;
+    let seen = step;
+    waitingFor(s).forEach(p => {
+      const conn = net.conns.get(p.id);
+      seen = Math.min(seen, conn && typeof conn.ackStep === 'number' ? conn.ackStep : -1);
+    });
+    s.confirmed = Math.max(before, seen);
+    const fresh = at => at != null && at > before && at <= s.confirmed;
+    return Object.keys(s.placedAt).some(seat => fresh(s.placedAt[seat])) || fresh(s.finishedAt);
+  }
+
+  // Was vom Topf noch da ist (alle echten Eintritte minus schon ausgezahlte Preise) und unter wie vielen
+  // Menschen es noch aufzuteilen ist. Der Gastgeber weiß, welche Plätze bestätigt (= ausgezahlt) sind; ein Gast
+  // rechnet vorsichtig jeden fremden Platz in seiner Ansicht als ausgezahlt. null: kein laufendes Turnier.
+  function potLeft(s) {
+    const host = s.role === 'host';
+    const t = host ? s.table : s.view;
+    if (!t || !Array.isArray(t.players) || (s.phase !== 'playing' && s.phase !== 'ended')) return null;
+    const mine = host ? t.players.findIndex(p => p.id === store().playerId) : s.mySeat;
+    let paid = 0;
+    let open = 0;
+    t.players.forEach((p, i) => {
+      if (p.isBot) return;
+      if (i !== mine && seatDone(t, i) && (!host || placeConfirmed(s, i))) paid += mpPayout(t, i, s.entry);
+      else open++;
+    });
+    return { left: Math.max(0, s.entry * humans(t) - paid), open: Math.max(1, open) };
+  }
+
+  // Erstattung bei einem Abbruch: der Eintritt – aber nie mehr, als nach schon ausgezahlten Preisen noch im
+  // Topf ist. Gibt den Text für die Meldung zurück ('' = nichts erstattet).
   function refundEntry() {
     const s = session();
-    if (!s || s.settled || !s.paid) return false;
+    if (!s || s.settled || !s.paid) return '';
+    const entry = sessionTier().entry;
+    const pot = potLeft(s);
+    const amount = pot ? Math.min(entry, Math.floor(pot.left / pot.open)) : entry;
     s.settled = true;
-    s.result = { refunded: true };
-    GK.casino.refund(sessionTier().entry);
-    return true;
+    if (amount >= entry) {
+      s.result = { refunded: true };
+      GK.casino.refund(entry);
+      return GK.t(' Dein Eintritt wurde erstattet.');
+    }
+    s.result = { refunded: true, prize: amount };
+    if (amount > 0) GK.casino.payout(amount);
+    GK.casino.record('poker', entry, amount, GK.t('Spiel abgebrochen'));
+    return GK.t(' Du bekommst {money} zurück – ein Teil des Topfs war schon ausgezahlt.', { money: GK.formatNumber(amount) });
   }
 
   // Raum verlassen und Ergebnis für die Poker-Lobby merken.
@@ -251,7 +328,7 @@ GK.poker = GK.poker || {};
   function endSession(message, refund) {
     const s = session();
     if (!s) return;
-    if (refund && refundEntry()) message += GK.t(' Dein Eintritt wurde erstattet.');
+    if (refund) message += refundEntry();
     const tr = s.entry ? sessionTier() : null;
     store().lastResult = { message, result: s.result || null, tierName: tr ? tr.name : '' };
     store().session = null;
@@ -504,6 +581,12 @@ GK.poker = GK.poker || {};
     } else if (msg.type === 'action' && s.phase === 'playing') {
       const seat = s.table.players.findIndex(p => p.id === conn.playerId);
       playerAction(seat, msg.action);
+    } else if (msg.type === 'ack' && s.phase === 'playing' && s.table) {
+      // Der Gast hat den Tisch bis zu diesem Schritt gesehen (siehe placeConfirmed)
+      const step = Math.floor(Number(msg.step));
+      if (!(step >= 0)) return;
+      conn.ackStep = Math.min(s.step || 0, step);
+      if (updateConfirmed(s)) afterHostChange();
     } else if (msg.type === 'records') {
       // Neue Rekorde nach dem Turnier (für die Freundes-Rangliste)
       const member = s.members.find(m => m.playerId === conn.playerId);
@@ -562,6 +645,7 @@ GK.poker = GK.poker || {};
   function playerAction(seat, action) {
     const t = session().table;
     if (seat < 0 || t.phase !== 'betting' || t.toAct !== seat) return;
+    if (someoneAway(session())) return; // das Turnier wartet auf jemanden ohne Verbindung
     engine().act(t, cleanAction(action));
     afterHostChange();
   }
@@ -572,7 +656,11 @@ GK.poker = GK.poker || {};
       s.members = s.members.filter(m => m.playerId !== playerId);
     } else if (s.phase === 'playing') {
       const seat = s.table.players.findIndex(p => p.id === playerId);
-      if (seat >= 0) engine().forfeit(s.table, seat);
+      if (seat >= 0) {
+        engine().forfeit(s.table, seat);
+        s.left = s.left || {};
+        s.left[seat] = true;
+      }
     }
     net.conns.delete(playerId);
     afterHostChange();
@@ -599,14 +687,14 @@ GK.poker = GK.poker || {};
 
   function hostNextHand() {
     const s = session();
-    if (!s || s.role !== 'host' || s.phase !== 'playing' || s.table.phase === 'betting') return;
+    if (!s || s.role !== 'host' || s.phase !== 'playing' || s.table.phase === 'betting' || s.table.phase === 'finished' || someoneAway(s)) return;
     engine().startHand(s.table);
     afterHostChange();
   }
 
   function hostBotStep() {
     const t = session().table;
-    if (t.phase !== 'betting' || !t.players[t.toAct].isBot) return;
+    if (t.phase !== 'betting' || !t.players[t.toAct].isBot || someoneAway(session())) return;
     engine().act(t, GK.poker.ai.decide(t));
     afterHostChange();
   }
@@ -614,7 +702,7 @@ GK.poker = GK.poker || {};
   // Bedenkzeit abgelaufen: checken, wenn möglich – sonst passen
   function hostTimeout() {
     const t = session().table;
-    if (t.phase !== 'betting' || t.players[t.toAct].isBot) return;
+    if (t.phase !== 'betting' || t.players[t.toAct].isBot || someoneAway(session())) return;
     engine().act(t, { type: engine().legalActions(t).canCheck ? 'check' : 'fold' });
     afterHostChange();
   }
@@ -629,19 +717,27 @@ GK.poker = GK.poker || {};
     if (!s || s.role !== 'host') return;
     const t = s.table;
     if (t) {
-      const key = turnKey(t);
-      if (key !== s.turnKey) {
-        s.turnKey = key;
-        const p = key && t.players[t.toAct];
-        s.deadline = p && !p.isBot ? Date.now() + (p.offline ? OFFLINE_TURN_TIME : sessionMode().turnTime) : null;
-      }
       // Blitz: Nach der letzten Hand ist Schluss, die Chips entscheiden
       if (T().handLimitReached(t)) T().finishByChips(t);
+      // Jeder Stand bekommt eine Nummer, die Gäste bestätigen sie (siehe placeConfirmed)
+      s.step = (s.step || 0) + 1;
+      updateConfirmed(s);
+      const key = turnKey(t);
+      if (someoneAway(s)) {
+        // Jemand ist ohne Verbindung: Das Turnier wartet. Die Bedenkzeit beginnt neu, wenn alle wieder da sind.
+        s.deadline = null;
+        s.turnKey = null;
+      } else if (key !== s.turnKey) {
+        s.turnKey = key;
+        const p = key && t.players[t.toAct];
+        s.deadline = p && !p.isBot ? Date.now() + sessionMode().turnTime : null;
+      }
       const meSeat = t.players.findIndex(p => p.id === store().playerId);
       const me = t.players[meSeat];
       if (t.result && t.result.hands && GK.poker.fullHouseOrBetter(t.result.hands[meSeat])) GK.unlockAchievement('pokerRoyal');
-      if (me.out || t.phase === 'finished') settle(me.place, t.players.length, mpPayout(t, meSeat, s.entry));
-      if (t.phase === 'finished') s.phase = 'ended';
+      // Eigener Preis und Turnierende erst, wenn alle den Platz bzw. das Ende gesehen haben
+      if (seatDone(t, meSeat) && placeConfirmed(s, meSeat)) settle(me.place, t.players.length, mpPayout(t, meSeat, s.entry));
+      if (t.phase === 'finished' && s.finishedAt != null && s.finishedAt <= s.confirmed) s.phase = 'ended';
     }
     GK.save();
     broadcast();
@@ -652,8 +748,9 @@ GK.poker = GK.poker || {};
   function scheduleHost() {
     clearTimeout(hostTimer);
     const s = session();
-    if (!s || s.role !== 'host' || s.phase !== 'playing') return;
+    if (!s || s.role !== 'host' || s.phase !== 'playing' || someoneAway(s)) return;
     const t = s.table;
+    if (t.phase === 'finished') return; // wartet nur noch auf die Bestätigung des Endes
     const m = sessionMode();
     if (t.phase === 'betting') {
       if (t.players[t.toAct].isBot) hostTimer = setTimeout(hostBotStep, m.botDelay);
@@ -695,6 +792,9 @@ GK.poker = GK.poker || {};
       const seat = s.table.players.findIndex(p => p.id === playerId);
       msg.view = viewFor(s.table, seat);
       msg.mySeat = seat;
+      // step: Der Gast bestätigt ihn mit „ack“. settleOk: Der Platz dieses Spielers ist von allen gesehen worden
+      msg.step = s.step || 0;
+      msg.settleOk = seat >= 0 && placeConfirmed(s, seat);
       msg.turnLeft = s.deadline ? Math.max(0, s.deadline - Date.now()) : null;
     }
     return msg;
@@ -722,14 +822,16 @@ GK.poker = GK.poker || {};
     const meP = s.table && s.table.players.find(p => p.id === store().playerId);
     const forfeit = s.phase === 'playing' && !!meP && !meP.out && s.table.phase !== 'finished';
     net.conns.forEach(conn => send(conn, { type: 'closed', reason: forfeit ? 'Der Gastgeber hat aufgegeben.' : 'Der Gastgeber hat den Raum geschlossen.', forfeit }));
-    if (s.phase === 'playing') {
+    if (forfeit) {
+      // Der Gastgeber geht leer aus – der Rest des Topfs gehört den Gästen
       const t = s.table;
       const seat = t.players.findIndex(p => p.id === store().playerId);
-      if (!t.players[seat].out) engine().forfeit(t, seat);
-      settle(t.players[seat].place, t.players.length, mpPayout(t, seat, s.entry));
+      engine().forfeit(t, seat);
+      settle(t.players[seat].place, t.players.length, 0);
     }
-    // Kurz warten, damit die Nachricht noch rausgeht
-    setTimeout(() => endSession(s.phase === 'lobby' ? GK.t('Du hast den Raum geschlossen.') : GK.t('Du hast den Raum verlassen.'), s.phase === 'lobby'), 300);
+    // Kurz warten, damit die Nachricht noch rausgeht. Im Warteraum und bei einem eigenen, noch nicht
+    // bestätigten Platz gibt es den Eintritt zurück.
+    setTimeout(() => endSession(s.phase === 'lobby' ? GK.t('Du hast den Raum geschlossen.') : GK.t('Du hast den Raum verlassen.'), s.phase === 'lobby' || s.phase === 'playing'), 300);
   }
 
   // ========== Mitspieler ==========
@@ -897,29 +999,32 @@ GK.poker = GK.poker || {};
     const me = s.view && s.view.players[s.mySeat];
     if (me) {
       if (s.view.result && s.view.result.hands && GK.poker.fullHouseOrBetter(s.view.result.hands[s.mySeat])) GK.unlockAchievement('pokerRoyal');
-      if (me.out || s.view.phase === 'finished') settle(me.place, s.view.players.length, mpPayout(s.view, s.mySeat, s.entry));
+      // Den eigenen Preis gibt es erst, wenn alle den Platz gesehen haben (settleOk, siehe placeConfirmed)
+      if (msg.settleOk === true && seatDone(s.view, s.mySeat)) settle(me.place, s.view.players.length, mpPayout(s.view, s.mySeat, s.entry));
     }
     GK.save();
+    // Erst speichern, dann bestätigen: Was bestätigt ist, kennt dieses Gerät auch nach einem Neuladen
+    if (s.view && typeof msg.step === 'number') send(net.hostConn, { type: 'ack', step: msg.step });
     GK.poker.redraw();
   }
 
-  // Gastgeber hat mitten im Turnier aufgegeben: Eintritt zurück plus Anteil an seinem Eintritt
-  // (geteilt unter den menschlichen Gästen, die laut eigener Ansicht noch im Turnier sind)
+  // Gastgeber hat mitten im Turnier aufgegeben: Die Gäste teilen sich, was noch im Topf ist (ohne schon
+  // ausgezahlte Preise) – also ihren Eintritt plus einen Anteil am Eintritt des Gastgebers
   function hostForfeited(reason) {
     const s = session();
-    const me = s && s.view && s.view.players[s.mySeat];
-    if (!s || s.settled || !s.paid || !me || me.out) {
+    const pot = s && !s.settled && s.paid ? potLeft(s) : null;
+    if (!pot) {
       endSession(reason, true);
       return;
     }
-    const guests = s.view.players.filter(p => !p.isBot && !p.out && p.id !== s.hostId).length;
     const entry = sessionTier().entry;
-    const win = entry + Math.floor(entry / Math.max(1, guests));
+    // Der Gastgeber geht leer aus: Was noch im Topf ist, teilen sich die Gäste, die noch nicht abgerechnet sind
+    const win = Math.floor(pot.left / Math.max(1, pot.open - 1));
     s.settled = true;
     s.result = { refunded: true, prize: win };
     GK.casino.payout(win);
     GK.casino.record('poker', entry, win, GK.t('Gastgeber hat aufgegeben'));
-    endSession(reason + GK.t(' Du bekommst deinen Eintritt zurück und einen Anteil vom Eintritt des Gastgebers: {money}.', { money: GK.formatNumber(win) }), false);
+    endSession(reason + GK.t(' Der Rest des Topfs wird unter den Gästen geteilt, du bekommst {money}.', { money: GK.formatNumber(win) }), false);
   }
 
   // Mitspieler bestätigt den Eintritt, den der Gastgeber festgelegt hat
@@ -950,11 +1055,16 @@ GK.poker = GK.poker || {};
       endSession(GK.t('Du hast den Raum verlassen.'), true);
       return;
     }
-    if (s.phase === 'playing' && me && !me.out && !s.settled) {
+    if (s.phase === 'playing' && me && !s.settled) {
       const hostGone = net.status === 'lost' && Date.now() - net.lostSince >= ABANDON_AFTER;
       if (hostGone) {
         if (!confirm(GK.t('Der Gastgeber ist nicht mehr erreichbar. Turnier abbrechen? Du bekommst deinen Eintritt zurück.'))) return;
         endSession(GK.t('Turnier abgebrochen.'), true);
+        return;
+      }
+      // Platz steht schon fest, ist aber noch nicht von allen bestätigt: nicht ohne Preis gehen
+      if (seatDone(s.view, s.mySeat)) {
+        GK.toast(GK.t('Dein Platz wird gerade bestätigt – einen Moment noch.'));
         return;
       }
       const place = s.view.players.filter(p => !p.out).length;
@@ -986,10 +1096,10 @@ GK.poker = GK.poker || {};
           send(conn, { type: 'ping' });
         }
       });
-      // War die Seite des Gastgebers eingeschlafen (z. B. iPad gesperrt), zählt die Abwesenheit neu
-      if (net.lastBeat && now - net.lastBeat > 10000) offlineSince.clear();
+      // War die Seite des Gastgebers eingeschlafen (z. B. iPad gesperrt), zählt diese Zeit nicht als Abwesenheit
+      const dt = net.lastBeat && now - net.lastBeat <= 10000 ? now - net.lastBeat : 0;
       net.lastBeat = now;
-      dropAbsentPlayers(now);
+      dropAbsentPlayers(dt);
     } else if (net.hostConn) {
       const conn = net.hostConn;
       if (now - conn.lastSeen > HEARTBEAT_TIMEOUT) {
@@ -1011,27 +1121,27 @@ GK.poker = GK.poker || {};
     return net.status === 'online' && !!net.peer && !net.peer.destroyed && !net.peer.disconnected && navigator.onLine !== false;
   }
 
-  // Wer länger ohne Verbindung ist: Das Turnier wird für alle abgebrochen, alle bekommen ihren Eintritt zurück.
-  // (Früher schied der Spieler aus – er konnte sich aber nach 30 Sekunden ohne Gastgeber selbst erstatten,
-  // und der Sieger bekam trotzdem den vollen Topf: Geld aus dem Nichts.)
-  function dropAbsentPlayers(now) {
+  // Solange im laufenden Turnier jemand ohne Verbindung ist, wartet es (someoneAway). Ist jemand insgesamt zu
+  // lange weg, wird es für alle abgebrochen und jeder bekommt seinen Eintritt zurück – passend dazu, dass sich
+  // ein Gast nach 30 Sekunden ohne Gastgeber selbst erstatten darf. Die Zeit zählt über das ganze Turnier
+  // zusammen, damit niemand durch ständiges Trennen und Verbinden endlos Zeit schinden kann.
+  // dt: Millisekunden seit dem letzten Herzschlag
+  function dropAbsentPlayers(dt) {
     const s = session();
-    // Ist der Gastgeber selbst offline, liegt es an ihm – dann scheidet niemand aus
-    if (!s || s.role !== 'host' || s.phase !== 'playing' || !s.table || !hostOnline()) {
-      offlineSince.clear();
+    if (!s || s.role !== 'host' || s.phase !== 'playing' || !s.table) {
+      awayMs.clear();
       return;
     }
-    const t = s.table;
-    let changed = false;
-    t.players.forEach((p, seat) => {
-      if (p.isBot || p.out || p.id === store().playerId || net.conns.has(p.id)) {
-        offlineSince.delete(p.id);
-        return;
-      }
-      if (!offlineSince.has(p.id)) offlineSince.set(p.id, now);
-      else if (now - offlineSince.get(p.id) >= DROP_AFTER && t.phase !== 'finished') changed = true;
+    // Ist der Gastgeber selbst offline, liegt es an ihm – dann zählt die Zeit für niemanden
+    if (!hostOnline()) return;
+    let abort = false;
+    waitingFor(s).forEach(p => {
+      if (net.conns.has(p.id)) return;
+      const ms = (awayMs.get(p.id) || 0) + dt;
+      awayMs.set(p.id, ms);
+      if (ms >= DROP_AFTER) abort = true;
     });
-    if (changed) abortForAll();
+    if (abort) abortForAll();
   }
 
   // Gastgeber bricht das laufende Turnier ab: alle (auch er selbst) bekommen ihren Eintritt zurück
@@ -1040,13 +1150,14 @@ GK.poker = GK.poker || {};
     if (!s || s.role !== 'host') return;
     const reason = 'Ein Mitspieler war zu lange ohne Verbindung – das Spiel wurde abgebrochen.';
     net.conns.forEach(conn => send(conn, { type: 'closed', reason }));
-    offlineSince.clear();
+    awayMs.clear();
     setTimeout(() => endSession(GK.t(reason), true), 300);
   }
 
   function myAction(action) {
     const s = session();
     if (s.role === 'host') {
+      if (someoneAway(s)) GK.toast(GK.t('Das Spiel wartet, bis alle wieder verbunden sind.'));
       playerAction(s.table.players.findIndex(p => p.id === store().playerId), action);
     } else if (!net.hostConn || !net.hostConn.open) {
       GK.toast(GK.t('Keine Verbindung zum Gastgeber – versuche es gleich noch einmal.'));
@@ -1397,5 +1508,6 @@ GK.poker = GK.poker || {};
     // für Tests
     _net: net,
     _payout: mpPayout, // für Tests
+    createRoom, joinRoom, startGame, clientConfirm, clientLeave, hostLeave, // für Tests
   };
 })();

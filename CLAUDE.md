@@ -102,6 +102,7 @@ Vor einer Änderung die passende Datei lesen; ändert sich eine Schnittstelle, d
 - `node tests/boss.test.js` – Bosskämpfe: Lebenspunkte, Ungeheuer, Tipps und Kanonen, nächster Boss, Zeit um, Trophäen (Klickkraft), Figur-Teile, Rangliste.
 - `node tests/parole.test.js` – Geheime Parole: Wortlisten (Deutsch/Englisch), Bewertung mit doppelten Buchstaben, Gewinnstufen, Ausgewogenheit.
 - `node tests/payouts.test.js` – Preise mit Freunden (auch mit Computer-Gegnern, auch Poker) und gegen Computer.
+- `node tests/room-net.test.js` – Räume und Poker über ein nachgebautes Netz (Gastgeber und Gäste als getrennte Geräte): Verbindungsabbrüche bringen kein Geld aus dem Nichts, das Spiel wartet auf Abwesende, Plätze werden bestätigt, Gastgeber gibt auf.
 - `node tests/casino.test.js` – Quoten und Zufall der Casino-Spiele (Roulette, Rubbellose, Glücksrad,
   Münzfall mit Massenwurf, Schatzinsel, Kanonenkugel, Schiffsrennen, Flugkapitän, Höher oder tiefer, Mast-Kletterei,
   Schatzkarten-Keno, Baccarat, Stoppuhr, Slot-Maschine, Video-Slots).

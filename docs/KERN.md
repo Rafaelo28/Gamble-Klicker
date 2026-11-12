@@ -64,7 +64,9 @@ GK.i18n.add({ 'deutscher text': 'english text' });
    - Adresse mit `?pausiert=1`: nur die Pause-Seite zeigen („in einem anderen Tab offen“), `GK.paused = true`, Ende.
    - Sonst `claimTab()`: Dieser Tab spielt; ein später geöffneter Tab meldet sich über den `storage`-Schlüssel
      `gamble-klicker-tab`, dann setzt dieser Tab `GK.paused = true` (GK.save schreibt nichts mehr) und lädt die
-     Pause-Seite. So überschreiben zwei Tabs nie gegenseitig ihren Stand.
+     Pause-Seite. Zusätzlich fragt `GK.save` vor jedem Schreiben `GK.tabLost()` (liest denselben Schlüssel) – falls
+     das `storage`-Ereignis einen eingefrorenen Hintergrund-Tab zu spät erreicht. So überschreiben zwei Tabs nie
+     gegenseitig ihren Stand.
 3. `GK.room.readInviteLink()`, `GK.poker.mp.readInviteLink()` – Einladungs-Links auswerten.
 4. `GK.onSave = flashSaveIndicator`; ohne Speicher: `#storage-warning` zeigen und Toast.
 5. `setupTabs()`, `setupStatsActions()`, `setupSettings()`, `GK.fx.init()`, `updateHeaderHeight()` (+ `ResizeObserver`).
