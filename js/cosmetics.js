@@ -560,6 +560,10 @@ GK.i18n.add({
   // Nach dem Laden, Importieren oder Zurücksetzen
   function refresh() {
     if (overlay) closeWheel();
+    // Rad aus einem beschädigten oder bearbeiteten Stand: unbekannte Teile werden zu „Flaute“
+    const wheel = store().wheel;
+    if (wheel && (!Array.isArray(wheel.segments) || wheel.segments.length !== WHEEL_SEGMENTS)) store().wheel = createWheel();
+    else if (wheel) wheel.segments = wheel.segments.map(id => (id && byId[id] ? id : null));
     lastSignature = '';
     apply();
     render();

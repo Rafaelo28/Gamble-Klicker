@@ -479,12 +479,19 @@ GK.i18n.add({
 
   // ---------- Aktionen ----------
 
+  // Mehr als 25 Klicks pro Sekunde zählen nicht (schneller tippt niemand – kein Dauerfeuer per Programm)
+  const MAX_CLICKS_PER_SECOND = 25;
+  const recentClicks = [];
+
   function click(event) {
+    const now = performance.now();
+    while (recentClicks.length && now - recentClicks[0] >= 1000) recentClicks.shift();
+    if (recentClicks.length >= MAX_CLICKS_PER_SECOND) return;
+    recentClicks.push(now);
     const coin = document.getElementById('big-coin');
     const pos = event && event.clientX ? { x: event.clientX, y: event.clientY } : GK.fx.center(coin);
     // Erst alles messen, dann schreiben – sonst muss der Browser pro Tipp mehrmals das Layout berechnen
     const local = layerPos(pos);
-    const now = performance.now();
     combo.count = now - combo.last <= COMBO_WINDOW ? combo.count + 1 : 1;
     combo.last = now;
     if (combo.count > GK.state.bestCombo) GK.state.bestCombo = combo.count;
@@ -859,6 +866,8 @@ GK.i18n.add({
       click(e);
     });
     coin.addEventListener('click', e => { if (e.detail === 0) click(e); }); // Tastatur (Enter/Leertaste)
+    // Gedrückt gehaltene Taste: Wiederholungen zählen nicht (sonst wäre Enter ein Autoklicker)
+    coin.addEventListener('keydown', e => { if (e.repeat) e.preventDefault(); });
     document.getElementById('passive-toggle').addEventListener('change', e => setPassive(e.target.checked));
     document.getElementById('upgrade-more').addEventListener('click', () => {
       showAllUpgrades = !showAllUpgrades;

@@ -544,6 +544,11 @@ GK.poker = GK.poker || {};
   function takeRecords(member, records) {
     const r = GK.friends.clean(records);
     if (!r) return false;
+    // Ein Platz bleibt bei einer Ranglisten-ID, und keine ID von jemand anderem im Raum – sonst könnte ein Gast
+    // unter vielen (oder fremden) IDs Einträge anlegen bzw. überschreiben
+    const s = session();
+    if (member.records && member.records.id !== r.id) return false;
+    if (s && s.members.some(o => o !== member && o.records && o.records.id === r.id)) return false;
     member.records = r;
     GK.friends.remember(r);
     return true;

@@ -33,6 +33,9 @@ GK.i18n.add({
   'Warte, bis dein Flugzeug gelandet ist.': 'Wait until your plane has landed.',
   'Verkaufe zuerst deine Aktien an der Hafenbörse.': 'Sell your stocks on the harbor exchange first.',
   'Warte, bis alle Münzen gefallen sind.': 'Wait until all coins have dropped.',
+  'Spiele zuerst deine Runde bei Höher oder tiefer zu Ende.': 'Finish your Higher or Lower round first.',
+  'Beende zuerst deine Mast-Kletterei.': 'Finish your mast climb first.',
+  'Beende zuerst deine Runde bei Chicken Road.': 'Finish your Chicken Road round first.',
   'Spiel zuerst deine Freispiele bzw. die Bonusrunde zu Ende.': 'Finish your free spins or bonus round first.',
   // Große Fahrt
   'Schatzkarte': 'treasure map',
@@ -157,27 +160,10 @@ GK.i18n.add({
     return Math.pow(totalPrestigePoints() + 1, 3) * PRESTIGE_DIVISOR;
   }
 
-  // Laufende Casino-Runden würden beim Neustart verloren gehen
+  // Laufende Casino-Runden würden beim Neustart verloren gehen bzw. überstünden ihn (Liste: GK.casino.RUNNING)
   function prestigeBlocker() {
-    const g = GK.state.casino.games;
-    if (g.blackjack && g.blackjack.round && !g.blackjack.round.finished) return GK.t('Spiele zuerst deine Blackjack-Runde zu Ende.');
-    if (g.roulette && (g.roulette.pending || Object.keys(g.roulette.bets || {}).length)) return GK.t('Nimm zuerst deine Roulette-Chips vom Tisch.');
-    if ((g.slots && g.slots.pending) || (g.sideSlot && g.sideSlot.pending)) return GK.t('Warte, bis die Walzen stehen.');
-    if (g.scratch && g.scratch.current && !g.scratch.current.settled) return GK.t('Rubble zuerst dein Los auf.');
-    if (g.poker && g.poker.table) return GK.t('Beende zuerst dein Poker-Turnier.');
-    if (g.pokerMp && g.pokerMp.session) return GK.t('Verlasse zuerst deinen Poker-Raum.');
-    if (g.room && g.room.session) return GK.t('Beende zuerst dein Spiel mit Freunden bzw. gegen Computer.');
-    if (g.mines && g.mines.round) return GK.t('Beende zuerst deine Schatzsuche.');
-    if (g.stopwatch && g.stopwatch.round) return GK.t('Halte zuerst deine Stoppuhr an.');
-    if (g.parole && g.parole.round) return GK.t('Rate zuerst deine Parole zu Ende.');
-    if (g.crash && g.crash.round && !g.crash.round.cashed) return GK.t('Warte, bis die Kanonenkugel gelandet ist.');
-    if ((g.wheel && g.wheel.pending) || (g.race && (g.race.pending || Object.keys(g.race.bets || {}).length))) return GK.t('Warte, bis deine Runde vorbei ist.');
-    if (g.flight && g.flight.pending) return GK.t('Warte, bis dein Flugzeug gelandet ist.');
-    if (g.stocks && g.stocks.holdings && Object.keys(g.stocks.holdings).length) return GK.t('Verkaufe zuerst deine Aktien an der Hafenbörse.');
-    if (g.plinko && ((g.plinko.pending && g.plinko.pending.length) || g.plinko.mass)) return GK.t('Warte, bis alle Münzen gefallen sind.');
-    const vs = ['vsPirate', 'vsOcean', 'vsVolcano'].map(id => g[id]).filter(Boolean);
-    if (vs.some(x => x.pending || x.free || x.bonus)) return GK.t('Spiel zuerst deine Freispiele bzw. die Bonusrunde zu Ende.');
-    return '';
+    const r = GK.casino.runningRound();
+    return r ? r.text : '';
   }
 
   function goOnJourney() {

@@ -9,7 +9,9 @@ window.GK = window.GK || {};
   // Feste Version mit Prüfsumme: der Browser führt das Skript nur aus, wenn es genau diese Datei ist
   const SCRIPT = 'https://gc.zgo.at/count.v5.js';
   const INTEGRITY = 'sha384-atnOLvQb9t+jTSipvd75X2yginT4PjVbqDdlJAmxMm+wYElFmeR6EmLP5bYeoRVQ';
-  const local = location.protocol === 'file:' || /^(localhost|127\.|10\.|192\.168\.|\[::1\])/.test(location.hostname);
+  const local = location.protocol === 'file:' || /^(localhost|127\.|10\.|192\.168\.|\[::1\])/.test(location.hostname)
+    // Pause-Seite eines zweiten Tabs (js/main.js) ist kein neuer Besuch
+    || /[?&]pausiert=1(&|$)/.test(location.search);
   const seen = new Set();
   const queue = [];   // Zählungen, bevor das Zählskript geladen ist
   let loaded = false;

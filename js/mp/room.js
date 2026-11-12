@@ -586,6 +586,11 @@ GK.i18n.add({
   function takeRecords(m, records) {
     const r = GK.friends.clean(records);
     if (!r) return false;
+    // Ein Platz bleibt bei einer Ranglisten-ID, und keine ID von jemand anderem im Raum – sonst könnte ein Gast
+    // unter vielen (oder fremden) IDs Einträge anlegen bzw. überschreiben
+    const s = session();
+    if (m.records && m.records.id !== r.id) return false;
+    if (s && s.members.some(o => o !== m && o.records && o.records.id === r.id)) return false;
     m.records = r;
     GK.friends.remember(r);
     return true;

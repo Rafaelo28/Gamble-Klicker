@@ -395,13 +395,26 @@ GK.i18n.add({
   }
 
   // Aus der Spielschleife: Tageswechsel prüfen, Abzeichen und (wenn sichtbar) die Liste aktualisieren
+  // Aufgaben mit unbekannter ID (umbenannt in einer neuen Version, bearbeiteter Stand) fallen weg
+  function sanitize() {
+    const d = data();
+    if (!d || !Array.isArray(d.tasks)) return;
+    const ok = d.tasks.filter(t => t && typeof t === 'object' && DEFS[t.id]);
+    if (ok.length !== d.tasks.length) {
+      d.tasks = ok;
+      lastHtml = '';
+    }
+  }
+
   function update(visible) {
+    sanitize();
     if (ensureDay()) GK.save();
     updateBadge();
     if (visible) render();
   }
 
   function init() {
+    sanitize();
     ensureDay();
     const panel = document.getElementById('daily-panel');
     if (panel) panel.addEventListener('click', onClick);

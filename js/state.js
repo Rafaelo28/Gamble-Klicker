@@ -211,7 +211,8 @@ GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' 
   };
 
   GK.save = function () {
-    if (!GK.storageAvailable) return false;
+    // GK.paused: Das Spiel läuft in einem anderen Tab weiter (js/main.js) – dieser Tab darf nichts überschreiben
+    if (!GK.storageAvailable || GK.paused) return false;
     GK.state.lastSaved = GK.now();
     try {
       localStorage.setItem(SAVE_KEY, JSON.stringify(GK.state));
@@ -288,6 +289,15 @@ GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' 
     }
     // Ältere Spielstände kennen „insgesamt verdient über alle Fahrten“ noch nicht
     if (typeof data.allTimeEarned !== 'number') GK.state.allTimeEarned = GK.state.totalEarned;
+    // Falsche Typen aus beschädigten oder bearbeiteten Ständen (sonst bricht später das Zeichnen ab)
+    ['buffs', 'upgrades', 'achievements'].forEach(k => { if (!Array.isArray(GK.state[k])) GK.state[k] = []; });
+    GK.state.buffs = GK.state.buffs.filter(b => b && typeof b === 'object' && typeof b.id === 'string');
+    ['buildings'].forEach(k => { if (!GK.state[k] || typeof GK.state[k] !== 'object' || Array.isArray(GK.state[k])) GK.state[k] = {}; });
+    const c = GK.state.casino;
+    ['games', 'stats'].forEach(k => { if (!c[k] || typeof c[k] !== 'object' || Array.isArray(c[k])) c[k] = {}; });
+    if (!Array.isArray(c.history)) c.history = [];
+    if (!Number.isInteger(c.vip) || c.vip < 0) c.vip = 0;
+    if (!(Number(GK.state.lastSaved) > 0)) GK.state.lastSaved = Date.now();
     return true;
   }
 
@@ -300,12 +310,22 @@ GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' 
       console.warn('Laden fehlgeschlagen:', e);
     }
     if (!raw) return false;
+    let ok = false;
     try {
-      return applyData(JSON.parse(raw));
+      ok = applyData(JSON.parse(raw));
     } catch (e) {
       console.warn('Spielstand beschädigt, starte neu:', e);
-      return false;
     }
+    // Nicht ladbar: den alten Stand aufheben, bevor das automatische Speichern ihn überschreibt
+    if (!ok) {
+      try {
+        localStorage.setItem(SAVE_KEY + '-defekt', raw);
+      } catch (e) {
+        // Kein Platz – dann eben nicht
+      }
+      GK.state = createDefaultState();
+    }
+    return ok;
   };
 
   // Spielstand als Text, z. B. zum Sichern oder Übertragen auf ein anderes Gerät.
@@ -319,6 +339,8 @@ GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' 
   GK.importSave = function (text) {
     const data = GK.saveCode.decode(text);
     if (!data || !applyData(data)) return false;
+    // Laufende Runden im importierten Stand verfallen (siehe GK.casino.RUNNING)
+    if (GK.casino && GK.casino.clearRunning) GK.casino.clearRunning();
     GK.save();
     return true;
   };

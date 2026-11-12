@@ -24,7 +24,7 @@ GK.i18n.add({
   'Du hast im {tier} {place} belegt.': 'You finished in {place} at the {tier}.',
   'Gegen Computer': 'Vs. computer',
   'Mit Freunden spielen': 'Play with friends',
-  '<b>Sit &amp; Go-Turnier:</b> Du zahlst den Eintritt in Dublonen und bekommst – genau wie deine 5 Computer-Gegner – gleich viele Tisch-Chips. Gespielt wird, bis einer alle Chips hat. Preise: 🥇 3× · 🥈 1,8× · 🥉 1,2× Eintritt. Steigst du vorher aus, bekommst du anteilig ausgezahlt, was deine Chips wert sind. <b>Blitz:</b> Nach 3, 5 oder 10 Händen ist Schluss – dann teilen die besten 4 das ganze Preisgeld im Verhältnis ihrer Chips.': '<b>Sit &amp; Go tournament:</b> You pay the entry in Doubloons and receive – just like your 5 computer opponents – the same number of table chips. Play continues until someone has all the chips. Prizes: 🥇 3× · 🥈 1.8× · 🥉 1.2× entry. If you cash out early, you get a prorated payout of what your chips are worth. <b>Blitz:</b> After 3, 5 or 10 hands it ends – then the top 4 share the whole prize pool in proportion to their chips.',
+  '<b>Sit &amp; Go-Turnier:</b> Du zahlst den Eintritt in Dublonen und bekommst – genau wie deine 5 Computer-Gegner – gleich viele Tisch-Chips. Gespielt wird, bis einer alle Chips hat. Preise: 🥇 2,85× · 🥈 1,71× · 🥉 1,14× Eintritt. Steigst du vorher aus, bekommst du anteilig ausgezahlt, was deine Chips wert sind. <b>Blitz:</b> Nach 3, 5 oder 10 Händen ist Schluss – dann teilen die besten 4 das ganze Preisgeld im Verhältnis ihrer Chips.': '<b>Sit &amp; Go tournament:</b> You pay the entry in Doubloons and receive – just like your 5 computer opponents – the same number of table chips. Play continues until someone has all the chips. Prizes: 🥇 2.85× · 🥈 1.71× · 🥉 1.14× entry. If you cash out early, you get a prorated payout of what your chips are worth. <b>Blitz:</b> After 3, 5 or 10 hands it ends – then the top 4 share the whole prize pool in proportion to their chips.',
   'Eintritt: {n}': 'Entry: {n}',
   'Top {k} teilen {pool}': 'Top {k} share {pool}',
   '1. Platz: {n}': '1st place: {n}',
@@ -54,6 +54,9 @@ GK.i18n.add({
   const HUMAN = 0;
   const ic = name => (GK.icon ? GK.icon(name) : '');
   const SEATS = 6;
+  // Gegen Computer zahlen die Gegner keinen echten Eintritt – wie bei den anderen Spielen gegen Computer
+  // fließen 95 % zurück (der Topf zählt 6 × 0,95 Eintritte)
+  const SOLO_PAYING = SEATS * 0.95;
 
   let body;
   let timer = null;
@@ -131,7 +134,7 @@ GK.i18n.add({
   // Was bekäme man jetzt beim Aussteigen? (anteilig nach den eigenen Chips)
   function cashOutValue() {
     const t = state().table;
-    return t ? T().cashOutValue(t, HUMAN, tier().entry) : 0;
+    return t ? T().cashOutValue(t, HUMAN, tier().entry, SOLO_PAYING) : 0;
   }
 
   function leaveTable() {
@@ -152,7 +155,7 @@ GK.i18n.add({
     const m = mode();
     const left = typeof cashOut === 'number';
     const place = t.players[HUMAN].place;
-    const win = left ? cashOut : T().payout(t, HUMAN, tr.entry);
+    const win = left ? cashOut : T().payout(t, HUMAN, tr.entry, SOLO_PAYING);
     GK.casino.payout(win);
     s.lastResult = { place, prize: win, tierName: tr.name, entry: tr.entry, left, mode: m.id };
     s.table = null;
@@ -244,9 +247,9 @@ GK.i18n.add({
 
   function prizeLine(entry, t) {
     if (t && T().isBlitz(t)) {
-      return GK.t('Die besten {n} teilen {pool} nach Chips', { n: T().blitzPaidPlaces(SEATS), pool: GK.formatMoneyHTML(entry * SEATS) });
+      return GK.t('Die besten {n} teilen {pool} nach Chips', { n: T().blitzPaidPlaces(SEATS), pool: GK.formatMoneyHTML(Math.floor(entry * SOLO_PAYING)) });
     }
-    const p = place => GK.formatMoneyHTML(T().prize(place, entry, SEATS));
+    const p = place => GK.formatMoneyHTML(T().prize(place, entry, SEATS, SOLO_PAYING));
     return `🥇 ${p(1)} 🥈 ${p(2)} 🥉 ${p(3)}`;
   }
 
@@ -254,7 +257,7 @@ GK.i18n.add({
   function blitzRanking(t, entry) {
     return t.players.map((p, i) => ({ p, i })).sort((a, b) => a.p.place - b.p.place)
       .map(({ p, i }) => {
-        const win = T().payout(t, i, entry);
+        const win = T().payout(t, i, entry, SOLO_PAYING);
         return `${p.place}. ${GK.cosmetics.nameTag(p)}${win ? ` +${GK.formatMoneyHTML(win)}` : ''}`;
       }).join(' · ');
   }
@@ -284,7 +287,7 @@ GK.i18n.add({
       ${resultHtml}
       <h3 class="poker-section-title">${ic('robot')}${GK.t('Gegen Computer')}</h3>
       <p class="muted">
-        ${GK.t('<b>Sit &amp; Go-Turnier:</b> Du zahlst den Eintritt in Dublonen und bekommst – genau wie deine 5 Computer-Gegner – gleich viele Tisch-Chips. Gespielt wird, bis einer alle Chips hat. Preise: 🥇 3× · 🥈 1,8× · 🥉 1,2× Eintritt. Steigst du vorher aus, bekommst du anteilig ausgezahlt, was deine Chips wert sind. <b>Blitz:</b> Nach 3, 5 oder 10 Händen ist Schluss – dann teilen die besten 4 das ganze Preisgeld im Verhältnis ihrer Chips.')}
+        ${GK.t('<b>Sit &amp; Go-Turnier:</b> Du zahlst den Eintritt in Dublonen und bekommst – genau wie deine 5 Computer-Gegner – gleich viele Tisch-Chips. Gespielt wird, bis einer alle Chips hat. Preise: 🥇 2,85× · 🥈 1,71× · 🥉 1,14× Eintritt. Steigst du vorher aus, bekommst du anteilig ausgezahlt, was deine Chips wert sind. <b>Blitz:</b> Nach 3, 5 oder 10 Händen ist Schluss – dann teilen die besten 4 das ganze Preisgeld im Verhältnis ihrer Chips.')}
       </p>
       ${GK.poker.ui.modePicker(m.id, T().blitzHands(state().hands), 'sp-modes')}
       <div class="casino-grid poker-tiers">
@@ -294,8 +297,8 @@ GK.i18n.add({
             <h3>${GK.t(tr.name)}</h3>
             <p>${GK.t('Eintritt: {n}', { n: GK.formatMoneyHTML(tr.entry) })}</p>
             <p class="small">${m.id === 'blitz'
-              ? GK.t('Top {k} teilen {pool}', { k: T().blitzPaidPlaces(SEATS), pool: GK.formatMoneyHTML(tr.entry * SEATS) })
-              : GK.t('1. Platz: {n}', { n: GK.formatMoneyHTML(T().prize(1, tr.entry, SEATS)) })}</p>
+              ? GK.t('Top {k} teilen {pool}', { k: T().blitzPaidPlaces(SEATS), pool: GK.formatMoneyHTML(Math.floor(tr.entry * SOLO_PAYING)) })
+              : GK.t('1. Platz: {n}', { n: GK.formatMoneyHTML(T().prize(1, tr.entry, SEATS, SOLO_PAYING)) })}</p>
             <button class="btn btn-primary poker-join" data-tier="${tr.id}">${GK.t('Platz nehmen')}</button>
             <p class="small poker-block-reason"></p>
           </div>`).join('')}

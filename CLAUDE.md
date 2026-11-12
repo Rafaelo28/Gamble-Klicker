@@ -28,6 +28,9 @@ Online über GitHub Pages aus `main`: https://rafaelo28.github.io/Gamble-Klicker
   und neue Dateien aus dem Zwischenspeicher.
 - **Spielstände bleiben kompatibel**: Neue Felder bekommen Standardwerte in `js/state.js`
   (`createDefaultState` / `applyData`), damit alte Spielstände weiter laden.
+- **Laufende Runden**: Ein Casino-Spiel, dessen bezahlte Runde das Neuladen übersteht, gehört in
+  `GK.casino.RUNNING` (`js/casino/casino.js`) – sonst übersteht der Einsatz die große Fahrt bzw. lässt sich
+  per Import mit bekanntem Ausgang wiederholen.
 - **Spiele mit Freunden** (außer Poker) bauen auf `js/mp/room.js` auf: Raum, Eintritt, Verbindung,
   Abrechnung und „gegen Computer“ kommen von dort, das Spiel liefert nur Regeln und Darstellung.
 - **Daten von außen** (Spielstand-Code, Nachrichten anderer Geräte) laufen durch `GK.cleanData` (`js/state.js`):

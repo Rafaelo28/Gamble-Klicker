@@ -69,6 +69,8 @@ const s = GK.state;
   assert(!F.unlocked(1, crown) && !F.unlocked(6, chain), 'Krone und Goldkette am Anfang gesperrt');
   F.set(`0.${crown}.0.0.0.0.${chain}`);
   assert(s.player.fig === '0.0.0.0.0.0.0' && s.player.figOn, 'Gesperrte Teile lassen sich nicht anlegen');
+  s.player.fig = `0.${crown}.0.0.0.0.${chain}`; // bearbeiteter Spielstand
+  assert(F.mine() === '0.0.0.0.0.0.0', 'Bearbeiteter Spielstand: gesperrte Teile werden nicht gezeigt oder verschickt');
   s.casino.vip = 2;
   s.prestige.points = 7e6;
   assert(F.unlocked(1, crown) && F.unlocked(6, chain), 'Mit VIP-Karte Gold und 7 Mio. Schatzkarten freigeschaltet');

@@ -42,7 +42,6 @@ GK.i18n.add({
   const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');
   const MIN_BET = 10;
   const DECKS = 6;
-  const RESHUFFLE_AT = 78; // neu mischen, wenn weniger als ein Viertel übrig ist
   const MAX_HANDS = 4;
 
   let els = {};
@@ -111,7 +110,9 @@ GK.i18n.add({
       showMessage(GK.t('Nicht genug Dublonen für diesen Einsatz.'), 'loss');
       return;
     }
-    if (s.shoe.length < RESHUFFLE_AT) s.shoe = GK.cards.createDeck(DECKS);
+    // Jede Runde ein frisch gemischter Schlitten – sonst lohnte sich Kartenzählen (und ein alter Spielstand-Code
+    // verriete die nächsten Karten)
+    s.shoe = GK.cards.createDeck(DECKS);
 
     const hand = { cards: [], bet: s.bet, done: false, split: false };
     s.round = { hands: [hand], active: 0, dealer: [], finished: false, results: [] };

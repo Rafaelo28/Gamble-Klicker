@@ -278,13 +278,13 @@ for (let k = 0; k < 500; k++) {
 // Stoppuhr: Wertung nach Hundertsteln, Zielzeiten 2–10 s, selbst sehr genaue Spieler gewinnen auf Dauer nicht
 {
   const S = C.stopwatchMath;
-  assert(S.tier(0).mult === 2.2 && S.tier(1).mult === 1.1 && S.tier(-1).mult === 1.1 && S.tier(3).mult === 0.6 && S.tier(-6).mult === 0.2 && S.tier(7).mult === 0, 'Stoppuhr: Tabelle');
+  assert(S.tier(0).mult === 2 && S.tier(1).mult === 1 && S.tier(-1).mult === 1 && S.tier(3).mult === 0.6 && S.tier(-6).mult === 0.2 && S.tier(7).mult === 0, 'Stoppuhr: Tabelle');
   assert(S.centis(6829.9) === 682 && S.centis(6830) === 683 && S.fmt(682) === '6,82' && S.fmt(1000) === '10,00' && S.fmt(205) === '2,05', 'Stoppuhr: Anzeige in Hundertsteln');
   assert(S.MIN_TARGET === 200 && S.MAX_TARGET === 1000, 'Stoppuhr: Zielzeit 2–10 Sekunden');
   assert(S.ACHIEVEMENT_MAX === 3, 'Stoppuhr: Erfolg „Gutes Timing“ ab höchstens 3 Hundertstel daneben');
   // Rückzahlung bei unterschiedlich genauen Spielern (Streuung in Sekunden; Touch-Bildschirme streuen selbst ~20 ms)
   const ev = sigma => S.expected(sigma, 300000);
-  between(ev(0.02), 0.95, 1.1, 'Stoppuhr: Profi (±0,02 s)');
+  between(ev(0.02), 0.9, 1, 'Stoppuhr: Profi (±0,02 s) gewinnt auf Dauer nicht');
   between(ev(0.03), 0.75, 0.95, 'Stoppuhr: sehr gut (±0,03 s)');
   between(ev(0.05), 0.5, 0.75, 'Stoppuhr: gut (±0,05 s)');
   between(ev(0.1), 0.25, 0.45, 'Stoppuhr: normal (±0,1 s)');

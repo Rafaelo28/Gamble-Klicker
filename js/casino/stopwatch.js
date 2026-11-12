@@ -62,8 +62,8 @@ GK.i18n.add({
 
   // Abstand zur Zielzeit in Hundertstel → Rückzahlung (inklusive Einsatz)
   const TABLE = [
-    { max: 0, mult: 2.2, icon: '🎯', text: 'Volltreffer – auf die Hundertstel genau!' },
-    { max: 1, mult: 1.1, icon: '🔥', text: 'Nur eine Hundertstel daneben!' },
+    { max: 0, mult: 2, icon: '🎯', text: 'Volltreffer – auf die Hundertstel genau!' },
+    { max: 1, mult: 1, icon: '🔥', text: 'Nur eine Hundertstel daneben!' },
     { max: 3, mult: 0.6, icon: '👍', text: 'Ganz knapp daneben.' },
     { max: 6, mult: 0.2, icon: '🙂', text: 'Fast getroffen.' },
   ];
