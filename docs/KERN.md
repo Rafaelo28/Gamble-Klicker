@@ -61,6 +61,10 @@ GK.i18n.add({ 'deutscher text': 'english text' });
 
 1. `GK.load()` – Spielstand aus `localStorage` (sonst bleibt der Standardzustand).
 2. `GK.i18n.init()` – feste Texte merken und in der gespeicherten Sprache setzen.
+   - Adresse mit `?pausiert=1`: nur die Pause-Seite zeigen („in einem anderen Tab offen“), `GK.paused = true`, Ende.
+   - Sonst `claimTab()`: Dieser Tab spielt; ein später geöffneter Tab meldet sich über den `storage`-Schlüssel
+     `gamble-klicker-tab`, dann setzt dieser Tab `GK.paused = true` (GK.save schreibt nichts mehr) und lädt die
+     Pause-Seite. So überschreiben zwei Tabs nie gegenseitig ihren Stand.
 3. `GK.room.readInviteLink()`, `GK.poker.mp.readInviteLink()` – Einladungs-Links auswerten.
 4. `GK.onSave = flashSaveIndicator`; ohne Speicher: `#storage-warning` zeigen und Toast.
 5. `setupTabs()`, `setupStatsActions()`, `setupSettings()`, `GK.fx.init()`, `updateHeaderHeight()` (+ `ResizeObserver`).
@@ -108,13 +112,13 @@ bei `casino` zusätzlich `GK.casino.show()`; bei allem außer `clicker` `GK.side
 ### Hintergrund-Tab
 
 `main.js:onVisibilityChange`: beim Verstecken `GK.save()`; bei der Rückkehr werden bis zu 8 Stunden
-(`MAX_CATCH_UP`) nachgeholt: `playTime += s` und `GK.clicker.tick(s)` (nur wenn mehr als 1 Sekunde). `GK.kraken.update`
+(`MAX_CATCH_UP`, gemessen mit `GK.now()`) nachgeholt: `playTime += s` und `GK.clicker.tick(s)` (nur wenn mehr als 1 Sekunde). `GK.kraken.update`
 wird dabei **nicht** nachgeholt.
 
 ### `refreshAll` (privat in `main.js`)
 
 Baut nach einem ersetzten Zustand alles neu auf und bleibt im offenen Tab:
-`GK.clicker.refresh()`, `GK.cosmetics.refresh()`, `GK.casino.refresh()` (ruft `refresh` jedes Spiels, falls vorhanden),
+`GK.boss.stop()` (laufender Kampf gehört zum alten Stand), `GK.kraken.reset()`, `GK.clicker.refresh()`, `GK.cosmetics.refresh()`, `GK.casino.refresh()` (ruft `refresh` jedes Spiels, falls vorhanden),
 `GK.sideSlot.refresh()`, `GK.poker.mp.resume()`, `GK.room.resume()`, `renderSettings()`, `GK.sound.applyVolume()`,
 `GK.achievements.refresh()`, `showTab(aktuellerTab)`, `render()`.
 
@@ -195,7 +199,7 @@ GK.save();
 | `ui` | `{ tab: 'clicker' }` | zuletzt offener Tab | `main.js` |
 | `settings` | `createDefaultSettings()` | siehe unten | siehe unten |
 | `startedAt` | `Date.now()` | Zeitpunkt des Neuanfangs; wird nirgends gelesen | – |
-| `lastSaved` | `Date.now()` | letzter `GK.save`; Grundlage für Offline-Einkommen | `state.js`, `progress.js`, `main.js` |
+| `lastSaved` | `Date.now()` | letzter `GK.save` (Spielzeit `GK.now()`); Grundlage für Offline-Einkommen und Untergrenze der Spielzeit | `state.js`, `progress.js`, `main.js` |
 
 Verschachtelte Bereiche:
 
@@ -239,9 +243,10 @@ keine endliche Zahl – **das ist die einzige Prüfung**. Danach:
 | Funktion | Verhalten |
 |---|---|
 | `GK.save()` | `false` ohne Speicher oder bei Fehler. Setzt `lastSaved`, schreibt `JSON.stringify(GK.state)` nach `localStorage['gamble-klicker-save']`, ruft `GK.onSave` auf. |
-| `GK.load()` | Liest den Schlüssel und ruft `applyData`; `false` bei fehlendem oder beschädigtem Stand (dann bleibt der Standardzustand). |
+| `GK.load()` | Liest den Schlüssel und ruft `applyData`; `false` bei fehlendem oder beschädigtem Stand (dann bleibt der Standardzustand, der alte Text wird unter `gamble-klicker-save-defekt` aufgehoben). |
 | `GK.exportSave()` | `GK.saveCode.encode(GK.state)` |
-| `GK.importSave(text)` | `decode` + `applyData` + `GK.save()`; `false` bei ungültigem Code. Danach muss der Aufrufer neu aufbauen (`main.js:refreshAll`). |
+| `GK.importSave(text)` | `decode` + `applyData` + `GK.casino.clearRunning()` (laufende Runden des importierten Stands verfallen) + `GK.save()`; `false` bei ungültigem Code. Danach muss der Aufrufer neu aufbauen (`main.js:refreshAll`). `main.js` lässt den Import nur zu, wenn `GK.casino.runningRound()` nichts meldet. |
+| `GK.now()` | Spielzeit in ms: nie rückwärts, im Spiel echte vergangene Zeit (`performance.now`), nie vor `lastSaved`. Für alles nehmen, was sich durch Verstellen der Geräte-Uhr lohnen würde. |
 | `GK.resetSave()` | Löscht den Schlüssel, `GK.state = createDefaultState()`. Speichert nicht selbst. |
 | `GK.storageAvailable` | Ergebnis von `detectStorage()` beim Laden der Datei |
 | `GK.onSave` | optionaler Callback (`main.js` setzt `flashSaveIndicator`) |

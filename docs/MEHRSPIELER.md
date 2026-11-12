@@ -36,7 +36,7 @@ Ein Spiel liefert nur **Regeln** (reine Funktionen auf einem JSON-Zustand) und *
 | Einladungs-Link | `…?raum=CODE&spiel=ID` (`inviteLink`); `readInviteLink` (Aufruf in `main.js:init`) öffnet das Spiel, trägt den Code vor und entfernt die Parameter aus der Adresse |
 | Ohne PeerJS | `peerAvailable()` ist falsch → Knöpfe „Eröffnen“/„Beitreten“ gesperrt, „Gegen Computer“ geht weiter |
 
-Konstanten (`room.js`, Kopf): `PROTOCOL = 1`, `HEARTBEAT = 2000`, `HEARTBEAT_TIMEOUT = 8000`,
+Konstanten (`room.js`, Kopf): `PROTOCOL = 2` (seit dem Platz-Token), `HEARTBEAT = 2000`, `HEARTBEAT_TIMEOUT = 8000`,
 `RETRY_DELAY = 3000`, `CONNECT_TIMEOUT = 10000`, `OFFLINE_TURN_TIME = 5000`, `ABANDON_AFTER = 30000`,
 `DROP_AFTER = 90000`, `MIN_ENTRY = 100`.
 
@@ -54,7 +54,7 @@ und wird beim Empfang von `unpack` wieder ausgepackt (`room.js:send`, `unpack`).
 
 | `type` | Felder | Wirkung |
 |---|---|---|
-| `hello` | `v`, `game`, `playerId`, `name`, `avatar`, `fig`, `rank`, `badge`, `paid`, `records` | Erste Nachricht nach Verbindungsaufbau (auch nach Wiederverbinden). Prüft Version und Spiel, legt das Mitglied an (nur im Warteraum, solange Platz ist) oder ordnet die Verbindung einem bekannten `playerId` zu. `paid: true` setzt `ready`. Eine ältere Verbindung desselben Spielers wird geschlossen |
+| `hello` | `v`, `game`, `playerId`, `secret`, `name`, `avatar`, `fig`, `rank`, `badge`, `paid`, `records` | Erste Nachricht nach Verbindungsaufbau (auch nach Wiederverbinden). Prüft Version und Spiel, legt das Mitglied an (nur im Warteraum, solange Platz ist) oder ordnet die Verbindung einem bekannten `playerId` zu – **nur mit passendem `secret`** (Platz-Token, `s.secrets`). Eine Verbindung gehört genau einer `playerId` (weitere `hello` mit anderer ID werden ignoriert), entfernte IDs (`s.banned`) kommen nicht wieder herein. `paid: true` setzt `ready`. Eine ältere Verbindung desselben Spielers wird geschlossen |
 | `join` | – | Eintritt bezahlt → `member.ready = true` (nur in Phase `lobby`) |
 | `action` | `action` (Objekt, spielspezifisch) | `playerAction(platz, action)` (nur in Phase `playing`) |
 | `records` | `records` | Neue Rekorde nach der Abrechnung (Freundes-Rangliste) |
@@ -68,8 +68,10 @@ Vor einem gültigen `hello` (also ohne `conn.playerId`) wird alles andere verwor
 | `type` | Felder | Wirkung |
 |---|---|---|
 | `state` | `v`, `game`, `code`, `entry`, `settings`, `phase`, `hostId`, `fillBots`, `members`, und sobald das Spiel läuft: `view`, `mySeat`, `turnLeft` (ms oder `null`) | Vollständiger Stand für genau diesen Gast (`stateMessage`). Es gibt keine Teil-Updates |
-| `error` | `fatal`, `message` | `fatal` → `endSession(message, true)` (Eintritt zurück), sonst Hinweis. Fälle: anderes Spiel, andere Protokollversion, Spiel läuft schon, Raum voll, ohne Bezahlung gestartet |
-| `closed` | `reason` | Gastgeber hat den Raum geschlossen → `endSession(reason, true)` |
+| `error` | `fatal`, `message` | `fatal` → `endSession(message, true)` (Eintritt zurück), sonst Hinweis. Fälle: anderes Spiel, andere Protokollversion, Spiel läuft schon, Raum voll, ohne Bezahlung gestartet, Platz gehört jemand anderem, entfernt. Der Gast zeigt `message`/`reason` über `GK.t` (deutsche Schlüssel, in `room.js` angemeldet) |
+| `secret` | `secret` | Platz-Token, nur an diesen Gast; er speichert es in der Sitzung und schickt es mit jedem `hello` |
+| `kicked` | – | Gastgeber hat den Gast im Warteraum entfernt (Knopf „Entfernen“, `kickMember`) → Eintritt zurück |
+| `closed` | `reason`, `forfeit` | Gastgeber hat den Raum geschlossen → `endSession(reason, true)`. `forfeit: true` (Gastgeber gibt mitten im Spiel auf): Eintritt zurück plus Anteil an seinem Eintritt (`hostForfeited`) |
 | `ping` | – | Herzschlag |
 
 `members[]` in `state`: `{ playerId, name, avatar, fig, rank, badge, ready, online, records? }`
@@ -116,13 +118,14 @@ Raum sperren das Eröffnen/Beitreten. Umgekehrt fragen `js/poker/poker.js` und
 | Gast lädt neu | `connectClient` → `hello` mit `paid` aus der Sitzung. Bekannter `playerId` darf auch im laufenden Spiel wieder herein; ein unbekannter bekommt „Spiel läuft schon“ |
 | Nur der Vermittlungsserver ist weg | `reconnectServer`: `peer.reconnect()` mit derselben ID; die direkten Verbindungen laufen weiter |
 | Herzschlag | alle 2 s `ping`; 8 s ohne Nachricht → Verbindung gilt als tot (`heartbeat`) |
-| Gast im laufenden Spiel offline | Ist er am Zug, hat er nur 5 s Bedenkzeit (`OFFLINE_TURN_TIME`), danach greift `def.timeout`. Nach 90 s ohne Verbindung: `def.forfeit` (`dropAbsentPlayers`). Ist der Gastgeber selbst offline (`hostOnline()` falsch) oder war seine Seite eingeschlafen, scheidet niemand aus |
+| Gast im laufenden Spiel offline | Ist er am Zug, hat er nur 5 s Bedenkzeit (`OFFLINE_TURN_TIME`), danach greift `def.timeout`. Nach 90 s ohne Verbindung bricht der Gastgeber das Spiel **für alle mit Erstattung** ab (`dropAbsentPlayers` → `abortForAll`) – passend zur Erstattung des Gastes nach 30 s ohne Gastgeber (sonst entstünde Geld aus dem Nichts). Ist der Gastgeber selbst offline (`hostOnline()` falsch) oder war seine Seite eingeschlafen, passiert nichts |
 | Gast verlässt Warteraum | `leave` + `endSession(…, true)` → Eintritt zurück |
 | Gast verlässt laufendes Spiel | Rückfrage, dann `leave` und lokale Abrechnung mit dem Platz „Anzahl Spieler − schon Platzierte“ (`clientLeave`) |
 | Gastgeber nicht erreichbar | Gast versucht alle 3 s neu (`hostLost`). Nach 30 s (`ABANDON_AFTER`) darf er abbrechen und bekommt den Eintritt zurück |
 | Raum nicht gefunden | `peer-unavailable` vor dem ersten `state` → `endSession('Raum … nicht gefunden', true)` |
 | Gastgeber schließt Warteraum | `closed` an alle, jeder bekommt seinen Eintritt zurück |
-| Gastgeber verlässt laufendes Spiel | `closed` an alle (Gäste: Eintritt zurück, falls noch nicht abgerechnet); er selbst gibt auf (`def.forfeit`) und wird nach seinem Platz abgerechnet (`hostLeave`) |
+| Gastgeber verlässt laufendes Spiel | `closed` mit `forfeit` an alle: Gäste, die noch im Spiel sind, bekommen ihren Eintritt zurück und teilen sich seinen (`hostForfeited`); er selbst gibt auf (`def.forfeit`) und wird nach seinem Platz abgerechnet (`hostLeave`) |
+| Gastgeber entfernt jemanden | Nur im Warteraum: Knopf „Entfernen“ (`kickMember`) → `kicked`, ID für diesen Raum gesperrt |
 | Gastgeber ist ausgeschieden | Er leitet das Spiel weiter, bis es vorbei ist (Hinweis in `drawGame`) |
 
 ---
@@ -198,6 +201,7 @@ Anmeldung: `GK.room.registerGame(def)`. `room.js` meldet das Spiel selbst bei `G
 | `botDelay(z, solo)` → ms | G | optional, sonst 1200 |
 | `timeout(z, platz)` → Aktion | G | Bedenkzeit eines Menschen abgelaufen (`hostTimeout`). Muss eine **gültige** Aktion liefern, sonst passiert nichts mehr |
 | `turnTime(z)` → ms | G | Bedenkzeit pro Zug. Gegen Computer gibt es keine Bedenkzeit |
+| `turnKey(z)` → Text | G | optional: was als neuer Zug zählt – nur dann startet die Bedenkzeit neu (sonst bei jeder angenommenen Aktion). Kniffel: Würfeln und neuer Spieler, nicht Würfel halten |
 | `phaseDeadline(z)` → Zeitstempel oder `null` | G | optional: gemeinsame Frist, wenn `actor(z) === -1` (nicht gegen Computer) |
 | `autoDelay(z, solo)` → ms oder `null` | G | Nicht `null` → nach dieser Zeit ruft `room.js` `advance(z)` (Aufdecken, Animation abwarten …). Hat Vorrang vor Computer-Zug und Zeitablauf |
 | `advance(z)` | G | Automatischer Schritt; `room.js` erhöht danach `z.step` |
@@ -391,13 +395,14 @@ Verbindungen bestehen nur zwischen Gastgeber und jedem Gast, nicht zwischen Gäs
 
 | Daten | Wo | Prüfung beim Empfang |
 |---|---|---|
-| `playerId` (Raum) | `hello` | `String(...).slice(0, 32)`; leer oder gleich dem des Gastgebers → verworfen |
+| `playerId` (Raum) | `hello` | `String(...).slice(0, 32)`; leer oder gleich dem des Gastgebers → verworfen; vorhandener Platz nur mit passendem `secret`; eine ID je Verbindung |
 | Name | `hello`, `members`, `view.players` | `GK.player.cleanName` (höchstens 16 Zeichen, sonst „Gast“) |
 | Bild | `hello` | muss in `GK.player.AVATARS` stehen |
 | Figur-Code `fig` | `hello` | `GK.figure.valid` (nur im Warteraum übernommen) |
 | Rang `rank` | `hello` | `GK.rank.valid` (nur im Warteraum) |
 | Namensschild `badge` | `hello` | `GK.cosmetics.validBadge` (nur im Warteraum) |
-| Rekorde `records` | `hello`, `records`, `members[].records` | `GK.friends.clean`: ID-Muster, nur bekannte Felder, nur endliche Zahlen; gespeichert über `GK.friends.remember` / `learnFrom` |
+| Rekorde `records` | `hello`, `records`, `members[].records` | `GK.friends.clean`: ID-Muster, nur bekannte Felder, nur endliche Zahlen; gespeichert über `GK.friends.remember` / `learnFrom`. Ein Platz bleibt bei einer Ranglisten-ID, keine ID eines anderen Mitspielers (`takeRecords`) |
+| alles | jede Nachricht | `GK.cleanData` in `unpack` (kein HTML, kein `__proto__`) |
 | Aktion | `action` | `room.js`: Platz ≥ 0, ist Objekt, Spieler darf handeln; alles Weitere in `def.act` |
 | Eintritt | `state.entry` | `Math.floor(Number(...)) >= MIN_ENTRY`, sonst wird die Nachricht verworfen |
 | Protokoll, Spiel | `hello.v`, `hello.game`, `state.game` | müssen passen |

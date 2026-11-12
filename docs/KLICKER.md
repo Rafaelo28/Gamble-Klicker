@@ -200,11 +200,13 @@ buffMult(typ)   = Produkt der mult aller aktiven Buffs dieses Typs (1, wenn kein
 Einkommen       = baseCps · permanentMult · buffMult('income')
 ```
 
-- Buffs liegen in `GK.state.buffs` als `{ id, type, mult, until }` (`until` = Zeitstempel in ms, echte Uhrzeit –
-  sie laufen also auch bei geschlossenem Spiel ab). `addBuff(id, mult)` ersetzt einen Buff gleicher `id` und
+- Buffs liegen in `GK.state.buffs` als `{ id, type, mult, until }` (`until` = Zeitstempel der Spielzeit `GK.now()`
+  in ms – sie laufen also auch bei geschlossenem Spiel ab, lassen sich aber nicht durch Zurückstellen der Uhr
+  verlängern; `activeBuffs` deckelt die Restzeit auf die Dauer des Buffs und verwirft unbekannte IDs). `addBuff(id, mult)` ersetzt einen Buff gleicher `id` und
   wirft abgelaufene weg; `mult` ist optional (sonst der Wert aus `BUFFS`).
-- `buffMult('luck')` wird nur in `js/casino/casino.js:luckBonus` gelesen (aus `record()`): Bei
-  `payout > bet` wird `floor((payout − bet) · ganze Prozent / 100)` zusätzlich ausgezahlt und mit der Runde verbucht.
+- `buffMult('luck')` wird in `js/casino/casino.js:bet` gelesen: Ein Einsatz während der Strähne wird je Spiel
+  gemerkt, `record()` zahlt darauf bei `payout > bet` den Bonus `floor((payout − bet) · Anteil · Prozent / 100)`
+  (siehe `docs/CASINO.md`). Geparkte Gewinne aus der Zeit davor bekommen nichts.
 - Die Trophäen stehen **nicht** in `permanentMult`, sondern nur in `getClickPower`.
 
 ### 2.2 Goldene Bonus-Dublone
@@ -252,12 +254,10 @@ untereinander, `PRESTIGE_BONUS`).
 
 Danach: `GK.save()`, `GK.clicker.refresh()`, `GK.cosmetics.journeyReward()` (Glücksrad, siehe 6.3).
 
-**`prestigeBlocker()`** gibt `''` oder einen Hinweistext zurück, solange in `GK.state.casino.games` etwas offen
-ist: Blackjack-Runde, Roulette-Chips/`pending`, Slots/Side-Slot `pending`, offenes Rubbellos, Poker-Tisch,
-Poker-Raum, Raum mit Freunden (`room.session`), Schatzinsel, Stoppuhr, Parole, Kanonenkugel, Glücksrad/
-Schiffsrennen, Flug, Aktien an der Hafenbörse, Münzfall, Video-Slots (`pending`/`free`/`bonus`).
-**Jedes neue Casino-Spiel mit Zustand über mehrere Schritte braucht hier eine Zeile** – sonst kostet eine große
-Fahrt mitten in der Runde den Einsatz (`money = 0`). Der Text gehört in `GK.i18n.add` von `progress.js`.
+**`prestigeBlocker()`** gibt `''` oder einen Hinweistext zurück, solange in `GK.state.casino.games` eine Runde
+offen ist – die Liste steht in `GK.casino.RUNNING` (`js/casino/casino.js`, gilt auch für den Import).
+**Jedes neue Casino-Spiel mit Zustand über mehrere Schritte braucht dort einen Eintrag** – sonst übersteht der
+Einsatz die große Fahrt. Der Text gehört in `GK.i18n.add` von `progress.js`.
 
 Öffentlich: `GK.progress = { init, update, permanentMult, buffMult, addBuff, applyOfflineEarnings, pendingPoints, _spawnGolden }`.
 `prestigeMult`, `prestigeBlocker`, `goOnJourney` sind nicht öffentlich.
@@ -537,7 +537,7 @@ Summen bei vollständiger Sammlung: +47 % Einkommen, +55 % Beute, −15 % Fahrze
 
 - `send(schiff, ziel)`: lost Ausgang und Schatz **beim Ablegen** aus und speichert die Fahrt sofort in
   `state.fleet.voyages[schiff] = { dest, start, end, loot, outcome, treasure, wind }`. `loot` ist dort schon der
-  fertige Betrag. Neuladen ändert nichts; Fahrten laufen nach echter Uhrzeit (`Date.now()`), auch bei geschlossenem Spiel.
+  fertige Betrag. Neuladen ändert nichts; Fahrten laufen nach der Spielzeit `GK.now()` (auch bei geschlossenem Spiel, aber nicht schneller durch Verstellen der Uhr).
 - `wind(schiff)`: einmal je Fahrt, kostet `ceil(income() · Restsekunden · 0,25)`, halbiert die Restzeit.
 - `collect(schiff)`: erst ab `end`; löscht die Fahrt, bucht `GK.earn(loot, 'fleet')`, zählt `done`, `earned`,
   Schatz, Logbuch (`log`, höchstens 12). Gibt den Logbuch-Eintrag zurück, sonst `null`.
@@ -605,7 +605,7 @@ Flotten-Schätze ──┘                                                      
 Buff income (Goldrausch) ─► clicker.getCps ─► tick, Anzeige                   Beute, Rückenwind, boss.reward
 Buff click (Klickfieber) ─┐
 Boss-Trophäen ────────────┼─► clicker.getClickPower ─► Klick, boss.tapDamage/cannonDps (× Laderaum der Flotte),
-getCps × clickCps-Anteil ─┘                            tägl. Belohnung, goldene Dublone, Kraken-Beute
+getCps × clickCps-Anteil ─┘   (ohne Buffs: getClickPowerPermanent ─► tägl. Belohnung, Schatzfund, Kraken-Beute)
 Buff luck (Glückssträhne) ─► casino.js:luckBonus
 allTimeEarned ─► rank.of ─► Flotten-Ziele, Figur-Teile, Erfolge;  ─► progress.totalPrestigePoints
 ```
@@ -690,18 +690,20 @@ Darum gilt für Logik-Funktionen: kein DOM-Zugriff außerhalb von `render`/`init
   umbenennen. Listen mit Index-Bedeutung (`BUILDINGS` wegen Synergien, alle Figur-Listen, `rank.js:NAMED`) nur hinten erweitern.
 - **`getCps` vs. `getCpsPermanent`**: Für Belohnungen, Preise und alles, was sich nicht durch einen Goldrausch
   aufblasen lassen soll, `getCpsPermanent()` nehmen (bzw. `GK.fleet.income()` für Abenteuer-Preise).
-- **`getClickPower()` enthält Buffs**: tägliche Belohnung, Kraken-Beute und Schatzfund nutzen es als Untergrenze –
-  im Klickfieber sind sie höher. Das ist der Ist-Zustand, kein Versehen der Doku.
+- **`getClickPower()` enthält Buffs**: Für Belohnungen (tägliche Belohnung, Kraken-Beute, Schatzfund)
+  `getClickPowerPermanent()` nehmen – sonst lohnt es sich, mit dem Abholen auf Klickfieber zu warten.
 - **`passiveOff`** schaltet nur die Auszahlung ab; alle Formeln mit `getCps…` rechnen weiter mit vollem Einkommen.
 - **Große Fahrt und neue Zustände**: Alles, was an `buildings`/`upgrades`/`money` hängt, ist danach leer.
-  Neue Casino-Zustände in `prestigeBlocker` eintragen. Ein laufender Kraken-Angriff wird von `goOnJourney`
+  Neue Casino-Zustände in `GK.casino.RUNNING` eintragen. Ein laufender Kraken-Angriff wird von `goOnJourney`
   nicht beendet (er findet dann nichts mehr zu stehlen, `stealAmount(0) = 0`) – aus dem Code abgeleitet, nicht getestet **(unklar, ob beabsichtigt)**.
 - **Erfolge wirken aufs Einkommen**: Jeder neue Erfolg ist +1 %; viele leichte Erfolge verschieben die Balance.
 - **Ergebnis sofort speichern**: Flotte (beim Ablegen), Glücksrad (vor der Animation) und Kraken (Angriff im
   Spielstand) folgen der Regel „Neuladen darf nichts ändern“. Neue Mechaniken genauso bauen.
 - **`fleet.income()` hat eine Nebenwirkung** (`peak` wird fortgeschrieben) – in Tests vor dem Vergleichen bedenken.
-- **Zeitbasis**: Flotte, Buffs, Boss und Offline rechnen mit echter Uhrzeit (`Date.now()`); Kraken mit aktiver
-  Spielzeit im Klicker; tägliche Aufgaben mit dem Kalendertag in Ortszeit.
+- **Zeitbasis**: Flotte, Buffs, Boss, goldene Dublone, Offline und Hintergrund rechnen mit der Spielzeit
+  `GK.now()` (`js/state.js`: läuft nie rückwärts, zählt im Spiel die echte Zeit, beginnt nie vor `lastSaved`);
+  Kraken mit aktiver Spielzeit im Klicker; tägliche Aufgaben und Gratis-Dreh mit dem Kalendertag von `GK.now()`
+  (nur vorwärts). Import und Zurücksetzen beenden einen laufenden Bosskampf.
 - **Anzeige im Takt**: `render`-Funktionen laufen 10× pro Sekunde. Listen nur bei geänderter Signatur neu bauen
   (Muster: `lastSignature`, `shipsSig`, `lastHtml`), sonst `GK.setHTML`/`GK.setText`. Ein Neuaufbau unter dem
   Finger verschluckt Tipps (Kommentar in `daily.js:render`).

@@ -182,7 +182,7 @@ keine VIP-Stufe und nutzt `TIERS` nicht (freier Eintritt ab 100). **(unklar, ob 
 | Funktion | Ergebnis |
 |---|---|
 | `prizeShares(players)` | ≥6: `[0.5, 0.3, 0.2]` · 4–5: `[0.65, 0.35]` · 3: `[0.7, 0.3]` · 2: `[1]` |
-| `prize(place, entry, players, paying = players)` | `floor(entry × paying × Anteil)`, sonst 0. Bei 6: 3× / 1,8× / 1,2× Eintritt |
+| `prize(place, entry, players, paying = players)` | `floor(entry × paying × Anteil)`, sonst 0. Gegen Computer ist `paying = 6 × 0,95` (`poker.js:SOLO_PAYING`, 95 % wie die anderen Spiele gegen Computer): 2,85× / 1,71× / 1,14× Eintritt |
 | `blitzPaidPlaces(players)` | `min(4, max(1, players − 2))` |
 | `blitzPayouts(stacks, entry, players, paying = players)` | Die Besten teilen `entry × paying` im Verhältnis ihrer Chips (abgerundet); Gleichstand an der Grenze zählt mit; Stack 0 bekommt nichts |
 | `handLimitReached(t)` | Blitz, `phase === 'handOver'`, `handNo >= maxHands` |
@@ -300,25 +300,27 @@ Blitz-Ende, eigene Abrechnung, `GK.save`, `broadcast`, `redraw`, `scheduleHost`)
 möglich, sonst Fold); nach der Hand → `hostNextHand` nach `nextDelayShowdown` bzw. `nextDelay + 500`.
 Bedenkzeit: `turnTime` des Modus, bei `offline` nur 5 s. `turnKey(t)` erkennt, ob ein neuer Zug begonnen hat.
 
-### Nachrichten (`PROTOCOL = 3`)
+### Nachrichten (`PROTOCOL = 4`, seit dem Platz-Token)
 
 | Richtung | `type` | Felder | Wirkung |
 |---|---|---|---|
-| M → G | `hello` | `v, playerId, name, avatar, fig, rank, badge, paid, records` | Anmelden/Wiederverbinden. Falsches `v`, Spiel läuft schon (unbekannte `playerId`) oder Raum voll → `error` (fatal) |
+| M → G | `hello` | `v, playerId, secret, name, avatar, fig, rank, badge, paid, records` | Anmelden/Wiederverbinden. Falsches `v`, Spiel läuft schon (unbekannte `playerId`), Raum voll, falsches Platz-Token oder entfernt → `error` (fatal). Eine Verbindung gehört genau einer `playerId` |
 | M → G | `join` | – | Eintritt bezahlt → `member.ready = true` (nur im Warteraum) |
 | M → G | `action` | `action: { type, to }` | Zug; wird mit `cleanAction` bereinigt und nur angenommen, wenn der Platz am Zug ist |
 | M → G | `records` | `records` | neue Rekorde nach der Abrechnung (Rangliste) |
 | M → G | `leave` | – | Warteraum: Mitglied entfernen; im Spiel: `engine.forfeit` |
 | G → M | `state` | `v, code, entry, mode, hands, phase, hostId, fillBots, members[]`, mit Tisch zusätzlich `view, mySeat, turnLeft` | kompletter Stand, bei jeder Änderung an alle |
 | G → M | `error` | `fatal, message` | fatal → Raum verlassen mit Erstattung; sonst Toast |
-| G → M | `closed` | `reason` | Gastgeber hat geschlossen → verlassen mit Erstattung |
+| G → M | `secret` | `secret` | Platz-Token, nur an diesen Mitspieler (gespeichert, mit jedem `hello` zurück) |
+| G → M | `kicked` | – | im Warteraum entfernt (Knopf „Entfernen“) → verlassen mit Erstattung |
+| G → M | `closed` | `reason, forfeit` | Gastgeber hat geschlossen → verlassen mit Erstattung; `forfeit` (Aufgabe mitten im Turnier): Eintritt plus Anteil am Eintritt des Gastgebers |
 | beide | `ping` | – | Lebenszeichen |
 | beide | `json` | `data` (JSON-Text) | Umschlag, falls `conn.send` scheitert (PeerJS verpackt sehr große ganze Zahlen nicht); `unpack` packt aus |
 
 `members[]`: `{ playerId, name, avatar, fig, rank, badge, ready, online, records? }` (`GK.friends.membersOut`;
 `records` nur außerhalb von `phase === 'playing'`). `turnLeft` ist eine Restzeit in ms (keine Uhrzeit), der
 Mitspieler rechnet `Date.now() + turnLeft`. Die Texte in `error.message`/`closed.reason` sind deutsche
-Klartexte vom Gastgeber und werden nicht übersetzt.
+Klartexte vom Gastgeber; der Mitspieler zeigt sie über `GK.t` (Übersetzungen in `room.js` angemeldet).
 
 ### Geheime Karten
 
@@ -345,9 +347,11 @@ Gastgeber meldet sich mit demselben Code an und startet die Bedenkzeit neu; Mits
 `hello` mit `paid`. Bekannte `playerId` darf auch im laufenden Spiel zurück.
 
 Verbindungsabbruch: im Warteraum wird das Mitglied entfernt; im Spiel `player.offline = true`. Nach 90 s
-(`DROP_AFTER`) ohne Verbindung → `forfeit` (`dropAbsentPlayers`), aber nur solange der Gastgeber selbst online
-ist. Ist der Gastgeber 30 s (`ABANDON_AFTER`) nicht erreichbar, darf ein Mitspieler mit Erstattung abbrechen.
-Verlässt der Gastgeber das laufende Spiel, endet es für alle (`closed` → Mitspieler bekommen Erstattung).
+(`DROP_AFTER`) ohne Verbindung bricht der Gastgeber das Turnier für alle mit Erstattung ab (`dropAbsentPlayers` →
+`abortForAll`), aber nur solange er selbst online ist. Ist der Gastgeber 30 s (`ABANDON_AFTER`) nicht erreichbar,
+darf ein Mitspieler mit Erstattung abbrechen – beides passt zusammen, es entsteht kein Geld aus dem Nichts.
+Verlässt der Gastgeber das laufende Turnier, gibt er auf: Mitspieler, die noch dabei sind, bekommen ihren
+Eintritt zurück und teilen sich seinen (`closed` mit `forfeit` → `hostForfeited`).
 
 ### Computer-Gegner im Raum
 
@@ -373,7 +377,7 @@ Mitgliedern; wer nicht bezahlt hat, fliegt mit `error` aus dem Raum.
 | | Poker (`multiplayer.js`) | Räume (`room.js`) |
 |---|---|---|
 | Peer-ID | `gamble-klicker-<code>` | `gamble-klicker-<spiel>-<code>` |
-| Protokoll | `PROTOCOL = 3` | `PROTOCOL = 1`, `hello`/`state` tragen zusätzlich `game` |
+| Protokoll | `PROTOCOL = 4` | `PROTOCOL = 2`, `hello`/`state` tragen zusätzlich `game` |
 | Speicher | `GK.casino.data('pokerMp')` | `GK.casino.data('room')` |
 | Einladungs-Link | `?raum=CODE` | `?raum=CODE&spiel=ID` |
 | Raum-Optionen | `mode`, `hands` | `settings` (je Spiel) |

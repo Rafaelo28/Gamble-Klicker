@@ -39,9 +39,11 @@ Standard (`race.js:makeOdds(rand)`, `race.js:drawOrder(probs, rand)`).
 
 | Funktion | Bedeutung |
 |---|---|
-| `bet(amount)` → `boolean` | Bucht den Einsatz über `GK.spend` ab und erhöht `wagered`. `false` bei `amount <= 0` oder zu wenig Geld. **Prüft kein VIP-Limit** und speichert nicht. |
+| `bet(amount, gameId)` → `boolean` | Bucht den Einsatz über `GK.spend` ab und erhöht `wagered`. `false` bei `amount <= 0` oder zu wenig Geld. **Prüft kein VIP-Limit** und speichert nicht. `gameId` immer mitgeben: Läuft gerade eine Glückssträhne, wird der Einsatz für dieses Spiel gemerkt (`casino.luck[gameId]`). Räume mit Freunden setzen ohne `gameId` (kein Bonus). |
 | `payout(amount)` | Zahlt die komplette Rückzahlung (Einsatz + Gewinn) über `GK.earn(amount, 'casino')` aus und erhöht `won`. Bei `amount <= 0` passiert nichts – darf also ohne Abfrage immer aufgerufen werden. |
-| `refund(amount)` | Gibt einen noch nicht gespielten Einsatz zurück: Geld wieder drauf, `wagered` wieder runter. Zählt nicht als Runde. Speichert nicht. |
+| `refund(amount, gameId)` | Gibt einen noch nicht gespielten Einsatz zurück: Geld wieder drauf, `wagered` wieder runter, gemerkter Glückssträhnen-Einsatz entsprechend weniger. Zählt nicht als Runde. Speichert nicht. |
+| `runningRound(games?)` → `{ id, text }` oder `null` | Erste laufende Runde laut `RUNNING` (große Fahrt, Import) |
+| `clearRunning(games?)` | Laufende Runden verfallen lassen (nach dem Import, Einsatz bleibt abgebucht) |
 | `record(gameId, bet, payout, text)` | Schließt eine Runde ab – siehe unten. Speichert. |
 | `data(gameId, createDefault)` | Zustand des Spiels aus `GK.state.casino.games`; legt ihn beim ersten Zugriff mit `createDefault()` an. |
 | `maxBet()` | Höchster Einsatz pro Runde laut VIP-Karte (`Infinity` auf der höchsten Stufe) |
@@ -51,10 +53,11 @@ Standard (`race.js:makeOdds(rand)`, `race.js:drawOrder(probs, rand)`).
 
 `record` in dieser Reihenfolge (`casino.js:record`):
 
-1. **Glückssträhne** (`casino.js:luckBonus`): Ist `GK.progress.buffMult('luck') > 1` und `payout > bet`, wird
-   `floor((payout − bet) × Prozent)` zusätzlich über `payout()` ausgezahlt, an den Verlaufstext
-   ` · 🍀 +…` angehängt und zur Auszahlung der Runde gezählt. Der Bonus kommt also zentral – kein Spiel
-   rechnet ihn selbst. Geprüft in `tests/bonus.test.js`.
+1. **Glückssträhne** (`casino.js:luckBonus`): Gilt nur für den Teil des Einsatzes, der **während** der Strähne
+   gesetzt wurde (`bet(amount, gameId)` merkt ihn in `casino.luck[gameId]`; `record` verbraucht ihn). Ist
+   `payout > bet`, wird `floor((payout − bet) × Anteil × Prozent)` zusätzlich über `payout()` ausgezahlt, an den
+   Verlaufstext ` · 🍀 +…` angehängt und zur Auszahlung der Runde gezählt. Runden ohne Einsatz (`bet = 0`)
+   bekommen nichts. Der Bonus kommt also zentral – kein Spiel rechnet ihn selbst. Geprüft in `tests/bonus.test.js`.
 2. `rounds++`, Statistik je Spiel (`casino.js:countRound`): `wins` und `streak` nur bei `payout > bet`,
    `streak = 0` nur bei `payout < bet` (Einsatz zurück lässt die Serie stehen), `bestMult = payout / bet`
    nur bei `bet > 0`.
@@ -144,7 +147,7 @@ gekappt. Rückgabe: `{ refresh(), setDisabled(bool) }`. `refresh()` gehört in d
 Feste Reihenfolge – jede Abweichung macht entweder Neuladen teuer oder zahlt doppelt:
 
 ```
-1. GK.casino.bet(einsatz)        → false? Meldung, abbrechen. Vorher nichts am Zustand ändern.
+1. GK.casino.bet(einsatz, ID)    → false? Meldung, abbrechen. Vorher nichts am Zustand ändern.
 2. Ergebnis auslosen (GK.rng)    – so viel wie möglich schon jetzt
 3. Zustand der Runde schreiben   – s.round = {…} bzw. s.pending = {…}, mit dem Einsatz DIESER Runde
 4. GK.save()                     – vor jeder Animation, vor jedem setTimeout
@@ -178,15 +181,12 @@ halb getippte Wort (`parole.js: typed`), Animationszustand.
 
 ### Große Fahrt (Prestige)
 
-`js/progress.js:prestigeBlocker` liest `GK.state.casino.games` direkt und gibt einen Text zurück, solange noch
+`js/progress.js:prestigeBlocker` fragt `GK.casino.runningRound()` und gibt einen Text zurück, solange noch
 Geld in einer Runde steckt – sonst ließe sich ein Einsatz über die große Fahrt retten (dabei wird `money` auf 0
-gesetzt). Vorhanden sind Prüfungen für: blackjack (`round` nicht `finished`), roulette (`pending` oder `bets`),
-slots/sideSlot (`pending`), scratch (`current` nicht `settled`), mines/stopwatch/parole (`round`), crash (`round`
-nicht `cashed`), wheel (`pending`), race (`pending` oder `bets`), flight (`pending`), stocks (`holdings`), plinko
-(`pending` oder `mass`), Video-Slots (`pending`, `free`, `bonus`).
-
-**Stand des Codes:** Für `hilo`, `tower`, `chicken`, `keno` und `baccarat` gibt es dort keine Prüfung, obwohl
-`hilo.round`, `tower.round` und `chicken.round` eine Runde beliebig lange offen halten.
+gesetzt). Die Liste steht an **einer** Stelle: `GK.casino.RUNNING` (`js/casino/casino.js`), je Spiel
+`{ id, on(g), clear(g), text, keep? }`. Sie gilt auch für den Import: Mit laufender Runde wird nicht importiert,
+und im importierten Stand verfallen laufende Runden (`clearRunning`, außer `keep`, z. B. Aktien) – sonst ließe sich
+eine Runde mit bekanntem Ausgang (Totenköpfe der Schatzinsel, Mast-Kletterei) immer wieder laden.
 
 ## 3. Rezept: neues Casino-Spiel hinzufügen
 
@@ -215,8 +215,9 @@ Vorlage: `js/casino/parole.js` (neuestes Spiel) oder `js/casino/tower.js` (kürz
 - [ ] **Lobby-Bild** in `js/icons.js`: Eintrag `<id>: …` im Objekt `GAMES` (wird zu `#g-<id>`). Ohne Eintrag zeigt
       `GK.gameIcon` das `emoji`. Symbole in Knöpfen über `ic('name')` mit der Schutzhülle
       `const ic = (name, cls) => (GK.icon ? GK.icon(name, cls) : '');`.
-- [ ] **`js/progress.js:prestigeBlocker`**: Zeile für die laufende Runde ergänzen und den Text im i18n-Block von
-      `js/progress.js` anmelden.
+- [ ] **`GK.casino.RUNNING`** (`js/casino/casino.js`): Eintrag für die laufende Runde ergänzen (`on`, `clear`,
+      `text`) und den Text im i18n-Block von `js/progress.js` anmelden.
+- [ ] **`GK.casino.bet(betrag, '<id>')`** und `refund(betrag, '<id>')` immer mit Spiel-ID (Glückssträhne).
 - [ ] **Erfolge** (falls gewünscht) in `js/achievements.js`, ausgelöst mit `GK.unlockAchievement('<id>')`.
 - [ ] **Test**: Mathematik in `tests/casino.test.js` (Datei dort in die `require`-Liste aufnehmen) oder eine eigene
       `tests/<id>.test.js` wie `tests/parole.test.js`. Mindestens: Tabellen stimmig, Rückzahlung im erwarteten
@@ -266,7 +267,7 @@ GK.i18n.add({
   function start() {
     const s = state();
     if (s.pending || busy) return;
-    if (!GK.casino.bet(s.bet)) {
+    if (!GK.casino.bet(s.bet, 'parole')) {
       GK.sound.play('denied');
       showMessage(GK.t('Nicht genug Dublonen für diesen Einsatz.'), 'loss');
       return;
@@ -377,7 +378,7 @@ deshalb ersetzt `tests/chicken.test.js` `GK.casino.record` durch eine Liste und 
 | `tower` | `tower.js` | Mast-Kletterei | quick | 9 Stufen, je Stufe Seile mit morschen darunter, 4 Schwierigkeiten | `bet, mode, round, last` | B | `towerMath` | `RTP = 0,97`; Test 0,955–0,97 je Stufe |
 | `parole` | `parole.js` | Geheime Parole | quick | Wort mit 5 Buchstaben in 6 Versuchen; ×12 / 3 / 1,5 / 1 / 0,5 / 0,2 je Versuch; Wortliste nach Spielsprache | `bet, round, last` | B | `paroleMath` | Geschicklichkeit. `tests/parole.test.js`: Rechner, der die Liste kennt, holt 1,1–1,8 (Obergrenze) |
 | `keno` | `keno.js` | Schatzkarten-Keno | quick | 1–10 von 40 Inseln markieren, 10 werden gezogen | `bet, picks, pending, last, history` | A | `kenoMath` | Test `rtp(picks)` 0,94–0,97 |
-| `stopwatch` | `stopwatch.js` | Stoppuhr | quick | Uhr bei Zielzeit (2–10 s) stoppen; ×2,2 exakt, ×1,1 bei ±1, ×0,6 bis ±3, ×0,2 bis ±6 Hundertstel | `bet, round, last, best, exact` | E | `stopwatchMath` | Geschicklichkeit. Test: Streuung ±0,02 s → 0,95–1,1; ±0,05 s → 0,5–0,75 |
+| `stopwatch` | `stopwatch.js` | Stoppuhr | quick | Uhr bei Zielzeit (2–10 s) stoppen; ×2 exakt, ×1 bei ±1, ×0,6 bis ±3, ×0,2 bis ±6 Hundertstel | `bet, round, last, best, exact` | E | `stopwatchMath` | Geschicklichkeit. Test: Streuung ±0,02 s → 0,95–1,1; ±0,05 s → 0,5–0,75 |
 | `stocks` | `stocks.js` | Hafenbörse | market | Anteile an 6 Firmen kaufen/verkaufen; Kurs läuft jede Sekunde weiter (bis 8 Std. nachgerechnet), Pleiten | `bet, selected, lastTick, stocks, holdings, news` | G | `stockMath` | Kauf ×1,02, Verkauf ×0,99, mit Anteilen fällt der Kurs; `tests/stocks.test.js`: Halten bringt in unter 5 % der Fälle Gewinn |
 
 Hilfsdateien ohne eigenes Spiel: `cards.js` (`GK.cards`: Karten als Text wie `'AS'`, `createDeck(decks)` liefert
@@ -421,8 +422,8 @@ ein gemischtes Blatt, `html(card)` zeichnet), `slot-machine.js` (`GK.slotMachine
 - **Erst `bet`, dann Zustand ändern.** Schlägt `bet` fehl, darf nichts verändert sein.
 - **`refund` und `bet` speichern nicht** – danach selbst `GK.save()` aufrufen.
 - **`payout` ist die volle Rückzahlung**, nicht der Gewinn. „Einsatz zurück“ ist `payout(bet)`.
-- **`record(id, 0, gewinn, …)`** (Gratis-Dreh, Freispiele, Bonus) zählt als gewonnene Runde, bekommt den
-  Glückssträhnen-Bonus auf den ganzen Betrag und fließt nicht in `bestMult` ein.
+- **`record(id, 0, gewinn, …)`** (Gratis-Dreh, Freispiele, Bonus) zählt als gewonnene Runde, bekommt keinen
+  Glückssträhnen-Bonus und fließt nicht in `bestMult` ein.
 - **Der Glückssträhnen-Bonus steht nicht in der Meldung des Spiels.** Er wird in `record` ausgezahlt und zeigt
   sich selbst (schwebender Text); die Beträge in `p.payout` oder `s.last.payout` enthalten ihn nicht.
 - **`onHide` kommt nicht beim Tab-Wechsel.** Wer auf Tastatur hört oder Zeit misst, prüft die Sichtbarkeit selbst:
@@ -430,8 +431,10 @@ ein gemischtes Blatt, `html(card)` zeichnet), `slot-machine.js` (`GK.slotMachine
   an- und in `onHide` abmelden und Eingabefelder ausnehmen (`parole.js:onKey`).
 - **`render()` läuft alle 100 ms.** Dort kein `innerHTML` auf großen Bereichen; `GK.setHTML`/`GK.setText`
   schreiben nur bei Änderung. Die Spiele zeichnen ihr Spielfeld bei Ereignissen, nicht im Takt.
-- **Zeit über Neuladen hinweg** nur mit `Date.now()` im Zustand (`crash.js: round.start`, `stopwatch.js: round.at`);
-  `performance.now()` beginnt nach dem Neuladen neu und taugt nur zum Messen innerhalb einer Sitzung.
+- **Zeit über Neuladen hinweg** mit einem Zeitstempel im Zustand (`crash.js: round.start`, `stopwatch.js: round.at`);
+  `performance.now()` beginnt nach dem Neuladen neu und taugt nur zum Messen innerhalb einer Sitzung. Für alles,
+  was sich durch Verstellen der Geräte-Uhr lohnen würde (Buffs, Fahrten, Tageswechsel), `GK.now()` nehmen
+  (`js/state.js`, läuft nie rückwärts).
 - **Verlaufstexte sind HTML und werden nicht nachübersetzt.** Sie bleiben in der Sprache, in der die Runde
   gespielt wurde. Keine ungeprüften Eingaben hineinschreiben.
 - **Dateien müssen in Node laden.** Oberste Ebene ohne DOM-Zugriff; `GK.icon`, `GK.gameIcon`, `GK.iconifyLead`,
@@ -440,5 +443,5 @@ ein gemischtes Blatt, `html(card)` zeichnet), `slot-machine.js` (`GK.slotMachine
 - **Tagesaufgabe „bestimmtes Spiel“** (`js/daily.js:quickGames`) wählt aus allen Spielen der Kategorien `quick`,
   `slots`, `table` außer Poker. Ein neues Spiel dort sollte also in wenigen Runden spielbar sein.
 - **Versionsnummer vergessen**: Ohne neues `?v=…` in `index.html` mischen Browser alte und neue Dateien.
-- **`prestigeBlocker` vergessen**: Dann lässt sich ein laufender Einsatz über die große Fahrt mitnehmen (siehe
-  die Lücke am Ende von Abschnitt 2).
+- **`GK.casino.RUNNING` vergessen**: Dann lässt sich ein laufender Einsatz über die große Fahrt mitnehmen und eine
+  Runde mit bekanntem Ausgang per Import wiederholen.
