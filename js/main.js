@@ -353,6 +353,24 @@ GK.i18n.add({
   const PAUSED = /[?&]pausiert=1(&|$)/.test(location.search);
   const tabId = Math.random().toString(36).slice(2) + Date.now().toString(36);
 
+  // Ein anderer Tab hat übernommen: hier nichts mehr speichern und die Pause-Seite zeigen
+  function pauseTab() {
+    if (GK.paused) return;
+    GK.paused = true; // GK.save schreibt ab jetzt nichts mehr (der andere Tab hat den neueren Stand)
+    location.replace(location.pathname + '?pausiert=1');
+  }
+
+  // Gehört das Spiel inzwischen einem anderen Tab? (fremde Kennung im Speicher)
+  function otherTabOwns(value) {
+    let other = null;
+    try {
+      other = JSON.parse(value);
+    } catch (err) {
+      return false;
+    }
+    return !!other && typeof other === 'object' && other.id !== tabId;
+  }
+
   function claimTab() {
     try {
       localStorage.setItem(TAB_KEY, JSON.stringify({ id: tabId, t: Date.now() }));
@@ -360,18 +378,22 @@ GK.i18n.add({
       // Ohne Speicher gibt es auch nichts zu überschreiben
     }
     window.addEventListener('storage', e => {
-      if (e.key !== TAB_KEY || !e.newValue || GK.paused) return;
-      let other = null;
-      try {
-        other = JSON.parse(e.newValue);
-      } catch (err) {
-        return;
-      }
-      if (other && other.id !== tabId) {
-        GK.paused = true; // GK.save schreibt ab jetzt nichts mehr (der andere Tab hat den neueren Stand)
-        location.replace(location.pathname + '?pausiert=1');
-      }
+      if (e.key === TAB_KEY && e.newValue && otherTabOwns(e.newValue)) pauseTab();
     });
+    // Zusätzlich vor jedem Speichern nachsehen (GK.save, js/state.js): Ein eingefrorener Hintergrund-Tab
+    // (iPad) bekommt das storage-Ereignis manchmal erst, nachdem sein Speichern schon gelaufen wäre –
+    // er würde dann den neueren Stand des anderen Tabs überschreiben.
+    GK.tabLost = () => {
+      let value = null;
+      try {
+        value = localStorage.getItem(TAB_KEY);
+      } catch (e) {
+        return false;
+      }
+      if (!value || !otherTabOwns(value)) return false;
+      pauseTab();
+      return true;
+    };
   }
 
   function showPausedPage() {

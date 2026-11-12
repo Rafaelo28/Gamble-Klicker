@@ -212,7 +212,8 @@ GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' 
 
   GK.save = function () {
     // GK.paused: Das Spiel läuft in einem anderen Tab weiter (js/main.js) – dieser Tab darf nichts überschreiben
-    if (!GK.storageAvailable || GK.paused) return false;
+    // GK.tabLost: Ein anderer Tab hat inzwischen übernommen – dann wird dieser hier pausiert, statt zu speichern
+    if (!GK.storageAvailable || GK.paused || (GK.tabLost && GK.tabLost())) return false;
     GK.state.lastSaved = GK.now();
     try {
       localStorage.setItem(SAVE_KEY, JSON.stringify(GK.state));
@@ -291,7 +292,8 @@ GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' 
     if (typeof data.allTimeEarned !== 'number') GK.state.allTimeEarned = GK.state.totalEarned;
     // Falsche Typen aus beschädigten oder bearbeiteten Ständen (sonst bricht später das Zeichnen ab)
     ['buffs', 'upgrades', 'achievements'].forEach(k => { if (!Array.isArray(GK.state[k])) GK.state[k] = []; });
-    GK.state.buffs = GK.state.buffs.filter(b => b && typeof b === 'object' && typeof b.id === 'string');
+    GK.state.buffs = GK.state.buffs.filter(b => b && typeof b === 'object' && typeof b.id === 'string' &&
+      Number.isFinite(b.mult) && Number.isFinite(b.until));
     ['buildings'].forEach(k => { if (!GK.state[k] || typeof GK.state[k] !== 'object' || Array.isArray(GK.state[k])) GK.state[k] = {}; });
     const c = GK.state.casino;
     ['games', 'stats'].forEach(k => { if (!c[k] || typeof c[k] !== 'object' || Array.isArray(c[k])) c[k] = {}; });
