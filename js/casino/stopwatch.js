@@ -111,7 +111,7 @@ GK.i18n.add({
   function start() {
     const s = state();
     if (s.round || performance.now() - stoppedAt < START_LOCK_MS) return;
-    if (!GK.casino.bet(s.bet)) {
+    if (!GK.casino.bet(s.bet, 'stopwatch')) {
       GK.sound.play('denied');
       showMessage(GK.t('Nicht genug Dublonen für diesen Einsatz.'), 'loss');
       return;
@@ -207,7 +207,7 @@ GK.i18n.add({
       showMessage(GK.t('Die Seite wurde neu geladen, als die Zielzeit schon vorbei war – die Runde zählt als verloren.'), 'loss');
     } else {
       s.round = null;
-      GK.casino.refund(r.bet);
+      GK.casino.refund(r.bet, 'stopwatch');
       GK.save();
       showMessage(GK.t('Die Seite wurde während der Runde neu geladen – du hast deinen Einsatz zurück.'), '');
       render();

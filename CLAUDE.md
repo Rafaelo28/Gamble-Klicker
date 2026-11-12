@@ -33,8 +33,11 @@ Online über GitHub Pages aus `main`: https://rafaelo28.github.io/Gamble-Klicker
 - **Daten von außen** (Spielstand-Code, Nachrichten anderer Geräte) laufen durch `GK.cleanData` (`js/state.js`):
   in `applyData` und in `unpack` (`js/mp/room.js`, `js/poker/multiplayer.js`). Neue Wege für fremde Daten genauso absichern.
 - **Dublonen** nur über `GK.earn` / `GK.spend` bzw. im Casino über `GK.casino.bet`,
-  `payout`, `refund` und `record` bewegen. Spielzustände über `GK.casino.data(id)` lesen,
+  `payout`, `refund` und `record` bewegen – `bet(betrag, spielId)` und `refund(betrag, spielId)` immer mit
+  Spiel-ID (für die Glückssträhne). Spielzustände über `GK.casino.data(id)` lesen,
   laufende Runden sofort speichern (Neuladen darf keinen Einsatz kosten).
+- **Zeit**: Für Buffs, Fahrten, Tageswechsel, Offline-Einkommen usw. `GK.now()` statt `Date.now()` verwenden
+  (`js/state.js`, läuft nie rückwärts – sonst lässt sich alles mit der Geräte-Uhr zurückspulen).
 - **Gestaltung**: Im Spiel keine Hinweise wie „Das Haus gewinnt immer“ und keine
   Auszahlungsquoten oder Gewinnchancen anzeigen. Es ist alles Spielgeld.
 - **Zielgerät**: iPad 8. Generation (810 × 1080 hochkant, 1080 × 810 quer, Touch). Große
@@ -71,7 +74,8 @@ Online über GitHub Pages aus `main`: https://rafaelo28.github.io/Gamble-Klicker
 - `node tests/daily.test.js` – Tägliche Aufgaben: Auslosen, Fortschritt, Abholen, Bonus und Serie, Tageswechsel.
 - `node tests/kraken.test.js` – Kraken-Angriff (Treffer, Diebstahl, Pause, Zeitplan) und Freundes-Rangliste (Austausch, Prüfung, Vermögen mit Gebäuden, Verlust in % vom Einkommen).
 - `node tests/stocks.test.js` – Hafenbörse: Kursmodell (fast immer Verlust), Kurse weiterrechnen, Kaufen/Verkaufen, Pleiten.
-- `node tests/bonus.test.js` – Klickkraft-Upgrades (Sternenhand verdreifacht wirklich) und Glückssträhne (Casino-Gewinne +30–50 %).
+- `node tests/bonus.test.js` – Klickkraft-Upgrades (Sternenhand verdreifacht wirklich) und Glückssträhne (Casino-Gewinne +30–50 %, nur für Einsätze während der Strähne), Belohnungen ohne laufende Buffs.
+- `node tests/clock.test.js` – Spielzeit-Uhr `GK.now()`: Geräte-Uhr zurück-/vorstellen bringt keine dauerhaften Buffs, kein mehrfaches Offline-Einkommen, keine schnelleren Fahrten.
 - `node tests/figure.test.js` – Eigene Figur: Code prüfen, Zeichnen aller Teile, Vorlagen (John Pork), gesperrte Teile, Namensschild, Rangliste, alte Spielstände.
 - `node tests/rank.test.js` – Ränge (Grenzen, Namen ohne Ende, Meldung), Rang-Teile der Figur, Rang in Namensschild und Rangliste, neue Gebäude.
 - `node tests/fleet.test.js` – Flotte: Kaufen/Ausbauen, Fahrten über Neuladen hinweg, Ausgänge, Schätze und Boni, Rückenwind, Ziele nach Rang, Ausgewogenheit, alte Spielstände.

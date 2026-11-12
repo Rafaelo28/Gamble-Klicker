@@ -55,7 +55,7 @@ GK.i18n.add({
   const STREAK_STEP = 0.25;   // +25 % Bonus je Tag in Folge …
   const STREAK_MAX = 4;       // … höchstens +100 %
 
-  let now = () => new Date();  // für Tests austauschbar
+  let now = () => new Date(GK.now());  // Spielzeit (läuft nie rückwärts, js/state.js); für Tests austauschbar
   let lastHtml = '';
 
   const pick = list => list[GK.rng.int(list.length)];
@@ -209,8 +209,9 @@ GK.i18n.add({
   }
 
   // Belohnung je Aufgabe: 10 Minuten Einkommen, mindestens 50 Klicks bzw. 500 Dublonen
+  // Klickkraft ohne laufende Buffs – sonst lohnte es sich, mit dem Abholen auf Klickfieber zu warten
   function reward() {
-    return Math.floor(Math.max(500, GK.clicker.getCpsPermanent() * 600, GK.clicker.getClickPower() * 50));
+    return Math.floor(Math.max(500, GK.clicker.getCpsPermanent() * 600, GK.clicker.getClickPowerPermanent() * 50));
   }
 
   // Bonus für alle drei: doppelte Belohnung, +25 % je Tag in Folge (höchstens +100 %)
@@ -233,6 +234,8 @@ GK.i18n.add({
   function ensureDay() {
     const d = data();
     if (d.day === today() && d.tasks.length) return false;
+    // Tage nur vorwärts (die Schlüssel JJJJ-MM-TT lassen sich als Text vergleichen)
+    if (d.day && today() < d.day && d.tasks.length) return false;
     if (d.day && d.tasks.length) {
       let paid = 0;
       d.tasks.forEach(t => {

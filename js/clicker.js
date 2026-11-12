@@ -406,7 +406,9 @@ GK.i18n.add({
   // Die frühen „Klickkraft ×2“ vervielfachen nur den Grundwert. Die späten (Goldene Faust, Hand des Midas,
   // Sternenhand, Hand der Götter – „all“) vervielfachen auch den Anteil vom Einkommen: Wenn man sie kaufen
   // kann, macht der Grundwert kaum noch etwas aus, sonst wäre ihr ×3 nicht zu spüren.
-  function getClickPower() {
+  // permanent: ohne zeitlich begrenzte Buffs (Klickfieber, Goldrausch) – für Belohnungen, die sonst mit einem
+  // gerade laufenden Buff viel größer ausfielen (Tagesaufgaben, Kraken-Beute, Schatzfund)
+  function getClickPower(permanent = false) {
     let mult = 1;
     let allMult = 1;
     let cpsShare = 0;
@@ -421,8 +423,11 @@ GK.i18n.add({
     }
     // Trophäen aus Bosskämpfen (js/boss.js) gelten dauerhaft für alles
     const trophies = GK.boss ? GK.boss.clickMult() : 1;
-    return (mult * GK.progress.permanentMult() + getCps() * cpsShare * allMult) * GK.progress.buffMult('click') * trophies;
+    const cps = permanent ? getCpsPermanent() : getCps();
+    return (mult * GK.progress.permanentMult() + cps * cpsShare * allMult) * (permanent ? 1 : GK.progress.buffMult('click')) * trophies;
   }
+
+  const getClickPowerPermanent = () => getClickPower(true);
 
   // Wie viel mehr pro Klick brächte ein Klick-Upgrade? (Anzeige auf der Kachel)
   function upgradeClickGain(u) {
@@ -886,6 +891,7 @@ GK.i18n.add({
     getCpsPermanent,
     passiveActive,
     getClickPower,
+    getClickPowerPermanent,
     totalBuildings,
     buildingsWorth,
     ownsAllBuildings: () => BUILDINGS.every(b => owned(b.id) > 0),

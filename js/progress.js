@@ -114,9 +114,16 @@ GK.i18n.add({
     return prestigeMult() * achievementMult() * fleetMult();
   }
 
+  // Laufende Buffs. Die Restzeit wird auf die Dauer des Buffs gedeckelt (ein Buff aus einem alten oder
+  // bearbeiteten Spielstand kann so nicht ewig halten).
   function activeBuffs() {
-    const now = Date.now();
-    return GK.state.buffs.filter(b => b.until > now);
+    const now = GK.now();
+    return GK.state.buffs.filter(b => {
+      const def = BUFFS[b.id];
+      if (!def) return false;
+      if (b.until > now + def.seconds * 1000) b.until = now + def.seconds * 1000;
+      return b.until > now;
+    });
   }
 
   function buffMult(type) {
@@ -125,8 +132,9 @@ GK.i18n.add({
 
   function addBuff(id, mult) {
     const def = BUFFS[id];
-    GK.state.buffs = GK.state.buffs.filter(b => b.id !== id && b.until > Date.now());
-    GK.state.buffs.push({ id, type: def.type, mult: mult || def.mult, until: Date.now() + def.seconds * 1000 });
+    const now = GK.now();
+    GK.state.buffs = GK.state.buffs.filter(b => b.id !== id && b.until > now);
+    GK.state.buffs.push({ id, type: def.type, mult: mult || def.mult, until: now + def.seconds * 1000 });
   }
 
   // Wirkung eines Buffs als Text: „×7“ bzw. bei der Glückssträhne „+40 %“
@@ -210,7 +218,7 @@ GK.i18n.add({
 
   // Beim Laden: Einnahmen seit dem letzten Speichern gutschreiben
   function applyOfflineEarnings() {
-    const seconds = (Date.now() - GK.state.lastSaved) / 1000;
+    const seconds = (GK.now() - GK.state.lastSaved) / 1000;
     if (seconds < 60 || !GK.clicker.passiveActive()) return;
     const counted = Math.min(seconds, OFFLINE_MAX);
     const amount = GK.clicker.getCpsPermanent() * counted * OFFLINE_RATE;
@@ -222,7 +230,7 @@ GK.i18n.add({
   // ---------- Goldene Dublone ----------
 
   function updateGolden() {
-    const now = Date.now();
+    const now = GK.now();
     if (golden && now > golden.expires) {
       golden.el.remove();
       golden = null;
@@ -241,7 +249,7 @@ GK.i18n.add({
     el.style.top = margin + GK.rng.int(Math.max(1, window.innerHeight - margin * 2)) + 'px';
     el.addEventListener('click', collectGolden);
     document.body.appendChild(el);
-    golden = { el, expires: Date.now() + GOLDEN_LIFETIME * 1000 };
+    golden = { el, expires: GK.now() + GOLDEN_LIFETIME * 1000 };
     GK.sound.play('golden');
   }
 
@@ -253,7 +261,7 @@ GK.i18n.add({
     GK.fx.burst(pos.x, pos.y, { count: 16, kind: 'sparkle', speed: 350 });
     golden.el.remove();
     golden = null;
-    nextGoldenAt = Date.now() + randomDelay() * 1000;
+    nextGoldenAt = GK.now() + randomDelay() * 1000;
     GK.state.goldenClicks++;
     GK.daily.track('golden', 1);
 
@@ -261,9 +269,10 @@ GK.i18n.add({
     let text;
     if (roll < 0.5) {
       // Schatzfund: 15 % des Guthabens, höchstens 15 Minuten Einkommen – mindestens 30 Klicks
+      // (Klickkraft ohne laufende Buffs – sonst lohnte es sich, auf Klickfieber zu warten)
       const amount = Math.max(
         Math.min(GK.state.money * 0.15, GK.clicker.getCpsPermanent() * 900),
-        GK.clicker.getClickPower() * 30);
+        GK.clicker.getClickPowerPermanent() * 30);
       GK.earn(amount, 'passive');
       GK.fx.floatText(pos.x, pos.y, '+' + GK.formatMoneyHTML(amount), 'win big');
       text = GK.t('<b>Schatzfund!</b><br>+{amount}', { amount: GK.formatMoneyHTML(amount) });
@@ -289,7 +298,7 @@ GK.i18n.add({
   // 10× pro Sekunde von vorn
   function renderBuffBar() {
     const bar = document.getElementById('buff-bar');
-    const now = Date.now();
+    const now = GK.now();
     const buffs = activeBuffs();
     const ids = buffs.map(b => b.id).join();
     if (bar._ids !== ids) {
@@ -331,7 +340,7 @@ GK.i18n.add({
   }
 
   function init() {
-    nextGoldenAt = Date.now() + randomDelay() * 1000;
+    nextGoldenAt = GK.now() + randomDelay() * 1000;
     document.getElementById('prestige-btn').addEventListener('click', goOnJourney);
   }
 

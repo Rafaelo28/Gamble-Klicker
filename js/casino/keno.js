@@ -139,7 +139,7 @@ GK.i18n.add({
       showMessage(GK.t('Markiere zuerst mindestens eine Insel.'), 'loss');
       return;
     }
-    if (!GK.casino.bet(s.bet)) {
+    if (!GK.casino.bet(s.bet, 'keno')) {
       GK.sound.play('denied');
       showMessage(GK.t('Nicht genug Dublonen für diesen Einsatz.'), 'loss');
       return;

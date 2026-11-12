@@ -96,6 +96,10 @@ GK.i18n.add({
   // Nach Import/Zurücksetzen alles neu aufbauen – im aktuell geöffneten Tab bleiben
   function refreshAll() {
     const currentTab = document.querySelector('.tab.active').dataset.tab;
+    // Ein laufender Bosskampf gehört zum alten Spielstand (sein Sieg darf nicht im neuen landen),
+    // ebenso eine noch sichtbare Kraken-Anzeige
+    GK.boss.stop();
+    GK.kraken.reset();
     GK.clicker.refresh();
     GK.cosmetics.refresh();
     GK.casino.refresh();
@@ -253,7 +257,7 @@ GK.i18n.add({
     GK.friends.render();
     renderPlayer();
     GK.setText($('last-saved'), GK.storageAvailable
-      ? GK.t('vor {time}', { time: GK.formatDuration((Date.now() - s.lastSaved) / 1000) })
+      ? GK.t('vor {time}', { time: GK.formatDuration(Math.max(0, GK.now() - s.lastSaved) / 1000) })
       : GK.t('nicht möglich'));
   }
 
@@ -302,10 +306,10 @@ GK.i18n.add({
   // Im Hintergrund-Tab läuft die Spielschleife nicht – die Zeit wird bei der Rückkehr nachgeholt
   function onVisibilityChange() {
     if (document.visibilityState === 'hidden') {
-      hiddenAt = Date.now();
+      hiddenAt = GK.now();
       GK.save();
     } else if (hiddenAt) {
-      const seconds = Math.min((Date.now() - hiddenAt) / 1000, MAX_CATCH_UP);
+      const seconds = Math.min((GK.now() - hiddenAt) / 1000, MAX_CATCH_UP);
       hiddenAt = null;
       if (seconds > 1) {
         GK.state.playTime += seconds;

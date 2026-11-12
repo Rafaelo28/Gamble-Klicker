@@ -146,7 +146,7 @@ GK.i18n.add({
       GK.toast(GK.t('Dieses Los braucht eine höhere VIP-Karte.'));
       return false;
     }
-    if (!GK.casino.bet(t.price)) {
+    if (!GK.casino.bet(t.price, 'scratch')) {
       GK.sound.play('denied');
       GK.toast(GK.t('Nicht genug Dublonen für dieses Los.'));
       return false;
@@ -260,7 +260,7 @@ GK.i18n.add({
     }
     const results = [];
     for (let i = 0; i < BATCH_COUNT; i++) {
-      if (!GK.casino.bet(t.price)) break;
+      if (!GK.casino.bet(t.price, 'scratch')) break;
       const winMult = drawPrize();
       const payout = winMult * t.price;
       s.count++;

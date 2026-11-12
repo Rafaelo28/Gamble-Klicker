@@ -192,9 +192,27 @@ GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' 
     return true;
   };
 
+  // ---------- Spielzeit-Uhr ----------
+  // Die Geräte-Uhr lässt sich leicht verstellen (Buffs für immer, Offline-Einkommen mehrfach, Fahrten sofort
+  // fertig …). GK.now() läuft darum nie rückwärts: Zwischen zwei Aufrufen vergeht mindestens die echte Zeit
+  // (performance.now), und sie beginnt nie vor dem letzten Speichern (lastSaved). Eine vorgestellte Geräte-Uhr
+  // zählt wie Zeit ohne Spiel (lässt sich nicht von echter Abwesenheit unterscheiden); stellt man sie danach
+  // zurück, läuft die Spielzeit einfach weiter – die vorgezogene Zeit ist dann verbraucht.
+  const perfNow = () => (typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now());
+  let clockT = 0;
+  let clockP = 0;
+  GK.now = function () {
+    const p = perfNow();
+    const floor = GK.state && Number(GK.state.lastSaved) > 0 ? Number(GK.state.lastSaved) : 0;
+    const t = Math.max(clockT ? clockT + Math.max(0, p - clockP) : 0, Date.now(), floor);
+    clockT = t;
+    clockP = p;
+    return t;
+  };
+
   GK.save = function () {
     if (!GK.storageAvailable) return false;
-    GK.state.lastSaved = Date.now();
+    GK.state.lastSaved = GK.now();
     try {
       localStorage.setItem(SAVE_KEY, JSON.stringify(GK.state));
     } catch (e) {

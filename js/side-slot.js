@@ -49,7 +49,7 @@ GK.i18n.add({
     if (spinning) return;
     const s = state();
     if (s.bet > GK.casino.maxBet()) s.bet = allowedSteps().pop();
-    if (!GK.casino.bet(s.bet)) {
+    if (!GK.casino.bet(s.bet, 'sideSlot')) {
       stopAuto();
       GK.sound.play('denied');
       showMessage(GK.t('Zu wenig Dublonen'), 'loss');

@@ -75,7 +75,7 @@ GK.i18n.add({
     { icon: '🐉', name: 'Seedrache' },
   ];
 
-  let now = () => Date.now(); // für Tests austauschbar
+  let now = () => GK.now(); // Spielzeit (läuft nie rückwärts, js/state.js); für Tests austauschbar
   let fight = null;           // laufender Kampf (nur im Speicher)
 
   const data = () => GK.state.boss;

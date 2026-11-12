@@ -140,7 +140,7 @@ GK.i18n.add({
   function drop() {
     const s = state();
     if (s.mass || s.pending.length >= MAX_BALLS) return false;
-    if (!GK.casino.bet(s.bet)) {
+    if (!GK.casino.bet(s.bet, 'plinko')) {
       GK.sound.play('denied');
       showMessage(GK.t('Nicht genug Dublonen für diesen Einsatz.'), 'loss');
       updateButtons();
@@ -170,7 +170,7 @@ GK.i18n.add({
     const s = state();
     if (s.mass || s.pending.length) return false;
     const total = s.bet * count;
-    if (!GK.casino.bet(total)) {
+    if (!GK.casino.bet(total, 'plinko')) {
       GK.sound.play('denied');
       showMessage(GK.t('Für {count} Münzen brauchst du {money}.', { count: GK.formatNumber(count), money: GK.formatMoneyHTML(total) }), 'loss');
       updateButtons();

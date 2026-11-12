@@ -149,7 +149,7 @@ GK.i18n.add({
   const treasureById = Object.fromEntries(TREASURES.map(x => [x.id, x]));
   const outcomeById = Object.fromEntries(OUTCOMES.map(x => [x.id, x]));
 
-  let now = () => Date.now(); // für Tests austauschbar
+  let now = () => GK.now(); // Spielzeit (läuft nie rückwärts, js/state.js); für Tests austauschbar
 
   const data = () => GK.state.fleet;
   const level = id => data().ships[id] || 0;

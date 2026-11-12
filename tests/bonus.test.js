@@ -59,7 +59,7 @@ const s = GK.state;
 {
   const c = s.casino;
   const round = (bet, payout) => {
-    GK.casino.bet(bet);
+    GK.casino.bet(bet, 'mines');
     GK.casino.payout(payout);
     GK.casino.record('mines', bet, payout, 'Test');
   };
@@ -89,6 +89,77 @@ const s = GK.state;
   // Andere Buffs ändern die Glückssträhne nicht
   s.buffs = [{ id: 'goldrush', type: 'income', mult: 7, until: Date.now() + 10000 }];
   assert(GK.progress.buffMult('luck') === 1, 'Goldrausch ist keine Glückssträhne');
+}
+
+// ---------- Glückssträhne gilt nur für Einsätze während der Strähne ----------
+{
+  const c = s.casino;
+  s.money = 1e6;
+  s.buffs = [];
+  c.luck = {};
+  const last = () => c.history[0];
+  // Geparkte Runde: Einsatz vor der Strähne, Auszahlung währenddessen → kein Bonus
+  GK.casino.bet(1000, 'chicken');
+  GK.progress.addBuff('luck', 1.5);
+  GK.casino.payout(10000);
+  GK.casino.record('chicken', 1000, 10000, 'Test');
+  assert(last().payout === 10000 && !/🍀/.test(last().text), 'Geparkter Gewinn (Einsatz vor der Strähne): kein Bonus');
+  // Einsatz während der Strähne, Auszahlung erst danach → Bonus (beim Einsatz festgehalten)
+  GK.casino.bet(1000, 'tower');
+  s.buffs = [];
+  GK.casino.payout(3000);
+  GK.casino.record('tower', 1000, 3000, 'Test');
+  assert(last().payout === 4000, `Einsatz in der Strähne zählt auch nach ihrem Ende (+50 % von 2000 = ${last().payout - 3000})`);
+  assert(!c.luck.tower, 'Danach ist der Einsatz verbraucht');
+  GK.casino.bet(1000, 'tower');
+  GK.casino.payout(3000);
+  GK.casino.record('tower', 1000, 3000, 'Test');
+  assert(last().payout === 3000, 'Nächste Runde ohne Strähne: kein Bonus');
+  // Freispiele / Bonus-Truhen (Einsatz 0): kein Bonus
+  GK.progress.addBuff('luck', 1.4);
+  GK.casino.payout(5000);
+  GK.casino.record('pirates', 0, 5000, 'Freispiele');
+  assert(last().payout === 5000, 'Runde ohne Einsatz: kein Bonus');
+  // Räume mit Freunden setzen ohne Spiel-ID: kein Bonus
+  GK.casino.bet(1000);
+  GK.casino.payout(2000);
+  GK.casino.record('darts', 1000, 2000, '1. Platz');
+  assert(last().payout === 2000, 'Spiele mit Freunden: kein Bonus');
+  // Chips setzen und wieder wegnehmen bringt keinen gespeicherten Bonus
+  GK.casino.bet(5000, 'roulette');
+  GK.casino.refund(5000, 'roulette');
+  assert(!c.luck.roulette, 'Zurückgenommener Einsatz wird aus der Strähne gestrichen');
+  s.buffs = [];
+  GK.casino.bet(5000, 'roulette');
+  GK.casino.payout(10000);
+  GK.casino.record('roulette', 5000, 10000, 'Test');
+  assert(last().payout === 10000, 'Später gesetzte Chips: kein Bonus');
+  // Teilweise in der Strähne (Blackjack: Einsatz vorher, Verdoppeln währenddessen) → Bonus anteilig
+  GK.casino.bet(100, 'blackjack');
+  GK.progress.addBuff('luck', 1.4);
+  GK.casino.bet(100, 'blackjack');
+  s.buffs = [];
+  GK.casino.payout(400);
+  GK.casino.record('blackjack', 200, 400, 'Test');
+  assert(last().payout === 440, `Halber Einsatz in der Strähne: Bonus auf die Hälfte (40 % von 100 = ${last().payout - 400})`);
+  // Mehrere Runden aus einem Einsatz (Münzfall-Massenwurf)
+  GK.progress.addBuff('luck', 1.3);
+  GK.casino.bet(300, 'plinko');
+  s.buffs = [];
+  [200, 50, 100].forEach(p => { GK.casino.payout(p); GK.casino.record('plinko', 100, p, 'Test'); });
+  assert(c.history[2].payout === 230 && c.history[1].payout === 50 && c.history[0].payout === 100 && !c.luck.plinko, 'Massenwurf: jede Kugel nutzt ihren Teil');
+}
+
+// ---------- Buffs: Restzeit gedeckelt, Belohnungen ohne Buffs ----------
+{
+  s.buffs = [{ id: 'clickfever', type: 'click', mult: 25, until: GK.now() + 365 * 86400e3 }];
+  const fever = GK.progress.buffMult('click');
+  assert(fever === 25 && s.buffs[0].until <= GK.now() + 31e3, 'Buff aus einem bearbeiteten Spielstand hält höchstens seine Dauer');
+  assert(close(C.getClickPower(), C.getClickPowerPermanent() * 25), 'Klickfieber wirkt auf Klicks …');
+  s.buffs.push({ id: 'goldrush', type: 'income', mult: 7, until: GK.now() + 10000 });
+  const perm = C.getClickPowerPermanent();
+  s.buffs = [];
+  assert(close(perm, C.getClickPower()), '… aber nicht auf die Klickkraft für Belohnungen (Tagesaufgaben, Kraken, Schatzfund)');
 }
 
 console.log(process.exitCode ? 'Bonus-Tests FEHLGESCHLAGEN' : 'Bonus-Tests bestanden.');

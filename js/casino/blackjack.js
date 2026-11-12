@@ -107,7 +107,7 @@ GK.i18n.add({
   function deal() {
     const s = state();
     if (s.round && !s.round.finished) return;
-    if (!GK.casino.bet(s.bet)) {
+    if (!GK.casino.bet(s.bet, 'blackjack')) {
       showMessage(GK.t('Nicht genug Dublonen für diesen Einsatz.'), 'loss');
       return;
     }
@@ -147,7 +147,7 @@ GK.i18n.add({
 
   function double() {
     const hand = activeHand();
-    if (!canDouble(hand) || !GK.casino.bet(hand.bet)) return;
+    if (!canDouble(hand) || !GK.casino.bet(hand.bet, 'blackjack')) return;
     hand.bet *= 2;
     hand.doubled = true;
     hand.cards.push(draw());
@@ -158,7 +158,7 @@ GK.i18n.add({
   function split() {
     const round = state().round;
     const hand = activeHand();
-    if (!canSplit(hand) || !GK.casino.bet(hand.bet)) return;
+    if (!canSplit(hand) || !GK.casino.bet(hand.bet, 'blackjack')) return;
     const second = { cards: [hand.cards.pop()], bet: hand.bet, done: false, split: true };
     hand.split = true;
     hand.cards.push(draw());
