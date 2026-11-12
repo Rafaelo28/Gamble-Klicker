@@ -152,6 +152,10 @@ GK.i18n.add({
     return st;
   }
 
+  // Was als neuer Zug zählt (die Bedenkzeit startet nur dann neu): Würfeln (höchstens 3-mal) und ein neuer
+  // Spieler – Würfel halten nicht, sonst ließe sich das Spiel endlos hinauszögern
+  const turnKey = st => `${st.last ? st.last.n : 0}:${st.turn}:${st.rollsLeft}`;
+
   function act(st, seat, a) {
     if (st.phase !== 'turn' || st.turn !== seat || !a) return false;
     if (a.type === 'roll') {
@@ -481,6 +485,7 @@ GK.i18n.add({
     botAct,
     timeout,
     turnTime: () => 45000,
+    turnKey,
     botDelay: (st, solo) => (st.rollsLeft < 3 && st.plan && !st.plan.score && st.plan.keep.some((k, i) => k !== st.held[i]) ? 380 : solo ? 900 : 1100),
     autoDelay: () => null,
     advance: () => {},
@@ -493,5 +498,5 @@ GK.i18n.add({
   });
 
   // Für Tests
-  GK.kniffelGame = { CATS, UPPER, LOWER, create, act, botAct, timeout, forfeit, score, totals, view, ranking };
+  GK.kniffelGame = { CATS, UPPER, LOWER, create, act, botAct, timeout, forfeit, score, totals, view, ranking, turnKey };
 })();

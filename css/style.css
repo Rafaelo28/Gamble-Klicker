@@ -3945,6 +3945,14 @@ button.casino-card:active {
   color: var(--gold);
 }
 
+/* Gastgeber: Mitspieler aus dem Warteraum entfernen (große Tippfläche fürs iPad) */
+.mp-kick {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 10px;
+  color: #ff8a80;
+}
+
 .mp-check {
   display: block;
   margin: 8px 0;

@@ -16,7 +16,8 @@
 //   forfeit(z, platz) · placeOf(z, platz) → Platz (1 = Sieger) oder null · finished(z)
 //   view(z, platz) → was dieser Spieler sehen darf · draw(container, view, ui) · turnTime(z)
 //   optional: canAct(z, platz) → darf dieser Platz gerade handeln (statt nur actor) ·
-//   phaseDeadline(z) → gemeinsame Zeitgrenze (Zeitstempel), solange niemand Bestimmtes dran ist
+//   phaseDeadline(z) → gemeinsame Zeitgrenze (Zeitstempel), solange niemand Bestimmtes dran ist ·
+//   turnKey(z) → was als neuer Zug zählt (die Bedenkzeit startet nur dann neu; sonst bei jeder Aktion)
 window.GK = window.GK || {};
 
 // Sprache: Ersatz, falls js/i18n.js (noch) nicht geladen ist – gibt den deutschen Text zurück.
@@ -24,6 +25,21 @@ GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/
 GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
 
 GK.i18n.add({
+  'Dieser Platz gehört schon jemand anderem.': 'This seat already belongs to someone else.',
+  'Der Gastgeber hat dich aus dem Raum entfernt.': 'The host removed you from the room.',
+  'Du wurdest aus diesem Raum entfernt.': 'You were removed from this room.',
+  'Entfernen': 'Remove',
+  'Ein Mitspieler war zu lange ohne Verbindung – das Spiel wurde abgebrochen.': 'A player was disconnected for too long – the game was cancelled.',
+  'Der Gastgeber hat den Raum geschlossen.': 'The host closed the room.',
+  'Der Gastgeber hat aufgegeben.': 'The host gave up.',
+  ' Du bekommst deinen Eintritt zurück und einen Anteil vom Eintritt des Gastgebers: {money}.': ' You get your entry fee back plus a share of the host\u2019s entry fee: {money}.',
+  'Gastgeber hat aufgegeben': 'Host gave up',
+  'Der Gastgeber hat den Eintritt geändert – prüfe den neuen Betrag.': 'The host changed the entry fee – check the new amount.',
+  'Dieser Raum spielt ein anderes Spiel.': 'This room is playing a different game.',
+  'Ihr habt verschiedene Spielversionen. Bitte ladet beide die Seite neu.': 'You have different game versions. Please both reload the page.',
+  'In diesem Raum läuft das Spiel schon.': 'The game in this room has already started.',
+  'Der Raum ist schon voll.': 'The room is already full.',
+  'Das Spiel wurde ohne dich gestartet, weil du den Eintritt noch nicht bezahlt hattest.': 'The game was started without you because you had not paid the entry fee yet.',
   'Beende zuerst dein Poker-Turnier.': 'Finish your poker tournament first.',
   'Verlasse zuerst deinen Poker-Raum.': 'Leave your poker room first.',
   'Du bist schon in einem Raum ({name}).': "You're already in a room ({name}).",
@@ -36,7 +52,7 @@ GK.i18n.add({
   ' und bekommst {amount} Dublonen.': ' and receive {amount} doubloons.',
   ' und gehst leer aus.': ' and come away empty-handed.',
   'Raum schließen? Alle bekommen ihren Eintritt zurück.': 'Close the room? Everyone gets their entry fee back.',
-  'Wenn du gehst, endet das Spiel für alle. Deine Mitspieler bekommen ihren Eintritt zurück.': 'If you leave, the game ends for everyone. Your fellow players get their entry fee back.',
+  'Wenn du gehst, gibst du auf und das Spiel endet für alle. Deine Mitspieler bekommen ihren Eintritt zurück und teilen sich deinen.': 'If you leave, you give up and the game ends for everyone. Your fellow players get their entry fee back and share yours.',
   'Du hast den Raum geschlossen.': 'You closed the room.',
   'Spiel beendet.': 'Game finished.',
   'Du hast das Spiel verlassen.': 'You left the game.',
@@ -116,7 +132,7 @@ GK.i18n.add({
   // Eigenes Symbol (js/icons.js); in den Tests ohne Browser gibt es keins
   const ic = name => (GK.icon ? GK.icon(name) : '');
 
-  const PROTOCOL = 1;
+  const PROTOCOL = 2; // 2: geheimes Token je Platz
   const ID_PREFIX = 'gamble-klicker-';
   const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   const CODE_LENGTH = 5;
@@ -124,7 +140,7 @@ GK.i18n.add({
   const RETRY_DELAY = 3000;
   const CONNECT_TIMEOUT = 10000;
   const ABANDON_AFTER = 30000;
-  const DROP_AFTER = 90000;        // so lange ohne Verbindung im laufenden Spiel → scheidet aus
+  const DROP_AFTER = 90000;        // so lange ohne Verbindung im laufenden Spiel → Spiel wird für alle abgebrochen
   const HEARTBEAT = 2000;
   const HEARTBEAT_TIMEOUT = 8000;
   const MAX_NAME = GK.player.MAX_NAME;
@@ -482,7 +498,19 @@ GK.i18n.add({
       }
       const playerId = String(msg.playerId || '').slice(0, 32);
       if (!playerId || playerId === store().playerId) return;
+      // Eine Verbindung gehört genau einem Spieler – sonst könnte eine Verbindung viele „Geister“ anlegen
+      if (conn.playerId && conn.playerId !== playerId) return;
+      s.secrets = s.secrets || {};
+      if ((s.banned || []).includes(playerId)) {
+        send(conn, { type: 'error', fatal: true, message: 'Du wurdest aus diesem Raum entfernt.' });
+        return;
+      }
       let m = member(playerId);
+      // Ein vorhandener Platz gehört nur dem, der dessen geheimes Token kennt (bekommt nur dieser Spieler selbst)
+      if (m && s.secrets[playerId] && msg.secret !== s.secrets[playerId]) {
+        send(conn, { type: 'error', fatal: true, message: 'Dieser Platz gehört schon jemand anderem.' });
+        return;
+      }
       if (!m) {
         if (s.phase !== 'lobby') {
           send(conn, { type: 'error', fatal: true, message: 'In diesem Raum läuft das Spiel schon.' });
@@ -506,6 +534,8 @@ GK.i18n.add({
       conn.playerId = playerId;
       net.conns.set(playerId, conn);
       if (old && old !== conn) old.close();
+      if (!s.secrets[playerId]) s.secrets[playerId] = newSecret();
+      send(conn, { type: 'secret', secret: s.secrets[playerId] });
       afterHostChange();
       return;
     }
@@ -527,6 +557,29 @@ GK.i18n.add({
       playerLeft(conn.playerId);
       setTimeout(() => conn.close(), 500);
     }
+  }
+
+  // Geheimes Token für einen Platz (nur der Spieler selbst bekommt es)
+  function newSecret() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+    return Array.from({ length: 24 }, () => chars[GK.rng.int(chars.length)]).join('');
+  }
+
+  // Gastgeber entfernt jemanden im Warteraum (z. B. Unbekannte, die den Code erraten haben)
+  function kickMember(playerId) {
+    const s = session();
+    if (!s || s.role !== 'host' || s.phase !== 'lobby' || playerId === store().playerId) return;
+    s.members = s.members.filter(m => m.playerId !== playerId);
+    if (s.secrets) delete s.secrets[playerId];
+    s.banned = (s.banned || []).concat(playerId).slice(-50);
+    const conn = net.conns.get(playerId);
+    if (conn) {
+      send(conn, { type: 'kicked' });
+      net.conns.delete(playerId);
+      setTimeout(() => conn.close(), 500);
+    }
+    GK.sound.play('click');
+    afterHostChange();
   }
 
   // Rekorde eines Mitspielers merken und mit dem Raum teilen
@@ -636,7 +689,9 @@ GK.i18n.add({
     const st = s.state;
     if (st) {
       const actor = d.actor(st);
-      const key = `${st.step}:${actor}`;
+      // Was als neuer Zug zählt, kann das Spiel festlegen (sonst jede Aktion) – z. B. darf bei Kniffel das
+      // Halten eines Würfels die Bedenkzeit nicht immer wieder neu starten
+      const key = d.turnKey ? `${d.turnKey(st)}:${actor}` : `${st.step}:${actor}`;
       if (key !== s.turnKey) {
         s.turnKey = key;
         const human = actor >= 0 && !st.players[actor].isBot;
@@ -717,10 +772,13 @@ GK.i18n.add({
     } else if (s.phase === 'lobby') {
       text = GK.t('Raum schließen? Alle bekommen ihren Eintritt zurück.');
     } else if (s.phase === 'playing') {
-      text = GK.t('Wenn du gehst, endet das Spiel für alle. Deine Mitspieler bekommen ihren Eintritt zurück.');
+      text = GK.t('Wenn du gehst, gibst du auf und das Spiel endet für alle. Deine Mitspieler bekommen ihren Eintritt zurück und teilen sich deinen.');
     }
     if (text && !confirm(text)) return;
-    if (!s.solo) net.conns.forEach(conn => send(conn, { type: 'closed', reason: 'Der Gastgeber hat den Raum geschlossen.' }));
+    // Mitten im Spiel gibt der Gastgeber auf: Die Gäste bekommen ihren Eintritt zurück und teilen sich seinen
+    // (sonst könnte ein verlierender Gastgeber den Sieg eines Gastes einfach ungültig machen)
+    const forfeit = s.phase === 'playing' && meSeat >= 0 && !d.placeOf(st, meSeat);
+    if (!s.solo) net.conns.forEach(conn => send(conn, { type: 'closed', reason: forfeit ? 'Der Gastgeber hat aufgegeben.' : 'Der Gastgeber hat den Raum geschlossen.', forfeit }));
     if (s.phase === 'playing' && meSeat >= 0 && !d.placeOf(st, meSeat)) {
       d.forfeit(st, meSeat);
       settle(d.placeOf(st, meSeat) || st.players.length, st, meSeat);
@@ -800,7 +858,7 @@ GK.i18n.add({
       net.status = 'online';
       net.lostSince = null;
       const me = store();
-      send(conn, { type: 'hello', v: PROTOCOL, game: s.game, playerId: me.playerId, name: GK.player.name(), avatar: GK.player.avatar(), fig: GK.figure.mine(), rank: GK.rank.mine(), badge: GK.cosmetics.myBadge(), paid: session().paid, records: GK.friends.myRecords() });
+      send(conn, { type: 'hello', v: PROTOCOL, game: s.game, playerId: me.playerId, name: GK.player.name(), avatar: GK.player.avatar(), fig: GK.figure.mine(), rank: GK.rank.mine(), badge: GK.cosmetics.myBadge(), paid: session().paid, secret: session().secret || '', records: GK.friends.myRecords() });
       redraw();
     });
     conn.on('data', msg => {
@@ -839,17 +897,31 @@ GK.i18n.add({
     if (!s || s.role !== 'client' || !msg || typeof msg !== 'object') return;
     if (msg.type === 'ping') return;
     if (msg.type === 'error') {
-      if (msg.fatal) endSession(msg.message, true);
-      else GK.toast(msg.message);
+      if (msg.fatal) endSession(GK.t(String(msg.message || '')), true);
+      else GK.toast(GK.t(String(msg.message || '')));
+      return;
+    }
+    if (msg.type === 'secret') {
+      s.secret = String(msg.secret || '').slice(0, 64);
+      GK.save();
+      return;
+    }
+    if (msg.type === 'kicked') {
+      endSession(GK.t('Der Gastgeber hat dich aus dem Raum entfernt.'), true);
       return;
     }
     if (msg.type === 'closed') {
-      endSession(msg.reason, true);
+      if (msg.forfeit && s.phase === 'playing') hostForfeited(GK.t(String(msg.reason || '')));
+      else endSession(GK.t(String(msg.reason || '')), true);
       return;
     }
     const entry = Math.floor(Number(msg.entry));
     if (msg.type !== 'state' || msg.game !== s.game || !(entry >= MIN_ENTRY)) return;
-    if (!s.paid) s.entry = entry;
+    if (!s.paid) {
+      // Ändert sich der Eintritt, bevor man bezahlt hat, muss man ihn erst wieder sehen können
+      if (s.entry && s.entry !== entry) s.entryChangedAt = Date.now();
+      s.entry = entry;
+    }
     s.settings = msg.settings || null;
     s.joined = true;
     s.phase = msg.phase;
@@ -868,9 +940,33 @@ GK.i18n.add({
     redraw();
   }
 
+  // Gastgeber hat mitten im Spiel aufgegeben: Eintritt zurück plus Anteil an seinem Eintritt
+  // (geteilt unter den menschlichen Gästen, die laut eigener Ansicht noch im Spiel sind)
+  function hostForfeited(reason) {
+    const s = session();
+    if (!s || s.settled || !s.paid) {
+      endSession(reason, true);
+      return;
+    }
+    const view = s.view;
+    const d = def();
+    const guests = view ? view.players.filter((p, i) => !p.isBot && p.id !== s.hostId && !d.placeOf(view, i)).length : 1;
+    const share = Math.floor(s.entry / Math.max(1, guests));
+    const win = s.entry + share;
+    s.settled = true;
+    s.result = { refunded: true, prize: win };
+    GK.casino.payout(win);
+    GK.casino.record(s.game, s.entry, win, GK.t('Gastgeber hat aufgegeben'));
+    endSession(reason + GK.t(' Du bekommst deinen Eintritt zurück und einen Anteil vom Eintritt des Gastgebers: {money}.', { money: GK.formatNumber(win) }), false);
+  }
+
   function clientConfirm() {
     const s = session();
     if (!s || s.paid || !s.entry) return;
+    if (s.entryChangedAt && Date.now() - s.entryChangedAt < 3000) {
+      GK.toast(GK.t('Der Gastgeber hat den Eintritt geändert – prüfe den neuen Betrag.'));
+      return;
+    }
     if (!GK.casino.bet(s.entry)) {
       GK.sound.play('denied');
       GK.toast(GK.t('Nicht genug Dublonen für den Eintritt.'));
@@ -948,8 +1044,9 @@ GK.i18n.add({
     return net.status === 'online' && !!net.peer && !net.peer.destroyed && !net.peer.disconnected && navigator.onLine !== false;
   }
 
-  // Wer im laufenden Spiel zu lange keine Verbindung hat, scheidet aus – sonst warten alle anderen
-  // bei jedem seiner Züge auf die Bedenkzeit
+  // Wer im laufenden Spiel zu lange keine Verbindung hat: Das Spiel wird für alle abgebrochen, alle bekommen
+  // ihren Eintritt zurück. (Früher schied der Spieler aus – er konnte sich aber nach 30 Sekunden ohne Gastgeber
+  // selbst erstatten, und der Sieger bekam trotzdem den vollen Topf: Geld aus dem Nichts.)
   function dropAbsentPlayers(now) {
     const s = session();
     const d = def();
@@ -966,16 +1063,19 @@ GK.i18n.add({
         return;
       }
       if (!offlineSince.has(p.id)) offlineSince.set(p.id, now);
-      else if (now - offlineSince.get(p.id) >= DROP_AFTER && !d.finished(st)) {
-        d.forfeit(st, seat);
-        offlineSince.delete(p.id);
-        changed = true;
-      }
+      else if (now - offlineSince.get(p.id) >= DROP_AFTER && !d.finished(st)) changed = true;
     });
-    if (changed) {
-      st.step = (st.step || 0) + 1;
-      afterHostChange();
-    }
+    if (changed) abortForAll();
+  }
+
+  // Gastgeber bricht das laufende Spiel ab: alle (auch er selbst) bekommen ihren Eintritt zurück
+  function abortForAll() {
+    const s = session();
+    if (!s || s.role !== 'host') return;
+    const reason = 'Ein Mitspieler war zu lange ohne Verbindung – das Spiel wurde abgebrochen.';
+    net.conns.forEach(conn => send(conn, { type: 'closed', reason }));
+    offlineSince.clear();
+    setTimeout(() => endSession(GK.t(reason), true), 300);
   }
 
   // Eigene Aktion: beim Gastgeber direkt anwenden, sonst an den Gastgeber schicken.
@@ -1238,6 +1338,8 @@ GK.i18n.add({
               ${m.ready ? '' : `<span class="mp-tag waiting">${ic('hourglass')} ${GK.t('zahlt noch')}</span>`}
               ${m.playerId === hostId ? `<span class="mp-tag">${ic('crown')} ${GK.t('Gastgeber')}</span>` : ''}
               ${m.playerId === store().playerId ? `<span class="mp-tag">${GK.t('Du')}</span>` : ''}
+              ${isHost && s.phase === 'lobby' && m.playerId !== store().playerId
+                ? `<button type="button" class="btn btn-small mp-kick" data-kick="${esc(m.playerId)}" aria-label="${GK.t('Entfernen')}" title="${GK.t('Entfernen')}">✕</button>` : ''}
             </li>`).join('')}
           </ul>
           ${mustConfirm ? `
@@ -1263,6 +1365,7 @@ GK.i18n.add({
     container.querySelector('.room-leave').addEventListener('click', () => (isHost ? hostLeave() : clientLeave()));
     const confirmBtn = container.querySelector('.room-confirm');
     if (confirmBtn) confirmBtn.addEventListener('click', clientConfirm);
+    container.querySelectorAll('.mp-kick').forEach(btn => btn.addEventListener('click', () => kickMember(btn.dataset.kick)));
     if (isHost && s.phase === 'lobby') {
       const fill = container.querySelector('.room-fill');
       if (fill) fill.addEventListener('change', e => {

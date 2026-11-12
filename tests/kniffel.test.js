@@ -132,4 +132,22 @@ const seats = n => Array.from({ length: n }, (_, i) => ({ id: 'p' + i, name: 'Sp
   assert(!('plan' in v) && v.players.every(p => !('skill' in p)), 'Ansicht ohne Interna');
 }
 
+// ---------- Bedenkzeit: Würfel halten startet sie nicht neu ----------
+{
+  const st = K.create(seats(2), { mode: 'full' });
+  const t = st.turn;
+  const k0 = K.turnKey(st);
+  K.act(st, t, { type: 'roll' });
+  const k1 = K.turnKey(st);
+  assert(k1 !== k0, 'Würfeln ist ein neuer Abschnitt (Zeit startet neu)');
+  for (let i = 0; i < 20; i++) K.act(st, t, { type: 'hold', i: i % 5 });
+  assert(K.turnKey(st) === k1, 'Würfel halten (auch 20-mal) startet die Bedenkzeit nicht neu');
+  K.act(st, t, { type: 'roll' });
+  K.act(st, t, { type: 'roll' });
+  assert(!K.act(st, t, { type: 'roll' }), 'Höchstens 3 Würfe – die Zeit kann also nur 3-mal neu starten');
+  const k3 = K.turnKey(st);
+  K.act(st, t, { type: 'score', cat: 'chance' });
+  assert(K.turnKey(st) !== k3, 'Neuer Spieler: neue Bedenkzeit');
+}
+
 console.log(process.exitCode ? 'Kniffel-Tests FEHLGESCHLAGEN' : 'Kniffel-Tests bestanden.');
