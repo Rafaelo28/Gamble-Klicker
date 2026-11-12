@@ -110,7 +110,7 @@ GK.i18n.add({
       showMessage(GK.t('Dein Limit sind {limit} Dublonen pro Rennen – eine bessere VIP-Karte erhöht es.', { limit: GK.formatNumber(GK.casino.maxBet()) }), 'loss');
       return;
     }
-    if (!GK.casino.bet(s.chip)) {
+    if (!GK.casino.bet(s.chip, 'race')) {
       GK.sound.play('denied');
       showMessage(GK.t('Nicht genug Dublonen für diesen Chip.'), 'loss');
       return;
@@ -125,7 +125,7 @@ GK.i18n.add({
   function clearBets() {
     const s = state();
     if (racing || s.pending) return;
-    GK.casino.refund(totalBets(s.bets));
+    GK.casino.refund(totalBets(s.bets), 'race');
     s.bets = {};
     GK.save();
     renderLanes();

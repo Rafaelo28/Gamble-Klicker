@@ -77,7 +77,7 @@ GK.i18n.add({
   function start() {
     const s = state();
     if (s.round) return;
-    if (!GK.casino.bet(s.bet)) {
+    if (!GK.casino.bet(s.bet, 'mines')) {
       GK.sound.play('denied');
       showMessage(GK.t('Nicht genug Dublonen für diesen Einsatz.'), 'loss');
       return;

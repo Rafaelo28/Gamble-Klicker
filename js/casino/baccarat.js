@@ -112,7 +112,7 @@ GK.i18n.add({
   function deal() {
     const s = state();
     if (s.pending || dealing) return;
-    if (!GK.casino.bet(s.bet)) {
+    if (!GK.casino.bet(s.bet, 'baccarat')) {
       GK.sound.play('denied');
       showMessage(GK.t('Nicht genug Dublonen für diesen Einsatz.'), 'loss');
       return;

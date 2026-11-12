@@ -3945,6 +3945,14 @@ button.casino-card:active {
   color: var(--gold);
 }
 
+/* Gastgeber: Mitspieler aus dem Warteraum entfernen (große Tippfläche fürs iPad) */
+.mp-kick {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 10px;
+  color: #ff8a80;
+}
+
 .mp-check {
   display: block;
   margin: 8px 0;
@@ -10593,4 +10601,35 @@ input[type="checkbox"]:not(.switch):checked {
   padding: 1px 6px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.6);
+}
+
+/* Pause-Seite, wenn das Spiel in einem anderen Tab läuft (js/main.js) */
+.tab-paused {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: var(--bg, #06120c);
+}
+
+.tab-paused-box {
+  max-width: 460px;
+  padding: 28px 24px;
+  text-align: center;
+  background: var(--bg-panel);
+  border: 1px solid var(--gold-dark);
+  border-radius: 14px;
+}
+
+.tab-paused-icon {
+  font-size: 48px;
+  color: var(--gold);
+}
+
+.tab-paused-icon .ic {
+  width: 56px;
+  height: 56px;
 }

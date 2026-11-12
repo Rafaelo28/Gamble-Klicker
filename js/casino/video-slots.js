@@ -395,7 +395,7 @@ GK.i18n.add({
       if (freeMode) {
         bet = s.free.bet;
         s.free.left--;
-      } else if (!GK.casino.bet(bet)) {
+      } else if (!GK.casino.bet(bet, theme.id)) {
         autoLeft = 0;
         GK.sound.play('denied');
         showMessage(GK.t('Nicht genug Dublonen für diesen Einsatz.'), 'loss');

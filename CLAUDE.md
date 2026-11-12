@@ -4,6 +4,23 @@ Browser-Spiel (Cookie Clicker + Casino) von **Rafaelo28**. Reines HTML, CSS und 
 ohne Framework und ohne Build-Schritt – `index.html` im Browser öffnen genügt.
 Online über GitHub Pages aus `main`: https://rafaelo28.github.io/Gamble-Klicker/
 
+## Ausführliche Doku
+
+Unter [`docs/`](docs/README.md) steht für jeden Bereich, wie er aufgebaut ist, mit Rezepten und Stolperfallen.
+Vor einer Änderung die passende Datei lesen; ändert sich eine Schnittstelle, die Doku mit anpassen.
+
+- [`docs/README.md`](docs/README.md) – Einstieg: wo steht was, Prüfliste vor dem Commit
+- [`docs/KERN.md`](docs/KERN.md) – Ladereihenfolge, Spielschleife, Geld, Spielstand, Spielstand-Code, Zahlenformate
+- [`docs/OBERFLAECHE.md`](docs/OBERFLAECHE.md) – Sprache, Symbole, Effekte, Ton, CSS, iPad
+- [`docs/CASINO.md`](docs/CASINO.md) – `GK.casino`, Geldfluss einer Runde, neues Casino-Spiel, alle Spiele
+- [`docs/MEHRSPIELER.md`](docs/MEHRSPIELER.md) – Spielräume (`js/mp/room.js`), Nachrichten, Physik, alle Spiele mit Freunden
+- [`docs/POKER.md`](docs/POKER.md) – Poker (Engine, Turnier, Computer-Gegner, online) und Freundes-Rangliste
+- [`docs/KLICKER.md`](docs/KLICKER.md) – Klicker, Boni, große Fahrt, Erfolge, Aufgaben, Ränge, Schatzkammer, Figur, Flotte, Boss, Kraken
+- [`docs/TESTEN.md`](docs/TESTEN.md) – Node-Tests und Browser-Tests
+- [`docs/ARBEITSWEISE.md`](docs/ARBEITSWEISE.md) – Branch, Versionsnummer, Pull Request, Fork und Original
+- [`docs/EXPLOITS.md`](docs/EXPLOITS.md) – Prüfbericht: Schwachstellen und Mogel-Möglichkeiten (Stand 10.11.2026) mit
+  Vorschlägen zum Beheben. Vor Änderungen an Spielstand, Import, Räumen oder Belohnungen lesen.
+
 ## Arbeitsweise (mit Rafaelo28 abgesprochen)
 
 - Auf dem Arbeits-Branch entwickeln, einen **Pull Request nach `main`** erstellen und ihn
@@ -28,13 +45,19 @@ Online über GitHub Pages aus `main`: https://rafaelo28.github.io/Gamble-Klicker
   und neue Dateien aus dem Zwischenspeicher.
 - **Spielstände bleiben kompatibel**: Neue Felder bekommen Standardwerte in `js/state.js`
   (`createDefaultState` / `applyData`), damit alte Spielstände weiter laden.
+- **Laufende Runden**: Ein Casino-Spiel, dessen bezahlte Runde das Neuladen übersteht, gehört in
+  `GK.casino.RUNNING` (`js/casino/casino.js`) – sonst übersteht der Einsatz die große Fahrt bzw. lässt sich
+  per Import mit bekanntem Ausgang wiederholen.
 - **Spiele mit Freunden** (außer Poker) bauen auf `js/mp/room.js` auf: Raum, Eintritt, Verbindung,
   Abrechnung und „gegen Computer“ kommen von dort, das Spiel liefert nur Regeln und Darstellung.
 - **Daten von außen** (Spielstand-Code, Nachrichten anderer Geräte) laufen durch `GK.cleanData` (`js/state.js`):
   in `applyData` und in `unpack` (`js/mp/room.js`, `js/poker/multiplayer.js`). Neue Wege für fremde Daten genauso absichern.
 - **Dublonen** nur über `GK.earn` / `GK.spend` bzw. im Casino über `GK.casino.bet`,
-  `payout`, `refund` und `record` bewegen. Spielzustände über `GK.casino.data(id)` lesen,
+  `payout`, `refund` und `record` bewegen – `bet(betrag, spielId)` und `refund(betrag, spielId)` immer mit
+  Spiel-ID (für die Glückssträhne). Spielzustände über `GK.casino.data(id)` lesen,
   laufende Runden sofort speichern (Neuladen darf keinen Einsatz kosten).
+- **Zeit**: Für Buffs, Fahrten, Tageswechsel, Offline-Einkommen usw. `GK.now()` statt `Date.now()` verwenden
+  (`js/state.js`, läuft nie rückwärts – sonst lässt sich alles mit der Geräte-Uhr zurückspulen).
 - **Gestaltung**: Im Spiel keine Hinweise wie „Das Haus gewinnt immer“ und keine
   Auszahlungsquoten oder Gewinnchancen anzeigen. Es ist alles Spielgeld.
 - **Zielgerät**: iPad 8. Generation (810 × 1080 hochkant, 1080 × 810 quer, Touch). Große
@@ -71,7 +94,8 @@ Online über GitHub Pages aus `main`: https://rafaelo28.github.io/Gamble-Klicker
 - `node tests/daily.test.js` – Tägliche Aufgaben: Auslosen, Fortschritt, Abholen, Bonus und Serie, Tageswechsel.
 - `node tests/kraken.test.js` – Kraken-Angriff (Treffer, Diebstahl, Pause, Zeitplan) und Freundes-Rangliste (Austausch, Prüfung, Vermögen mit Gebäuden, Verlust in % vom Einkommen).
 - `node tests/stocks.test.js` – Hafenbörse: Kursmodell (fast immer Verlust), Kurse weiterrechnen, Kaufen/Verkaufen, Pleiten.
-- `node tests/bonus.test.js` – Klickkraft-Upgrades (Sternenhand verdreifacht wirklich) und Glückssträhne (Casino-Gewinne +30–50 %).
+- `node tests/bonus.test.js` – Klickkraft-Upgrades (Sternenhand verdreifacht wirklich) und Glückssträhne (Casino-Gewinne +30–50 %, nur für Einsätze während der Strähne), Belohnungen ohne laufende Buffs.
+- `node tests/clock.test.js` – Spielzeit-Uhr `GK.now()`: Geräte-Uhr zurück-/vorstellen bringt keine dauerhaften Buffs, kein mehrfaches Offline-Einkommen, keine schnelleren Fahrten.
 - `node tests/figure.test.js` – Eigene Figur: Code prüfen, Zeichnen aller Teile, Vorlagen (John Pork), gesperrte Teile, Namensschild, Rangliste, alte Spielstände.
 - `node tests/rank.test.js` – Ränge (Grenzen, Namen ohne Ende, Meldung), Rang-Teile der Figur, Rang in Namensschild und Rangliste, neue Gebäude.
 - `node tests/fleet.test.js` – Flotte: Kaufen/Ausbauen, Fahrten über Neuladen hinweg, Ausgänge, Schätze und Boni, Rückenwind, Ziele nach Rang, Ausgewogenheit, alte Spielstände.

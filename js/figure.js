@@ -515,9 +515,10 @@ GK.i18n.add({
   const me = () => GK.state.player;
 
   // Code, mit dem man zu sehen ist ('' = Emoji-Bild)
+  // (gesperrte Teile – z. B. aus einem bearbeiteten Spielstand – werden auch hier ersetzt)
   function mine() {
     const p = me();
-    return p.figOn ? valid(p.fig) : '';
+    return p.figOn && valid(p.fig) ? allowed(p.fig) : '';
   }
 
   // Code im Baukasten (auch wenn gerade das Emoji gezeigt wird)

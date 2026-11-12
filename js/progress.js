@@ -33,6 +33,9 @@ GK.i18n.add({
   'Warte, bis dein Flugzeug gelandet ist.': 'Wait until your plane has landed.',
   'Verkaufe zuerst deine Aktien an der Hafenbörse.': 'Sell your stocks on the harbor exchange first.',
   'Warte, bis alle Münzen gefallen sind.': 'Wait until all coins have dropped.',
+  'Spiele zuerst deine Runde bei Höher oder tiefer zu Ende.': 'Finish your Higher or Lower round first.',
+  'Beende zuerst deine Mast-Kletterei.': 'Finish your mast climb first.',
+  'Beende zuerst deine Runde bei Chicken Road.': 'Finish your Chicken Road round first.',
   'Spiel zuerst deine Freispiele bzw. die Bonusrunde zu Ende.': 'Finish your free spins or bonus round first.',
   // Große Fahrt
   'Schatzkarte': 'treasure map',
@@ -114,9 +117,16 @@ GK.i18n.add({
     return prestigeMult() * achievementMult() * fleetMult();
   }
 
+  // Laufende Buffs. Die Restzeit wird auf die Dauer des Buffs gedeckelt (ein Buff aus einem alten oder
+  // bearbeiteten Spielstand kann so nicht ewig halten).
   function activeBuffs() {
-    const now = Date.now();
-    return GK.state.buffs.filter(b => b.until > now);
+    const now = GK.now();
+    return GK.state.buffs.filter(b => {
+      const def = BUFFS[b.id];
+      if (!def) return false;
+      if (b.until > now + def.seconds * 1000) b.until = now + def.seconds * 1000;
+      return b.until > now;
+    });
   }
 
   function buffMult(type) {
@@ -125,8 +135,9 @@ GK.i18n.add({
 
   function addBuff(id, mult) {
     const def = BUFFS[id];
-    GK.state.buffs = GK.state.buffs.filter(b => b.id !== id && b.until > Date.now());
-    GK.state.buffs.push({ id, type: def.type, mult: mult || def.mult, until: Date.now() + def.seconds * 1000 });
+    const now = GK.now();
+    GK.state.buffs = GK.state.buffs.filter(b => b.id !== id && b.until > now);
+    GK.state.buffs.push({ id, type: def.type, mult: mult || def.mult, until: now + def.seconds * 1000 });
   }
 
   // Wirkung eines Buffs als Text: „×7“ bzw. bei der Glückssträhne „+40 %“
@@ -149,27 +160,10 @@ GK.i18n.add({
     return Math.pow(totalPrestigePoints() + 1, 3) * PRESTIGE_DIVISOR;
   }
 
-  // Laufende Casino-Runden würden beim Neustart verloren gehen
+  // Laufende Casino-Runden würden beim Neustart verloren gehen bzw. überstünden ihn (Liste: GK.casino.RUNNING)
   function prestigeBlocker() {
-    const g = GK.state.casino.games;
-    if (g.blackjack && g.blackjack.round && !g.blackjack.round.finished) return GK.t('Spiele zuerst deine Blackjack-Runde zu Ende.');
-    if (g.roulette && (g.roulette.pending || Object.keys(g.roulette.bets || {}).length)) return GK.t('Nimm zuerst deine Roulette-Chips vom Tisch.');
-    if ((g.slots && g.slots.pending) || (g.sideSlot && g.sideSlot.pending)) return GK.t('Warte, bis die Walzen stehen.');
-    if (g.scratch && g.scratch.current && !g.scratch.current.settled) return GK.t('Rubble zuerst dein Los auf.');
-    if (g.poker && g.poker.table) return GK.t('Beende zuerst dein Poker-Turnier.');
-    if (g.pokerMp && g.pokerMp.session) return GK.t('Verlasse zuerst deinen Poker-Raum.');
-    if (g.room && g.room.session) return GK.t('Beende zuerst dein Spiel mit Freunden bzw. gegen Computer.');
-    if (g.mines && g.mines.round) return GK.t('Beende zuerst deine Schatzsuche.');
-    if (g.stopwatch && g.stopwatch.round) return GK.t('Halte zuerst deine Stoppuhr an.');
-    if (g.parole && g.parole.round) return GK.t('Rate zuerst deine Parole zu Ende.');
-    if (g.crash && g.crash.round && !g.crash.round.cashed) return GK.t('Warte, bis die Kanonenkugel gelandet ist.');
-    if ((g.wheel && g.wheel.pending) || (g.race && (g.race.pending || Object.keys(g.race.bets || {}).length))) return GK.t('Warte, bis deine Runde vorbei ist.');
-    if (g.flight && g.flight.pending) return GK.t('Warte, bis dein Flugzeug gelandet ist.');
-    if (g.stocks && g.stocks.holdings && Object.keys(g.stocks.holdings).length) return GK.t('Verkaufe zuerst deine Aktien an der Hafenbörse.');
-    if (g.plinko && ((g.plinko.pending && g.plinko.pending.length) || g.plinko.mass)) return GK.t('Warte, bis alle Münzen gefallen sind.');
-    const vs = ['vsPirate', 'vsOcean', 'vsVolcano'].map(id => g[id]).filter(Boolean);
-    if (vs.some(x => x.pending || x.free || x.bonus)) return GK.t('Spiel zuerst deine Freispiele bzw. die Bonusrunde zu Ende.');
-    return '';
+    const r = GK.casino.runningRound();
+    return r ? r.text : '';
   }
 
   function goOnJourney() {
@@ -210,7 +204,7 @@ GK.i18n.add({
 
   // Beim Laden: Einnahmen seit dem letzten Speichern gutschreiben
   function applyOfflineEarnings() {
-    const seconds = (Date.now() - GK.state.lastSaved) / 1000;
+    const seconds = (GK.now() - GK.state.lastSaved) / 1000;
     if (seconds < 60 || !GK.clicker.passiveActive()) return;
     const counted = Math.min(seconds, OFFLINE_MAX);
     const amount = GK.clicker.getCpsPermanent() * counted * OFFLINE_RATE;
@@ -222,7 +216,7 @@ GK.i18n.add({
   // ---------- Goldene Dublone ----------
 
   function updateGolden() {
-    const now = Date.now();
+    const now = GK.now();
     if (golden && now > golden.expires) {
       golden.el.remove();
       golden = null;
@@ -241,7 +235,7 @@ GK.i18n.add({
     el.style.top = margin + GK.rng.int(Math.max(1, window.innerHeight - margin * 2)) + 'px';
     el.addEventListener('click', collectGolden);
     document.body.appendChild(el);
-    golden = { el, expires: Date.now() + GOLDEN_LIFETIME * 1000 };
+    golden = { el, expires: GK.now() + GOLDEN_LIFETIME * 1000 };
     GK.sound.play('golden');
   }
 
@@ -253,7 +247,7 @@ GK.i18n.add({
     GK.fx.burst(pos.x, pos.y, { count: 16, kind: 'sparkle', speed: 350 });
     golden.el.remove();
     golden = null;
-    nextGoldenAt = Date.now() + randomDelay() * 1000;
+    nextGoldenAt = GK.now() + randomDelay() * 1000;
     GK.state.goldenClicks++;
     GK.daily.track('golden', 1);
 
@@ -261,9 +255,10 @@ GK.i18n.add({
     let text;
     if (roll < 0.5) {
       // Schatzfund: 15 % des Guthabens, höchstens 15 Minuten Einkommen – mindestens 30 Klicks
+      // (Klickkraft ohne laufende Buffs – sonst lohnte es sich, auf Klickfieber zu warten)
       const amount = Math.max(
         Math.min(GK.state.money * 0.15, GK.clicker.getCpsPermanent() * 900),
-        GK.clicker.getClickPower() * 30);
+        GK.clicker.getClickPowerPermanent() * 30);
       GK.earn(amount, 'passive');
       GK.fx.floatText(pos.x, pos.y, '+' + GK.formatMoneyHTML(amount), 'win big');
       text = GK.t('<b>Schatzfund!</b><br>+{amount}', { amount: GK.formatMoneyHTML(amount) });
@@ -289,7 +284,7 @@ GK.i18n.add({
   // 10× pro Sekunde von vorn
   function renderBuffBar() {
     const bar = document.getElementById('buff-bar');
-    const now = Date.now();
+    const now = GK.now();
     const buffs = activeBuffs();
     const ids = buffs.map(b => b.id).join();
     if (bar._ids !== ids) {
@@ -331,7 +326,7 @@ GK.i18n.add({
   }
 
   function init() {
-    nextGoldenAt = Date.now() + randomDelay() * 1000;
+    nextGoldenAt = GK.now() + randomDelay() * 1000;
     document.getElementById('prestige-btn').addEventListener('click', goOnJourney);
   }
 

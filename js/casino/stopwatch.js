@@ -62,8 +62,8 @@ GK.i18n.add({
 
   // Abstand zur Zielzeit in Hundertstel → Rückzahlung (inklusive Einsatz)
   const TABLE = [
-    { max: 0, mult: 2.2, icon: '🎯', text: 'Volltreffer – auf die Hundertstel genau!' },
-    { max: 1, mult: 1.1, icon: '🔥', text: 'Nur eine Hundertstel daneben!' },
+    { max: 0, mult: 2, icon: '🎯', text: 'Volltreffer – auf die Hundertstel genau!' },
+    { max: 1, mult: 1, icon: '🔥', text: 'Nur eine Hundertstel daneben!' },
     { max: 3, mult: 0.6, icon: '👍', text: 'Ganz knapp daneben.' },
     { max: 6, mult: 0.2, icon: '🙂', text: 'Fast getroffen.' },
   ];
@@ -111,7 +111,7 @@ GK.i18n.add({
   function start() {
     const s = state();
     if (s.round || performance.now() - stoppedAt < START_LOCK_MS) return;
-    if (!GK.casino.bet(s.bet)) {
+    if (!GK.casino.bet(s.bet, 'stopwatch')) {
       GK.sound.play('denied');
       showMessage(GK.t('Nicht genug Dublonen für diesen Einsatz.'), 'loss');
       return;
@@ -207,7 +207,7 @@ GK.i18n.add({
       showMessage(GK.t('Die Seite wurde neu geladen, als die Zielzeit schon vorbei war – die Runde zählt als verloren.'), 'loss');
     } else {
       s.round = null;
-      GK.casino.refund(r.bet);
+      GK.casino.refund(r.bet, 'stopwatch');
       GK.save();
       showMessage(GK.t('Die Seite wurde während der Runde neu geladen – du hast deinen Einsatz zurück.'), '');
       render();

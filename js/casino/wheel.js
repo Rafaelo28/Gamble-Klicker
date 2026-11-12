@@ -100,13 +100,21 @@ GK.i18n.add({
 
   // ---------- Gratis-Dreh ----------
 
+  // Tag als Zahl JJJJMMTT (Spielzeit – läuft nie rückwärts, js/state.js)
+  function dayNum(d) {
+    return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+  }
+
   function today() {
-    const d = new Date();
+    const d = new Date(GK.now());
     return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
   }
 
+  // Gratis-Dreh: nur an einem späteren Tag als dem letzten (ein zurückgestellter Tag bringt keinen neuen)
   function freeAvailable() {
-    return state().lastFree !== today();
+    const last = String(state().lastFree || '').split('-').map(Number);
+    if (last.length !== 3 || last.some(n => !Number.isFinite(n))) return true;
+    return dayNum(new Date(GK.now())) > last[0] * 10000 + last[1] * 100 + last[2];
   }
 
   function freeValue() {
@@ -123,7 +131,7 @@ GK.i18n.add({
       if (!freeAvailable()) return;
       bet = freeValue();
       s.lastFree = today();
-    } else if (!GK.casino.bet(bet)) {
+    } else if (!GK.casino.bet(bet, 'wheel')) {
       GK.sound.play('denied');
       showMessage(GK.t('Nicht genug Dublonen für diesen Einsatz.'), 'loss');
       return;

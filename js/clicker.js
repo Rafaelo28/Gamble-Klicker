@@ -406,7 +406,9 @@ GK.i18n.add({
   // Die frühen „Klickkraft ×2“ vervielfachen nur den Grundwert. Die späten (Goldene Faust, Hand des Midas,
   // Sternenhand, Hand der Götter – „all“) vervielfachen auch den Anteil vom Einkommen: Wenn man sie kaufen
   // kann, macht der Grundwert kaum noch etwas aus, sonst wäre ihr ×3 nicht zu spüren.
-  function getClickPower() {
+  // permanent: ohne zeitlich begrenzte Buffs (Klickfieber, Goldrausch) – für Belohnungen, die sonst mit einem
+  // gerade laufenden Buff viel größer ausfielen (Tagesaufgaben, Kraken-Beute, Schatzfund)
+  function getClickPower(permanent = false) {
     let mult = 1;
     let allMult = 1;
     let cpsShare = 0;
@@ -421,8 +423,11 @@ GK.i18n.add({
     }
     // Trophäen aus Bosskämpfen (js/boss.js) gelten dauerhaft für alles
     const trophies = GK.boss ? GK.boss.clickMult() : 1;
-    return (mult * GK.progress.permanentMult() + getCps() * cpsShare * allMult) * GK.progress.buffMult('click') * trophies;
+    const cps = permanent ? getCpsPermanent() : getCps();
+    return (mult * GK.progress.permanentMult() + cps * cpsShare * allMult) * (permanent ? 1 : GK.progress.buffMult('click')) * trophies;
   }
+
+  const getClickPowerPermanent = () => getClickPower(true);
 
   // Wie viel mehr pro Klick brächte ein Klick-Upgrade? (Anzeige auf der Kachel)
   function upgradeClickGain(u) {
@@ -474,12 +479,19 @@ GK.i18n.add({
 
   // ---------- Aktionen ----------
 
+  // Mehr als 25 Klicks pro Sekunde zählen nicht (schneller tippt niemand – kein Dauerfeuer per Programm)
+  const MAX_CLICKS_PER_SECOND = 25;
+  const recentClicks = [];
+
   function click(event) {
+    const now = performance.now();
+    while (recentClicks.length && now - recentClicks[0] >= 1000) recentClicks.shift();
+    if (recentClicks.length >= MAX_CLICKS_PER_SECOND) return;
+    recentClicks.push(now);
     const coin = document.getElementById('big-coin');
     const pos = event && event.clientX ? { x: event.clientX, y: event.clientY } : GK.fx.center(coin);
     // Erst alles messen, dann schreiben – sonst muss der Browser pro Tipp mehrmals das Layout berechnen
     const local = layerPos(pos);
-    const now = performance.now();
     combo.count = now - combo.last <= COMBO_WINDOW ? combo.count + 1 : 1;
     combo.last = now;
     if (combo.count > GK.state.bestCombo) GK.state.bestCombo = combo.count;
@@ -854,6 +866,8 @@ GK.i18n.add({
       click(e);
     });
     coin.addEventListener('click', e => { if (e.detail === 0) click(e); }); // Tastatur (Enter/Leertaste)
+    // Gedrückt gehaltene Taste: Wiederholungen zählen nicht (sonst wäre Enter ein Autoklicker)
+    coin.addEventListener('keydown', e => { if (e.repeat) e.preventDefault(); });
     document.getElementById('passive-toggle').addEventListener('change', e => setPassive(e.target.checked));
     document.getElementById('upgrade-more').addEventListener('click', () => {
       showAllUpgrades = !showAllUpgrades;
@@ -886,6 +900,7 @@ GK.i18n.add({
     getCpsPermanent,
     passiveActive,
     getClickPower,
+    getClickPowerPermanent,
     totalBuildings,
     buildingsWorth,
     ownsAllBuildings: () => BUILDINGS.every(b => owned(b.id) > 0),

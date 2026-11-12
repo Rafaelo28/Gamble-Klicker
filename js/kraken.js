@@ -129,7 +129,7 @@ GK.i18n.add({
   }
 
   function defeat() {
-    const loot = Math.floor(Math.max(GK.clicker.getCpsPermanent() * LOOT_SECONDS, GK.clicker.getClickPower() * LOOT_CLICKS));
+    const loot = Math.floor(Math.max(GK.clicker.getCpsPermanent() * LOOT_SECONDS, GK.clicker.getClickPowerPermanent() * LOOT_CLICKS));
     GK.earn(loot, 'passive');
     k().attack = null;
     k().defeated++;
@@ -296,8 +296,17 @@ GK.i18n.add({
     GK.clicker.render();
   }
 
+  // Nach Import oder Zurücksetzen: Anzeige an den (neuen) Spielstand anpassen
+  function reset() {
+    if (els) {
+      els.root.remove();
+      els = null;
+    }
+    if (k() && k().attack) show(false);
+  }
+
   GK.kraken = {
-    update, setEnabled,
+    update, setEnabled, reset,
     // für Tests
     DURATION, HP, pickArms, releasedCount, stealAmount, begin, hit, advance,
     _start: () => begin() && show(true),

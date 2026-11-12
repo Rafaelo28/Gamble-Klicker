@@ -96,7 +96,8 @@ GK.poker = GK.poker || {};
   // paying: wie viele echten Eintritt bezahlt haben (mit Freunden zahlen Computer-Gegner nichts)
   function prize(place, entry, players, paying = players) {
     const shares = prizeShares(players);
-    return place >= 1 && place <= shares.length ? Math.floor(entry * paying * shares[place - 1]) : 0;
+    // + 1e-6: 1.000 × 5,7 × 0,5 ergibt sonst 2.849,999… statt 2.850
+    return place >= 1 && place <= shares.length ? Math.floor(entry * paying * shares[place - 1] + 1e-6) : 0;
   }
 
   function tier(id) {
@@ -189,7 +190,8 @@ GK.poker = GK.poker || {};
 
   // Was ist der Platz am Tisch gerade wert? Die noch Verbliebenen spielen um die Plätze 1 bis n.
   // Chips, die man in der laufenden Hand schon gesetzt hat, sind verloren und gehen an die anderen.
-  function cashOutValue(t, seat, entry) {
+  // paying: wie viele Eintritte im Topf liegen (gegen Computer: 6 × 0,95, siehe js/poker/poker.js)
+  function cashOutValue(t, seat, entry, paying = t.players.length) {
     const players = t.players.length;
     const alive = t.players.map((p, i) => i).filter(i => !t.players[i].out);
     if (t.players[seat].out || !alive.includes(seat)) return 0;
@@ -204,8 +206,8 @@ GK.poker = GK.poker || {};
       share.forEach(i => { stacks[i] += lost / share.length; });
     }
     // Blitz: so, als wäre jetzt Schluss (die Besten teilen nach Chips)
-    if (isBlitz(t)) return blitzPayouts(stacks, entry, players)[seat];
-    const prizes = alive.map((_, k) => prize(k + 1, entry, players));
+    if (isBlitz(t)) return blitzPayouts(stacks, entry, players, paying)[seat];
+    const prizes = alive.map((_, k) => prize(k + 1, entry, players, paying));
     return Math.floor(icm(stacks, prizes)[seat]);
   }
 

@@ -173,4 +173,21 @@ function setTasks(tasks) {
   assert(d().tasks.length === 3, 'Danach gibt es sofort Aufgaben');
 }
 
+// ---------- Uhr zurückgestellt: kein neuer Tag, kein zweiter Bonus ----------
+{
+  day = 30;
+  D.ensureDay();
+  setTasks([task('clicks', { progress: 1, done: true }), task('earn', { progress: 1, done: true }), task('game', { progress: 1, done: true })]);
+  [0, 1, 2].forEach(i => D.claim(i));
+  assert(D.claimBonus() > 0, 'Bonus abgeholt');
+  const tasks = JSON.stringify(d().tasks);
+  day = 29;
+  assert(D.ensureDay() === false && JSON.stringify(d().tasks) === tasks && d().day === '2026-11-28', 'Tag zurück: keine neuen Aufgaben');
+  assert(D.claimBonus() === 0, 'Tag zurück: Bonus nicht noch einmal');
+  day = 30;
+  assert(D.claimBonus() === 0, 'Wieder heute: Bonus schon abgeholt');
+  day = 31;
+  assert(D.ensureDay() === true, 'Echter nächster Tag: neue Aufgaben');
+}
+
 console.log(process.exitCode ? 'Tagesaufgaben-Tests FEHLGESCHLAGEN' : 'Tagesaufgaben-Tests bestanden.');

@@ -95,4 +95,18 @@ for (let k = 0; k < 2000; k++) {
   const sixPay = six.players.map((p, i) => mp(six, i, E));
   assert(sixPay[4] === 0 && sixPay[5] === 0 && sixPay.reduce((a, c) => a + c, 0) <= 6 * E && sixPay.reduce((a, c) => a + c, 0) >= 6 * E - 6, `Poker Blitz 6 Freunde: ${sixPay}`);
 }
+// Poker gegen Computer: wie die anderen Spiele gegen Computer 95 % (der Topf zählt 6 × 0,95 Eintritte)
+{
+  const T = GK.poker.tournament;
+  const paying = 6 * 0.95;
+  const prizes = [1, 2, 3, 4].map(p => T.prize(p, E, 6, paying));
+  assert(prizes[0] === 2850 && prizes[1] === 1710 && prizes[2] === 1140 && prizes[3] === 0, `Poker gegen Computer: ${prizes}`);
+  assert(prizes.reduce((a, c) => a + c, 0) === 5700, 'Poker gegen Computer: 95 % der sechs Eintritte');
+  // Aussteigen: bei gleichen Chips ein Sechstel des (95-%-)Topfs
+  const seats = [{ id: 'you', name: 'Du', isBot: false }].concat(T.botSeats(5));
+  const t = T.createTable(seats, 'classic');
+  t.phase = 'waiting';
+  const cash = T.cashOutValue(t, 0, E, paying);
+  assert(Math.abs(cash - 0.95 * E) <= 1, `Poker gegen Computer: Aussteigen am Anfang ≈ 95 % des Eintritts (${cash})`);
+}
 console.log(process.exitCode ? 'Preis-Tests FEHLGESCHLAGEN' : 'Preis-Tests bestanden.');

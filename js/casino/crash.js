@@ -72,7 +72,7 @@ GK.i18n.add({
     // Schon abkassiert und die alte Kugel fliegt noch? Dann einfach die nächste abfeuern.
     if (s.round && s.round.cashed) finishRound(s.round);
     if (s.round) return;
-    if (!GK.casino.bet(s.bet)) {
+    if (!GK.casino.bet(s.bet, 'crash')) {
       GK.sound.play('denied');
       showMessage(GK.t('Nicht genug Dublonen für diesen Einsatz.'), 'loss');
       return;

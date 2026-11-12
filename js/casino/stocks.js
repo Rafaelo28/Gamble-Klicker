@@ -307,7 +307,7 @@ GK.i18n.add({
     const s = state();
     const stock = selected(s);
     const amount = s.bet;
-    if (!GK.casino.bet(amount)) {
+    if (!GK.casino.bet(amount, 'stocks')) {
       GK.sound.play('denied');
       showMessage(GK.t('Nicht genug Dublonen für diesen Betrag.'), 'loss');
       return;

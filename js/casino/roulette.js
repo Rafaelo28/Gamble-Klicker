@@ -90,7 +90,7 @@ GK.i18n.add({
       showMessage(GK.t('Dein Limit sind {n} Dublonen pro Drehung – eine bessere VIP-Karte erhöht es.', { n: GK.formatNumber(GK.casino.maxBet()) }), 'loss');
       return false;
     }
-    if (!GK.casino.bet(amount)) {
+    if (!GK.casino.bet(amount, 'roulette')) {
       showMessage(GK.t('Nicht genug Dublonen für diesen Chip.'), 'loss');
       return false;
     }
@@ -105,7 +105,7 @@ GK.i18n.add({
   function clearBets() {
     if (spinning) return;
     const s = state();
-    GK.casino.refund(totalBets(s.bets));
+    GK.casino.refund(totalBets(s.bets), 'roulette');
     s.bets = {};
     GK.save();
     drawBets();

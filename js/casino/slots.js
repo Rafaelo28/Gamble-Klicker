@@ -43,7 +43,7 @@ GK.i18n.add({
   function spin() {
     if (spinning) return;
     const s = state();
-    if (!GK.casino.bet(s.bet)) {
+    if (!GK.casino.bet(s.bet, 'slots')) {
       autoLeft = 0;
       GK.sound.play('denied');
       showMessage(GK.t('Nicht genug Dublonen für diesen Einsatz.'), 'loss');

@@ -371,7 +371,7 @@ GK.i18n.add({
   function startRound() {
     const s = state();
     if (s.round) return true;
-    if (!GK.casino.bet(s.bet)) {
+    if (!GK.casino.bet(s.bet, 'chicken')) {
       GK.sound.play('denied');
       showMessage(GK.t('Nicht genug Dublonen für diesen Einsatz.'), 'loss');
       return false;

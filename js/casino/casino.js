@@ -131,7 +131,8 @@ GK.i18n.add({
   ];
 
   function vipLevel() {
-    return casino().vip || 0;
+    const v = Math.floor(Number(casino().vip) || 0);
+    return Math.min(VIP_LEVELS.length - 1, Math.max(0, v));
   }
 
   // Höchster erlaubter Einsatz pro Runde
@@ -159,10 +160,29 @@ GK.i18n.add({
     return limit === Infinity ? GK.t('unbegrenzt') : GK.t('{n} Dublonen', { n: GK.formatNumber(limit) });
   }
 
+  // Glückssträhne: Sie gilt nur für Einsätze, die während der Strähne gesetzt wurden. Je Spiel wird gemerkt,
+  // wie viel so gesetzt wurde (auch über Neuladen hinweg) – sonst ließen sich geparkte Gewinne (Schatzinsel,
+  // Chicken Road, Höher oder tiefer …) erst während einer Glückssträhne auszahlen. Räume mit Freunden und
+  // Poker mit Freunden setzen ohne Spiel-ID und bekommen darum keinen Bonus.
+  const currentLuck = () => (GK.progress && GK.progress.buffMult ? GK.progress.buffMult('luck') : 1);
+  function luckStakes() {
+    const c = casino();
+    if (!c.luck || typeof c.luck !== 'object') c.luck = {};
+    return c.luck;
+  }
+
   // Einsatz abbuchen. Gibt false zurück, wenn das Guthaben nicht reicht.
-  function bet(amount) {
+  // gameId: Spiel, zu dem der Einsatz gehört (für die Glückssträhne)
+  function bet(amount, gameId) {
     if (!(amount > 0) || !GK.spend(amount)) return false;
     casino().wagered += amount;
+    const luck = gameId ? currentLuck() : 1;
+    if (luck > 1) {
+      const l = luckStakes();
+      const e = l[gameId] && typeof l[gameId] === 'object' ? l[gameId] : (l[gameId] = { stake: 0, mult: luck });
+      e.stake = (Number(e.stake) || 0) + amount;
+      e.mult = luck;
+    }
     return true;
   }
 
@@ -174,10 +194,15 @@ GK.i18n.add({
   }
 
   // Noch nicht gespielten Einsatz zurückgeben (z. B. Roulette-Chips wieder vom Tisch nehmen)
-  function refund(amount) {
+  function refund(amount, gameId) {
     if (!(amount > 0)) return;
     GK.state.money += amount;
     casino().wagered -= amount;
+    const l = gameId && casino().luck;
+    if (l && l[gameId]) {
+      l[gameId].stake = (Number(l[gameId].stake) || 0) - amount;
+      if (!(l[gameId].stake > 0)) delete l[gameId];
+    }
   }
 
   // Statistik eines Spiels (leer, wenn es noch nie gespielt wurde)
@@ -206,13 +231,22 @@ GK.i18n.add({
   }
 
   // Runde im Verlauf festhalten und speichern
-  // Glückssträhne (aus der goldenen Dublone): Der Gewinn einer Runde zählt 30–50 % mehr.
+  // Glückssträhne (aus der goldenen Dublone): Der Gewinn einer Runde zählt 30–50 % mehr – aber nur für den Teil
+  // des Einsatzes, der während der Strähne gesetzt wurde (siehe bet). Runden ohne Einsatz (Freispiele,
+  // Bonus-Truhen, Gratis-Dreh) bekommen keinen Bonus.
   // Der Bonus wird hier für alle Spiele gemeinsam ausgezahlt und mit der Runde verbucht.
-  function luckBonus(betAmount, payoutAmount) {
-    const luck = GK.progress && GK.progress.buffMult ? GK.progress.buffMult('luck') : 1;
-    if (luck <= 1 || payoutAmount <= betAmount) return 0;
-    // in ganzen Prozent rechnen (1,4 − 1 ergibt sonst 0,3999…)
-    const bonus = Math.floor((payoutAmount - betAmount) * Math.round((luck - 1) * 100) / 100);
+  function luckBonus(gameId, betAmount, payoutAmount) {
+    const l = casino().luck;
+    const e = l && l[gameId];
+    if (!e || !(betAmount > 0)) return 0;
+    const covered = Math.min(betAmount, Math.max(0, Number(e.stake) || 0));
+    e.stake = (Number(e.stake) || 0) - covered;
+    if (!(e.stake > 0)) delete l[gameId];
+    const luck = Number(e.mult) || 1;
+    if (luck <= 1 || covered <= 0 || payoutAmount <= betAmount) return 0;
+    // in ganzen Prozent rechnen (1,4 − 1 ergibt sonst 0,3999…); höchstens +50 %
+    const pct = Math.min(50, Math.round((luck - 1) * 100));
+    const bonus = Math.floor((payoutAmount - betAmount) * (covered / betAmount) * pct / 100);
     if (bonus <= 0) return 0;
     payout(bonus);
     if (GK.fx && GK.fx.floatText && typeof window.innerWidth === 'number') {
@@ -223,7 +257,7 @@ GK.i18n.add({
   }
 
   function record(gameId, betAmount, payoutAmount, text) {
-    const bonus = luckBonus(betAmount, payoutAmount);
+    const bonus = luckBonus(gameId, betAmount, payoutAmount);
     if (bonus) {
       payoutAmount += bonus;
       text = `${text} · 🍀 +${GK.formatNumber(bonus)}`;
@@ -538,8 +572,66 @@ GK.i18n.add({
     renderLobbyInfo();
   }
 
+  // ---------- Laufende Runden ----------
+  // Je Spiel: Läuft dort eine bezahlte Runde, die über das Neuladen hinweg besteht? Gebraucht für die große Fahrt
+  // (erst zu Ende spielen, sonst überstünde der Einsatz die Fahrt) und den Import (Runden im importierten Stand
+  // verfallen – sonst ließe sich eine Runde mit bekanntem Ausgang, z. B. die Totenköpfe der Schatzinsel, immer
+  // wieder laden). Neue Spiele mit solchen Runden hier eintragen! keep: bleibt beim Import erhalten.
+  const hasKeys = o => !!o && typeof o === 'object' && Object.keys(o).length > 0;
+  const RUNNING = [
+    { id: 'blackjack', on: g => g.round && !g.round.finished, clear: g => { g.round = null; g.shoe = []; }, text: 'Spiele zuerst deine Blackjack-Runde zu Ende.' },
+    { id: 'roulette', on: g => g.pending || hasKeys(g.bets), clear: g => { g.pending = null; g.bets = {}; }, text: 'Nimm zuerst deine Roulette-Chips vom Tisch.' },
+    { id: 'slots', on: g => g.pending, clear: g => { g.pending = null; }, text: 'Warte, bis die Walzen stehen.' },
+    { id: 'sideSlot', on: g => g.pending, clear: g => { g.pending = null; }, text: 'Warte, bis die Walzen stehen.' },
+    { id: 'scratch', on: g => g.current && !g.current.settled, clear: g => { g.current = null; }, text: 'Rubble zuerst dein Los auf.' },
+    { id: 'poker', on: g => g.table, clear: g => { g.table = null; }, text: 'Beende zuerst dein Poker-Turnier.' },
+    { id: 'pokerMp', on: g => g.session, clear: g => { g.session = null; }, text: 'Verlasse zuerst deinen Poker-Raum.' },
+    { id: 'room', on: g => g.session, clear: g => { g.session = null; }, text: 'Beende zuerst dein Spiel mit Freunden bzw. gegen Computer.' },
+    { id: 'mines', on: g => g.round, clear: g => { g.round = null; }, text: 'Beende zuerst deine Schatzsuche.' },
+    { id: 'hilo', on: g => g.round, clear: g => { g.round = null; }, text: 'Spiele zuerst deine Runde bei Höher oder tiefer zu Ende.' },
+    { id: 'tower', on: g => g.round, clear: g => { g.round = null; }, text: 'Beende zuerst deine Mast-Kletterei.' },
+    { id: 'chicken', on: g => g.round, clear: g => { g.round = null; }, text: 'Beende zuerst deine Runde bei Chicken Road.' },
+    { id: 'stopwatch', on: g => g.round, clear: g => { g.round = null; }, text: 'Halte zuerst deine Stoppuhr an.' },
+    { id: 'parole', on: g => g.round, clear: g => { g.round = null; }, text: 'Rate zuerst deine Parole zu Ende.' },
+    { id: 'crash', on: g => g.round && !g.round.cashed, clear: g => { g.round = null; }, text: 'Warte, bis die Kanonenkugel gelandet ist.' },
+    { id: 'wheel', on: g => g.pending, clear: g => { g.pending = null; }, text: 'Warte, bis deine Runde vorbei ist.' },
+    { id: 'race', on: g => g.pending || hasKeys(g.bets), clear: g => { g.pending = null; g.bets = {}; }, text: 'Warte, bis deine Runde vorbei ist.' },
+    { id: 'keno', on: g => g.pending, clear: g => { g.pending = null; }, text: 'Warte, bis deine Runde vorbei ist.' },
+    { id: 'baccarat', on: g => g.pending, clear: g => { g.pending = null; }, text: 'Warte, bis deine Runde vorbei ist.' },
+    { id: 'flight', on: g => g.pending, clear: g => { g.pending = null; }, text: 'Warte, bis dein Flugzeug gelandet ist.' },
+    { id: 'stocks', on: g => hasKeys(g.holdings), keep: true, text: 'Verkaufe zuerst deine Aktien an der Hafenbörse.' },
+    { id: 'plinko', on: g => (Array.isArray(g.pending) && g.pending.length) || g.mass, clear: g => { g.pending = []; g.mass = null; }, text: 'Warte, bis alle Münzen gefallen sind.' },
+  ].concat(['vsPirate', 'vsOcean', 'vsVolcano'].map(id => ({
+    id, on: g => g.pending || g.free || g.bonus, clear: g => { g.pending = null; g.free = null; g.bonus = null; },
+    text: 'Spiel zuerst deine Freispiele bzw. die Bonusrunde zu Ende.',
+  })));
+
+  // Erste laufende Runde (oder null) – { id, text } mit übersetztem Text
+  function runningRound(games = GK.state.casino.games) {
+    for (const r of RUNNING) {
+      const g = games && games[r.id];
+      if (g && typeof g === 'object' && r.on(g)) return { id: r.id, text: GK.t(r.text) };
+    }
+    return null;
+  }
+
+  // Nach einem Import: laufende Runden des importierten Stands verfallen (der Einsatz ist schon abgebucht)
+  function clearRunning(games = GK.state.casino.games) {
+    let n = 0;
+    RUNNING.forEach(r => {
+      const g = games && games[r.id];
+      if (!r.keep && g && typeof g === 'object' && r.on(g)) {
+        r.clear(g);
+        n++;
+      }
+    });
+    if (casino().luck) casino().luck = {};
+    return n;
+  }
+
   GK.casino = {
     register, registerName, data, bet, payout, refund, record, createBetControl, init, render, refresh, openGame, show,
+    runningRound, clearRunning, RUNNING,
     VIP_LEVELS, vipLevel, maxBet, buyVip, gameStats, statsHTML, renderAllStats, gameName,
     list: () => games.map(g => ({ id: g.id, name: g.name, emoji: g.emoji, category: g.category || 'quick' })),
   };

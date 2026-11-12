@@ -6,6 +6,10 @@ GK.t = GK.t || function (s, v) { s = String(s); return v ? s.replace(/\{(\w+)\}/
 GK.i18n = GK.i18n || { add() {}, addHtml() {}, apply() {}, set() {}, lang: 'de' };
 
 GK.i18n.add({
+  'Gamble Klicker ist in einem anderen Tab offen': 'Gamble Klicker is open in another tab',
+  'Damit nichts verloren geht, läuft das Spiel immer nur in einem Tab. Hier ist es pausiert.': 'So that nothing gets lost, the game only runs in one tab at a time. It is paused here.',
+  'Hier weiterspielen': 'Continue playing here',
+  'Erst die laufende Runde beenden: {text}': 'Finish the running round first: {text}',
   'Spielstand gespeichert ✅': 'Game saved ✅',
   'Speichern nicht möglich ⚠️': 'Saving not possible ⚠️',
   'Ungültiger Spielstand-Code ⚠️': 'Invalid save code ⚠️',
@@ -96,6 +100,10 @@ GK.i18n.add({
   // Nach Import/Zurücksetzen alles neu aufbauen – im aktuell geöffneten Tab bleiben
   function refreshAll() {
     const currentTab = document.querySelector('.tab.active').dataset.tab;
+    // Ein laufender Bosskampf gehört zum alten Spielstand (sein Sieg darf nicht im neuen landen),
+    // ebenso eine noch sichtbare Kraken-Anzeige
+    GK.boss.stop();
+    GK.kraken.reset();
     GK.clicker.refresh();
     GK.cosmetics.refresh();
     GK.casino.refresh();
@@ -123,6 +131,12 @@ GK.i18n.add({
       $('transfer-box').hidden = true;
     });
     $('transfer-confirm').addEventListener('click', () => {
+      // Mit einer laufenden Runde nicht importieren (sie ginge verloren)
+      const running = GK.casino.runningRound();
+      if (running) {
+        GK.toast(GK.t('Erst die laufende Runde beenden: {text}', { text: running.text }));
+        return;
+      }
       if (!GK.importSave($('transfer-text').value)) {
         GK.toast(GK.t('Ungültiger Spielstand-Code ⚠️'));
         return;
@@ -253,30 +267,46 @@ GK.i18n.add({
     GK.friends.render();
     renderPlayer();
     GK.setText($('last-saved'), GK.storageAvailable
-      ? GK.t('vor {time}', { time: GK.formatDuration((Date.now() - s.lastSaved) / 1000) })
+      ? GK.t('vor {time}', { time: GK.formatDuration(Math.max(0, GK.now() - s.lastSaved) / 1000) })
       : GK.t('nicht möglich'));
   }
 
-  function render() {
-    const money = GK.formatNumber(GK.state.money);
-    GK.setText($('money'), money);
-    GK.setText($('cps'), GK.formatNumber(GK.clicker.getCps(), true));
-    $('cps-on').hidden = !GK.clicker.passiveActive();
-    $('cps-off').hidden = GK.clicker.passiveActive();
-    const title = GK.t('{money} Dublonen – Gamble Klicker', { money });
-    if (document.title !== title) document.title = title;
-    GK.clicker.render();
-    GK.sideSlot.render();
-    GK.casino.render();
-    GK.progress.update(GK.state.ui.tab === 'progress');
-    GK.fleet.update(GK.state.ui.tab === 'adventure');
-    GK.boss.update(GK.state.ui.tab === 'adventure');
-    GK.daily.update(GK.state.ui.tab === 'progress');
-    if (GK.state.ui.tab === 'progress') {
-      GK.achievements.render();
-      GK.cosmetics.render();
+  // Ein Fehler in einem Bereich (z. B. durch einen beschädigten Spielstand) darf nicht das ganze Spiel anhalten:
+  // Jeder Bereich läuft für sich, ein Fehler wird einmal gemeldet und der Rest läuft weiter.
+  const failed = new Set();
+  function safe(name, fn) {
+    try {
+      fn();
+    } catch (e) {
+      if (!failed.has(name)) {
+        failed.add(name);
+        console.error(`Bereich „${name}“ fehlgeschlagen:`, e);
+      }
     }
-    renderStats();
+  }
+
+  function render() {
+    safe('Kopfzeile', () => {
+      const money = GK.formatNumber(GK.state.money);
+      GK.setText($('money'), money);
+      GK.setText($('cps'), GK.formatNumber(GK.clicker.getCps(), true));
+      $('cps-on').hidden = !GK.clicker.passiveActive();
+      $('cps-off').hidden = GK.clicker.passiveActive();
+      const title = GK.t('{money} Dublonen – Gamble Klicker', { money });
+      if (document.title !== title) document.title = title;
+    });
+    safe('Klicker', () => GK.clicker.render());
+    safe('Seiten-Slot', () => GK.sideSlot.render());
+    safe('Casino', () => GK.casino.render());
+    safe('Fortschritt', () => GK.progress.update(GK.state.ui.tab === 'progress'));
+    safe('Flotte', () => GK.fleet.update(GK.state.ui.tab === 'adventure'));
+    safe('Bosskampf', () => GK.boss.update(GK.state.ui.tab === 'adventure'));
+    safe('Tagesaufgaben', () => GK.daily.update(GK.state.ui.tab === 'progress'));
+    if (GK.state.ui.tab === 'progress') {
+      safe('Erfolge', () => GK.achievements.render());
+      safe('Schatzkammer', () => GK.cosmetics.render());
+    }
+    safe('Statistiken', renderStats);
   }
 
   function loop(now) {
@@ -284,13 +314,13 @@ GK.i18n.add({
     const seconds = Math.min((now - lastTick) / 1000, 1);
     lastTick = now;
     GK.state.playTime += seconds;
-    GK.clicker.tick(seconds);
-    GK.kraken.update(seconds);
+    safe('Einkommen', () => GK.clicker.tick(seconds));
+    safe('Kraken', () => GK.kraken.update(seconds));
 
     if (now - lastCheck >= CHECK_INTERVAL) {
       lastCheck = now;
-      GK.rank.check();
-      GK.achievements.check();
+      safe('Ränge', () => GK.rank.check());
+      safe('Erfolge prüfen', () => GK.achievements.check());
     }
     if (now - lastRender >= RENDER_INTERVAL) {
       lastRender = now;
@@ -302,10 +332,10 @@ GK.i18n.add({
   // Im Hintergrund-Tab läuft die Spielschleife nicht – die Zeit wird bei der Rückkehr nachgeholt
   function onVisibilityChange() {
     if (document.visibilityState === 'hidden') {
-      hiddenAt = Date.now();
+      hiddenAt = GK.now();
       GK.save();
     } else if (hiddenAt) {
-      const seconds = Math.min((Date.now() - hiddenAt) / 1000, MAX_CATCH_UP);
+      const seconds = Math.min((GK.now() - hiddenAt) / 1000, MAX_CATCH_UP);
       hiddenAt = null;
       if (seconds > 1) {
         GK.state.playTime += seconds;
@@ -315,9 +345,59 @@ GK.i18n.add({
     }
   }
 
+  // ---------- Nur ein Tab spielt ----------
+  // Zwei offene Tabs speichern abwechselnd ihren eigenen Stand – das verliert Fortschritt und ließe sich nutzen,
+  // um Verluste zurückzuspulen (bei Verlust den einen Tab schließen, der andere schreibt den alten Stand zurück).
+  // Darum spielt immer der zuletzt geöffnete Tab; andere Tabs speichern nichts mehr und zeigen eine Pause-Seite.
+  const TAB_KEY = 'gamble-klicker-tab';
+  const PAUSED = /[?&]pausiert=1(&|$)/.test(location.search);
+  const tabId = Math.random().toString(36).slice(2) + Date.now().toString(36);
+
+  function claimTab() {
+    try {
+      localStorage.setItem(TAB_KEY, JSON.stringify({ id: tabId, t: Date.now() }));
+    } catch (e) {
+      // Ohne Speicher gibt es auch nichts zu überschreiben
+    }
+    window.addEventListener('storage', e => {
+      if (e.key !== TAB_KEY || !e.newValue || GK.paused) return;
+      let other = null;
+      try {
+        other = JSON.parse(e.newValue);
+      } catch (err) {
+        return;
+      }
+      if (other && other.id !== tabId) {
+        GK.paused = true; // GK.save schreibt ab jetzt nichts mehr (der andere Tab hat den neueren Stand)
+        location.replace(location.pathname + '?pausiert=1');
+      }
+    });
+  }
+
+  function showPausedPage() {
+    const box = document.createElement('div');
+    box.className = 'tab-paused';
+    box.innerHTML = `<div class="tab-paused-box">
+      <div class="tab-paused-icon">${GK.icon ? GK.icon('anchor') : '⚓'}</div>
+      <h2>${GK.t('Gamble Klicker ist in einem anderen Tab offen')}</h2>
+      <p>${GK.t('Damit nichts verloren geht, läuft das Spiel immer nur in einem Tab. Hier ist es pausiert.')}</p>
+      <button type="button" class="btn btn-primary btn-big tab-paused-go">${GK.t('Hier weiterspielen')}</button>
+    </div>`;
+    document.body.appendChild(box);
+    box.querySelector('.tab-paused-go').addEventListener('click', () => location.replace(location.pathname));
+  }
+
   function init() {
     GK.load();
     GK.i18n.init();
+    if (PAUSED) {
+      // Pause-Seite: nur lesen (für die Sprache), nichts speichern, keine Spielschleife
+      GK.paused = true;
+      if (history.replaceState) history.replaceState(null, '', location.pathname);
+      showPausedPage();
+      return;
+    }
+    claimTab();
     GK.room.readInviteLink();
     GK.poker.mp.readInviteLink();
     GK.onSave = flashSaveIndicator;
